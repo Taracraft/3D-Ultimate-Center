@@ -1,0 +1,8 @@
+[Unit]
+Description=3D-Printer Slicing Server Universal Dispatcher
+After=network-online.target 3d-printer-slicing-server.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /var/lib/homeassistant/3d-printer-slicing-server/dispatch-job.sh
