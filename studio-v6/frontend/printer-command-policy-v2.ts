@@ -1,6 +1,6 @@
 import type { V6CommandCapability, V6Job, V6Printer } from "./v6-api.js";
 
-export type PrinterCommand = "pause" | "resume" | "retry" | "stop";
+export type PrinterCommand = "pause" | "resume" | "retry" | "stop" | "speed";
 
 const RUNNING_STATES = new Set([
   "running",
@@ -29,6 +29,7 @@ const LABELS: Readonly<Record<PrinterCommand, string>> = {
   resume: "Fortsetzen",
   retry: "Erneut versuchen",
   stop: "Abbrechen",
+  speed: "Geschwindigkeit ändern",
 };
 
 export function normalizePrintState(value: unknown): string {
@@ -121,6 +122,7 @@ export function commandAllowedForState(
   const normalized = normalizePrintState(state);
   if (command === "pause") return RUNNING_STATES.has(normalized);
   if (command === "resume" || command === "retry") return PAUSED_STATES.has(normalized);
+  if (command === "speed") return RUNNING_STATES.has(normalized);
   return ACTIVE_STATES.has(normalized);
 }
 
