@@ -39,6 +39,7 @@ export type SliceMaterialPlan = Readonly<{
   purge_tower: SlicePurgeTower;
 }>;
 export type PlateSliceContext = Readonly<{
+  gcode_preset_ids?: Partial<Record<"start_sound" | "end_sound" | "gcode_1" | "gcode_2", string>>;
   studio_plate_id: number;
   studio_plate_display_number: number;
   studio_plate_name: string;

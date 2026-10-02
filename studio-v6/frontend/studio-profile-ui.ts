@@ -60,16 +60,19 @@ function payloadText(payload: Readonly<Record<string, unknown>>, key: string): s
 function gcodeSlotProfiles(catalog: V6ProfileCatalog | null, slot: GcodeSlot["key"]): V6Profile[] {
   const keys = GCODE_SLOT_KEYS[slot];
   return (catalog?.groups.process ?? [])
-    .filter((profile) => profile.payload.gcode_slot === slot || keys.some((key) => payloadText(profile.payload, key)))
+    .filter((profile) => profile.kind === "process" && profile.payload.gcode_slot === slot)
     .sort((left, right) => left.name.localeCompare(right.name, "de-DE", { numeric: true }));
 }
 
-function gcodeSlotSelect(catalog: V6ProfileCatalog | null, slot: GcodeSlot): string {
-  return `<label><span>${esc(slot.label)}</span><select data-gcode-preset="${esc(slot.key)}" title="${esc(slot.label)}-Baustein aus Profile verwalten."><option value="">${esc(slot.empty)}</option>${gcodeSlotProfiles(catalog, slot.key).map((profile) => `<option value="${esc(profile.id)}">${esc(profileDisplayName(profile))}</option>`).join("")}</select></label>`;
+function gcodeSlotSelect(catalog: V6ProfileCatalog | null, slot: GcodeSlot, selection: StudioPlateProfileSelection): string {
+  const printer = catalog?.profiles.find((item) => item.id === selection.printer_profile_id);
+  const isA1 = String(printer?.payload.model || "").toLowerCase() === "a1";
+  const selected = selection.gcode_preset_ids?.[slot.key] ?? (isA1 ? "builtin.a1." + slot.key : "");
+  return `<label><span>${esc(slot.label)}</span><select data-gcode-preset="${esc(slot.key)}" title="${esc(slot.label)}-Baustein aus Profile verwalten."><option value="" ${selected ? "" : "selected"}>${esc(slot.empty)}</option>${gcodeSlotProfiles(catalog, slot.key).map((profile) => `<option value="${esc(profile.id)}" ${profile.id === selected ? "selected" : ""}>${esc(profileDisplayName(profile))}</option>`).join("")}</select></label>`;
 }
 
 function group(catalog: V6ProfileCatalog | null, kind: ProfileKind): V6Profile[] {
-  return uniqueStudioProfiles(catalog, kind);
+  return uniqueStudioProfiles(catalog, kind).filter((profile) => kind !== "process" || !profile.payload.gcode_slot);
 }
 
 function cloudFilamentProfiles(catalog: V6ProfileCatalog | null): V6Profile[] {
@@ -178,7 +181,7 @@ export function studioProfileBarHtml(
       <label><span>Schichthöhe</span><input data-process-override="layer_height_mm" type="number" inputmode="decimal" min="${nozzle?.min_layer_height_mm ?? .04}" max="${nozzle?.max_layer_height_mm ?? .56}" step="0.01" value="${esc(inputValue(processOverrides.layer_height_mm))}" placeholder="${nozzle ? `Standard · ${germanNumber(nozzle.default_layer_height_mm)} mm` : "Standard"}" title="${esc(nozzle ? `Leer = Standardprofil · Zulässig: ${germanNumber(nozzle.min_layer_height_mm)}–${germanNumber(nozzle.max_layer_height_mm)} mm` : "Validierte A1-Düse wählen")}"></label>
       <label><span>Außenwand</span><input data-process-override="outer_wall_speed_mm_s" type="number" inputmode="numeric" min="1" max="${nozzle?.max_wall_speed_mm_s ?? 500}" step="1" value="${esc(inputValue(processOverrides.outer_wall_speed_mm_s))}" placeholder="${nozzle ? `Standard · ${germanNumber(nozzle.default_outer_wall_speed_mm_s)} mm/s` : "Standard"}" title="Leer = Standardprofil · Zulässig: 1–${nozzle?.max_wall_speed_mm_s ?? 500} mm/s"></label>
       <label><span>Innenwand</span><input data-process-override="inner_wall_speed_mm_s" type="number" inputmode="numeric" min="1" max="${nozzle?.max_wall_speed_mm_s ?? 500}" step="1" value="${esc(inputValue(processOverrides.inner_wall_speed_mm_s))}" placeholder="${nozzle ? `Standard · ${germanNumber(nozzle.default_inner_wall_speed_mm_s)} mm/s` : "Standard"}" title="Leer = Standardprofil · Zulässig: 1–${nozzle?.max_wall_speed_mm_s ?? 500} mm/s"></label>
-      ${GCODE_SLOTS.map((slot) => gcodeSlotSelect(catalog, slot)).join("")}
+      ${GCODE_SLOTS.map((slot) => gcodeSlotSelect(catalog, slot, selection)).join("")}
     </section>
   </details>`;
 }

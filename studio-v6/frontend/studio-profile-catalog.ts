@@ -10,6 +10,7 @@ import {
 } from "./studio-build-plates.js";
 
 export type StudioPlateProfileSelection = {
+  gcode_preset_ids?: Partial<Record<"start_sound" | "end_sound" | "gcode_1" | "gcode_2", string>>;
   target_printer_id: string;
   printer_profile_id: string;
   nozzle_profile_id: string;

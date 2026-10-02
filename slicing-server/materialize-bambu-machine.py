@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -56,7 +57,7 @@ def resolve(machine_dir: Path, path: Path, seen: set[Path]) -> dict[str, Any]:
 
 
 def main() -> None:
-    if len(sys.argv) != 4:
+    if len(sys.argv) not in {4, 5}:
         raise SystemExit("usage: materialize-bambu-machine.py PROFILE_ROOT MACHINE_REL OUTPUT")
     profile_root = Path(sys.argv[1])
     machine_path = profile_root / sys.argv[2]
@@ -65,6 +66,25 @@ def main() -> None:
     resolved = resolve(machine_dir, machine_path, set())
     resolved.pop("inherits", None)
     resolved.pop("include", None)
+    if len(sys.argv) == 5:
+        job = load_json(Path(sys.argv[4]))
+        contract = (job.get("target_printer") or {}).get("machine_gcode_contract")
+        if contract is not None:
+            if not isinstance(contract, dict):
+                raise ValueError("Ungültiger Maschinen-G-Code-Vertrag.")
+            body = {key: value for key, value in contract.items() if key != "sha256"}
+            digest = hashlib.sha256(json.dumps(body, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
+            if digest != contract.get("sha256") or body.get("schema") != 1 or body.get("printer_model") != "A1":
+                raise ValueError("Maschinen-G-Code-Vertrag nicht validiert.")
+            if not machine_path.name.startswith("Bambu Lab A1 ") or "mini" in machine_path.name.casefold():
+                raise ValueError("A1-G-Code passt nicht zum nativen Maschinenprofil.")
+            settings = body.get("settings")
+            if not isinstance(settings, dict) or set(settings) != {"machine_start_gcode", "machine_end_gcode"}:
+                raise ValueError("Ungültige Maschinen-G-Code-Parameter.")
+            for key, value in settings.items():
+                if not isinstance(value, str) or not value.strip() or len(value.encode()) > 400000 or ";@U3D_" in value:
+                    raise ValueError("Unvollständiger Maschinen-G-Code.")
+                resolved[key] = value
     output.write_text(json.dumps(resolved, ensure_ascii=False, indent=2), encoding="utf-8")
 
 

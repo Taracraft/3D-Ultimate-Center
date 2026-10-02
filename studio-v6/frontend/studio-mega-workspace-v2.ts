@@ -1197,6 +1197,19 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     }
   }
 
+  #bindGcodePresets(): void {
+    this.#root.querySelectorAll<HTMLSelectElement>("[data-gcode-preset]").forEach((select) => {
+      select.addEventListener("change", () => {
+        const slot = select.dataset.gcodePreset as "start_sound" | "end_sound" | "gcode_1" | "gcode_2";
+        const plate = this.#plate();
+        plate.selection = { ...plate.selection, gcode_preset_ids: { ...plate.selection.gcode_preset_ids, [slot]: select.value } };
+        this.#invalidatePlate(plate);
+        this.#schedulePersist();
+        this.#refreshEnvironmentUi();
+      });
+    });
+  }
+
   #bindProfileSelectors(): void {
     const profileBar = this.#root.querySelector<HTMLDetailsElement>(".profilebar-shell");
     profileBar?.addEventListener("toggle", () => { this.#profileBarOpen = profileBar.open; });
@@ -1209,6 +1222,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     this.#root.querySelector<HTMLSelectElement>("[data-material-source]")?.addEventListener("change", (event) => {
       this.#materialSourceChanged((event.currentTarget as HTMLSelectElement).value);
     });
+    this.#bindGcodePresets();
     this.#bindFilamentProfilePicker();
     this.#bindProcessOverrideInputs();
   }
@@ -3188,6 +3202,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       });
 
       this.#audit("slice_started", "info", {
+        gcode_preset_ids: { ...plate.selection.gcode_preset_ids },
         build_plate_profile_id: plate.selection.build_plate_profile_id,
         process_profile_id: plate.selection.process_profile_id,
         filament_profile_ids: plate.materialSource === "external_spool"
@@ -3273,6 +3288,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
           printer_profile_id: plate.selection.printer_profile_id,
           nozzle_profile_id: plate.selection.nozzle_profile_id,
           process_profile_id: plate.selection.process_profile_id,
+          gcode_preset_ids: { ...plate.selection.gcode_preset_ids },
           build_plate_profile_id: plate.selection.build_plate_profile_id,
           filament_profile_ids: plate.materialSource === "external_spool"
             ? [plate.externalFilamentProfileId]
@@ -3492,6 +3508,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     this.#root.querySelector<HTMLSelectElement>("[data-material-source]")?.addEventListener("change", (event) => {
       this.#materialSourceChanged((event.currentTarget as HTMLSelectElement).value);
     });
+    this.#bindGcodePresets();
     this.#bindFilamentProfilePicker();
     this.#bindProcessOverrideInputs();
     this.#root.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((button) => {
@@ -4177,6 +4194,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
         printer_profile_id: plate.selection.printer_profile_id,
         nozzle_profile_id: plate.selection.nozzle_profile_id,
         process_profile_id: plate.selection.process_profile_id,
+        gcode_preset_ids: { ...plate.selection.gcode_preset_ids },
         build_plate_profile_id: plate.selection.build_plate_profile_id,
         filament_profile_ids: plate.materialSource === "external_spool"
           ? [plate.externalFilamentProfileId]

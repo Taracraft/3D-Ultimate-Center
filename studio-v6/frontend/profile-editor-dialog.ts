@@ -111,7 +111,7 @@ export class V6ProfileEditorDialog extends HTMLElement {
   #detailStates = new Map<string, boolean>();
 
   get #mappedProcess(): boolean {
-    return this.#source?.kind === "process" && this.#source.source !== "bambu_cloud" && !this.#source.payload.inherits;
+    return this.#source?.kind === "process" && this.#source.source !== "bambu_cloud" && !this.#source.payload.inherits && !this.#source.payload.gcode_slot;
   }
 
   open(profile: V6Profile, nozzleDiameter?: unknown): void {

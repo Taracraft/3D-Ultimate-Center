@@ -6,6 +6,7 @@ from typing import Any
 
 from homeassistant.core import HomeAssistant
 
+from .gcode_preset_contract import GCODE_DEFAULT_PROFILES, FILAMENT_GCODE_DEFAULTS
 from .const import DOMAIN
 from .curated_local_profiles import CURATED_LOCAL_PROFILES
 from .manufacturer_profiles_complete import COMPLETE_MANUFACTURER_PROFILES
@@ -14,10 +15,15 @@ from .profile_runtime import BUILTIN_PROFILES, DATA_PROFILE_RUNTIME, V6ProfileRu
 
 _RAW_STATIC_PROFILES: tuple[dict[str, Any], ...] = (
     *BUILTIN_PROFILES,
+    *GCODE_DEFAULT_PROFILES,
     *CURATED_LOCAL_PROFILES,
     *COMPLETE_MANUFACTURER_PROFILES,
 )
 STATIC_PROFILES = enrich_static_profiles(_RAW_STATIC_PROFILES)
+for _profile in STATIC_PROFILES:
+    if _profile.get("kind") == "filament" and _profile.get("source") != "bambu_cloud":
+        for _key, _value in FILAMENT_GCODE_DEFAULTS.items():
+            _profile["payload"].setdefault(_key, _value)
 STATIC_PROFILE_IDS = {str(item.get("id")) for item in STATIC_PROFILES}
 CANONICAL_A1_NOZZLE_PROFILE_IDS = {
     "local.nozzle.a1_0_2_stainless",

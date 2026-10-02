@@ -9,6 +9,30 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+test("machine presets select defaults and retain per-plate custom and silent sound choices", () => {
+  const profile = (id: string, kind: string, payload: Record<string, unknown>) => ({
+    id, kind, payload, name: id, source: "builtin", builtin: true,
+  });
+  const printer = profile("printer.a1", "printer", { model: "A1" });
+  const process = profile("process.normal", "process", { layer_height_mm: .2 });
+  const presets = ["start_sound", "end_sound", "gcode_1", "gcode_2"].map((slot) =>
+    profile("builtin.a1." + slot, "process", { gcode_slot: slot }));
+  const custom = profile("local.sound", "process", { gcode_slot: "start_sound" });
+  const catalog: any = { profiles: [printer, process, ...presets, custom],
+    groups: { printer: [printer], process: [process, ...presets, custom], filament: [], nozzle: [], build_plate: [] } };
+  const selection: any = { printer_profile_id: printer.id, process_profile_id: process.id,
+    target_printer_id: "", nozzle_profile_id: "", build_plate_profile_id: "", filament_profile_ids: [] };
+  const defaults = studioProfileBarHtml(catalog, [], selection);
+  assert.match(defaults, /value="builtin.a1.start_sound" selected/);
+  selection.gcode_preset_ids = { start_sound: "local.sound", end_sound: "" };
+  const html = studioProfileBarHtml(catalog, [], selection);
+  assert.match(html, /value="local.sound" selected/);
+  assert.match(html, /data-gcode-preset="end_sound"[^>]*><option value="" selected>/);
+  const processMenu = html.match(/data-profile-field="process_profile_id"[^>]*>(.*?)<\/select>/s)?.[1] || "";
+  assert.doesNotMatch(processMenu, /builtin.a1.gcode/);
+  assert.match(processMenu, /process.normal/);
+});
+
 import {
   bestFlatRotation,
   exportBinaryStl,

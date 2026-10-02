@@ -1,6 +1,8 @@
 """V6 plate slicing with an authoritative AMS or external-spool source."""
 from __future__ import annotations
 
+from .gcode_preset_contract import resolve_gcode_presets
+
 import json
 import math
 import re
@@ -258,6 +260,8 @@ def _catalog_for_plate(catalog: dict[str, object], studio_plate: dict[str, objec
             selection[key] = plate[key]
     if isinstance(plate.get("filament_profile_ids"), list):
         selection["filament_profile_ids"] = [str(item) for item in plate["filament_profile_ids"]]
+    if isinstance(plate.get("gcode_preset_ids"), dict):
+        selection["gcode_preset_ids"] = dict(plate["gcode_preset_ids"])
     result["selection"] = selection
     return result
 
@@ -558,6 +562,7 @@ async def _prepare_plate_job_contract(
             if bool(material_source_summary.get("use_ams"))
             else "external_spool_single_nozzle"
         ),
+        "machine_gcode_contract": resolve_gcode_presets(catalog, target_printer.model),
         **contract_payload(nozzle_contract),
     }
     return {

@@ -165,7 +165,7 @@ if mkdir "$RUN/dispatcher.lock" 2>/dev/null; then
             CODE=0
           fi
           if [ "$CODE" -eq 0 ] && [ -f "$PROFILE_ROOT/$MACHINE" ] && [ -f "$PROCESS_SOURCE" ]; then
-            python3 "$BASE/materialize-bambu-machine.py" "$PROFILE_ROOT" "$MACHINE" "$MACHINE_RUNTIME" > "$LOG" 2>&1
+            python3 "$BASE/materialize-bambu-machine.py" "$PROFILE_ROOT" "$MACHINE" "$MACHINE_RUNTIME" "$SLICING" > "$LOG" 2>&1
             CODE=$?
           elif [ "$CODE" -eq 0 ]; then
             printf '%s\n' 'Native machine or process profile is missing.' > "$LOG"

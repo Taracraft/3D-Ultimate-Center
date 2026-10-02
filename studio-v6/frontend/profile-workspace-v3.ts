@@ -42,8 +42,8 @@ const GROUPS: readonly ProfileGroup[] = [
   { id: "process", kind: "process", label: "Druckprofile", description: "Schichthöhe, Wände, Infill, Geschwindigkeit und Qualität" },
   { id: "start_sound", kind: "process", label: "Startsound", description: "Startsound-Bausteine für den Druckstart", slot: "start_sound" },
   { id: "end_sound", kind: "process", label: "Endsound", description: "Endsound-Bausteine für das Druckende", slot: "end_sound" },
-  { id: "gcode_1", kind: "process", label: "G-Code 1", description: "Erster frei benennbarer Benutzer-G-Code-Baustein", slot: "gcode_1" },
-  { id: "gcode_2", kind: "process", label: "G-Code 2", description: "Zweiter frei benennbarer Benutzer-G-Code-Baustein", slot: "gcode_2" },
+  { id: "gcode_1", kind: "process", label: "G-Code 1", description: "Maschinen-Start mit separatem Startsound", slot: "gcode_1" },
+  { id: "gcode_2", kind: "process", label: "G-Code 2", description: "Maschinen-Ende mit separatem Endsound", slot: "gcode_2" },
   { id: "build_plate", kind: "build_plate", label: "Druckplatten", description: "Oberflächen, Abmessungen und Temperaturkorrekturen" },
 ];
 
@@ -279,12 +279,18 @@ function defaultPayload(kind: ProfileKind): Record<string, unknown> {
   return { surface: "smooth_pei", width_mm: 256, depth_mm: 256, temperature_offset_c: 0 };
 }
 
-function templateProfile(group: ProfileGroup): V6Profile {
+function templateProfile(group: ProfileGroup, catalog: V6ProfileCatalog | null): V6Profile {
+  if (group.slot) {
+    const preset = catalog?.profiles.find((item) => item.kind === "process" && item.builtin && item.payload.gcode_slot === group.slot);
+    if (!preset) throw new Error("Die A1-G-Code-Vorlage ist nicht verfügbar.");
+    return { ...preset, payload: { ...preset.payload } };
+  }
   const now = new Date().toISOString();
   const payload = defaultPayload(group.kind);
-  if (group.slot) {
-    payload.gcode_slot = group.slot;
-    payload[GCODE_TEMPLATE_KEY[group.slot]] = "";
+  if (group.kind === "filament") {
+    const source = catalog?.groups.filament.find((item) => typeof item.payload.filament_start_gcode === "string");
+    payload.filament_start_gcode = source?.payload.filament_start_gcode ?? "; filament start gcode";
+    payload.filament_end_gcode = source?.payload.filament_end_gcode ?? "; filament end gcode";
   }
   return {
     id: `template.${group.id}`,
@@ -438,7 +444,7 @@ export class Ultimate3DProfileWorkspaceV3 extends HTMLElement {
   }
 
   #bind(profiles: readonly V6Profile[]): void {
-    this.#root.querySelector<HTMLButtonElement>("#new-profile")?.addEventListener("click", () => this.#openEditor(templateProfile(this.#activeGroup())));
+    this.#root.querySelector<HTMLButtonElement>("#new-profile")?.addEventListener("click", () => this.#openEditor(templateProfile(this.#activeGroup(), this.#catalog)));
     this.#root.querySelector<HTMLButtonElement>("#collapse-all")?.addEventListener("click", () => {
       this.#openProfiles.clear();
       this.#openGroups.clear();
