@@ -1,0 +1,17 @@
+[Unit]
+Description=3D-Printer Slicing Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /var/lib/homeassistant/3d-printer-slicing-server/server.py /var/lib/homeassistant/3d-printer-slicing-server/config.json
+WorkingDirectory=/var/lib/homeassistant/3d-printer-slicing-server
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
