@@ -1,0 +1,10 @@
+[Unit]
+Description=Dispatch and refresh 3D-Printer Slicing Server state
+After=network-online.target 3d-printer-slicing-server.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /var/lib/homeassistant/3d-printer-slicing-server/dispatch-job.sh
+ExecStart=/bin/sh /var/lib/homeassistant/3d-printer-slicing-server/refresh-state.sh
+ExecStart=/bin/sh /var/lib/homeassistant/3d-printer-slicing-server/append-slicing-journal.sh
