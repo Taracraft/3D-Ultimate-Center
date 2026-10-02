@@ -1,0 +1,269 @@
+"""Robust MakerWorld detail normalization for V6."""
+from __future__ import annotations
+
+import logging
+from typing import Any, Iterable
+from urllib.parse import quote
+
+from .makerworld_download import remember_design_payload
+from .makerworld_runtime import MakerWorldError, MakerWorldRuntime
+
+_LOGGER = logging.getLogger(__name__)
+
+
+def _text(value: Any, limit: int = 1000) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, (int, float)):
+        return str(value)
+    if not isinstance(value, str):
+        return ""
+    return " ".join(value.split())[:limit]
+
+
+def _first(mapping: dict[str, Any], names: tuple[str, ...], default: Any = None) -> Any:
+    for name in names:
+        value = mapping.get(name)
+        if value not in (None, "", [], {}):
+            return value
+    return default
+
+
+def _walk(value: Any) -> Iterable[dict[str, Any]]:
+    if isinstance(value, dict):
+        yield value
+        for child in value.values():
+            if isinstance(child, (dict, list)):
+                yield from _walk(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from _walk(child)
+
+
+def _design_id(mapping: dict[str, Any]) -> str:
+    return _text(_first(mapping, ("designId", "design_id", "modelId", "model_id", "id")), 30)
+
+
+def _instance_id(mapping: dict[str, Any]) -> str:
+    return _text(_first(mapping, ("instanceId", "instance_id", "modelInstanceId", "model_instance_id", "profileId", "profile_id", "id")), 90)
+
+
+def _name(value: Any) -> str:
+    if isinstance(value, str):
+        return _text(value, 240)
+    if not isinstance(value, dict):
+        return ""
+    return _text(_first(value, ("name", "nickname", "userName", "username", "displayName", "display_name", "creatorName", "designerName", "title")), 240)
+
+
+def _image(value: Any) -> str:
+    if isinstance(value, str):
+        candidate = value.strip()
+        return candidate if candidate.startswith("https://") else ""
+    if isinstance(value, list):
+        for item in value:
+            candidate = _image(item)
+            if candidate:
+                return candidate
+        return ""
+    if isinstance(value, dict):
+        for key in ("url", "imageUrl", "image_url", "coverUrl", "cover_url", "thumbnailUrl", "thumbnail_url", "downloadUrl", "download_url", "source", "src"):
+            candidate = _image(value.get(key))
+            if candidate:
+                return candidate
+    return ""
+
+
+def _images(mapping: dict[str, Any]) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for key in ("images", "pictures", "designPictures", "design_pictures", "designPictureList", "imageList", "modelImages", "thumbnails", "renderImages"):
+        values = mapping.get(key)
+        if isinstance(values, list):
+            for value in values:
+                candidate = _image(value)
+                if candidate and candidate not in seen:
+                    seen.add(candidate)
+                    result.append(candidate)
+    for key in ("cover", "coverUrl", "thumbnail", "thumbnailUrl", "image", "imageUrl", "designPicture"):
+        candidate = _image(mapping.get(key))
+        if candidate and candidate not in seen:
+            seen.add(candidate)
+            result.insert(0, candidate)
+    return result[:40]
+
+
+def _int(value: Any) -> int:
+    try:
+        return max(0, int(float(value)))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _bool(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _richness(mapping: dict[str, Any]) -> tuple[int, int]:
+    keys = ("title", "description", "designCreator", "creator", "images", "designPictures", "instances", "modelInstances", "tags", "license")
+    return sum(1 for key in keys if mapping.get(key) not in (None, "", [], {})), len(mapping)
+
+
+def _raw_design(payload: Any, design_id: str) -> dict[str, Any]:
+    exact = [item for item in _walk(payload) if _design_id(item) == design_id]
+    if exact:
+        return max(exact, key=_richness)
+    if isinstance(payload, dict):
+        for key in ("data", "result", "design", "model", "detail", "designInfo", "design_info"):
+            item = payload.get(key)
+            if isinstance(item, dict) and _first(item, ("title", "name", "designName", "design_name")):
+                enriched = dict(item)
+                enriched.setdefault("designId", design_id)
+                return enriched
+        if _first(payload, ("title", "name", "designName", "design_name")):
+            enriched = dict(payload)
+            enriched.setdefault("designId", design_id)
+            return enriched
+    raise MakerWorldError("MakerWorld-Detailantwort enthält kein passendes Modell")
+
+
+def _creator(mapping: dict[str, Any]) -> str:
+    for key in ("designCreator", "design_creator", "creator", "designer", "author", "user", "owner", "account"):
+        candidate = _name(mapping.get(key))
+        if candidate:
+            return candidate
+    return _text(_first(mapping, ("creatorName", "creator_name", "designerName", "designer_name", "authorName", "author_name", "userName", "user_name")), 240) or "MakerWorld"
+
+
+def _tags(mapping: dict[str, Any]) -> list[str]:
+    raw = _first(mapping, ("tags", "tagList", "tag_list", "categories", "categoryList"), [])
+    if isinstance(raw, str):
+        raw = [part.strip() for part in raw.split(",")]
+    result: list[str] = []
+    seen: set[str] = set()
+    if isinstance(raw, list):
+        for item in raw:
+            value = _name(item) if isinstance(item, dict) else _text(item, 80)
+            folded = value.casefold()
+            if value and folded not in seen:
+                seen.add(folded)
+                result.append(value)
+    return result[:30]
+
+
+def _plate(mapping: dict[str, Any], fallback_index: int) -> dict[str, Any]:
+    index = _int(_first(mapping, ("plateIndex", "plate_index", "index", "plateNo", "plate_no"), fallback_index))
+    images = _images(mapping)
+    filaments = _first(mapping, ("filaments", "filamentList", "filament_list", "materials"), [])
+    return {
+        "id": _text(_first(mapping, ("plateId", "plate_id", "id")), 90) or str(index),
+        "index": index,
+        "name": _text(_first(mapping, ("title", "name", "plateName", "plate_name")), 300) or f"Druckplatte {index + 1}",
+        "thumbnail_url": images[0] if images else None,
+        "print_time_seconds": _int(_first(mapping, ("printTime", "print_time", "printTimeSeconds", "print_time_seconds", "prediction"))),
+        "weight_grams": _int(_first(mapping, ("weight", "weightGrams", "weight_grams", "filamentWeight", "filament_weight"))),
+        "filaments": filaments if isinstance(filaments, list) else [],
+    }
+
+
+def _instance(mapping: dict[str, Any], design_id: str) -> dict[str, Any] | None:
+    instance_id = _instance_id(mapping)
+    if not instance_id:
+        return None
+    plate_values = _first(mapping, ("plates", "plateList", "plate_list", "printPlates", "print_plates", "plateInfos", "plate_infos"), [])
+    plates = [_plate(item, index) for index, item in enumerate(plate_values) if isinstance(item, dict)] if isinstance(plate_values, list) else []
+    images = _images(mapping)
+    return {
+        "id": instance_id,
+        "design_id": design_id,
+        "title": _text(_first(mapping, ("title", "name", "instanceName", "instance_name")), 300) or f"Druckprofil {instance_id}",
+        "description": _text(_first(mapping, ("description", "summary", "content")), 3000),
+        "thumbnail_url": images[0] if images else None,
+        "images": images,
+        "is_default": _bool(_first(mapping, ("isDefault", "is_default", "default", "defaultInstance"))),
+        "printer_model": _text(_first(mapping, ("printerModel", "printer_model", "printer", "machineName", "machine_name", "printerType", "printer_type")), 240),
+        "nozzle_diameter": _text(_first(mapping, ("nozzleDiameter", "nozzle_diameter", "nozzle", "nozzleSize", "nozzle_size")), 40),
+        "profile_name": _text(_first(mapping, ("profileName", "profile_name", "processName", "process_name", "printProfileName")), 300),
+        "plates": plates,
+        "plate_count": len(plates),
+        "download_available": True,
+    }
+
+
+def _instances(payload: Any, raw: dict[str, Any], design_id: str) -> list[dict[str, Any]]:
+    keys = ("instances", "modelInstances", "model_instances", "designInstances", "design_instances", "instanceList", "instance_list", "profiles", "printProfiles", "print_profiles")
+    candidates: list[dict[str, Any]] = []
+    for source in (raw, *_walk(payload)):
+        for key in keys:
+            values = source.get(key)
+            if isinstance(values, list):
+                candidates.extend(item for item in values if isinstance(item, dict))
+        if candidates:
+            break
+    if not candidates:
+        candidates = [item for item in _walk(payload) if any(key in item for key in ("instanceId", "instance_id", "plateList", "plates", "isDefault", "profileName", "printerModel"))]
+    result: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for item in candidates:
+        normalized = _instance(item, design_id)
+        if normalized is None or normalized["id"] in seen:
+            continue
+        seen.add(normalized["id"])
+        result.append(normalized)
+    result.sort(key=lambda item: (not item["is_default"], item["title"].casefold()))
+    return result
+
+
+def _normalize(payload: Any, design_id: str) -> dict[str, Any]:
+    raw = _raw_design(payload, design_id)
+    images = _images(raw)
+    instances = _instances(payload, raw, design_id)
+    return {
+        "id": design_id,
+        "title": _text(_first(raw, ("title", "name", "designName", "design_name", "modelName", "model_name")), 300) or f"MakerWorld Modell {design_id}",
+        "description": _text(_first(raw, ("description", "summary", "designDescription", "design_description", "content", "introduction")), 30000),
+        "creator": _creator(raw),
+        "thumbnail_url": images[0] if images else None,
+        "images": images,
+        "tags": _tags(raw),
+        "stats": {
+            "likes": _int(_first(raw, ("likeCount", "like_count", "likes", "likedCount"))),
+            "downloads": _int(_first(raw, ("downloadCount", "download_count", "downloads"))),
+            "comments": _int(_first(raw, ("commentCount", "comment_count", "comments"))),
+            "collects": _int(_first(raw, ("collectCount", "collect_count", "favoriteCount", "favorite_count"))),
+            "prints": _int(_first(raw, ("printCount", "print_count", "prints"))),
+        },
+        "model_url": f"https://makerworld.com/de/models/{design_id}",
+        "license": _text(_first(raw, ("license", "licenseName", "license_name", "licenseType", "license_type")), 200),
+        "published_at": _text(_first(raw, ("publishTime", "publish_time", "publishedAt", "published_at", "createdAt", "created_at", "createTime", "create_time")), 100),
+        "instances": instances,
+        "instance_count": len(instances),
+    }
+
+
+async def async_load_detail(runtime: MakerWorldRuntime, design_id: str) -> dict[str, Any]:
+    normalized = _text(design_id, 30)
+    if not normalized.isdigit() or len(normalized) > 20:
+        raise ValueError("Ungültige MakerWorld-Modell-ID")
+    path = f"design-service/design/{quote(normalized, safe='')}"
+    attempts = (
+        {"trafficSource": "browse", "visitHistory": "true"},
+        {"trafficSource": "browse", "visitHistory": "false"},
+        {"trafficSource": "recommend", "visitHistory": "false"},
+        {"trafficSource": "search", "visitHistory": "false"},
+        {},
+    )
+    errors: list[str] = []
+    for params in attempts:
+        label = "ohne Parameter" if not params else ",".join(f"{key}={value}" for key, value in params.items())
+        try:
+            payload = await runtime._json(path, params)
+            remember_design_payload(payload, normalized)
+            return _normalize(payload, normalized)
+        except Exception as exc:
+            errors.append(f"{label}: {exc}")
+    message = f"MakerWorld-Details für Modell {normalized} konnten nicht geladen werden. " + " | ".join(errors)
+    _LOGGER.warning("%s", message)
+    raise MakerWorldError(message)
