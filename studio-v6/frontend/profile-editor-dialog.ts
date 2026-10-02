@@ -1,4 +1,5 @@
 import type { ProfileKind, V6Profile } from "./profile-api.js";
+import { PROCESS_EDITOR_FIELDS, processFieldBounds, processProfileChanges, validateProcessEditor } from "./process-profile-editor-model.js";
 
 type ProfileDraft = {
   id?: string | undefined;
@@ -23,8 +24,12 @@ const CATEGORIES: readonly FieldCategory[] = [
   { id: "temperature", label: "Temperatur und Kühlung", order: 40 },
   { id: "extrusion", label: "Extrusion und Rückzug", order: 50 },
   { id: "support", label: "Support und Haftung", order: 60 },
-  { id: "gcode", label: "Start-, End- und benutzerdefinierter G-Code", order: 70 },
-  { id: "general", label: "Weitere Parameter", order: 80 },
+  { id: "start_sound", label: "Startsound", order: 70 },
+  { id: "end_sound", label: "Endsound", order: 80 },
+  { id: "gcode_1", label: "Gcode 1", order: 90 },
+  { id: "gcode_2", label: "Gcode 2", order: 100 },
+  { id: "gcode", label: "Weiterer benutzerdefinierter G-Code", order: 110 },
+  { id: "general", label: "Weitere Parameter", order: 120 },
 ];
 
 function clonePayload(payload: Readonly<Record<string, unknown>>): Record<string, unknown> {
@@ -43,14 +48,18 @@ function escapeHtml(value: unknown): string {
 
 function categoryFor(key: string): FieldCategory {
   const value = key.toLowerCase();
-  if (/(start_gcode|end_gcode|machine_gcode|filament_gcode|gcode)/.test(value)) return CATEGORIES[6]!;
+  if (/(start_sound|startsound)/.test(value)) return CATEGORIES[6]!;
+  if (/(end_sound|endsound)/.test(value)) return CATEGORIES[7]!;
+  if (/(custom_gcode_1|gcode_1|before_layer_change)/.test(value)) return CATEGORIES[8]!;
+  if (/(custom_gcode_2|gcode_2|after_layer_change)/.test(value)) return CATEGORIES[9]!;
+  if (/(start_gcode|end_gcode|machine_gcode|filament_gcode|gcode)/.test(value)) return CATEGORIES[10]!;
   if (/(temperature|temp_|bed_temp|nozzle_temp|fan|cool|chamber)/.test(value)) return CATEGORIES[3]!;
   if (/(speed|velocity|accel|jerk|volumetric)/.test(value)) return CATEGORIES[2]!;
   if (/(retract|flow|pressure|extrusion|extruder|linear_advance|k_value)/.test(value)) return CATEGORIES[4]!;
   if (/(support|raft|brim|skirt|adhesion|overhang)/.test(value)) return CATEGORIES[5]!;
   if (/(layer|wall|shell|infill|seam|ironing|quality|resolution|precision|top_|bottom_)/.test(value)) return CATEGORIES[1]!;
   if (/(printer|machine|build_volume|bed_|nozzle|diameter|technology|vendor|model)/.test(value)) return CATEGORIES[0]!;
-  return CATEGORIES[7]!;
+  return CATEGORIES[11]!;
 }
 
 function fieldType(value: unknown): "boolean" | "number" | "string" | "array" | "json" {
@@ -97,9 +106,20 @@ export class V6ProfileEditorDialog extends HTMLElement {
   #jsonError = "";
   #fieldErrors = new Map<string, string>();
   #selectAfterSave = true;
+  #nozzleDiameter: unknown = null;
+  #reviewFingerprint = "";
+  #detailStates = new Map<string, boolean>();
 
-  open(profile: V6Profile): void {
+  get #mappedProcess(): boolean {
+    return this.#source?.kind === "process" && this.#source.source !== "bambu_cloud" && !this.#source.payload.inherits;
+  }
+
+  open(profile: V6Profile, nozzleDiameter?: unknown): void {
     this.#source = profile;
+    this.#nozzleDiameter = nozzleDiameter ?? profile.payload.nozzle_diameter_mm;
+    this.#reviewFingerprint = "";
+    this.#detailStates.clear();
+    this.#root.replaceChildren();
     const local = profile.source === "local";
     this.#draft = {
       id: local ? profile.id : undefined,
@@ -133,7 +153,11 @@ export class V6ProfileEditorDialog extends HTMLElement {
     const source = this.#source;
     const draft = this.#draft;
     if (!source || !draft) return;
+    this.#root.querySelectorAll<HTMLDetailsElement>("details[data-editor-section]").forEach((details) => {
+      this.#detailStates.set(details.dataset.editorSection || "", details.open);
+    });
     const entries = Object.entries(draft.payload)
+      .filter(([key]) => !this.#mappedProcess || !PROCESS_EDITOR_FIELDS.some((field) => field.key === key))
       .filter(([key]) => !this.#search || `${key} ${fieldLabel(key)}`.toLowerCase().includes(this.#search.toLowerCase()))
       .sort(([left], [right]) => left.localeCompare(right));
     const grouped = new Map<string, Array<[string, unknown]>>();
@@ -149,14 +173,31 @@ export class V6ProfileEditorDialog extends HTMLElement {
     const isClone = source.source !== "local";
 
     this.#root.innerHTML = `<style>
+      .process-review{max-height:240px;overflow:auto}.process-review table{width:100%;border-collapse:collapse;table-layout:fixed;margin:10px 0}.process-review th,.process-review td{padding:7px;text-align:left;vertical-align:top;border-bottom:1px solid #29445c;overflow-wrap:anywhere}.process-review th{color:#91a8bd}
       :host{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;background:#02070dbd;color:#eff7ff;font:13px/1.45 Inter,Segoe UI,sans-serif}:host([hidden]){display:none}*{box-sizing:border-box}.dialog{width:min(1180px,96vw);height:min(900px,94vh);display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;border:1px solid #31506e;border-radius:14px;background:#08121d;box-shadow:0 30px 90px #000b;overflow:hidden}.head{display:flex;justify-content:space-between;gap:16px;padding:15px 18px;border-bottom:1px solid #26394d;background:#0e1b29}.head h2{margin:0;font-size:18px}.head p{margin:4px 0 0;color:#91a8bd}.close{border:1px solid #425b72;border-radius:8px;background:#142536;color:#fff;padding:8px 11px;cursor:pointer}.toolbar{display:grid;grid-template-columns:minmax(260px,1fr) minmax(240px,1fr) auto;gap:9px;padding:11px 16px;border-bottom:1px solid #26394d;background:#0a1622}.toolbar input,.toolbar select,.field input,.field textarea,.add-row input,.add-row select,.raw textarea{width:100%;border:1px solid #31506e;border-radius:7px;background:#07111c;color:#fff;padding:8px}.toolbar label{display:grid;gap:4px;color:#91a8bd;font-size:11px}.badge{align-self:end;padding:8px 10px;border:1px solid #2f6d8e;border-radius:999px;color:#9edfff;white-space:nowrap}.body{overflow:auto;padding:14px 16px}.category,.raw,.add-parameter{margin:0 0 10px;border:1px solid #263a4e;border-radius:10px;background:#0c1723;overflow:hidden}.category summary,.raw summary,.add-parameter summary{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;list-style:none;background:#101e2c;font-weight:800}.category summary::-webkit-details-marker,.raw summary::-webkit-details-marker,.add-parameter summary::-webkit-details-marker{display:none}.category summary::before,.raw summary::before,.add-parameter summary::before{content:'›';font-size:20px;transition:transform .15s}.category[open] summary::before,.raw[open] summary::before,.add-parameter[open] summary::before{transform:rotate(90deg)}.category summary small{margin-left:auto;color:#7f96aa;font-weight:500}.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:8px;padding:10px}.field{display:grid;grid-template-columns:minmax(145px,.8fr) minmax(0,1.2fr) auto;gap:8px;align-items:start;padding:9px;border:1px solid #22364a;border-radius:8px;background:#09131e}.field-label strong,.field-label small{display:block}.field-label small{color:#6f879c;font:10px ui-monospace,Consolas,monospace;margin-top:3px;overflow-wrap:anywhere}.field textarea{min-height:74px;resize:vertical;font-family:ui-monospace,Consolas,monospace}.field.gcode{grid-column:1/-1}.field.gcode textarea{min-height:130px}.remove{border:1px solid #76424a;border-radius:7px;background:#351b20;color:#ffc3ca;padding:7px;cursor:pointer}.boolean{display:flex;align-items:center;gap:8px;min-height:36px}.boolean input{width:auto}.field-error{grid-column:2/-1;color:#ffadb8;font-size:11px}.raw-body,.add-body{padding:11px}.raw textarea{min-height:320px;resize:vertical;font-family:ui-monospace,Consolas,monospace}.raw-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}.error{color:#ffadb8;margin-top:6px}.add-row{display:grid;grid-template-columns:1fr 170px 1fr auto;gap:8px}.footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-top:1px solid #26394d;background:#0e1a27}.footer-left{display:flex;align-items:center;gap:8px;color:#9bb0c3}.footer-actions{display:flex;gap:8px}.button{border:1px solid #31506e;border-radius:8px;background:#14263a;color:#eef6ff;padding:9px 12px;cursor:pointer;font-weight:700}.primary{border-color:#48c9ff;background:#17658b}.warning{color:#ffd588}.empty{padding:22px;text-align:center;color:#8298ad}@media(max-width:760px){.dialog{width:100vw;height:100vh;border-radius:0}.toolbar{grid-template-columns:1fr}.fields{grid-template-columns:1fr}.field{grid-template-columns:1fr auto}.field-label{grid-column:1/-1}.field input,.field textarea,.field .boolean{grid-column:1}.add-row{grid-template-columns:1fr}.footer{align-items:flex-start;flex-direction:column}.footer-actions{width:100%}.footer-actions .button{flex:1}}
-    </style><section class="dialog"><header class="head"><div><h2>${escapeHtml(isClone ? "Benutzerprofil aus Vorlage erstellen" : "Benutzerprofil bearbeiten")}</h2><p>${escapeHtml(source.name)} · ${escapeHtml(source.kind)} · ${escapeHtml(sourceLabel(source))}</p></div><button class="close" type="button" data-action="close">Schließen</button></header><section class="toolbar"><label>Profilname<input id="profile-name" maxlength="160" value="${escapeHtml(draft.name)}"></label><label>Parameter suchen<input id="parameter-search" placeholder="z. B. Temperatur, Geschwindigkeit oder G-Code" value="${escapeHtml(this.#search)}"></label><span class="badge">${entries.length} von ${Object.keys(draft.payload).length} Parametern</span></section><main class="body">${categories.length ? categories.map((category, index) => this.#category(category, grouped.get(category.id) ?? [], index === 0 && category.id !== "gcode")).join("") : '<div class="empty">Keine Parameter entsprechen der Suche.</div>'}${this.#addParameter()}${this.#rawJson()}</main><footer class="footer"><label class="footer-left"><input id="select-after-save" type="checkbox" ${this.#selectAfterSave ? "checked" : ""}><span>Nach dem Speichern direkt auswählen</span></label><div class="footer-actions"><button class="button" type="button" data-action="close">Abbrechen</button><button class="button primary" type="button" data-action="save">${isClone ? "Als Benutzerprofil speichern" : "Änderungen speichern"}</button></div></footer></section>`;
+    </style><section class="dialog"><header class="head"><div><h2>${escapeHtml(isClone ? "Benutzerprofil aus Vorlage erstellen" : "Benutzerprofil bearbeiten")}</h2><p>${escapeHtml(source.name)} · ${escapeHtml(source.kind)} · ${escapeHtml(sourceLabel(source))}</p></div><button class="close" type="button" data-action="close">Schließen</button></header><section class="toolbar"><label>Profilname<input id="profile-name" maxlength="160" value="${escapeHtml(draft.name)}"></label><label>Parameter suchen<input id="parameter-search" placeholder="z. B. Temperatur, Geschwindigkeit oder G-Code" value="${escapeHtml(this.#search)}"></label><span class="badge">${this.#mappedProcess ? `${PROCESS_EDITOR_FIELDS.length} Prozessfelder` : `${entries.length} von ${Object.keys(draft.payload).length} Parametern`}</span></section><main class="body">${this.#processFields()}${this.#processReview()}${categories.length ? categories.map((category, index) => this.#category(category, grouped.get(category.id) ?? [], index === 0 && category.id !== "gcode")).join("") : '<div class="empty">Keine Parameter entsprechen der Suche.</div>'}${this.#addParameter()}${this.#rawJson()}${this.#jsonError ? `<div class="error" role="alert">${escapeHtml(this.#jsonError)}</div>` : ""}</main><footer class="footer"><label class="footer-left"><input id="select-after-save" type="checkbox" ${this.#selectAfterSave ? "checked" : ""}><span>Nach dem Speichern direkt auswählen</span></label><div class="footer-actions"><button class="button" type="button" data-action="close">Abbrechen</button><button class="button primary" type="button" data-action="save">${this.#mappedProcess ? "Änderungen prüfen" : isClone ? "Als Benutzerprofil speichern" : "Änderungen speichern"}</button></div></footer></section>`;
 
     this.#bind();
   }
 
+  #processFields(): string {
+    if (!this.#mappedProcess || !this.#draft) return "";
+    return `<section class="category"><div class="raw-body"><strong>Prozessparameter</strong><p>Leer = aus der nativen Profilbasis übernehmen. Ein geerbter Wert wird hier nicht geschätzt. Auftragswerte für Schichthöhe und Wandgeschwindigkeiten haben beim Slicing Vorrang.</p><div class="fields">${PROCESS_EDITOR_FIELDS.filter((field) => !this.#search || `${field.label} ${field.key}`.toLowerCase().includes(this.#search.toLowerCase())).map((field) => {
+      const bounds = processFieldBounds(field.key, this.#nozzleDiameter);
+      const error = this.#fieldErrors.get(field.key);
+      return `<label class="field"><span class="field-label"><strong>${escapeHtml(field.label)}</strong><small>${escapeHtml(field.unit)} · ab ${bounds.min}${bounds.max === undefined ? "" : ` bis ${bounds.max}`}${field.step === "1" ? " · ganze Zahl" : ""}</small></span><input type="text" inputmode="decimal" data-field="${field.key}" data-type="process" value="${escapeHtml(this.#draft?.payload[field.key])}" placeholder="Aus Profilbasis" aria-invalid="${Boolean(error)}">${error ? `<span class="field-error">${escapeHtml(error)}</span>` : ""}</label>`;
+    }).join("")}</div></div></section>`;
+  }
+
+  #processReview(): string {
+    if (!this.#mappedProcess || !this.#reviewFingerprint || !this.#source || !this.#draft) return "";
+    const display = (value: unknown): string => value === undefined ? "Nicht gesetzt" : JSON.stringify(value);
+    const changes = processProfileChanges(this.#source.payload, this.#draft.payload);
+    return `<section class="category"><div class="raw-body"><strong>Änderungen prüfen: ${escapeHtml(this.#draft.name)}</strong><p>${this.#selectAfterSave ? "Das Profil wird gespeichert und ausgewählt." : "Das Profil wird gespeichert."} Es wird kein Slicing- oder Druckauftrag gestartet.</p><div class="process-review"><table><thead><tr><th>Parameter</th><th>Bisher</th><th>Neu</th></tr></thead><tbody>${changes.map((change) => `<tr><td>${escapeHtml(PROCESS_EDITOR_FIELDS.find((field) => field.key === change.key)?.label ?? change.key)}</td><td>${escapeHtml(display(change.before))}</td><td>${escapeHtml(display(change.after))}</td></tr>`).join("")}</tbody></table></div>${changes.length ? "" : "<p>Keine Parameteränderung.</p>"}<button class="button primary" type="button" data-action="confirm-process">Geprüfte Änderungen speichern</button></div></section>`;
+  }
+
   #category(category: FieldCategory, fields: readonly [string, unknown][], open: boolean): string {
-    return `<details class="category" ${open ? "open" : ""}><summary><span>${escapeHtml(category.label)}</span><small>${fields.length} Parameter</small></summary><div class="fields">${fields.map(([key, value]) => this.#field(key, value, category.id === "gcode")).join("")}</div></details>`;
+    return `<details class="category" data-editor-section="${category.id}" ${(this.#detailStates.get(category.id) ?? open) ? "open" : ""}><summary><span>${escapeHtml(category.label)}</span><small>${fields.length} Parameter</small></summary><div class="fields">${fields.map(([key, value]) => this.#field(key, value, category.id === "gcode")).join("")}</div></details>`;
   }
 
   #field(key: string, value: unknown, gcode: boolean): string {
@@ -213,6 +254,7 @@ export class V6ProfileEditorDialog extends HTMLElement {
     this.#root.querySelector<HTMLButtonElement>('[data-action="add"]')?.addEventListener("click", () => this.#add());
     this.#root.querySelector<HTMLButtonElement>('[data-action="apply-json"]')?.addEventListener("click", () => this.#applyRawJson());
     this.#root.querySelector<HTMLButtonElement>('[data-action="save"]')?.addEventListener("click", () => this.#save());
+    this.#root.querySelector<HTMLButtonElement>('[data-action="confirm-process"]')?.addEventListener("click", () => this.#save(true));
   }
 
   #updateField(input: HTMLInputElement | HTMLTextAreaElement): void {
@@ -222,7 +264,11 @@ export class V6ProfileEditorDialog extends HTMLElement {
     try {
       const type = input.dataset.type;
       const original = draft.payload[key];
-      if (type === "boolean" && input instanceof HTMLInputElement) draft.payload[key] = input.checked;
+      if (type === "process") {
+        const raw = input.value.trim().replace(",", ".");
+        if (!raw) delete draft.payload[key];
+        else draft.payload[key] = Number.isFinite(Number(raw)) ? Number(raw) : input.value;
+      } else if (type === "boolean" && input instanceof HTMLInputElement) draft.payload[key] = input.checked;
       else if (type === "number") {
         const value = Number(input.value);
         if (!Number.isFinite(value)) throw new Error("Bitte eine gültige Zahl eingeben.");
@@ -282,11 +328,19 @@ export class V6ProfileEditorDialog extends HTMLElement {
     }
   }
 
-  #save(): void {
+  #save(confirmed = false): void {
     const draft = this.#draft;
     if (!draft) return;
     this.#root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("[data-field]").forEach((input) => this.#updateField(input));
+    if (this.#mappedProcess) {
+      this.#fieldErrors.delete("_process");
+      for (const field of PROCESS_EDITOR_FIELDS) this.#fieldErrors.delete(field.key);
+      this.#fieldErrors.delete("nozzle_diameter_mm");
+      for (const [key, error] of validateProcessEditor(draft.payload, this.#nozzleDiameter)) this.#fieldErrors.set(key, error);
+    }
     if (this.#fieldErrors.size) {
+      this.#reviewFingerprint = "";
+      this.#jsonError = [...this.#fieldErrors.values()].join(" ");
       this.#render();
       return;
     }
@@ -295,6 +349,16 @@ export class V6ProfileEditorDialog extends HTMLElement {
       this.#jsonError = "Der Profilname darf nicht leer sein.";
       this.#render();
       return;
+    }
+    if (this.#mappedProcess) {
+      this.#jsonError = "";
+      const fingerprint = JSON.stringify({ name, payload: draft.payload, select: this.#selectAfterSave });
+      if (!confirmed || this.#reviewFingerprint !== fingerprint) {
+        this.#reviewFingerprint = fingerprint;
+        this.#render();
+        this.#root.querySelector<HTMLButtonElement>('[data-action="confirm-process"]')?.focus();
+        return;
+      }
     }
     this.dispatchEvent(new CustomEvent("profile-save-request", {
       bubbles: true,
@@ -313,3 +377,4 @@ function sourceLabel(profile: V6Profile): string {
 if (!customElements.get("v6-profile-editor-dialog")) {
   customElements.define("v6-profile-editor-dialog", V6ProfileEditorDialog);
 }
+
