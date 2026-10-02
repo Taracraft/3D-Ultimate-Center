@@ -1,5 +1,7 @@
+import { V6_BRANDING } from "./branding.js";
 import "./app-shell.js";
 import "./global-job-popup.js";
+import "./studio-paint-ui.js";
 import {
   configureHomeAssistantApi,
   writeFrontendAudit,
@@ -185,7 +187,9 @@ export class Ultimate3DStudioV6Card extends HTMLElement {
   private readonly onJobNavigate = (event: CustomEvent<JobNavigateDetail>): void => {
     const detail = event.detail;
     if (!detail) return;
-    const suffix = detail.name === "slicer" && detail.id ? `/${encodeURIComponent(detail.id)}` : "";
+    const suffix = detail.id && (detail.name === "slicer" || detail.name === "aufgaben")
+      ? `/${encodeURIComponent(detail.id)}`
+      : "";
     const hash = `#/${detail.name}${suffix}`;
     writeFrontendAudit({
       category: "Lifecycle",
@@ -210,14 +214,13 @@ export class Ultimate3DStudioV6Card extends HTMLElement {
           .logo{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border:1px solid #4bc2ff88;border-radius:12px;background:#13263a;color:#34b9ff;font-weight:800}
           .marke div:last-child{min-width:0}.marke strong,.marke small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.marke small{margin-top:3px;color:#91a4bc}
           #studio-host,ultimate-3d-studio{display:block;width:100%;min-height:calc(100vh - 156px)}
-          ultimate-3d-global-job-popup{position:absolute}
           @media(max-width:800px){header{min-height:56px;padding:8px 10px}.logo{width:36px;height:36px;flex-basis:36px;border-radius:10px}.marke{gap:9px}.marke strong{font-size:14px}.marke small{font-size:10px}#studio-host,ultimate-3d-studio{min-height:calc(100dvh - 112px)}}
         </style>
         <ha-card>
-          <header><div class="marke"><div class="logo">V6</div><div><strong id="card-title">3D Studio V6</strong><small>Druckersteuerung, Modelle, Slicing und Aufgaben</small></div></div></header>
+          <header><div class="marke"><div class="logo">3D</div><div><strong id="card-title">${V6_BRANDING.productName}</strong><small>Druckersteuerung, Modelle, Slicing und Aufgaben</small></div></div></header>
           <div id="studio-host"></div>
-          <ultimate-3d-global-job-popup></ultimate-3d-global-job-popup>
-        </ha-card>`;
+        </ha-card>
+        <ultimate-3d-global-job-popup></ultimate-3d-global-job-popup>`;
       this.mounted = true;
       lifecycle("card-mounted");
     }
@@ -226,7 +229,7 @@ export class Ultimate3DStudioV6Card extends HTMLElement {
 
   private updateTitle(): void {
     const title = this.rootElement.querySelector<HTMLElement>("#card-title");
-    if (title) title.textContent = String(this.configValue.title || "3D Studio V6");
+    if (title) title.textContent = String(this.configValue.title || V6_BRANDING.productName);
   }
 
   private forwardHass(): void {
@@ -245,8 +248,8 @@ window.customCards = window.customCards || [];
 if (!window.customCards.some((entry) => entry.type === "ultimate-3d-studio-v6-card")) {
   window.customCards.push({
     type: "ultimate-3d-studio-v6-card",
-    name: "3D Studio V6",
-    description: "Zentrale V6-Oberfläche für Drucker, Modelle, Slicing und Aufträge",
+    name: V6_BRANDING.productName,
+    description: V6_BRANDING.cardDescription,
     preview: false,
   });
 }
