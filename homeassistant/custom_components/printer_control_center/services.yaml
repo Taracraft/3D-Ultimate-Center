@@ -1,0 +1,13 @@
+scan_network:
+  name: Scan network endpoints
+  description: >
+    Scan configured endpoints, active TCP peers, ARP neighbors, local discovery,
+    explicit hosts, VLAN CIDRs and small visible route networks. If exactly one
+    valid MQTT endpoint is selected, persist it as active printer IP.
+
+install_dashboards:
+  name: Install default dashboards
+  description: >
+    Create or repair the two default 3D-Printer Control Center Lovelace dashboards.
+    Existing integration-owned dashboard configurations are replaced only when this
+    repair service is called explicitly.
