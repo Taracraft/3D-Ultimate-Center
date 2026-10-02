@@ -1,0 +1,488 @@
+import { openContextMenu, type ContextMenuAction } from "./context-menu.js";
+import { errorMessage } from "./ha-api-transport.js";
+import { GalleryApi, type GalleryTreeItem } from "./gallery-api.js";
+import {
+  MakerWorldApi,
+  type MakerWorldDesign,
+  type MakerWorldDetail,
+  type MakerWorldInstance,
+  type MakerWorldPlate,
+} from "./makerworld-api.js";
+import { queueWorkspaceFile, type WorkspaceFileTarget } from "./workspace-file-handoff.js";
+
+const NAVIGATION = [
+  { key: "Trending", label: "Angesagt" },
+  { key: "Popular", label: "Beliebt" },
+  { key: "New Uploads", label: "Neu" },
+] as const;
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  }[character] || character));
+}
+
+function numberLabel(value: unknown): string {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "0";
+  return new Intl.NumberFormat("de-DE", { notation: numeric >= 10_000 ? "compact" : "standard" }).format(numeric);
+}
+
+function durationLabel(seconds: unknown): string {
+  const value = Number(seconds);
+  if (!Number.isFinite(value) || value <= 0) return "–";
+  const hours = Math.floor(value / 3600);
+  const minutes = Math.round((value % 3600) / 60);
+  return hours ? `${hours} h ${minutes} min` : `${minutes} min`;
+}
+
+function safeFileName(value: string): string {
+  const normalized = value.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, " ").trim();
+  return `${normalized || "MakerWorld-Modell"}.3mf`;
+}
+
+export class Ultimate3DMakerWorldWorkspace extends HTMLElement {
+  readonly #root = this.attachShadow({ mode: "open" });
+  readonly #api = new MakerWorldApi();
+  readonly #galleryApi = new GalleryApi();
+  #items: MakerWorldDesign[] = [];
+  #query = "";
+  #navKey = "Trending";
+  #offset = 0;
+  #hasMore = false;
+  #loading = false;
+  #busy = "";
+  #error = "";
+  #message = "";
+  #detail: MakerWorldDetail | null = null;
+  #detailLoading = false;
+  #selectedInstanceId = "";
+  #selectedPlateId = "";
+  #selectedImage = "";
+  #folders: GalleryTreeItem[] = [];
+
+  connectedCallback(): void {
+    this.#mount();
+    void this.#load(true);
+  }
+
+  #mount(): void {
+    const style = document.createElement("style");
+    style.textContent = `
+      :host{display:block;min-height:calc(100vh - 180px);background:#08101a;color:#eef5ff}
+      *{box-sizing:border-box}.page{padding:2px 2px 18px}.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;padding:18px;border:1px solid #26384f;border-radius:14px;background:linear-gradient(135deg,#111d2b,#0c141e)}.hero h1{margin:0;font-size:25px}.hero p{margin:6px 0 0;color:#91a5bb;line-height:1.5}.brand{display:grid;place-items:center;width:78px;height:78px;border-radius:20px;background:#fff;color:#101418;font-weight:900;font-size:13px;box-shadow:0 12px 34px #0006}
+      .search{display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:8px;margin-top:12px}.search input{width:100%;padding:11px 13px;border:1px solid #31506e;border-radius:9px;background:#09131f;color:#fff}.nav{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.nav button,.button,.actions button,.load-more{border:1px solid #315f83;border-radius:8px;padding:9px 12px;background:#15334d;color:#eef5ff;cursor:pointer;font-weight:700}.nav button.active,.primary{border-color:#45bdf5!important;background:#176187!important}.nav button:disabled,.button:disabled,.actions button:disabled,.load-more:disabled{opacity:.4;cursor:not-allowed}.notice,.error,.empty{margin-top:12px;padding:12px;border:1px solid #2a3c53;border-radius:10px;background:#111b29;color:#91a5bb}.notice{border-color:#2c684b;color:#92e7b4}.error{border-color:#8f3f4b;color:#ffd7dc}
+      .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:14px;margin-top:16px}.card{position:relative;overflow:hidden;border:1px solid #2a3c53;border-radius:12px;background:#101925;cursor:context-menu;transition:border-color .15s,transform .15s,box-shadow .15s}.card:hover{border-color:#46bff6;transform:translateY(-2px);box-shadow:0 12px 28px #0005}.image{display:grid;place-items:center;width:100%;aspect-ratio:4/3;background:linear-gradient(145deg,#121c28,#1b2b3b);overflow:hidden}.image img{width:100%;height:100%;object-fit:cover}.fallback{font-size:52px;color:#6284a2}.body{padding:11px}.title{display:-webkit-box;min-height:2.5em;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;font-weight:800;line-height:1.25}.creator{margin-top:5px;color:#91a5bb;font-size:12px}.stats{display:flex;gap:9px;flex-wrap:wrap;margin-top:9px;color:#7f96ac;font-size:11px}.tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}.tag{padding:2px 6px;border-radius:999px;background:#ffffff0b;color:#9eb2c7;font-size:10px}.card-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}.card-actions button{padding:7px;font-size:11px}.menu{position:absolute;z-index:3;top:8px;right:8px;width:31px;height:29px;padding:0;border:1px solid #4a7193;border-radius:7px;background:#07121dcc;color:#fff;cursor:pointer}.load-row{display:grid;place-items:center;margin-top:16px}
+      .overlay{position:fixed;inset:0;z-index:2147481000;display:grid;place-items:center;padding:16px;background:#000c;backdrop-filter:blur(5px)}.dialog{width:min(1480px,calc(100vw - 32px));height:min(900px,calc(100vh - 32px));display:grid;grid-template-columns:minmax(0,1.25fr) minmax(390px,.75fr);overflow:hidden;border:1px solid #3e6b90;border-radius:15px;background:#0c1622;box-shadow:0 26px 90px #000d}.visual{display:grid;grid-template-columns:92px minmax(0,1fr);min-width:0;background:#050a10}.thumbs{display:grid;align-content:start;gap:7px;padding:10px;overflow:auto;border-right:1px solid #26384f}.thumb{width:72px;height:72px;padding:0;overflow:hidden;border:1px solid #304c67;border-radius:8px;background:#101b28;cursor:pointer}.thumb.active{border-color:#49c7ff;box-shadow:0 0 0 2px #49c7ff44}.thumb img{width:100%;height:100%;object-fit:cover}.stage{display:grid;place-items:center;min-width:0;min-height:0;padding:15px;overflow:hidden}.stage img{max-width:100%;max-height:100%;object-fit:contain}.side{min-width:0;overflow:auto;padding:18px;border-left:1px solid #26384f}.side h2{margin:0 40px 5px 0;font-size:24px;overflow-wrap:anywhere}.by{color:#9db2c7}.detail-stats{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.detail-stat{padding:5px 8px;border:1px solid #2e4a64;border-radius:999px;color:#a9c5da;font-size:11px}.description{color:#a9bbcc;line-height:1.55;white-space:pre-wrap;max-height:220px;overflow:auto}.detail-tags{display:flex;gap:5px;flex-wrap:wrap;margin:11px 0}.instance-section{margin-top:16px;padding-top:14px;border-top:1px solid #26384f}.instance-section h3{margin:0 0 9px}.instance-list{display:grid;gap:7px}.instance{display:grid;grid-template-columns:62px minmax(0,1fr);gap:9px;padding:8px;border:1px solid #2a3e55;border-radius:9px;background:#0a141f;cursor:pointer}.instance.active{border-color:#45c5ff;background:#10283a}.instance img{width:62px;height:54px;border-radius:6px;object-fit:cover;background:#111}.instance strong{display:block}.instance small{display:block;margin-top:3px;color:#8199b0}.plates{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:7px;margin-top:10px}.plate{overflow:hidden;padding:0;border:1px solid #2a3e55;border-radius:9px;background:#0a141f;color:#eef5ff;text-align:left;cursor:pointer}.plate.active{border-color:#45c5ff;box-shadow:inset 0 0 0 1px #45c5ff}.plate img{display:block;width:100%;height:86px;object-fit:cover;background:#111}.plate-body{padding:7px}.plate-body strong,.plate-body small{display:block}.plate-body small{margin-top:3px;color:#8199b0}.target{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:15px}.target label{display:grid;gap:5px;color:#9eb2c6;font-size:11px}.target label:first-child{grid-column:1/-1}.target select,.target input{width:100%;padding:9px;border:1px solid #31506e;border-radius:8px;background:#09131f;color:#fff}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}.actions .wide{grid-column:1/-1}.danger{border-color:#8f3f4b!important;background:#3a171d!important;color:#ffd7dc!important}.close{position:absolute;right:25px;top:23px;z-index:2147481100;width:38px;height:38px;border:1px solid #507ca0;border-radius:50%;background:#0d1925;color:#fff;font-size:20px;cursor:pointer}.dialog-loading{display:grid;place-items:center;grid-column:1/-1;color:#9fb4c8}
+      @media(max-width:1000px){.dialog{grid-template-columns:1fr;height:calc(100vh - 20px);width:calc(100vw - 20px);overflow:auto}.visual{min-height:50vh}.side{border-left:0;border-top:1px solid #26384f;overflow:visible}.close{right:15px;top:13px}}
+      @media(max-width:620px){.hero{grid-template-columns:1fr}.brand{display:none}.search{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.visual{grid-template-columns:1fr}.thumbs{display:flex;overflow:auto;border-right:0;border-bottom:1px solid #26384f}.stage{min-height:320px}.target,.actions{grid-template-columns:1fr}.target label:first-child,.actions .wide{grid-column:1}}
+    `;
+    const page = document.createElement("section");
+    page.className = "page";
+    page.id = "page";
+    this.#root.replaceChildren(style, page);
+    this.#render();
+  }
+
+  async #load(reset: boolean): Promise<void> {
+    if (this.#loading) return;
+    this.#loading = true;
+    this.#error = "";
+    if (reset) this.#offset = 0;
+    this.#render();
+    try {
+      const result = await this.#api.browse(this.#query, this.#navKey, this.#offset, 24);
+      this.#items = reset ? result.items : [...this.#items, ...result.items.filter((item) => !this.#items.some((existing) => existing.id === item.id))];
+      this.#hasMore = result.has_more;
+      this.#offset = result.offset + result.items.length;
+    } catch (error) {
+      this.#error = errorMessage(error);
+      if (reset) this.#items = [];
+    } finally {
+      this.#loading = false;
+      this.#render();
+    }
+  }
+
+  #render(): void {
+    const page = this.#root.querySelector<HTMLElement>("#page");
+    if (!page) return;
+    page.innerHTML = `
+      <section class="hero"><div><h1>MakerWorld</h1><p>Direkte Modellübersicht mit Vorschaubildern, Druckprofilen, Platten und Übergabe in Galerie, CAD-Studio oder Slicer.</p></div><div class="brand">Maker<br>World</div></section>
+      <form class="search" id="search-form"><input id="query" type="search" placeholder="MakerWorld durchsuchen …" value="${escapeHtml(this.#query)}"><button class="button primary" type="submit">Suchen</button></form>
+      <nav class="nav">${NAVIGATION.map((item) => `<button type="button" data-nav="${escapeHtml(item.key)}" class="${item.key === this.#navKey && !this.#query ? "active" : ""}">${item.label}</button>`).join("")}</nav>
+      ${this.#message ? `<div class="notice">${escapeHtml(this.#message)}</div>` : ""}${this.#error ? `<div class="error">${escapeHtml(this.#error)}</div>` : ""}
+      ${this.#loading && !this.#items.length ? '<div class="empty">MakerWorld-Modelle werden geladen …</div>' : this.#items.length ? '<div class="grid" id="grid"></div>' : '<div class="empty">Keine MakerWorld-Modelle gefunden.</div>'}
+      ${this.#items.length && (this.#hasMore || this.#loading) ? `<div class="load-row"><button class="load-more" id="load-more" type="button" ${this.#loading ? "disabled" : ""}>${this.#loading ? "Wird geladen …" : "Weitere Modelle laden"}</button></div>` : ""}`;
+
+    const grid = page.querySelector<HTMLElement>("#grid");
+    if (grid) grid.replaceChildren(...this.#items.map((item) => this.#card(item)));
+    page.querySelector<HTMLFormElement>("#search-form")?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.#query = page.querySelector<HTMLInputElement>("#query")?.value.trim() || "";
+      void this.#load(true);
+    });
+    page.querySelectorAll<HTMLButtonElement>("[data-nav]").forEach((button) => button.addEventListener("click", () => {
+      this.#navKey = button.dataset.nav || "Trending";
+      this.#query = "";
+      void this.#load(true);
+    }));
+    page.querySelector<HTMLButtonElement>("#load-more")?.addEventListener("click", () => void this.#load(false));
+    if (this.#detailLoading || this.#detail) this.#renderDialog();
+  }
+
+  #card(item: MakerWorldDesign): HTMLElement {
+    const card = document.createElement("article");
+    card.className = "card";
+    card.tabIndex = 0;
+    const image = document.createElement("div");
+    image.className = "image";
+    image.append(this.#image(item.thumbnail_url, item.title));
+    const menu = document.createElement("button");
+    menu.type = "button";
+    menu.className = "menu";
+    menu.textContent = "⋮";
+    menu.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const bounds = menu.getBoundingClientRect();
+      this.#openContext(new MouseEvent("contextmenu", { clientX: bounds.right, clientY: bounds.bottom }), item);
+    });
+    const body = document.createElement("div");
+    body.className = "body";
+    body.innerHTML = `<div class="title">${escapeHtml(item.title)}</div><div class="creator">Von ${escapeHtml(item.creator)}</div><div class="stats"><span>♥ ${numberLabel(item.stats.likes)}</span><span>⇩ ${numberLabel(item.stats.downloads)}</span><span>💬 ${numberLabel(item.stats.comments)}</span></div><div class="tags">${item.tags.slice(0, 3).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div><div class="card-actions"><button type="button" data-action="details">Details</button><button type="button" data-action="slicer">Slicer</button></div>`;
+    body.querySelector<HTMLButtonElement>("[data-action='details']")?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      void this.#openDetail(item.id);
+    });
+    body.querySelector<HTMLButtonElement>("[data-action='slicer']")?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      void this.#quickTransfer(item, "slicer");
+    });
+    card.append(menu, image, body);
+    card.addEventListener("click", () => void this.#openDetail(item.id));
+    card.addEventListener("contextmenu", (event) => this.#openContext(event, item));
+    card.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") void this.#openDetail(item.id);
+      if (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) {
+        const bounds = card.getBoundingClientRect();
+        this.#openContext(new MouseEvent("contextmenu", { clientX: bounds.left + 24, clientY: bounds.top + 24 }), item);
+      }
+    });
+    return card;
+  }
+
+  #image(url: string | null | undefined, title: string): HTMLElement {
+    if (!url) {
+      const fallback = document.createElement("div");
+      fallback.className = "fallback";
+      fallback.textContent = "◇";
+      return fallback;
+    }
+    const image = document.createElement("img");
+    image.src = url;
+    image.alt = title;
+    image.loading = "lazy";
+    image.referrerPolicy = "no-referrer";
+    image.addEventListener("error", () => {
+      image.replaceWith(this.#image(null, title));
+    }, { once: true });
+    return image;
+  }
+
+  async #openDetail(designId: string): Promise<void> {
+    this.#detailLoading = true;
+    this.#detail = null;
+    this.#error = "";
+    this.#renderDialog();
+    try {
+      const [detail, library] = await Promise.all([
+        this.#api.detail(designId),
+        this.#galleryApi.list("", "", false),
+      ]);
+      this.#detail = detail;
+      this.#folders = library.tree;
+      const selected = detail.instances.find((instance) => instance.is_default) ?? detail.instances[0] ?? null;
+      this.#selectedInstanceId = selected?.id ?? "";
+      this.#selectedPlateId = selected?.plates[0]?.id ?? "";
+      this.#selectedImage = detail.images[0] || detail.thumbnail_url || "";
+    } catch (error) {
+      this.#error = errorMessage(error);
+      this.#closeDialog();
+      this.#render();
+      return;
+    } finally {
+      this.#detailLoading = false;
+      this.#renderDialog();
+    }
+  }
+
+  #renderDialog(): void {
+    this.#root.querySelector(".overlay")?.remove();
+    this.#root.querySelector(".close")?.remove();
+    if (!this.#detailLoading && !this.#detail) return;
+    const overlay = document.createElement("div");
+    overlay.className = "overlay";
+    const dialog = document.createElement("section");
+    dialog.className = "dialog";
+    if (this.#detailLoading || !this.#detail) {
+      dialog.innerHTML = '<div class="dialog-loading">MakerWorld-Details und Druckprofile werden geladen …</div>';
+    } else {
+      this.#buildDialog(dialog, this.#detail);
+    }
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "close";
+    close.textContent = "×";
+    close.addEventListener("click", () => this.#closeDialog());
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) this.#closeDialog();
+    });
+    overlay.append(dialog);
+    this.#root.append(overlay, close);
+  }
+
+  #buildDialog(dialog: HTMLElement, detail: MakerWorldDetail): void {
+    const images = detail.images.length ? [...detail.images] : detail.thumbnail_url ? [detail.thumbnail_url] : [];
+    const instance = this.#selectedInstance(detail);
+    const visual = document.createElement("section");
+    visual.className = "visual";
+    const thumbs = document.createElement("div");
+    thumbs.className = "thumbs";
+    for (const url of images) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `thumb${url === this.#selectedImage ? " active" : ""}`;
+      button.append(this.#image(url, detail.title));
+      button.addEventListener("click", () => {
+        this.#selectedImage = url;
+        this.#renderDialog();
+      });
+      thumbs.append(button);
+    }
+    const stage = document.createElement("div");
+    stage.className = "stage";
+    stage.append(this.#image(this.#selectedImage || detail.thumbnail_url, detail.title));
+    visual.append(thumbs, stage);
+
+    const side = document.createElement("aside");
+    side.className = "side";
+    side.innerHTML = `<h2>${escapeHtml(detail.title)}</h2><div class="by">Von ${escapeHtml(detail.creator)}</div><div class="detail-stats"><span class="detail-stat">♥ ${numberLabel(detail.stats.likes)}</span><span class="detail-stat">⇩ ${numberLabel(detail.stats.downloads)}</span><span class="detail-stat">💬 ${numberLabel(detail.stats.comments)}</span><span class="detail-stat">Drucke ${numberLabel(detail.stats.prints)}</span></div><div class="description">${escapeHtml(detail.description || "Keine Beschreibung verfügbar.")}</div><div class="detail-tags">${detail.tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div><section class="instance-section"><h3>Druckprofile und Platten</h3><div class="instance-list" id="instances"></div><div class="plates" id="plates"></div></section><div class="target"><label>Zielordner<select id="folder">${this.#folders.map((folder) => `<option value="${escapeHtml(folder.path)}">${escapeHtml(folder.path || "Hauptordner")}</option>`).join("")}</select></label><label>Dateiname<input id="filename" value="${escapeHtml(safeFileName(`${detail.title}${instance ? ` - ${instance.title}` : ""}`))}"></label><label>Ausgewählte Platte<input value="${escapeHtml(this.#selectedPlate(detail)?.name || "Alle Platten des Druckprofils")}" disabled></label></div><div class="actions" id="actions"></div>`;
+    const instanceHost = side.querySelector<HTMLElement>("#instances")!;
+    instanceHost.replaceChildren(...detail.instances.map((item) => this.#instanceCard(item)));
+    const plateHost = side.querySelector<HTMLElement>("#plates")!;
+    if (instance) plateHost.replaceChildren(...instance.plates.map((plate) => this.#plateCard(plate)));
+    const actions = side.querySelector<HTMLElement>("#actions")!;
+    const save = this.#actionButton("In Galerie speichern", "primary wide", () => void this.#saveToGallery());
+    const cad = this.#actionButton("CAD-Studio", "", () => void this.#transferSelected("studio"));
+    const slicer = this.#actionButton("Slicer", "", () => void this.#transferSelected("slicer"));
+    const download = this.#actionButton("Original-3MF herunterladen", "wide", () => void this.#downloadSelected());
+    const official = this.#actionButton("Auf MakerWorld öffnen ↗", "wide", () => {
+      window.open(detail.model_url, "_blank", "noopener,noreferrer");
+    });
+    const disabled = !instance || Boolean(this.#busy);
+    save.disabled = disabled;
+    cad.disabled = disabled;
+    slicer.disabled = disabled;
+    download.disabled = disabled;
+    actions.append(save, cad, slicer, download, official);
+    dialog.append(visual, side);
+  }
+
+  #instanceCard(instance: MakerWorldInstance): HTMLElement {
+    const card = document.createElement("article");
+    card.className = `instance${instance.id === this.#selectedInstanceId ? " active" : ""}`;
+    card.append(this.#image(instance.thumbnail_url, instance.title));
+    const content = document.createElement("div");
+    content.innerHTML = `<strong>${escapeHtml(instance.title)}</strong><small>${escapeHtml(instance.printer_model || "Druckermodell offen")}${instance.nozzle_diameter ? ` · ${escapeHtml(instance.nozzle_diameter)} mm` : ""} · ${instance.plate_count} Platte${instance.plate_count === 1 ? "" : "n"}</small>`;
+    card.append(content);
+    card.addEventListener("click", () => {
+      this.#selectedInstanceId = instance.id;
+      this.#selectedPlateId = instance.plates[0]?.id ?? "";
+      if (instance.images[0]) this.#selectedImage = instance.images[0];
+      this.#renderDialog();
+    });
+    return card;
+  }
+
+  #plateCard(plate: MakerWorldPlate): HTMLElement {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `plate${plate.id === this.#selectedPlateId ? " active" : ""}`;
+    if (plate.thumbnail_url) button.append(this.#image(plate.thumbnail_url, plate.name));
+    const body = document.createElement("div");
+    body.className = "plate-body";
+    body.innerHTML = `<strong>${escapeHtml(plate.name)}</strong><small>${durationLabel(plate.print_time_seconds)}${plate.weight_grams ? ` · ${plate.weight_grams} g` : ""}</small>`;
+    button.append(body);
+    button.addEventListener("click", () => {
+      this.#selectedPlateId = plate.id;
+      if (plate.thumbnail_url) this.#selectedImage = plate.thumbnail_url;
+      this.#renderDialog();
+    });
+    return button;
+  }
+
+  #actionButton(label: string, className: string, action: () => void): HTMLButtonElement {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = this.#busy ? "Wird verarbeitet …" : label;
+    button.className = className;
+    button.addEventListener("click", action);
+    return button;
+  }
+
+  #selectedInstance(detail = this.#detail): MakerWorldInstance | null {
+    if (!detail) return null;
+    return detail.instances.find((item) => item.id === this.#selectedInstanceId)
+      ?? detail.instances.find((item) => item.is_default)
+      ?? detail.instances[0]
+      ?? null;
+  }
+
+  #selectedPlate(detail = this.#detail): MakerWorldPlate | null {
+    const instance = this.#selectedInstance(detail);
+    return instance?.plates.find((plate) => plate.id === this.#selectedPlateId)
+      ?? instance?.plates[0]
+      ?? null;
+  }
+
+  async #quickTransfer(item: MakerWorldDesign, target: WorkspaceFileTarget): Promise<void> {
+    if (this.#busy) return;
+    this.#busy = item.id;
+    this.#message = "";
+    this.#error = "";
+    this.#render();
+    try {
+      const detail = await this.#api.detail(item.id);
+      const instance = detail.instances.find((entry) => entry.is_default) ?? detail.instances[0];
+      if (!instance) throw new Error("Für dieses Modell ist kein herunterladbares Druckprofil verfügbar.");
+      await this.#transfer(instance, detail.title, target);
+    } catch (error) {
+      this.#error = errorMessage(error);
+      this.#busy = "";
+      this.#render();
+    }
+  }
+
+  async #transferSelected(target: WorkspaceFileTarget): Promise<void> {
+    const detail = this.#detail;
+    const instance = this.#selectedInstance();
+    if (!detail || !instance || this.#busy) return;
+    this.#busy = instance.id;
+    this.#renderDialog();
+    try {
+      await this.#transfer(instance, detail.title, target);
+    } catch (error) {
+      this.#error = errorMessage(error);
+      this.#busy = "";
+      this.#renderDialog();
+      this.#render();
+    }
+  }
+
+  async #transfer(instance: MakerWorldInstance, title: string, target: WorkspaceFileTarget): Promise<void> {
+    const format = target === "studio" ? "stl" : "3mf";
+    const file = await this.#api.downloadInstance(instance.id, format, `${title} - ${instance.title}`);
+    queueWorkspaceFile(target, file);
+    this.#busy = "";
+    this.#closeDialog(false);
+    this.dispatchEvent(new CustomEvent(target === "studio" ? "gallery-open-studio" : "gallery-open-slicer", {
+      bubbles: true,
+      composed: true,
+      detail: { designId: instance.design_id, instanceId: instance.id, fileName: file.name },
+    }));
+  }
+
+  async #saveToGallery(): Promise<void> {
+    const detail = this.#detail;
+    const instance = this.#selectedInstance();
+    const dialog = this.#root.querySelector<HTMLElement>(".dialog");
+    if (!detail || !instance || !dialog || this.#busy) return;
+    const folder = dialog.querySelector<HTMLSelectElement>("#folder")?.value ?? "";
+    const filename = dialog.querySelector<HTMLInputElement>("#filename")?.value.trim() || safeFileName(detail.title);
+    this.#busy = instance.id;
+    this.#renderDialog();
+    try {
+      let saved;
+      try {
+        saved = await this.#api.saveInstance(instance.id, folder, filename, false);
+      } catch (error) {
+        if (!errorMessage(error).toLocaleLowerCase("de-DE").includes("exist") || !window.confirm("Im Zielordner existiert bereits eine gleichnamige Datei. Überschreiben?")) throw error;
+        saved = await this.#api.saveInstance(instance.id, folder, filename, true);
+      }
+      this.#message = `${saved.name} wurde in der Galerie gespeichert.`;
+      this.#busy = "";
+      this.#closeDialog(false);
+      this.#render();
+    } catch (error) {
+      this.#error = errorMessage(error);
+      this.#busy = "";
+      this.#renderDialog();
+    }
+  }
+
+  async #downloadSelected(): Promise<void> {
+    const detail = this.#detail;
+    const instance = this.#selectedInstance();
+    if (!detail || !instance || this.#busy) return;
+    this.#busy = instance.id;
+    this.#renderDialog();
+    try {
+      const file = await this.#api.downloadInstance(instance.id, "3mf", `${detail.title} - ${instance.title}`);
+      const url = URL.createObjectURL(file);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = file.name;
+      anchor.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+      this.#error = errorMessage(error);
+    } finally {
+      this.#busy = "";
+      this.#renderDialog();
+      this.#render();
+    }
+  }
+
+  #openContext(event: MouseEvent, item: MakerWorldDesign): void {
+    const actions: ContextMenuAction[] = [
+      { label: "Modelldetails öffnen", run: () => this.#openDetail(item.id) },
+      { label: "An Slicer übergeben", run: () => this.#quickTransfer(item, "slicer") },
+      { label: "Im CAD-Studio öffnen", run: () => this.#quickTransfer(item, "studio") },
+      {
+        label: "Auf MakerWorld öffnen",
+        separatorBefore: true,
+        run: () => {
+          window.open(item.model_url, "_blank", "noopener,noreferrer");
+        },
+      },
+      {
+        label: "MakerWorld-Link kopieren",
+        run: async () => {
+          await navigator.clipboard?.writeText(item.model_url);
+          this.#message = "MakerWorld-Link wurde kopiert.";
+          this.#render();
+        },
+      },
+    ];
+    openContextMenu(event, actions);
+  }
+
+  #closeDialog(render = true): void {
+    this.#detail = null;
+    this.#detailLoading = false;
+    this.#selectedInstanceId = "";
+    this.#selectedPlateId = "";
+    this.#selectedImage = "";
+    this.#root.querySelector(".overlay")?.remove();
+    this.#root.querySelector(".close")?.remove();
+    if (render) this.#render();
+  }
+}
+
+if (!customElements.get("ultimate-3d-makerworld-workspace")) {
+  customElements.define("ultimate-3d-makerworld-workspace", Ultimate3DMakerWorldWorkspace);
+}
