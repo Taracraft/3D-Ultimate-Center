@@ -73,7 +73,8 @@ def test_server_and_worker_are_wired_to_the_contract() -> None:
     view_source = (COMPONENT / "slicer_plate_views_v2.py").read_text(encoding="utf-8")
     helper_source = (COMPONENT / "bed-temperature-contract.sh").read_text(encoding="utf-8")
     dispatcher_source = (COMPONENT / "dispatch-job-options.sh").read_text(encoding="utf-8")
-    assert "options.update(selected_build_plate_options(catalog))" in view_source
+    assert "build_plate_options = selected_build_plate_options(catalog)" in view_source
+    assert "options.update(build_plate_options)" in view_source
     assert "apply_bed_type_contract" in helper_source
     assert "validate_bed_type_contract" in helper_source
     assert "M140 S" in helper_source and "M190 S" in helper_source

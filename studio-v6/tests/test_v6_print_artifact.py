@@ -278,3 +278,62 @@ def test_upload_rejects_verified_size_mismatch(
             data=data,
             tls_insecure=True,
         )
+
+def test_upload_reports_real_monotonic_ftps_byte_progress(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    data = artifact(with_preview=True)
+    samples: list[tuple[int, int, str]] = []
+
+    class ProgressClient:
+        def storbinary(
+            self,
+            command: str,
+            stream: io.BytesIO,
+            blocksize: int,
+            callback=None,
+        ) -> None:
+            assert command == "STOR beta1.gcode.3mf"
+            assert blocksize == 256 * 1024
+            while block := stream.read(97):
+                if callback is not None:
+                    callback(block)
+
+        def quit(self) -> None:
+            return None
+
+        def close(self) -> None:
+            return None
+
+    monkeypatch.setattr(
+        print_artifact,
+        "_connect_ftps",
+        lambda **_kwargs: ProgressClient(),
+    )
+    monkeypatch.setattr(
+        print_artifact,
+        "_remote_file_size",
+        lambda **_kwargs: len(data),
+    )
+
+    result = print_artifact.upload_gcode_3mf(
+        host="printer.local",
+        access_code="secret",
+        printer_id="SERIAL",
+        filename="beta1.3mf",
+        data=data,
+        tls_insecure=True,
+        on_progress=lambda loaded, total, stage: samples.append(
+            (loaded, total, stage),
+        ),
+    )
+
+    assert result.size_bytes == len(data)
+    assert samples[0] == (0, len(data), "connecting")
+    assert samples[-1] == (len(data), len(data), "completed")
+    assert "uploading" in [stage for _, _, stage in samples]
+    assert "verifying" in [stage for _, _, stage in samples]
+    loaded_values = [loaded for loaded, _, _ in samples]
+    assert loaded_values == sorted(loaded_values)
+    assert all(total == len(data) for _, total, _ in samples)
+

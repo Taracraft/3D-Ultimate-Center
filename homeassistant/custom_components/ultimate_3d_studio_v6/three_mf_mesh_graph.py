@@ -28,6 +28,8 @@ class MeshInstance:
     name: str
     vertices: tuple[tuple[float, float, float], ...]
     triangles: tuple[tuple[int, int, int], ...]
+    # Zero-based material index from a triangle p1 property; None inherits object material.
+    triangle_material_indices: tuple[int | None, ...]
 
 
 _IDENTITY: Matrix = (
@@ -227,10 +229,30 @@ def mesh_instances(input_3mf: Path) -> list[MeshInstance]:
                         )
                         for item in mesh.findall("m:vertices/m:vertex", NS)
                     )
-                    triangles = tuple(
-                        (int(item.attrib["v1"]), int(item.attrib["v2"]), int(item.attrib["v3"]))
-                        for item in mesh.findall("m:triangles/m:triangle", NS)
-                    )
+                    triangles: list[tuple[int, int, int]] = []
+                    triangle_material_indices: list[int | None] = []
+                    object_property_id = str(node.attrib.get("pid") or "")
+                    for item in mesh.findall("m:triangles/m:triangle", NS):
+                        triangles.append(
+                            (int(item.attrib["v1"]), int(item.attrib["v2"]), int(item.attrib["v3"]))
+                        )
+                        raw_index = item.attrib.get("p1")
+                        if raw_index is None:
+                            triangle_material_indices.append(None)
+                            continue
+                        property_id = str(item.attrib.get("pid") or object_property_id)
+                        if not property_id or (object_property_id and property_id != object_property_id):
+                            raise ValueError("Die 3MF-Fläche verweist auf eine unbekannte Materialgruppe.")
+                        try:
+                            material_index = int(raw_index)
+                        except (TypeError, ValueError) as exc:
+                            raise ValueError("Die 3MF-Fläche enthält einen ungültigen Materialindex.") from exc
+                        if material_index < 0:
+                            raise ValueError("Die 3MF-Fläche enthält einen ungültigen Materialindex.")
+                        for key in ("p2", "p3"):
+                            if key in item.attrib and int(item.attrib[key]) != material_index:
+                                raise ValueError("Farbverläufe pro Dreieck werden für den Druck nicht unterstützt.")
+                        triangle_material_indices.append(material_index)
                     if not vertices or not triangles:
                         raise ValueError("Die 3MF enthält ein leeres Meshobjekt.")
                     result.append(MeshInstance(
@@ -238,7 +260,8 @@ def mesh_instances(input_3mf: Path) -> list[MeshInstance]:
                         mesh_object_id=str(node.attrib.get("id") or ""),
                         name=str(node.attrib.get("name") or f"Objekt {logical_id}"),
                         vertices=vertices,
-                        triangles=triangles,
+                        triangles=tuple(triangles),
+                        triangle_material_indices=tuple(triangle_material_indices),
                     ))
                     if len(result) > MAX_MODEL_PARTS:
                         raise ValueError("Die 3MF enthält zu viele Meshobjekte.")

@@ -56,7 +56,7 @@ function categoryOf(event: AuditEvent): string {
   if (source.includes("profile") || source.includes("profil")) return "Profile";
   if (source.includes("camera") || source.includes("kamera")) return "Kamera";
   if (source.includes("ams") || source.includes("filament")) return "AMS";
-  if (source.includes("slicing-server") || source.includes("printer_slicing_server") || source.includes("worker")) return "Slicing-Server";
+  if (source.includes("slicing-server") || source.includes("printer_slicing_server")) return "Slicing-Server";
   if (source.includes("slicer") || source.includes("slice") || source.includes("gcode")) return "Slicer";
   if (source.includes("print") || source.includes("druck") || source.includes("printer")) return "Druck";
   if (source.includes("studio") || source.includes("scene") || source.includes("model")) return "Studio";

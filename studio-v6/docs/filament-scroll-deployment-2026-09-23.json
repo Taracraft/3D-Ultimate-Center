@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-09-23T19:59:25.170Z",
+  "target": "www/3d-studio-v6/ultimate-3d-studio.js",
+  "backup": "www/backups/v6-filament-scroll-2026-09-23T19-58-33-646Z",
+  "resourceBefore": {
+    "id": "da94bf94da1d4592a265c7d2ad6eda93",
+    "url": "/local/3d-studio-v6/ultimate-3d-studio.js?v=bcfb5aef05",
+    "type": "module"
+  },
+  "resourceAfter": {
+    "id": "da94bf94da1d4592a265c7d2ad6eda93",
+    "url": "/local/3d-studio-v6/ultimate-3d-studio.js?v=filament-scroll-20260923-1958",
+    "type": "module"
+  },
+  "verifiedExactReadback": true,
+  "verifiedOnlyOneCssRuleChanged": true,
+  "syntaxCheck": "passed",
+  "browserAcceptance": "pending",
+  "authorization": "User approved live fix and removed second-approval requirement for ongoing repair.",
+  "scope": "Only filament-tree CSS rule; no printer commands or restart."
+}

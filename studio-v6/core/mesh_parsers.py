@@ -93,15 +93,21 @@ def parse_mesh(path: str | Path) -> MeshMetadata:
     raise ValueError(f"unsupported mesh format: {suffix or '<none>'}")
 
 
+def _is_binary_stl(header: bytes) -> bool:
+    """Detect binary STL: ASCII STL headers start with 'solid' keyword."""
+    text = header[:80].decode('ascii', errors='ignore')
+    return not text.strip().startswith('solid')
+
+
 def parse_stl(path: str | Path) -> MeshMetadata:
     source = Path(path)
-    size = source.stat().st_size
     with source.open("rb") as stream:
         header = stream.read(84)
-    if len(header) >= 84:
+    if len(header) < 84:
+        raise ValueError("STL file too small")
+    if _is_binary_stl(header):
         count = struct.unpack_from("<I", header, 80)[0]
-        if 84 + count * 50 == size:
-            return _parse_binary_stl(source, count)
+        return _parse_binary_stl(source, count)
     return _parse_ascii_stl(source)
 
 

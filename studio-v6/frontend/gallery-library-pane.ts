@@ -1,7 +1,8 @@
 import "./v6-action-dialog.js";
 import "./v6-context-menu.js";
 import "./gallery-model-detail-dialog.js";
-import { GalleryApi, type GalleryItem, type GalleryLibrary } from "./gallery-api.js";
+import { GalleryApi, type GalleryImportSummary, type GalleryItem, type GalleryLibrary } from "./gallery-api.js";
+import { sortGalleryItems, type GallerySortMode, type GalleryViewMode } from "./gallery-library-state.js";
 import { errorMessage } from "./ha-api-transport.js";
 import { STORAGE_WORKSPACE_STYLE } from "./storage-workspace-style.js";
 import type { V6ActionDialog } from "./v6-action-dialog.js";
@@ -64,6 +65,14 @@ function sizeLabel(value: number | undefined): string {
   return `${(size / 1024 ** 2).toFixed(1)} MB`;
 }
 
+function dateLabel(value: unknown): string {
+  const numeric = Number(value);
+  const date = Number.isFinite(numeric)
+    ? new Date(numeric > 10_000_000_000 ? numeric : numeric * 1000)
+    : new Date(String(value ?? ""));
+  return Number.isNaN(date.getTime()) ? "–" : date.toLocaleString("de-DE");
+}
+
 function loadRecent(): RecentOpened | null {
   try {
     const raw = localStorage.getItem(RECENT_KEY);
@@ -86,7 +95,10 @@ function loadRecent(): RecentOpened | null {
 export class Ultimate3DGalleryLibraryPane extends HTMLElement {
   readonly #root = this.attachShadow({ mode: "open" });
   readonly #api = new GalleryApi();
+  readonly #selected = new Set<string>();
   #library: GalleryLibrary | null = null;
+  #sort: GallerySortMode = "name";
+  #view: GalleryViewMode = "grid";
   #folder = "";
   #query = "";
   #timer: number | null = null;
@@ -138,7 +150,7 @@ export class Ultimate3DGalleryLibraryPane extends HTMLElement {
   }
 
   #mount(): void {
-    this.#root.innerHTML = `<style>${STORAGE_WORKSPACE_STYLE}.search{flex:1;min-width:190px;padding:9px;border:1px solid #31506e;border-radius:8px;background:#09131f;color:#fff}.live{color:#8ff0b5;font-size:11px}.recent{display:none;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;margin:0 0 12px;padding:11px 13px;border:1px solid #31506e;border-radius:9px;background:linear-gradient(180deg,#102334,#0a1723)}.recent.visible{display:grid}.recent strong,.recent small{display:block}.recent small{margin-top:3px;color:#849bb0}.recent button{white-space:nowrap}.preview.clickable{cursor:pointer}.preview.clickable:hover{outline:1px solid #45caff;box-shadow:0 0 0 2px #45caff22}.upload-status{display:none;margin:0 0 12px;padding:12px 13px;border:1px solid #31506e;border-radius:9px;background:#091722}.upload-status.visible{display:block}.upload-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}.upload-head strong{color:#e8f4ff}.upload-head span{color:#8ff0b5;font-weight:800}.upload-track{height:10px;overflow:hidden;border:1px solid #284765;border-radius:999px;background:#06101a}.upload-bar{height:100%;width:0;background:linear-gradient(90deg,#1595d3,#39d884);transition:width .2s ease}.upload-current{display:block;margin-top:7px;color:#a8bfd2}.upload-success{margin:8px 0 0;padding-left:20px;color:#79ef9f}.upload-success li{margin:3px 0}.upload-status.error{border-color:#9a3f4a}.upload-status.error .upload-head span,.upload-status.error .upload-current{color:#ff9ca7}</style><section class="page"><header class="head"><div><h1>Galerie</h1><p>Lokale V6-Modellbibliothek mit automatischer Aktualisierung.</p></div><div class="actions"><button id="refresh">Aktualisieren</button><span class="live" id="live">Live alle 10 s</span></div></header><div id="notice"></div><section class="upload-status" id="upload-status" aria-live="polite"><div class="upload-head"><strong id="upload-title">Dateien werden hochgeladen</strong><span id="upload-percent">0 %</span></div><div class="upload-track"><div class="upload-bar" id="upload-bar"></div></div><small class="upload-current" id="upload-current"></small><ul class="upload-success" id="upload-success"></ul></section><div class="layout"><aside class="sidebar"><strong>Ordner</strong><div class="tree" id="tree"></div></aside><main><div class="toolbar"><input class="search" id="search" type="search" placeholder="Galerie durchsuchen"><button id="search-button">Suchen</button><button class="primary" id="upload">Hochladen</button><button id="new-folder">Neuer Ordner</button><button id="up">Eine Ebene hoch</button></div><div class="path" id="path">Hauptordner</div><section class="recent" id="recent"></section><section class="items" id="items"></section></main></div><input id="upload-input" type="file" accept=".3mf,.stl,.obj" multiple hidden><v6-action-dialog></v6-action-dialog><v6-context-menu></v6-context-menu><gallery-model-detail-dialog></gallery-model-detail-dialog></section>`;
+    this.#root.innerHTML = `<style>${STORAGE_WORKSPACE_STYLE}.search{flex:1;min-width:190px;padding:9px;border:1px solid #31506e;border-radius:8px;background:#09131f;color:#fff}.live{color:#8ff0b5;font-size:11px}.recent{display:none;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;margin:0 0 12px;padding:11px 13px;border:1px solid #31506e;border-radius:9px;background:linear-gradient(180deg,#102334,#0a1723)}.recent.visible{display:grid}.recent strong,.recent small{display:block}.recent small{margin-top:3px;color:#849bb0}.recent button{white-space:nowrap}.preview.clickable{cursor:pointer}.preview.clickable:hover{outline:1px solid #45caff;box-shadow:0 0 0 2px #45caff22}.upload-status{display:none;margin:0 0 12px;padding:12px 13px;border:1px solid #31506e;border-radius:9px;background:#091722}.upload-status.visible{display:block}.upload-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}.upload-head strong{color:#e8f4ff}.upload-head span{color:#8ff0b5;font-weight:800}.upload-track{height:10px;overflow:hidden;border:1px solid #284765;border-radius:999px;background:#06101a}.upload-bar{height:100%;width:0;background:linear-gradient(90deg,#1595d3,#39d884);transition:width .2s ease}.upload-current{display:block;margin-top:7px;color:#a8bfd2}.upload-success{margin:8px 0 0;padding-left:20px;color:#79ef9f}.upload-success li{margin:3px 0}.upload-status.error{border-color:#9a3f4a}.upload-status.error .upload-head span,.upload-status.error .upload-current{color:#ff9ca7}.toolbar select{min-width:145px}.bulk{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0;padding:8px;border:1px solid #26384f;border-radius:9px;background:#0d1723}.bulk strong{margin-right:auto}.card{position:relative}.card.selected{border-color:#45c5ff;box-shadow:inset 3px 0 #45c5ff}.select-item{position:absolute;top:8px;left:8px;z-index:3;width:23px;height:23px}.items.list{display:grid;grid-template-columns:1fr}.items.list .card{display:grid;grid-template-columns:110px minmax(0,1fr) auto;align-items:center;min-height:94px}.items.list .preview{height:92px}.items.list .card-actions{display:flex;flex-wrap:wrap;padding:9px}@media(max-width:650px){.bulk{display:grid}.items.list .card{grid-template-columns:80px minmax(0,1fr)}.items.list .card-actions{grid-column:1/-1}}</style><section class="page"><header class="head"><div><h1>Galerie</h1><p>Lokale V6-Modellbibliothek mit automatischer Aktualisierung.</p></div><div class="actions"><button id="refresh">Aktualisieren</button><span class="live" id="live">Live alle 10 s</span></div></header><div id="notice"></div><section class="upload-status" id="upload-status" aria-live="polite"><div class="upload-head"><strong id="upload-title">Dateien werden hochgeladen</strong><span id="upload-percent">0 %</span></div><div class="upload-track"><div class="upload-bar" id="upload-bar"></div></div><small class="upload-current" id="upload-current"></small><ul class="upload-success" id="upload-success"></ul></section><div class="layout"><aside class="sidebar"><strong>Ordner</strong><div class="tree" id="tree"></div></aside><main><div class="toolbar"><input class="search" id="search" type="search" placeholder="Galerie durchsuchen"><button id="search-button">Suchen</button><select id="sort" aria-label="Sortierung"><option value="name">Name A–Z</option><option value="newest">Neueste zuerst</option><option value="size">Größte zuerst</option></select><button class="primary" id="upload">Hochladen</button><button id="new-folder">Neuer Ordner</button><button id="up">Eine Ebene hoch</button><button id="export">ZIP-Export</button><button id="import">ZIP-Import</button><button id="grid-view">Raster</button><button id="list-view">Liste</button></div><div class="path" id="path">Hauptordner</div><div class="bulk"><strong id="selected-count">0 ausgewählt</strong><button id="select-all">Alle auswählen</button><button id="clear-selection" disabled>Auswahl aufheben</button><button id="copy-selected" disabled>Kopieren</button><button id="move-selected" disabled>Verschieben</button><button class="danger" id="delete-selected" disabled>Löschen</button></div><section class="recent" id="recent"></section><section class="items" id="items"></section></main></div><input id="upload-input" type="file" accept=".3mf,.stl,.obj" multiple hidden><input id="import-input" type="file" accept=".zip,application/zip" hidden><v6-action-dialog></v6-action-dialog><v6-context-menu></v6-context-menu><gallery-model-detail-dialog></gallery-model-detail-dialog></section>`;
     this.#root.querySelector<HTMLButtonElement>("#refresh")?.addEventListener("click", () => void this.#refresh(false));
     this.#root.querySelector<HTMLButtonElement>("#upload")?.addEventListener("click", () => this.#root.querySelector<HTMLInputElement>("#upload-input")?.click());
     this.#root.querySelector<HTMLInputElement>("#upload-input")?.addEventListener("change", (event) => void this.#upload((event.currentTarget as HTMLInputElement).files));
@@ -146,6 +158,17 @@ export class Ultimate3DGalleryLibraryPane extends HTMLElement {
     this.#root.querySelector<HTMLButtonElement>("#up")?.addEventListener("click", () => void this.#openFolder(this.#library?.parent || ""));
     this.#root.querySelector<HTMLButtonElement>("#search-button")?.addEventListener("click", () => this.#search());
     this.#root.querySelector<HTMLInputElement>("#search")?.addEventListener("keydown", (event) => { if (event.key === "Enter") this.#search(); });
+    this.#root.querySelector<HTMLSelectElement>("#sort")?.addEventListener("change", (event) => { this.#sort = (event.currentTarget as HTMLSelectElement).value as GallerySortMode; this.#renderData(); });
+    this.#root.querySelector<HTMLButtonElement>("#grid-view")?.addEventListener("click", () => this.#setView("grid"));
+    this.#root.querySelector<HTMLButtonElement>("#list-view")?.addEventListener("click", () => this.#setView("list"));
+    this.#root.querySelector<HTMLButtonElement>("#export")?.addEventListener("click", () => void this.#export());
+    this.#root.querySelector<HTMLButtonElement>("#import")?.addEventListener("click", () => this.#root.querySelector<HTMLInputElement>("#import-input")?.click());
+    this.#root.querySelector<HTMLInputElement>("#import-input")?.addEventListener("change", (event) => void this.#import((event.currentTarget as HTMLInputElement).files?.[0] ?? null));
+    this.#root.querySelector<HTMLButtonElement>("#select-all")?.addEventListener("click", () => { for (const item of this.#visibleItems()) this.#selected.add(item.path); this.#renderSelection(); });
+    this.#root.querySelector<HTMLButtonElement>("#clear-selection")?.addEventListener("click", () => { this.#selected.clear(); this.#renderSelection(); });
+    this.#root.querySelector<HTMLButtonElement>("#copy-selected")?.addEventListener("click", () => void this.#bulkTransfer("copy"));
+    this.#root.querySelector<HTMLButtonElement>("#move-selected")?.addEventListener("click", () => void this.#bulkTransfer("move"));
+    this.#root.querySelector<HTMLButtonElement>("#delete-selected")?.addEventListener("click", () => void this.#bulkRemove());
     this.#renderRecent();
   }
 
@@ -175,6 +198,7 @@ export class Ultimate3DGalleryLibraryPane extends HTMLElement {
   }
 
   async #openFolder(folder: string): Promise<void> {
+    this.#selected.clear();
     this.#folder = folder;
     this.#query = "";
     const input = this.#root.querySelector<HTMLInputElement>("#search");
@@ -209,15 +233,42 @@ export class Ultimate3DGalleryLibraryPane extends HTMLElement {
     tree.querySelectorAll<HTMLButtonElement>("[data-folder]").forEach((button) => button.addEventListener("click", () => void this.#openFolder(button.dataset.folder || "")));
     path.textContent = this.#folder ? `Hauptordner / ${this.#folder}` : "Hauptordner";
     up.disabled = !this.#folder;
-    const entries = this.#library?.items || [];
+    const entries = this.#visibleItems();
+    const visiblePaths = new Set(entries.map((item) => item.path));
+    for (const selected of this.#selected) if (!visiblePaths.has(selected)) this.#selected.delete(selected);
+    items.classList.toggle("list", this.#view === "list");
     items.replaceChildren(...entries.map((item) => this.#card(item)));
     if (!entries.length) items.innerHTML = '<div class="empty">Keine passenden Dateien oder Ordner vorhanden.</div>';
+    this.#renderSelection();
     this.#renderRecent();
+  }
+
+  #visibleItems(): GalleryItem[] {
+    return sortGalleryItems(this.#library?.items || [], this.#sort);
+  }
+
+  #setView(view: GalleryViewMode): void {
+    this.#view = view;
+    const items = this.#root.querySelector<HTMLElement>("#items");
+    items?.classList.toggle("list", view === "list");
+    this.#root.querySelector<HTMLButtonElement>("#grid-view")?.classList.toggle("primary", view === "grid");
+    this.#root.querySelector<HTMLButtonElement>("#list-view")?.classList.toggle("primary", view === "list");
   }
 
   #card(item: GalleryItem): HTMLElement {
     const card = document.createElement("article");
-    card.className = "card";
+    card.className = `card${this.#selected.has(item.path) ? " selected" : ""}`;
+    card.dataset.path = item.path;
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.className = "select-item";
+    checkbox.checked = this.#selected.has(item.path);
+    checkbox.setAttribute("aria-label", `${item.name} auswählen`);
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) this.#selected.add(item.path);
+      else this.#selected.delete(item.path);
+      this.#renderSelection();
+    });
     const preview = document.createElement("div");
     preview.className = `preview${item.kind === "model" ? " clickable" : ""}`;
     preview.innerHTML = `<span class="icon">${item.kind === "folder" ? "📁" : "◇"}</span>`;
@@ -246,9 +297,28 @@ export class Ultimate3DGalleryLibraryPane extends HTMLElement {
       this.#button("Verschieben", () => void this.#transfer(item, "move")),
       this.#button("Löschen", () => void this.#remove(item), true),
     );
-    card.append(preview, body, actions);
+    card.append(checkbox, preview, body, actions);
     card.addEventListener("contextmenu", (event) => this.#context(event, item));
     return card;
+  }
+
+  #renderSelection(): void {
+    const count = this.#selected.size;
+    const label = this.#root.querySelector<HTMLElement>("#selected-count");
+    if (label) label.textContent = `${count} ausgewählt`;
+    for (const id of ["clear-selection", "copy-selected", "move-selected", "delete-selected"]) {
+      const button = this.#root.querySelector<HTMLButtonElement>(`#${id}`);
+      if (button) button.disabled = count === 0;
+    }
+    const selectAll = this.#root.querySelector<HTMLButtonElement>("#select-all");
+    if (selectAll) selectAll.disabled = this.#visibleItems().length === 0;
+    this.#root.querySelectorAll<HTMLElement>(".card[data-path]").forEach((card) => {
+      const selected = this.#selected.has(card.dataset.path || "");
+      card.classList.toggle("selected", selected);
+      const checkbox = card.querySelector<HTMLInputElement>(".select-item");
+      if (checkbox) checkbox.checked = selected;
+    });
+    this.#setView(this.#view);
   }
 
   #observePreview(item: GalleryItem, host: HTMLElement): void {
@@ -331,12 +401,72 @@ export class Ultimate3DGalleryLibraryPane extends HTMLElement {
   async #transfer(item: GalleryItem, action: "copy" | "move"): Promise<void> {
     const target = await this.#chooseFolder(action === "copy" ? "Eintrag kopieren" : "Eintrag verschieben");
     if (target === null) return;
-    await this.#run(() => (action === "copy" ? this.#api.copy(item.path, target, false) : this.#api.move(item.path, target, false)).then(() => undefined));
+    await this.#run(() => this.#transferWithOverwrite(item, action, target));
+  }
+
+  async #transferWithOverwrite(item: GalleryItem, action: "copy" | "move", target: string): Promise<void> {
+    try {
+      if (action === "copy") await this.#api.copy(item.path, target, false);
+      else await this.#api.move(item.path, target, false);
+    } catch (error) {
+      if (!errorMessage(error).toLowerCase().includes("exist")) throw error;
+      const overwrite = await this.#dialog()?.confirm({ title: "Vorhandenes Ziel ersetzen", message: `„${item.name}“ existiert im Zielordner bereits.`, detail: target || "Hauptordner", confirmLabel: "Ersetzen", danger: true });
+      if (!overwrite) return;
+      if (action === "copy") await this.#api.copy(item.path, target, true);
+      else await this.#api.move(item.path, target, true);
+    }
   }
 
   async #remove(item: GalleryItem): Promise<void> {
     const confirmed = await this.#dialog()?.confirm({ title: "Galerieeintrag löschen", message: "Diesen Eintrag dauerhaft löschen?", detail: item.path, confirmLabel: "Löschen", danger: true });
-    if (confirmed) await this.#run(() => this.#api.remove(item.path).then(() => undefined));
+    if (confirmed) await this.#run(async () => { await this.#api.remove(item.path); this.#selected.delete(item.path); });
+  }
+
+  async #bulkTransfer(action: "copy" | "move"): Promise<void> {
+    const selected = this.#visibleItems().filter((item) => this.#selected.has(item.path));
+    if (!selected.length) return;
+    const target = await this.#chooseFolder(action === "copy" ? "Auswahl kopieren" : "Auswahl verschieben");
+    if (target === null) return;
+    await this.#run(async () => {
+      for (const item of selected) await this.#transferWithOverwrite(item, action, target);
+      if (action === "move") this.#selected.clear();
+    });
+  }
+
+  async #bulkRemove(): Promise<void> {
+    const selected = this.#visibleItems().filter((item) => this.#selected.has(item.path));
+    if (!selected.length) return;
+    const confirmed = await this.#dialog()?.confirm({ title: "Galerieauswahl löschen", message: `${selected.length} Einträge dauerhaft löschen?`, detail: selected.map((item) => item.path).join("\n"), confirmLabel: "Alle löschen", danger: true });
+    if (!confirmed) return;
+    await this.#run(async () => {
+      for (const item of selected) await this.#api.remove(item.path);
+      this.#selected.clear();
+    });
+  }
+
+  async #export(): Promise<void> {
+    try {
+      const file = await this.#api.exportZip();
+      const url = URL.createObjectURL(file);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = file.name;
+      anchor.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      this.#showMessage("Galerie wurde als ZIP exportiert.");
+    } catch (error) { this.#showError(errorMessage(error)); }
+  }
+
+  async #import(file: File | null): Promise<void> {
+    const input = this.#root.querySelector<HTMLInputElement>("#import-input");
+    if (!file || this.#busy) return;
+    try {
+      const summary: GalleryImportSummary = await this.#api.inspectImport(file);
+      const confirmed = await this.#dialog()?.confirm({ title: "Galerie-ZIP importieren", message: `${summary.files} Dateien und ${summary.folders} Ordner importieren?`, detail: summary.conflicts.length ? `${summary.conflicts.length} vorhandene Dateien werden ersetzt.` : sizeLabel(summary.bytes), confirmLabel: "Importieren", danger: summary.conflicts.length > 0 });
+      if (!confirmed) return;
+      await this.#run(() => this.#api.importZip(file, summary.conflicts.length > 0).then(() => undefined));
+    } catch (error) { this.#showError(errorMessage(error)); }
+    finally { if (input) input.value = ""; }
   }
 
   async #download(item: GalleryItem): Promise<void> {
@@ -428,7 +558,23 @@ export class Ultimate3DGalleryLibraryPane extends HTMLElement {
           totalBytes,
           successful,
         );
-        await this.#api.upload(file, this.#folder, false);
+        const uploadWithProgress = (overwrite: boolean) => this.#api.upload(file, this.#folder, overwrite, (progress) => {
+          this.#renderUploadProgress(
+            `Datei ${index + 1} von ${queue.length} wird hochgeladen`,
+            `${file.name} · ${sizeLabel(progress.uploadedBytes)} / ${sizeLabel(progress.totalBytes)}`,
+            completedBytes + progress.uploadedBytes,
+            totalBytes,
+            successful,
+          );
+        });
+        try {
+          await uploadWithProgress(false);
+        } catch (error) {
+          if (!errorMessage(error).toLowerCase().includes("exist")) throw error;
+          const overwrite = await this.#dialog()?.confirm({ title: "Galeriedatei ersetzen", message: `„${file.name}“ existiert bereits.`, confirmLabel: "Ersetzen", danger: true });
+          if (!overwrite) throw new Error(`Upload von „${file.name}“ wurde abgebrochen.`);
+          await uploadWithProgress(true);
+        }
         completedBytes += Math.max(0, file.size);
         successful.push(file.name);
         this.#renderUploadProgress(

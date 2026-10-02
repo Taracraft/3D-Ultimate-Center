@@ -5,34 +5,13 @@ export type WorkspaceRoute =
   | { name: "slicer"; jobId?: string }
   | { name: "ams" }
   | { name: "profile" }
-  | { name: "aufgaben" }
+  | { name: "aufgaben"; jobId?: string }
   | { name: "verlauf" }
   | { name: "system" }
   | { name: "slicing-server" };
 
-const ROUTE_SECTIONS = new Set([
-  "steuerung",
-  "galerie",
-  "studio",
-  "slicer",
-  "ams",
-  "profile",
-  "aufgaben",
-  "verlauf",
-  "system",
-  "slicing-server",
-]);
-
-function routeParts(path: string): string[] {
-  const parts = path.replace(/^#?\/?/, "").split("/").filter(Boolean);
-  const first = parts[0];
-  if (!first || ROUTE_SECTIONS.has(first)) return parts;
-  const routeIndex = parts.findIndex((part) => ROUTE_SECTIONS.has(part));
-  return routeIndex > 0 ? parts.slice(routeIndex) : parts;
-}
-
 export function parseRoute(path: string): WorkspaceRoute {
-  const parts = routeParts(path);
+  const parts = path.replace(/^#?\/?/, "").split("/").filter(Boolean);
   const section = parts[0] ?? "steuerung";
 
   switch (section) {
@@ -47,7 +26,7 @@ export function parseRoute(path: string): WorkspaceRoute {
     case "profile":
       return { name: "profile" };
     case "aufgaben":
-      return { name: "aufgaben" };
+      return parts[1] ? { name: "aufgaben", jobId: parts[1] } : { name: "aufgaben" };
     case "verlauf":
       return { name: "verlauf" };
     case "system":
@@ -65,6 +44,8 @@ export function routeToHash(route: WorkspaceRoute): string {
       return route.projectId ? `#/studio/${route.projectId}` : "#/studio";
     case "slicer":
       return route.jobId ? `#/slicer/${route.jobId}` : "#/slicer";
+    case "aufgaben":
+      return route.jobId ? `#/aufgaben/${route.jobId}` : "#/aufgaben";
     default:
       return `#/${route.name}`;
   }

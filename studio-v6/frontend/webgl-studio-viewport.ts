@@ -354,4 +354,4 @@ export class WebGlStudioViewport {
     new ResizeObserver(() => this.resize()).observe(canvas);
   }
 }
-
+

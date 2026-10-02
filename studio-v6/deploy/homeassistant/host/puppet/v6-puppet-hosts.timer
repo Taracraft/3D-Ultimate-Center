@@ -1,0 +1,9 @@
+[Unit]
+Description=Keep Puppet Home Assistant Split-DNS after container recreation
+[Timer]
+OnBootSec=20s
+OnUnitActiveSec=15s
+AccuracySec=1s
+Unit=v6-puppet-hosts.service
+[Install]
+WantedBy=timers.target

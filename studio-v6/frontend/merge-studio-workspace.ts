@@ -1,3 +1,4 @@
+import { V6_BRANDING } from "./branding.js";
 import "./studio-workspace-shell-v3.js";
 import "./slicer-workspace-shell.js";
 import { createActiveStudio3mf, downloadActiveStudio3mf } from "./studio-export-service.js";
@@ -61,7 +62,7 @@ export class Ultimate3DStudioWorkspace extends HTMLElement {
 
     const wrapper = document.createElement("section");
     wrapper.className = "studio";
-    wrapper.innerHTML = `<header class="bar"><div class="title"><strong>Ultimate 3D-Studio V6</strong><span>CAD, Druckplatten, Mehrfarben, Vorbereitung, Slicing und echte G-Code-Vorschau</span></div><div class="controls"><div class="group sources"><button class="source" data-source="gallery">Galerie</button><button class="source storage" data-source="storage">SD-Karte</button><button class="source" data-source="makerworld">MakerWorld</button></div><div class="group modes"><button data-mode="cad">CAD</button><button data-mode="split">CAD + Vorbereiten</button><button data-mode="slicer">Vorbereiten</button></div><div class="group actions"><button class="handoff" id="handoff">Aktive Platte vorbereiten</button><button class="export" id="export">3MF exportieren</button></div></div><div class="status"><span id="status"></span><span id="scene"></span></div></header><main class="work cad-only" id="work"><section class="pane cad" id="cad"></section><section class="pane slicer" id="slicer"></section></main>`;
+    wrapper.innerHTML = `<header class="bar"><div class="title"><strong>${V6_BRANDING.productName}</strong><span>CAD, Druckplatten, Mehrfarben, Vorbereitung, Slicing und echte G-Code-Vorschau</span></div><div class="controls"><div class="group sources"><button class="source" data-source="gallery">Galerie</button><button class="source storage" data-source="storage">SD-Karte</button><button class="source" data-source="makerworld">MakerWorld</button></div><div class="group modes"><button data-mode="cad">CAD</button><button data-mode="split">CAD + Vorbereiten</button><button data-mode="slicer">Vorbereiten</button></div><div class="group actions"><button class="handoff" id="handoff">Aktive Platte vorbereiten</button><button class="export" id="export">3MF exportieren</button></div></div><div class="status"><span id="status"></span><span id="scene"></span></div></header><main class="work cad-only" id="work"><section class="pane cad" id="cad"></section><section class="pane slicer" id="slicer"></section></main>`;
 
     const studio = document.createElement("ultimate-3d-arranged-studio") as StudioShell;
     const slicer = document.createElement("ultimate-3d-slicer-shell") as SlicerShell;

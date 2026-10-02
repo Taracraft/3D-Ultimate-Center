@@ -1,3 +1,4 @@
+import { V6_BRANDING } from "./branding.js";
 import type { MeshGeometry, Vec3 } from "./webgl-studio-viewport.js";
 
 export type MeshTransform = Readonly<{
@@ -160,7 +161,7 @@ function normal(a: Vec3, b: Vec3, c: Vec3): Vec3 {
   return [nx / length, ny / length, nz / length];
 }
 
-export function exportBinaryStl(meshes: readonly ExportMesh[], label = "Ultimate 3D Studio V6"): ArrayBuffer {
+export function exportBinaryStl(meshes: readonly ExportMesh[], label: string = V6_BRANDING.exportApplication): ArrayBuffer {
   const triangleCount = meshes.reduce((total, mesh) => total + mesh.geometry.triangleCount, 0);
   if (!triangleCount) throw new Error("Die Szene enthält keine exportierbare Geometrie.");
   const buffer = new ArrayBuffer(84 + triangleCount * 50);

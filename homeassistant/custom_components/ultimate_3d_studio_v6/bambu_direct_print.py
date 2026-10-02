@@ -439,7 +439,7 @@ def upload_gcode_3mf(
         upload_error = exc
     finally:
         if client is not None:
-            _close_ftps(client, graceful=False if upload_error is not None else True)
+            _close_ftps(client, graceful=upload_error is None)
 
     _report_transfer_progress(
         on_progress,

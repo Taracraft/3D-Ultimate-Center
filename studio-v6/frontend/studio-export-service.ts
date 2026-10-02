@@ -1,3 +1,4 @@
+import { V6_BRANDING } from "./branding.js";
 import { sceneStore } from "./scene-store.js";
 import { getStudioGeometry } from "./studio-session.js";
 import {
@@ -31,7 +32,7 @@ export function createActiveStudio3mf(): File {
 
   const metadata: ThreeMfMetadata = {
     title: plate.name,
-    description: `${meshes.length} Objekt(e) aus Ultimate 3D Studio V6`,
+    description: `${meshes.length} Objekt(e) aus ${V6_BRANDING.exportApplication}`,
     buildPlateName: plate.name,
     ...(plate.buildPlateProfileId
       ? { buildPlateProfileId: plate.buildPlateProfileId }

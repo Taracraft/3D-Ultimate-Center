@@ -15,10 +15,6 @@ const LABELS: Record<PrimitiveKind, string> = {
   cone: "Kegel",
   torus: "Ring",
   plate: "Platte",
-  rectangle: "Rechteck",
-  circle: "Kreis",
-  line: "Linie",
-  text: "Text",
   "first-layer": "First-Layer-Test",
 };
 
@@ -79,7 +75,7 @@ export class Ultimate3DStudioWorkspaceShellV2 extends HTMLElement {
     const title = document.createElement("strong");
     title.textContent = "Geometrien, Druckplatten und CAD-Werkzeuge";
     bar.append(title);
-    for (const kind of ["cube", "cylinder", "sphere", "cone", "torus", "plate", "rectangle", "circle", "line"] as PrimitiveKind[]) {
+    for (const kind of ["cube", "cylinder", "sphere", "cone", "torus", "plate"] as PrimitiveKind[]) {
       bar.append(this.#button(LABELS[kind], () => this.#addPrimitive(kind)));
     }
     const firstLayer = this.#button("First-Layer-Test für aktiven Drucker", () => this.#addFirstLayer(), "first");

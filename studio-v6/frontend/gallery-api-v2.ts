@@ -1,4 +1,6 @@
+import { StudioApiClient } from "./api-client.js";
 import { authenticatedFetch, callEnvelopeApi } from "./ha-api-transport.js";
+import { UploadController, type UploadProgress } from "./upload-controller.js";
 
 export type GalleryItemKind = "folder" | "model";
 export type GalleryItem = Readonly<{
@@ -44,8 +46,28 @@ function responseFilename(response: Response, fallback: string): string {
   return header.match(/filename="?([^";]+)"?/i)?.[1] || fallback;
 }
 
+export async function readGalleryTransferResponse(
+  response: Response,
+): Promise<Readonly<{ data?: GalleryImportSummary; error?: Readonly<{ message?: string }> }>> {
+  const text = await response.text();
+  const compact = text.trim().replace(/\s+/g, " ").slice(0, 500);
+  if (response.status === 413 || /maximum request body|request entity too large/i.test(compact)) {
+    throw new Error("Die ZIP-Datei überschreitet das Home-Assistant-Anfragelimit. Modell-Dateien werden separat per 4-MiB-Chunk hochgeladen.");
+  }
+  if (!compact) throw new Error(`Galerieimport fehlgeschlagen: HTTP ${response.status}`);
+  try {
+    return JSON.parse(text) as Readonly<{ data?: GalleryImportSummary; error?: Readonly<{ message?: string }> }>;
+  } catch {
+    throw new Error(compact || `Galerieimport fehlgeschlagen: HTTP ${response.status}`);
+  }
+}
+
 export class GalleryApi {
-  constructor(private readonly baseUrl = "ultimate_3d_studio_v6/v1") {}
+  readonly #uploader: UploadController;
+
+  constructor(private readonly baseUrl = "ultimate_3d_studio_v6/v1") {
+    this.#uploader = new UploadController(new StudioApiClient(baseUrl));
+  }
 
   async list(folder = "", query = "", recursive = false): Promise<GalleryLibrary> {
     const params = new URLSearchParams({ folder, q: query, recursive: recursive ? "1" : "0" });
@@ -88,16 +110,23 @@ export class GalleryApi {
     return new File([blob], responseFilename(response, `${item.title}.stl`), { type: "model/stl" });
   }
 
-  async upload(file: File, folder = "", overwrite = false): Promise<GalleryItem> {
-    const params = new URLSearchParams({ filename: file.name, folder, overwrite: overwrite ? "1" : "0", confirmed: "true" });
-    const response = await authenticatedFetch(`/api/${this.baseUrl}/gallery/manage/upload?${params}`, {
-      method: "POST",
-      headers: { "Content-Type": file.type || "application/octet-stream" },
-      body: file,
-    });
-    const payload = await response.json() as Readonly<{ data?: GalleryItem; error?: Readonly<{ message?: string }> }>;
-    if (!response.ok || !payload.data) throw new Error(payload.error?.message || `Upload fehlgeschlagen: HTTP ${response.status}`);
-    return payload.data;
+  async upload(
+    file: File,
+    folder = "",
+    overwrite = false,
+    onProgress?: (progress: UploadProgress) => void,
+  ): Promise<GalleryItem> {
+    const result = await this.#uploader.upload(
+      file,
+      "gallery",
+      "gallery",
+      onProgress,
+      { folder, overwrite },
+    );
+    if (!result || typeof result !== "object") {
+      throw new Error("Der Galerie-Upload wurde abgeschlossen, aber ohne Dateidaten bestätigt.");
+    }
+    return result as GalleryItem;
   }
 
   async createFolder(folder: string, name: string): Promise<GalleryItem> {
@@ -148,7 +177,7 @@ export class GalleryApi {
       headers: { "Content-Type": "application/zip" },
       body: file,
     });
-    const payload = await response.json() as Readonly<{ data?: GalleryImportSummary; error?: Readonly<{ message?: string }> }>;
+    const payload = await readGalleryTransferResponse(response);
     if (!response.ok || !payload.data) throw new Error(payload.error?.message || `Galerieimport fehlgeschlagen: HTTP ${response.status}`);
     return payload.data;
   }

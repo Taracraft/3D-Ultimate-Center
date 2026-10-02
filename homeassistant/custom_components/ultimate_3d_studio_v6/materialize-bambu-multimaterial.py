@@ -44,6 +44,60 @@ _MODEL_SUFFIXES = {
     "x1e": ("@BBL X1E", "@BBL X1"),
 }
 
+_PROCESS_OVERRIDE_MAP = {
+    "layer_height_mm": "layer_height",
+    "first_layer_height_mm": "initial_layer_print_height",
+    "walls": "wall_loops",
+    "top_shell_layers": "top_shell_layers",
+    "bottom_shell_layers": "bottom_shell_layers",
+    "infill_percent": "sparse_infill_density",
+    "outer_wall_speed_mm_s": "outer_wall_speed",
+    "inner_wall_speed_mm_s": "inner_wall_speed",
+    "travel_speed_mm_s": "travel_speed",
+    "line_width_mm": "line_width",
+    "outer_wall_line_width_mm": "outer_wall_line_width",
+    "inner_wall_line_width_mm": "inner_wall_line_width",
+    "top_surface_line_width_mm": "top_surface_line_width",
+    "support_line_width_mm": "support_line_width",
+    "sparse_infill_speed_mm_s": "sparse_infill_speed",
+    "internal_solid_infill_speed_mm_s": "internal_solid_infill_speed",
+    "top_surface_speed_mm_s": "top_surface_speed",
+    "initial_layer_speed_mm_s": "initial_layer_speed",
+    "bridge_speed_mm_s": "bridge_speed",
+    "gap_infill_speed_mm_s": "gap_infill_speed",
+    "solid_infill_speed_mm_s": "solid_infill_speed",
+    "ironing_speed_mm_s": "ironing_speed",
+    "support_speed_mm_s": "support_speed",
+    "support_interface_speed_mm_s": "support_interface_speed",
+    "bridge_flow_ratio": "bridge_flow",
+    "support_top_z_distance_mm": "support_top_z_distance",
+    "support_bottom_z_distance_mm": "support_bottom_z_distance",
+    "support_object_xy_distance_mm": "support_object_xy_distance",
+    "support_interface_spacing_mm": "support_interface_spacing",
+    "support_interface_top_layers": "support_interface_top_layers",
+    "support_interface_bottom_layers": "support_interface_bottom_layers",
+}
+_PROCESS_OVERRIDE_RULES = {
+    "layer_height_mm": (.04, .56, False),
+    "first_layer_height_mm": (.04, .56, False),
+    "walls": (0, None, True),
+    "top_shell_layers": (0, None, True),
+    "bottom_shell_layers": (0, None, True),
+    "infill_percent": (0, 100, False),
+    "outer_wall_speed_mm_s": (1, 500, False),
+    "inner_wall_speed_mm_s": (1, 500, False),
+    "travel_speed_mm_s": (1, 500, False),
+    **{key: (.01, None, False) for key in ("line_width_mm", "outer_wall_line_width_mm", "inner_wall_line_width_mm", "top_surface_line_width_mm", "support_line_width_mm")},
+    **{key: (1, None, False) for key in ("sparse_infill_speed_mm_s", "internal_solid_infill_speed_mm_s", "top_surface_speed_mm_s", "initial_layer_speed_mm_s", "bridge_speed_mm_s", "gap_infill_speed_mm_s", "solid_infill_speed_mm_s", "ironing_speed_mm_s", "support_speed_mm_s", "support_interface_speed_mm_s")},
+    "bridge_flow_ratio": (0, None, False),
+    "support_top_z_distance_mm": (0, None, False),
+    "support_bottom_z_distance_mm": (0, None, False),
+    "support_object_xy_distance_mm": (0, None, False),
+    "support_interface_spacing_mm": (0, None, False),
+    "support_interface_top_layers": (0, None, True),
+    "support_interface_bottom_layers": (0, None, True),
+}
+
 
 def _json(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8-sig"))
@@ -337,7 +391,7 @@ def _required_override_number(
     overrides: dict[str, Any],
     key: str,
     minimum: float,
-    maximum: float,
+    maximum: float | None,
 ) -> float | None:
     value = overrides.get(key)
     if value is None:
@@ -348,9 +402,26 @@ def _required_override_number(
         parsed = float(value)
     except (TypeError, ValueError) as exc:
         raise ValueError(f"{key} ist ungültig") from exc
-    if not math.isfinite(parsed) or not minimum <= parsed <= maximum:
+    if not math.isfinite(parsed) or parsed < minimum or (maximum is not None and parsed > maximum):
         raise ValueError(f"{key} ist außerhalb des gültigen Bereichs")
     return parsed
+
+
+def _apply_process_overrides(process: dict[str, Any], overrides: dict[str, Any]) -> None:
+    for override_key, process_key in _PROCESS_OVERRIDE_MAP.items():
+        minimum, maximum, integer = _PROCESS_OVERRIDE_RULES[override_key]
+        value = _required_override_number(overrides, override_key, minimum, maximum)
+        if value is None:
+            continue
+        if integer:
+            if not value.is_integer():
+                raise ValueError(f"{override_key} erfordert eine ganze Zahl")
+            applied: Any = int(value)
+        elif override_key == "infill_percent":
+            applied = f"{value:g}%"
+        else:
+            applied = _clean_number(value)
+        process[process_key] = _as_profile_value(applied, process.get(process_key))
 
 
 def _validated_layer_height_ranges(
@@ -719,23 +790,7 @@ def _materialize_process(
     process["support_threshold_angle"] = str(
         overrides.get("support_threshold_angle") or 30
     )
-    for override_key, process_key, minimum, maximum in (
-        ("layer_height_mm", "layer_height", .04, .56),
-        ("outer_wall_speed_mm_s", "outer_wall_speed", 1, 500),
-        ("inner_wall_speed_mm_s", "inner_wall_speed", 1, 500),
-    ):
-        value = _required_override_number(
-            overrides,
-            override_key,
-            minimum,
-            maximum,
-        )
-        if value is None:
-            continue
-        process[process_key] = _as_profile_value(
-            _clean_number(value),
-            process.get(process_key),
-        )
+    _apply_process_overrides(process, overrides)
     return process, selected_paths, resolved_profiles, tower, process_profile_proof
 
 
@@ -815,12 +870,15 @@ def _extract_parts(
     assignments: dict[str, int],
     *,
     default_channel: int | None = None,
+    material_channel_count: int | None = None,
     plate_width_mm: float = 256.0,
     plate_depth_mm: float = 256.0,
-) -> tuple[list[dict[str, Any]], int]:
+) -> tuple[list[dict[str, Any]], int, dict[str, int]]:
     parts_dir.mkdir(parents=True, exist_ok=True)
     manifest_objects: list[dict[str, Any]] = []
     triangle_total = 0
+    painted_triangle_count = 0
+    painted_channels: set[int] = set()
     instances = mesh_instances(input_3mf)
     offset_x, offset_y = _plate_placement_offset(
         instances,
@@ -834,28 +892,49 @@ def _extract_parts(
                 f"3MF-Objekt {instance.logical_object_id} besitzt keine AMS-Zuordnung"
             )
         name = instance.name or f"Part {order}"
-        path = parts_dir / f"part-{order:03d}-{_safe_name(name)}.stl"
-        triangle_total += _write_binary_stl(
-            path,
-            name,
-            [
-                (x + offset_x, y + offset_y, z)
-                for x, y, z in instance.vertices
-            ],
-            instance.triangles,
-        )
-        manifest_objects.append(
-            {
-                "path": str(path),
-                "count": 1,
-                "filaments": [int(channel)],
-                "assemble_index": [1],
-                "pos_x": [0],
-                "pos_y": [0],
-                "pos_z": [0],
-            }
-        )
-    return manifest_objects, triangle_total
+        grouped_triangles: dict[int, list[tuple[int, int, int]]] = {}
+        for triangle_index, triangle in enumerate(instance.triangles):
+            material_index = instance.triangle_material_indices[triangle_index]
+            if material_index is None:
+                triangle_channel = channel
+            else:
+                triangle_channel = material_index + 1
+                painted_triangle_count += 1
+                painted_channels.add(triangle_channel)
+            if triangle_channel is None:
+                raise ValueError(
+                    f"3MF-Objekt {instance.logical_object_id} besitzt keine AMS-Zuordnung"
+                )
+            if material_channel_count is not None and not 1 <= triangle_channel <= material_channel_count:
+                raise ValueError(
+                    "Eine bemalte 3MF-Fläche verweist auf keinen aktiven Materialkanal."
+                )
+            grouped_triangles.setdefault(int(triangle_channel), []).append(triangle)
+
+        vertices = [
+            (x + offset_x, y + offset_y, z)
+            for x, y, z in instance.vertices
+        ]
+        for material_channel, triangles in sorted(grouped_triangles.items()):
+            path = parts_dir / (
+                f"part-{order:03d}-ch{material_channel}-{_safe_name(name)}.stl"
+            )
+            triangle_total += _write_binary_stl(path, name, vertices, triangles)
+            manifest_objects.append(
+                {
+                    "path": str(path),
+                    "count": 1,
+                    "filaments": [material_channel],
+                    "assemble_index": [1],
+                    "pos_x": [0],
+                    "pos_y": [0],
+                    "pos_z": [0],
+                }
+            )
+    return manifest_objects, triangle_total, {
+        "painted_triangle_count": painted_triangle_count,
+        "painted_material_channel_count": len(painted_channels),
+    }
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -937,11 +1016,12 @@ def main() -> None:
         encoding="utf-8",
     )
 
-    objects, triangles = _extract_parts(
+    objects, triangles, paint_summary = _extract_parts(
         args.input,
         args.parts_dir,
         assignments,
         default_channel=1 if len(filaments) == 1 else None,
+        material_channel_count=len(filaments),
         plate_width_mm=float(effective_overrides.get("build_plate_width_mm") or 256.0),
         plate_depth_mm=float(effective_overrides.get("build_plate_depth_mm") or 256.0),
     )
@@ -982,6 +1062,7 @@ def main() -> None:
         ),
         "material_channel_count": len(filaments),
         "triangle_count": triangles,
+        **paint_summary,
         "requested_plate_index": plate_index,
         "selected_process_profile": process_profile_proof,
         "variable_layer_heights": {
@@ -1010,6 +1091,7 @@ def main() -> None:
                 "support_threshold_angle",
                 "v6_support_style",
             ))
+            | set(_PROCESS_OVERRIDE_MAP.values())
             | set((overrides.get("selected_process_profile") or {}).get("settings", {}))
             if key in process
         },

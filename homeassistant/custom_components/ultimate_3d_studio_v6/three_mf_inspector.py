@@ -366,4 +366,4 @@ def inspect_model(filename: str, data: bytes) -> dict[str, Any]:
         "purge_tower": purge_tower,
         "multimaterial": len(used_extruders) > 1 or len(filaments) > 1,
         "used_extruders": sorted(used_extruders),
-    }
+    }

@@ -10,10 +10,10 @@ BRIDGE = DEPLOY / "custom_components" / "printer_slicing_server"
 V6_COMPONENT = DEPLOY / "custom_components" / "ultimate_3d_studio_v6"
 
 HOST_HASHES = {
-    "server.py": "c3c64ae3e248f43077d6e454571b94438ff796118f77af606dca95bb147fa359",
-    "dispatch-job.sh": "ec9c8e53911870a6ff3aec42ec2d81530395ef4bfd553e0d6249d8f6d3036d15",
+    "server.py": "22634e914916103918ac2495c0a88ede4f438fc7254551dba7557c3d0d6330dc",
+    "dispatch-job.sh": "d09cdc519d17da6240b4da45255ef249b8a28b1a942a85a7f4bceb03ed67d361",
     "progress-pipe-reader.py": "f5e46d2ffb866d8864b153045eb251982340e502c32ef9339eee1f0a5cee3bad",
-    "refresh-state.sh": "76901744f84e9220d832b38fbbb6a2e288c0e361d3f0d6b8bb215e51a8d25515",
+    "refresh-state.sh": "7af4bc256bf1d1f4861ecb7740c5f5861cbb8eab8c54e80d8f9503e049fc301d",
     "append-slicing-journal.sh": "9798d21528828c901be4e0f3726908d027c8af60580af88981656c88496d5239",
     "systemd/3d-printer-slicing-server.service": "92607dcdbd2f8cdd61a0de9c4ec0e84033b725d6838fe6bf5d27432adf253ecb",
     "systemd/3d-printer-slicing-dispatch.service": "d7448af9596dddfcf7ea23a8cbb3049e019420303082d1e909efb459874faeed",
@@ -24,7 +24,7 @@ HOST_HASHES = {
 
 BRIDGE_HASHES = {
     "__init__.py": "2b9a59b5438d9e4e31e05fad5de883c83ea158404bbb87c2eba94dcaf8892a18",
-    "api.py": "67cc934f369911e93f39d7d2ae0419b3b0bb2181212abc5adeee492e26f9c71d",
+    "api.py": "72e9adcd1e635ca51e33814a886eb5971497983fce68ce45acf32eded1dd5bdf",
     "binary_sensor.py": "2eac9472696dc216f6eccb04cebd3e34f78c900e3298f66c9b4a7d6669d4f278",
     "config_flow.py": "e702a1cc872597e444002e2683ebd34f57d64139ffcf54ff9c67ca0fbf20cac1",
     "const.py": "1abb221ae34c34b515ffb0b9ecdd171b27a50bf46aea5065f18951f1d882569c",
@@ -33,15 +33,16 @@ BRIDGE_HASHES = {
     "frontend.py": "605bdb3facc8ef42eafa1dd6b9af05e953629ccaeb454565bc9cce44bc71b86e",
     "frontend/panel.js": "3f96f70f0b37251a6afbc3713b5f7bc651bd51bc2a335f696b25f8e36d3d9a1a",
     "manifest.json": "395b3a1530ba9ab6926db94c225a1ea5a4d0f00fa1b7b8f10127a235a05e5233",
-    "sensor.py": "e0ec73441a59fe0c209540adf20b9089d837d8aebd702e050f3275c4a7f9869e",
+    "sensor.py": "53dfa3f236aff3d81372cc3967cb6effa8d88d109a0131779c2cd9a39ad96f89",
     "services.yaml": "85c1a01a5655fbcd428c92a7d5726cab920c917f501059dad434045f4e9a54b1",
-    "websocket_api.py": "64635fb87c34ecf0829a555b3e0bf92641a3283ee7e35db15031b18c318894da",
+    "websocket_api.py": "399de25f73c31e4fa90f22fa5f0a416c0ebacf43a9ba998fb09ad23438582ab2",
 }
 
 DEPENDENCY_HASHES = {
     "bed-temperature-contract.sh": "796a0814caa5185acaf7cd3feae3026c01079a3cc926dc97a6fb135a99dca11b",
     "materialize-bambu-machine.py": "4ca64277951a6d5fb9519105353c9585bf30ec61cb4a62a7fc2fa403ed17a35e",
-    "materialize-bambu-multimaterial.py": "3b4072ec4972facbf9e9e973da8b58840c25cce946c0a39f40bc4f4d74f6222c",
+    "materialize-bambu-multimaterial.py": "b84ec0846978e8a0f2017484046e320e711dc5636943ea20b65453e679515f31",
+    "three_mf_mesh_graph.py": "5169c8b0dcc95e0b3f200d4b0b394caa15d16e7cebacda6a7fcb029416d7c969",
 }
 
 
@@ -131,3 +132,9 @@ def test_native_deployer_is_fail_closed_and_print_safe() -> None:
     ]
     for marker in forbidden_actions:
         assert marker not in deployer, marker
+
+def test_plate_slice_route_forwards_bambu_support_style() -> None:
+    source = (ROOT / "deploy/homeassistant/custom_components/ultimate_3d_studio_v6/slicer_plate_views_v2.py").read_text(encoding="utf-8")
+    assert 'support_style = request.query.get("support_style", "standard").casefold()' in source
+    assert '"support_style": support_style' in source
+    assert '"tree_slim", "tree_strong", "tree_hybrid", "tree_organic"' in source

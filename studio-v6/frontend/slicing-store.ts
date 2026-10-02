@@ -60,4 +60,4 @@ function reducer(state: SlicingState, action: Readonly<SlicingAction>): SlicingS
   return { ...state, loading: false, error: action.message };
 }
 
-export const slicingStore = new Store<SlicingState, SlicingAction>(INITIAL, reducer);
+export const slicingStore = new Store<SlicingState, SlicingAction>(INITIAL, reducer);

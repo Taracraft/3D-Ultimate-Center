@@ -75,9 +75,7 @@ _ADVANCED_NUMERIC_RULES = {
     "support_object_xy_distance_mm": (0, False),
     "support_interface_spacing_mm": (0, False),
     "support_interface_top_layers": (0, True),
-    "infill_pattern": (0, True),
-    "wall_sequence": (0, True),
-    "seam_position": (0, True),
+    "support_interface_bottom_layers": (0, True),
     "acceleration_mm_s2": (100, False),
     "jerk_mm_s": (1, False),
     "nozzle_temperature": (180, False),
@@ -364,4 +362,4 @@ def resolve_selected_process_contract(
     return {**body, "contract_sha256": _contract_digest(body)}
 
 
-
+

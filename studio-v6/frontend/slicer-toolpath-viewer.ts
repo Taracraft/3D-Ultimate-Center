@@ -4,22 +4,15 @@ const API_PREFIX = "/api/ultimate_3d_studio_v6/v1/slicer";
 const FALLBACK_COLORS = ["#50DB6C", "#F15B5B", "#58A6FF", "#FFB84D", "#B67CFF", "#28D7C0", "#F472B6", "#E6E65C", "#B0BEC5", "#FFFFFF", "#FF7A18", "#79FF7A"];
 const FEATURE_COLORS: Readonly<Record<string, string>> = {
   support: "#45E087",
-  support_interface: "#32D6FF",
-  support_transition: "#FFD166",
-  overhang_wall: "#FF5FA2",
-  bridge: "#C792EA",
-  outer_wall: "#56E389",
-  inner_wall: "#63B3FF",
-  infill: "#4C7DFF",
-  solid_infill: "#48B6FF",
-  gap_infill: "#7AA2FF",
-  top_surface: "#F7D154",
-  bottom_surface: "#4C9DFF",
   brim: "#FFD24D",
   raft: "#D873FF",
   skirt: "#FF9B42",
   purge_tower: "#FF5F56",
+  outer_wall: "#56E389",
+  inner_wall: "#63B3FF",
+  infill: "#4C7DFF",
   surface: "#F7D154",
+  bridge: "#C792EA",
   model: "#C7D3DF",
 };
 const DEG = Math.PI / 180;
@@ -81,12 +74,7 @@ function hexColor(value: string, factor = 1): [number, number, number] {
 function featureCategory(segment: ToolpathSegment): string {
   if (segment[8]) return segment[8];
   const feature = String(segment[7] || "").toLowerCase();
-  if (feature.includes("support")) {
-    if (feature.includes("interface") || feature.includes("contact") || feature.includes("roof")) return "support_interface";
-    if (feature.includes("transition") || feature.includes("bottom")) return "support_transition";
-    return "support";
-  }
-  if (feature.includes("overhang wall") || feature.includes("overhang perimeter")) return "overhang_wall";
+  if (feature.includes("support")) return "support";
   if (feature.includes("brim")) return "brim";
   if (feature.includes("raft")) return "raft";
   if (feature.includes("skirt")) return "skirt";
@@ -109,22 +97,15 @@ function featureStyleKey(segment: ToolpathSegment): string {
 function featureLabel(key: string): string {
   return ({
     support: "Supportstruktur",
-    support_interface: "Support-Interface",
-    support_transition: "Support-Übergang",
-    overhang_wall: "Überhangwand",
-    bridge: "Brücke",
-    outer_wall: "Außenwand",
-    inner_wall: "Innenwand",
-    infill: "Füllung",
-    solid_infill: "Massive Füllung",
-    gap_infill: "Lückenfüllung",
-    top_surface: "Obere Oberfläche",
-    bottom_surface: "Untere Oberfläche",
     brim: "Brim",
     raft: "Raft",
     skirt: "Skirt",
     purge_tower: "Reinigungsturm",
+    outer_wall: "Außenwand",
+    inner_wall: "Innenwand",
+    infill: "Füllung",
     surface: "Ober-/Unterfläche",
+    bridge: "Brücke",
     model: "Modellpfad",
   } as Readonly<Record<string, string>>)[key] || key;
 }
@@ -504,7 +485,7 @@ export class Ultimate3DToolpathViewer extends HTMLElement {
       for (const layer of this.#layers) for (const segment of layer.segments) keys.add(featureStyleKey(segment));
       for (const key of keys) chips.push(`<span class="chip"><i style="--chip:${esc(FEATURE_COLORS[key] || FEATURE_COLORS.model)}"></i>${esc(featureLabel(key))}</span>`);
     }
-    const labels: Readonly<Record<string, string>> = { brim: "Brim", raft: "Raft", support: "Support", support_interface: "Support-Interface", support_transition: "Support-Übergang", overhang_wall: "Überhangwand", bridge: "Brücke", skirt: "Skirt", purge_tower: "Reinigungsturm" };
+    const labels: Readonly<Record<string, string>> = { brim: "Brim", raft: "Raft", support: "Support", skirt: "Skirt", purge_tower: "Reinigungsturm" };
     for (const [key, layer] of Object.entries(this.#summary.feature_first_layers || {})) {
       if (labels[key] !== undefined) chips.push(`<span class="chip start">${esc(labels[key])} ab Layer ${layer + 1}</span>`);
     }

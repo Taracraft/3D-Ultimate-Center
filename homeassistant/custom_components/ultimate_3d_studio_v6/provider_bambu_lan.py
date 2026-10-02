@@ -22,7 +22,9 @@ from .network_plugin import (
     BambuNetworkPlugin,
     NetworkCommand,
     NetworkCommandResult,
+    build_ams_filament_setting,
     build_print_control,
+    build_print_speed,
 )
 from .printer_issues import issue_signature
 from .telemetry import BambuTelemetryState
@@ -196,6 +198,46 @@ class BambuLanProvider:
             sequence_id=result.sequence_id,
             accepted=result.printer_accepted,
         )
+
+    async def async_set_filament_color(
+        self,
+        printer_id: str,
+        *,
+        ams_id: int,
+        tray_id: int,
+        tray_info_idx: str,
+        tray_color: str,
+        nozzle_temp_min: int,
+        nozzle_temp_max: int,
+        tray_type: str,
+    ) -> dict[str, Any] | None:
+        if printer_id != self.serial:
+            return None
+        result = await self._async_submit(
+            build_ams_filament_setting(
+                ams_id=ams_id,
+                tray_id=tray_id,
+                tray_info_idx=tray_info_idx,
+                tray_color=tray_color,
+                nozzle_temp_min=nozzle_temp_min,
+                nozzle_temp_max=nozzle_temp_max,
+                tray_type=tray_type,
+            ),
+            timeout=15.0,
+        )
+        return {
+            "printer_id": self.serial,
+            "provider": self.provider_id,
+            "command": "ams_filament_setting",
+            "sequence_id": result.sequence_id,
+            "accepted": result.printer_accepted,
+            "mqtt_puback_received": result.mqtt_puback_received,
+            "transport_delivered": result.transport_delivered,
+            "response_received": result.response_received,
+            "result": result.result,
+            "reason": result.reason,
+            "error_code": result.error_code,
+        }
 
     async def async_upload_print_artifact(
         self,

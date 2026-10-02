@@ -2,8 +2,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from collections.abc import Callable
-from typing import Any
+from typing import Any, Callable
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -113,6 +112,20 @@ class Ultimate3DStudioRuntime:
     ) -> PrinterCommandResult | None:
         for provider in self._providers.values():
             result = await provider.async_command(printer_id, command, speed_level=speed_level)
+            if result is not None:
+                return result
+        return None
+
+    async def async_set_filament_color(
+        self,
+        printer_id: str,
+        **settings: Any,
+    ) -> dict[str, Any] | None:
+        for provider in self._providers.values():
+            operation = getattr(provider, "async_set_filament_color", None)
+            if not callable(operation):
+                continue
+            result = await operation(printer_id, **settings)
             if result is not None:
                 return result
         return None

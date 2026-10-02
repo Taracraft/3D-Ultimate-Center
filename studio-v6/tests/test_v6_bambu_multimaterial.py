@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from hashlib import sha256
 import json
 from pathlib import Path
 import subprocess
@@ -11,6 +12,50 @@ COMPONENT = (
     / "deploy/homeassistant/custom_components/ultimate_3d_studio_v6"
 )
 SCRIPT = COMPONENT / "materialize-bambu-multimaterial.py"
+
+
+
+def selected_process_contract() -> dict[str, object]:
+    body: dict[str, object] = {
+        "schema_version": 1,
+        "profile_id": "local.process.a1_0_20_standard",
+        "name": "A1 0,20 mm Standard",
+        "source": "local",
+        "materialization_policy": "mapped_v6_process",
+        "native_base_profile": "BBL/process/0.20mm Standard @BBL A1.json",
+        "settings": {
+            "layer_height": 0.2,
+            "wall_loops": 3,
+            "sparse_infill_density": "15%",
+            "outer_wall_speed": 70,
+            "line_width": 0.3,
+            "outer_wall_line_width": 0.3,
+            "inner_wall_line_width": 0.3,
+            "top_surface_line_width": 0.3,
+            "support_line_width": 0.3,
+            "sparse_infill_speed": 1,
+            "internal_solid_infill_speed": 1,
+            "top_surface_speed": 1,
+            "initial_layer_speed": 1,
+            "bridge_speed": 1,
+            "support_top_z_distance": 0.3,
+            "support_bottom_z_distance": 0.3,
+            "support_object_xy_distance": 0.3,
+            "support_interface_spacing": 0.3,
+            "support_interface_top_layers": 2,
+            "support_interface_bottom_layers": 2,
+
+        },
+    }
+    digest = sha256(
+        json.dumps(
+            body,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+    return {**body, "contract_sha256": digest}
 
 
 def write_profile(path: Path, payload: dict[str, object]) -> None:
@@ -114,9 +159,12 @@ def test_materializes_two_ams_channels_and_assemble_manifest(tmp_path: Path) -> 
         "process_overrides": {
             "adhesion_mode": "brim",
             "brim_width_mm": 6,
-            "support_mode": "normal",
-            "support_build_plate_only": False,
-            "support_threshold_angle": 12,
+            "support_mode": "off",
+            "layer_height_ranges": [
+                {"min_z_mm": 0, "max_z_mm": 4.8, "layer_height_mm": 0.12},
+                {"min_z_mm": 4.8, "max_z_mm": 12, "layer_height_mm": 0.2},
+            ],
+            "selected_process_profile": selected_process_contract(),
         },
         "material_plan": {
             "assignments": {"2": 1, "3": 2},
@@ -177,15 +225,32 @@ def test_materializes_two_ams_channels_and_assemble_manifest(tmp_path: Path) -> 
     assert process["enable_prime_tower"] == "1"
     assert process["brim_type"] == "outer_only"
     assert process["brim_width"] == "6"
-    assert process["enable_support"] == "1"
-    assert process["support_type"] == "normal(auto)"
-    assert process["support_on_build_plate_only"] == "0"
-    assert process["support_threshold_angle"] == "12"
+    assert process["layer_height"] == "0.2"
+    assert process["wall_loops"] == 3
+    assert process["sparse_infill_density"] == "15%"
+    assert process["outer_wall_speed"] == 70
 
     manifest = json.loads(manifest_output.read_text(encoding="utf-8"))
     objects = manifest["plates"][0]["objects"]
     assert [item["filaments"] for item in objects] == [[1], [2]]
     assert manifest["plates"][0]["need_arrange"] is False
+    assert manifest["plates"][0]["assembled_params"] == [
+        {
+            "assemble_index": 1,
+            "height_ranges": [
+                {
+                    "min_z": 0.0,
+                    "max_z": 4.8,
+                    "range_params": {"layer_height": "0.12"},
+                },
+                {
+                    "min_z": 4.8,
+                    "max_z": 12.0,
+                    "range_params": {"layer_height": "0.2"},
+                },
+            ],
+        }
+    ]
     assert manifest["plates"][0]["plate_params"] == {
         "filament_map_mode": "Manual",
         "filament_map": "1 1",
@@ -194,7 +259,24 @@ def test_materializes_two_ams_channels_and_assemble_manifest(tmp_path: Path) -> 
     assert all(path.stat().st_size == 134 for path in parts_dir.glob("*.stl"))
 
     summary = json.loads(summary_output.read_text(encoding="utf-8"))
+    for key, expected in selected_process_contract()["settings"].items():
+        assert summary["process_settings"][key] == process[key]
+        value = process[key][0] if isinstance(process[key], list) else process[key]
+        assert str(value) == str(expected)
+
     assert summary["physical_extruder_count"] == 1
     assert summary["material_channel_count"] == 2
     assert summary["triangle_count"] == 2
+    assert summary["selected_process_profile"]["applied"] is True
+    assert summary["selected_process_profile"]["profile_id"] == "local.process.a1_0_20_standard"
+    assert summary["selected_process_profile"]["applied_setting_count"] == len(selected_process_contract()["settings"])
+    assert summary["variable_layer_heights"] == {
+        "applied": True,
+        "range_count": 2,
+        "ranges": [
+            {"min_z_mm": 0.0, "max_z_mm": 4.8, "layer_height_mm": 0.12},
+            {"min_z_mm": 4.8, "max_z_mm": 12.0, "layer_height_mm": 0.2},
+        ],
+        "native_scope": "assembled_model_group_1",
+    }
     assert [item["filament_id"] for item in summary["filaments"]] == ["GFL99", "GFL03"]

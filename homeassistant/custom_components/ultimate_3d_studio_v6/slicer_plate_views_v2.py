@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 from urllib.parse import unquote
 
@@ -83,6 +84,58 @@ def _layer_height_ranges_query(request: web.Request) -> list[dict[str, object]] 
     return ranges
 
 
+_PROCESS_OVERRIDE_QUERY_RULES: dict[str, tuple[float, float | None, bool]] = {
+    "layer_height_mm": (.04, .56, False),
+    "first_layer_height_mm": (.04, .56, False),
+    "walls": (0, None, True),
+    "top_shell_layers": (0, None, True),
+    "bottom_shell_layers": (0, None, True),
+    "infill_percent": (0, 100, False),
+    "outer_wall_speed_mm_s": (1, 500, False),
+    "inner_wall_speed_mm_s": (1, 500, False),
+    "travel_speed_mm_s": (1, 500, False),
+    "line_width_mm": (.01, None, False),
+    "outer_wall_line_width_mm": (.01, None, False),
+    "inner_wall_line_width_mm": (.01, None, False),
+    "top_surface_line_width_mm": (.01, None, False),
+    "support_line_width_mm": (.01, None, False),
+    "sparse_infill_speed_mm_s": (1, None, False),
+    "internal_solid_infill_speed_mm_s": (1, None, False),
+    "top_surface_speed_mm_s": (1, None, False),
+    "initial_layer_speed_mm_s": (1, None, False),
+    "bridge_speed_mm_s": (1, None, False),
+    "gap_infill_speed_mm_s": (1, None, False),
+    "solid_infill_speed_mm_s": (1, None, False),
+    "ironing_speed_mm_s": (1, None, False),
+    "support_speed_mm_s": (1, None, False),
+    "support_interface_speed_mm_s": (1, None, False),
+    "bridge_flow_ratio": (0, None, False),
+    "support_top_z_distance_mm": (0, None, False),
+    "support_bottom_z_distance_mm": (0, None, False),
+    "support_object_xy_distance_mm": (0, None, False),
+    "support_interface_spacing_mm": (0, None, False),
+    "support_interface_top_layers": (0, None, True),
+    "support_interface_bottom_layers": (0, None, True),
+}
+
+
+def _process_override_query(request: web.Request, name: str, minimum: float, maximum: float | None, integer: bool) -> float | int | None:
+    raw = request.query.get(name)
+    if raw is None or not raw.strip():
+        return None
+    try:
+        value = float(raw)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be numeric") from exc
+    if not math.isfinite(value) or value < minimum or (maximum is not None and value > maximum):
+        raise ValueError(f"{name} is out of range")
+    if integer:
+        if not value.is_integer():
+            raise ValueError(f"{name} must be an integer")
+        return int(value)
+    return value
+
+
 def _options(request: web.Request) -> dict[str, object]:
     adhesion = request.query.get("adhesion_mode", "none").casefold()
     support = request.query.get("support_mode", "off").casefold()
@@ -118,6 +171,10 @@ def _options(request: web.Request) -> dict[str, object]:
         options["outer_wall_speed_mm_s"] = outer_speed
     if inner_speed is not None:
         options["inner_wall_speed_mm_s"] = inner_speed
+    for key, (minimum, maximum, integer) in _PROCESS_OVERRIDE_QUERY_RULES.items():
+        value = _process_override_query(request, key, minimum, maximum, integer)
+        if value is not None:
+            options[key] = value
     if layer_height_ranges is not None:
         options["layer_height_ranges"] = layer_height_ranges
     return options
@@ -390,6 +447,131 @@ def _resolve_ams_plan(plan: dict[str, object] | None, printer, model: bytes) -> 
     }
 
 
+def _batch_material_plan_for_model(
+    plan: dict[str, object] | None,
+    model: bytes,
+) -> dict[str, object]:
+    """Map batch model objects only to explicitly selected, color-matched channels."""
+    if not isinstance(plan, dict):
+        raise ValueError("Für den Batch fehlt eine ausdrücklich gewählte Materialquelle.")
+    filaments = plan.get("filaments")
+    assignments = plan.get("assignments")
+    if not isinstance(filaments, list) or not filaments or not isinstance(assignments, dict):
+        raise ValueError("Der Materialplan ist unvollständig.")
+    objects = _mesh_objects(model)
+    if not objects:
+        raise ValueError("Die 3MF enthält keine zuordenbaren Meshobjekte.")
+    source = str(plan.get("source") or "ams").strip().casefold()
+    if source == "external_spool":
+        if len(filaments) != 1 or not isinstance(filaments[0], dict):
+            raise ValueError("Die externe Spule benötigt genau ein gewähltes Filamentprofil.")
+        return {**plan, "assignments": {object_id: 1 for object_id, _ in objects}}
+    if source != "ams":
+        raise ValueError("Die gewählte Batch-Materialquelle ist ungültig.")
+    used = {int(value) for value in assignments.values() if int(value) > 0}
+    by_color: dict[str, list[int]] = {}
+    for index, filament in enumerate(filaments, start=1):
+        if index not in used or not isinstance(filament, dict):
+            continue
+        color = _normal_color(filament.get("color"))
+        if color:
+            by_color.setdefault(color, []).append(index)
+    mapped: dict[str, int] = {}
+    for object_id, color in objects:
+        candidates = by_color.get(_normal_color(color), [])
+        if len(candidates) != 1:
+            raise ValueError(
+                "Die Batch-Datei kann nicht eindeutig den ausdrücklich ausgewählten AMS-Filamentprofilen "
+                "zugeordnet werden. Gleiche Farben oder fehlende Profile müssen im Studio geklärt werden."
+            )
+        mapped[object_id] = candidates[0]
+    return {**plan, "assignments": mapped}
+
+
+async def _prepare_plate_job_contract(
+    hass: HomeAssistant,
+    filename: str,
+    model: bytes,
+    plate_index: int,
+    options: dict[str, object],
+    material_plan: dict[str, object] | None,
+    studio_plate: dict[str, object] | None,
+) -> dict[str, object]:
+    """Resolve the same validated slicing contract for single and batch jobs."""
+    inspection = await hass.async_add_executor_job(inspect_model, filename, model)
+    valid_indexes = {
+        int(item.get("plate_index", -1))
+        for item in inspection.get("plates", [])
+        if isinstance(item, dict)
+    }
+    if plate_index not in valid_indexes:
+        raise ValueError(
+            f"Druckplatte {plate_index + 1} ist in dieser Datei nicht vorhanden"
+        )
+
+    catalog = _catalog_for_plate(
+        await get_profile_runtime(hass).async_catalog(),
+        studio_plate,
+    )
+    build_plate_options = selected_build_plate_options(catalog)
+    resolved_options = dict(options)
+    resolved_options.update(build_plate_options)
+    target_printer, target_profile = await _resolve_target(
+        hass,
+        studio_plate,
+        catalog,
+    )
+    nozzle_contract = resolve_a1_nozzle_contract(catalog, {
+        "name": target_printer.name,
+        "model": target_printer.model,
+    })
+    selected_process_profile = resolve_selected_process_contract(
+        catalog,
+        nozzle_contract,
+    )
+    resolved_options = validate_process_overrides(
+        resolved_options,
+        nozzle_contract,
+    )
+    resolved_plan, material_source_summary = _resolve_ams_plan(
+        material_plan,
+        target_printer,
+        model,
+    )
+    resolved_plan, compatibility_contract = validate_slicer_compatibility(
+        catalog,
+        nozzle_contract,
+        resolved_plan,
+        build_plate_options,
+        target_profile,
+    )
+    payload = target_profile.get("payload") if isinstance(target_profile.get("payload"), dict) else {}
+    target_context = {
+        "printer_id": target_printer.printer_id,
+        "name": target_printer.name,
+        "model": target_printer.model,
+        "serial": target_printer.serial,
+        "profile_id": target_profile.get("id"),
+        "physical_extruder_count": int(payload.get("physical_extruder_count", 1)),
+        "material_channel_system": (
+            "ams_single_nozzle"
+            if bool(material_source_summary.get("use_ams"))
+            else "external_spool_single_nozzle"
+        ),
+        **contract_payload(nozzle_contract),
+    }
+    return {
+        "catalog": catalog,
+        "options": resolved_options,
+        "target_printer": target_context,
+        "material_plan": resolved_plan,
+        "material_source_summary": material_source_summary,
+        "compatibility_contract": compatibility_contract,
+        "selected_process_profile": selected_process_profile,
+        "project_name": _studio_project_name(studio_plate, filename),
+    }
+
+
 class SlicerPlateJobViewV2(HomeAssistantView):
     url = f"{API_PREFIX}/jobs-plate"
     name = "api:ultimate_3d_studio_v6:slicer_plate_job_v2"
@@ -413,68 +595,41 @@ class SlicerPlateJobViewV2(HomeAssistantView):
 
         hass: HomeAssistant = request.app["hass"]
         try:
-            inspection = await hass.async_add_executor_job(inspect_model, filename, model)
-        except ValueError as exc:
-            return web.json_response({"error": str(exc)}, status=400)
-        valid_indexes = {int(item.get("plate_index", -1)) for item in inspection.get("plates", []) if isinstance(item, dict)}
-        if plate_index not in valid_indexes:
-            return web.json_response({"error": f"Druckplatte {plate_index + 1} ist in dieser Datei nicht vorhanden"}, status=409)
-
-        try:
-            catalog = _catalog_for_plate(await get_profile_runtime(hass).async_catalog(), studio_plate)
-            build_plate_options = selected_build_plate_options(catalog)
-            options.update(build_plate_options)
-            target_printer, target_profile = await _resolve_target(hass, studio_plate, catalog)
-            nozzle_contract = resolve_a1_nozzle_contract(catalog, {
-                "name": target_printer.name,
-                "model": target_printer.model,
-            })
-            selected_process_profile = resolve_selected_process_contract(
-                catalog,
-                nozzle_contract,
-            )
-            options = validate_process_overrides(options, nozzle_contract)
-            material_plan, material_source_summary = _resolve_ams_plan(material_plan, target_printer, model)
-            material_plan, compatibility_contract = validate_slicer_compatibility(
-                catalog,
-                nozzle_contract,
+            contract = await _prepare_plate_job_contract(
+                hass,
+                filename,
+                model,
+                plate_index,
+                options,
                 material_plan,
-                build_plate_options,
-                target_profile,
+                studio_plate,
             )
-            payload = target_profile.get("payload") if isinstance(target_profile.get("payload"), dict) else {}
-            target_context = {
-                "printer_id": target_printer.printer_id,
-                "name": target_printer.name,
-                "model": target_printer.model,
-                "serial": target_printer.serial,
-                "profile_id": target_profile.get("id"),
-                "physical_extruder_count": int(payload.get("physical_extruder_count", 1)),
-                "material_channel_system": (
-                    "ams_single_nozzle"
-                    if bool(material_source_summary.get("use_ams"))
-                    else "external_spool_single_nozzle"
-                ),
-                **contract_payload(nozzle_contract),
-            }
             job = await V6SlicerBackendRouter(hass).async_create_plate_job(
-                backend, filename, model, catalog, plate_index, options,
-                target_printer=target_context,
-                material_plan=material_plan,
-                selected_process_profile=selected_process_profile,
-                source_project_name=_studio_project_name(studio_plate, filename),
+                backend,
+                filename,
+                model,
+                contract["catalog"],
+                plate_index,
+                contract["options"],
+                target_printer=contract["target_printer"],
+                material_plan=contract["material_plan"],
+                selected_process_profile=contract["selected_process_profile"],
+                source_project_name=contract["project_name"],
             )
+            resolved_plan = contract["material_plan"]
+            material_summary = contract["material_source_summary"]
+            compatibility_contract = contract["compatibility_contract"]
             job["material_plan"] = {
                 "applied": False,
                 "handled_by_native_server": True,
-                "assignment_count": len(material_plan["assignments"]),
-                "material_channel_count": len(material_plan["filaments"]),
+                "assignment_count": len(resolved_plan["assignments"]),
+                "material_channel_count": len(resolved_plan["filaments"]),
             }
-            job["material_source_plan"] = material_source_summary
+            job["material_source_plan"] = material_summary
             job["compatibility_contract"] = compatibility_contract
-            if bool(material_source_summary.get("use_ams")):
-                job["ams_material_plan"] = material_source_summary
-            job["target_printer"] = target_context
+            if bool(material_summary.get("use_ams")):
+                job["ams_material_plan"] = material_summary
+            job["target_printer"] = contract["target_printer"]
             job["selected_backend"] = backend
         except ValueError as exc:
             return web.json_response({"error": str(exc)}, status=400)

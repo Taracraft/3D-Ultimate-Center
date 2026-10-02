@@ -446,7 +446,7 @@ export class Ultimate3DMegaStudio extends HTMLElement {
     this.#render();
   }
   #primitive(kind: PrimitiveKind): void {
-    const plate = this.#plate(), names: Record<PrimitiveKind, string> = { cube: "Würfel", cylinder: "Zylinder", sphere: "Kugel", cone: "Kegel", torus: "Ring", plate: "Platte", rectangle: "Rechteck", circle: "Kreis", line: "Linie", text: "Text", "first-layer": "First-Layer-Test" };
+    const plate = this.#plate(), names: Record<PrimitiveKind, string> = { cube: "Würfel", cylinder: "Zylinder", sphere: "Kugel", cone: "Kegel", torus: "Ring", plate: "Platte", "first-layer": "First-Layer-Test" };
     const mesh = createPrimitiveGeometry(kind, plate.width, plate.depth);
     const id = `primitive-${this.#nextId++}`;
     const item: MeshInstance = { id, name: names[kind], geometry: mesh, position: positionCenteredOnPlate(mesh, { position: [0,0,0], rotation: [0,0,0], scale: [1,1,1] }, plate.width, plate.depth), rotation: [0,0,0], scale: [1,1,1], color: NEUTRAL_COLOR, visible: true };

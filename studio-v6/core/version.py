@@ -1,3 +1,2 @@
 STUDIO_VERSION = "6.0.0-beta1"
 API_VERSION = "v1"
-

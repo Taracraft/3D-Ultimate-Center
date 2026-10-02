@@ -21,13 +21,10 @@ LOGGER = logging.getLogger(__name__)
 
 RUNTIME_KEY: web.AppKey[StudioRuntime] = web.AppKey("studio_runtime", StudioRuntime)
 CLOSE_RUNTIME_KEY: web.AppKey[bool] = web.AppKey("close_studio_runtime", bool)
-if hasattr(web, "RequestKey"):
-    REQUEST_ID_KEY = web.RequestKey(
-        "printer_control_center_request_id",
-        str,
-    )
-else:
-    REQUEST_ID_KEY = "printer_control_center_request_id"
+REQUEST_ID_KEY: web.RequestKey[str] = web.RequestKey(
+    "printer_control_center_request_id",
+    str,
+)
 
 _ERROR_STATUS = {
     "validation_failed": 400,

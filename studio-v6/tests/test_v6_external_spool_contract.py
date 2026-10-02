@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from pathlib import Path
 
@@ -46,3 +46,4 @@ def test_plate_source_and_external_profile_are_persisted() -> None:
     assert 'purge_tower: { enabled: false }' in source
     assert 'materialSource?: "ams" | "external_spool"' in persistence
     assert 'externalFilamentProfileId?: string' in persistence
+

@@ -110,4 +110,4 @@ async def ws_delete_job(hass: HomeAssistant, connection: websocket_api.ActiveCon
         await coordinator.async_request_refresh()
         connection.send_result(msg["id"], result)
     except Exception as exc:
-        connection.send_error(msg["id"], "job_delete_failed", str(exc))
+        connection.send_error(msg["id"], "job_delete_failed", str(exc))

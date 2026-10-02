@@ -10,6 +10,9 @@ import { parseRoute, routeToHash, type WorkspaceRoute } from "./router.js";
 import { writeFrontendAudit } from "./ha-api-transport.js";
 import { consumeWorkspaceFiles } from "./workspace-file-handoff.js";
 import { clearStudioWorkspace } from "./studio-persistence.js";
+import { jobActivityStore, type JobActivitySnapshot } from "./job-activity-store.js";
+import { printLayerLabel, printSpeedLabel } from "./print-live-telemetry.js";
+import { remainingTimeLabel } from "./print-remaining-time.js";
 import type { WorkspaceSourceRequest } from "./workspace-source-request.js";
 
 type HassLike = Readonly<{
@@ -42,8 +45,6 @@ function normalizedRoute(route: WorkspaceRoute): WorkspaceRoute {
 
 function initialRoute(): WorkspaceRoute {
   if (location.hash) return normalizedRoute(parseRoute(location.hash));
-  const pathRoute = normalizedRoute(parseRoute(location.pathname));
-  if (pathRoute.name !== "steuerung" || location.pathname.includes("/steuerung")) return pathRoute;
   try {
     return normalizedRoute(parseRoute(localStorage.getItem(STORAGE_KEY) || "#/steuerung"));
   } catch {
@@ -59,6 +60,8 @@ export class Ultimate3DStudioShellV4 extends HTMLElement {
   #source: WorkspaceSourceRequest | null = null;
   #hass: HassLike | null = null;
   #projectOpenGeneration = 0;
+  #activity: JobActivitySnapshot = jobActivityStore.snapshot;
+  #activityUnsubscribe: (() => void) | null = null;
 
   set hass(value: HassLike | null) {
     this.#hass = value;
@@ -69,7 +72,16 @@ export class Ultimate3DStudioShellV4 extends HTMLElement {
   get hass(): HassLike | null { return this.#hass; }
 
   connectedCallback(): void {
-    if (this.#root.childElementCount) return;
+    if (!this.#activityUnsubscribe) {
+      this.#activityUnsubscribe = jobActivityStore.subscribe((snapshot) => {
+        this.#activity = snapshot;
+        this.#updateNavLive();
+      });
+    }
+    if (this.#root.childElementCount) {
+      this.#updateNavLive();
+      return;
+    }
     mountAppShell(this.#root);
     this.#mountNavigation();
     this.addEventListener("gallery-open-studio", this.#openStudio as EventListener);
@@ -80,6 +92,8 @@ export class Ultimate3DStudioShellV4 extends HTMLElement {
   }
 
   disconnectedCallback(): void {
+    this.#activityUnsubscribe?.();
+    this.#activityUnsubscribe = null;
     removeEventListener("hashchange", this.#hashChanged);
     this.removeEventListener("gallery-open-studio", this.#openStudio as EventListener);
     this.removeEventListener("gallery-open-slicer", this.#openStudio as EventListener);
@@ -151,7 +165,7 @@ export class Ultimate3DStudioShellV4 extends HTMLElement {
   }
 
   #mountNavigation(): void {
-    const nav = this.#root.querySelector<HTMLElement>("nav");
+    const nav = this.#root.querySelector<HTMLElement>("#nav-buttons");
     if (!nav) return;
     for (const [name, label, icon] of APP_NAV) {
       const button = document.createElement("button");
@@ -164,6 +178,24 @@ export class Ultimate3DStudioShellV4 extends HTMLElement {
       });
       nav.append(button);
     }
+  }
+
+  #updateNavLive(): void {
+    const host = this.#root.querySelector<HTMLElement>("#nav-live");
+    const title = this.#root.querySelector<HTMLElement>("#nav-live-title");
+    const meta = this.#root.querySelector<HTMLElement>("#nav-live-meta");
+    const detail = this.#root.querySelector<HTMLElement>("#nav-live-detail");
+    if (!host || !title || !meta || !detail) return;
+    const printer = this.#activity.printers[0] ?? null;
+    const jobs = this.#activity.jobs.current || [];
+    const printerId = String(printer?.printer_id || "");
+    const job = jobs.find((item) => String(item.printer_id || "") === printerId) ?? jobs[0] ?? null;
+    host.hidden = !printer || !job;
+    if (host.hidden || !printer || !job) return;
+    const progress = Math.max(0, Math.min(100, Number(job.progress ?? printer.progress) || 0));
+    title.textContent = `${String(printer.print_stage_label || "Aktiver Druck")} · ${Math.round(progress)} %`;
+    meta.textContent = `${printLayerLabel(job, printer)} · Tempo ${printSpeedLabel(printer)}`;
+    detail.textContent = `Restzeit ${remainingTimeLabel(job, printer)}`;
   }
 
   #renderTools(): void {
@@ -212,6 +244,7 @@ export class Ultimate3DStudioShellV4 extends HTMLElement {
       button.classList.toggle("active", button.dataset.route === this.#route.name);
     });
     this.#renderTools();
+    this.#updateNavLive();
     if (this.#studio) this.#studio.hidden = true;
     this.#transient?.remove();
     this.#transient = null;

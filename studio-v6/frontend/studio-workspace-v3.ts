@@ -1,3 +1,4 @@
+import { V6_BRANDING } from "./branding.js";
 import {
   bestFlatRotation,
   exportBinaryStl,
@@ -688,7 +689,7 @@ export class Ultimate3DStudioWorkspaceV3 extends HTMLElement {
       return [{ name: object.name, geometry: record.geometry, transform: object.transform }];
     });
     try {
-      const buffer = exportBinaryStl(meshes, "Ultimate 3D Studio V6 CAD scene");
+      const buffer = exportBinaryStl(meshes, V6_BRANDING.cadSceneLabel);
       const file = new File([buffer], safeProjectFileName(plate?.name ?? "Druckplatte"), { type: "model/stl" });
       queueWorkspaceFile("slicer", file);
       this.#status = `${meshes.length} CAD-Objekt${meshes.length === 1 ? "" : "e"} von ${plate?.name ?? "der Druckplatte"} an den Slicer übergeben.`;

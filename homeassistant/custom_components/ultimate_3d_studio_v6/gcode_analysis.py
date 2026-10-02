@@ -760,4 +760,4 @@ def assert_prime_tower_inside(analysis: dict[str, Any]) -> None:
         raise ValueError(
             "Der geslicte Reinigungsturm liegt außerhalb der Druckplatte: "
             f"{tower.get('bounds')}"
-        )
+        )

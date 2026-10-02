@@ -1,4 +1,4 @@
-"""Bambu LAN provider V2 with stage telemetry and confirmed stop handling."""
+﻿"""Bambu LAN provider V2 with stage telemetry and confirmed stop handling."""
 from __future__ import annotations
 
 import asyncio
@@ -30,10 +30,52 @@ _STOP_ACTIVE_STATES = {
     "paused",
 }
 _REMAINING_TIME_STATES = _STOP_ACTIVE_STATES | {"starting"}
+_ACTIVE_PRINT_STATES = _STOP_ACTIVE_STATES | {"starting"}
 
 
 class BambuLanProviderV2(BambuLanProvider):
     """Add print stages, remaining time, Bambu error retry and confirmed stop."""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._stage_history: list[dict[str, object]] = []
+        self._stage_history_file = ""
+        self._last_printer_state = "unknown"
+
+    def _record_stage_history(self) -> None:
+        state = self.telemetry.printer_state.casefold()
+        current_file = self.telemetry.current_file or ""
+        if state in _ACTIVE_PRINT_STATES and self._last_printer_state not in _ACTIVE_PRINT_STATES:
+            self._stage_history.clear()
+            self._stage_history_file = current_file
+        elif current_file and self._stage_history_file and current_file != self._stage_history_file:
+            self._stage_history.clear()
+            self._stage_history_file = current_file
+        elif current_file and not self._stage_history_file:
+            self._stage_history_file = current_file
+
+        stage = resolve_print_stage(self.telemetry.raw)
+        model_started = (self.telemetry.current_layer or 0) > 0 or (self.telemetry.progress or 0) > 0
+        if stage.active and stage.key and not (stage.key == "printing_model" and not model_started):
+            key = stage.key
+            if key == "nozzle_cleaning":
+                key = "nozzle_cleaning_after"
+            last_key = str(self._stage_history[-1].get("key") or "") if self._stage_history else ""
+            if key != last_key:
+                self._stage_history.append({
+                    "key": key,
+                    "raw_key": stage.key,
+                    "code": stage.code,
+                    "label": stage.label,
+                    "detail": stage.detail,
+                    "at": self.telemetry.updated_at_iso,
+                })
+                self._stage_history = self._stage_history[-96:]
+        self._last_printer_state = state
+
+    def _handle_telemetry(self, payload: dict[str, object]) -> None:
+        super()._handle_telemetry(payload)
+        self._record_stage_history()
 
     def _remaining_time_minutes(self) -> int | None:
         if self.telemetry.printer_state.casefold() not in _REMAINING_TIME_STATES:
@@ -61,8 +103,22 @@ class BambuLanProviderV2(BambuLanProvider):
                 print_stage_label=stage.label,
                 print_stage_detail=stage.detail,
                 print_stage_active=stage.active,
+                print_stage_history=[dict(item) for item in self._stage_history],
             ),
         )
+
+    async def _async_wait_for_speed_level(
+        self,
+        expected: int,
+        *,
+        timeout: float = 8.0,
+    ) -> bool:
+        deadline = asyncio.get_running_loop().time() + timeout
+        while asyncio.get_running_loop().time() < deadline:
+            if self.telemetry.speed_level == expected:
+                return True
+            await asyncio.sleep(0.25)
+        return self.telemetry.speed_level == expected
 
     async def async_command(
         self,
@@ -75,9 +131,10 @@ class BambuLanProviderV2(BambuLanProvider):
             return None
 
         if command == "speed":
-            if speed_level is None:
-                raise RuntimeError("Für die Druckgeschwindigkeit fehlt speed_level.")
+            if speed_level not in {1, 2, 3, 4}:
+                raise RuntimeError("Ungültige Druckgeschwindigkeit. Erlaubt sind nur 50, 100, 125 oder 166 Prozent.")
             result = await self._async_submit(build_print_speed(speed_level), timeout=12.0)
+            percent = {1: 50, 2: 100, 3: 125, 4: 166}[speed_level]
             confirmed = await self._async_wait_for_speed_level(speed_level)
             return PrinterCommandResult(
                 printer_id=self.serial,
@@ -88,9 +145,9 @@ class BambuLanProviderV2(BambuLanProvider):
                 confirmed=confirmed,
                 final_state=self.telemetry.printer_state,
                 message=(
-                    f"Geschwindigkeit auf Stufe {speed_level} gesetzt."
+                    f"Druckgeschwindigkeit auf {percent} % gesetzt und vom Drucker bestätigt."
                     if confirmed
-                    else "Telemetriebestätigung steht noch aus; der Befehl wurde gesendet."
+                    else f"Druckgeschwindigkeit {percent} % wurde angenommen; die Telemetriebestätigung steht noch aus."
                 ),
             )
 
@@ -166,20 +223,6 @@ class BambuLanProviderV2(BambuLanProvider):
             f"aber nicht bestätigt. Aktueller Zustand: {final_state}. "
             "Der Stop-Befehl wurde zweimal gesendet."
         )
-
-
-    async def _async_wait_for_speed_level(
-        self,
-        expected: int,
-        *,
-        timeout: float = 8.0,
-    ) -> bool:
-        deadline = asyncio.get_running_loop().time() + timeout
-        while asyncio.get_running_loop().time() < deadline:
-            if self.telemetry.speed_level == expected:
-                return True
-            await asyncio.sleep(0.5)
-        return False
 
     async def _async_wait_for_stop_confirmation(
         self,

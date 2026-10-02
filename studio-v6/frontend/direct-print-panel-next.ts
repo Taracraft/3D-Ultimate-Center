@@ -1,3 +1,4 @@
+import { transferMatchesAttempt } from "./transfer-attempt.js";
 import { DIRECT_PRINT_PANEL_STYLES } from "./direct-print-panel-styles.js";
 import {
   dispatchDirectPrintTransfer,
@@ -11,6 +12,7 @@ import {
 import {
   discardPreparedPrint,
   fetchDirectPrintTransferStatus,
+  fetchDirectPrintTransferBaseline,
   prepareDirectPrint,
   startDirectPrint,
   type DirectPrintResult,
@@ -95,13 +97,13 @@ export class Ultimate3DDirectPrintPanelNext extends HTMLElement {
   #transferPolling = false;
   #transferFinished = false;
   #transferTraceId = "";
+  #previousTransferStartedAt = "";
   #lastTransfer: DirectPrintTransferDetail | null = null;
 
   set job(value: SliceJob | null) {
     const changed = value?.id !== this.#job?.id;
     this.#job = value;
     if (changed) {
-      this.#resetTransferTrace();
       this.#prepared = null;
       this.#result = null;
       this.#error = "";
@@ -230,14 +232,6 @@ export class Ultimate3DDirectPrintPanelNext extends HTMLElement {
     this.#transferTimer = null;
   }
 
-  #resetTransferTrace(): void {
-    this.#stopTransferPolling();
-    this.#transferPolling = false;
-    this.#transferFinished = false;
-    this.#transferTraceId = "";
-    this.#lastTransfer = null;
-  }
-
   #dispatchTransfer(detail: DirectPrintTransferDetail): void {
     this.#lastTransfer = detail;
     dispatchDirectPrintTransfer(detail);
@@ -255,18 +249,16 @@ export class Ultimate3DDirectPrintPanelNext extends HTMLElement {
       printerName: printer.name,
       fileName: job.output_filename || job.output_file || job.model_file || "Druckauftrag.gcode.3mf",
       stage: "preparing",
-      label: "Druckdatei wird vorbereitet",
-      detail: "Druckdatei wird für die sichere Bambu-LAN-Übertragung vorbereitet",
+      message: "Druckdatei wird für die sichere Bambu-LAN-Übertragung vorbereitet",
       active: true,
       status: "running",
       progress: 0,
-      transferredBytes: 0,
+      loadedBytes: 0,
       totalBytes,
       rateBytesPerSecond: 0,
       at: new Date().toISOString(),
     });
-    this.#transferTimer = window.setInterval(() => void this.#pollTransfer(), 350);
-    void this.#pollTransfer();
+
   }
 
   #transferDetail(status: DirectPrintTransferStatus): DirectPrintTransferDetail {
@@ -279,12 +271,11 @@ export class Ultimate3DDirectPrintPanelNext extends HTMLElement {
       printerName: status.printer_name,
       fileName: status.filename,
       stage: status.stage,
-      label: status.stage_label,
-      detail: status.error || undefined,
+      message: status.error || status.stage_label,
       active: Boolean(status.active),
       status: status.status,
       progress: Math.max(0, Math.min(100, Number(status.progress) || 0)),
-      transferredBytes: loadedBytes,
+      loadedBytes,
       totalBytes,
       rateBytesPerSecond: Math.max(0, Number(status.rate_bytes_per_second) || 0),
       etaSeconds: status.eta_seconds !== null && status.eta_seconds !== undefined && Number(status.eta_seconds) >= 0
@@ -301,10 +292,12 @@ export class Ultimate3DDirectPrintPanelNext extends HTMLElement {
     const job = this.#job;
     const printer = this.#printer();
     if (!this.#transferTraceId || this.#transferFinished || !job || !printer || this.#transferPolling) return;
+    const requestedTrace = this.#transferTraceId;
     this.#transferPolling = true;
     try {
       const status = await fetchDirectPrintTransferStatus(job.id, printer.printer_id);
-      if (!this.#transferTraceId || this.#transferFinished || status.job_id !== job.id || status.printer_id !== printer.printer_id) return;
+      if (this.#transferFinished || status.job_id !== job.id || status.printer_id !== printer.printer_id
+        || !transferMatchesAttempt(status.started_at, this.#previousTransferStartedAt, requestedTrace, this.#transferTraceId)) return;
       this.#dispatchTransfer(this.#transferDetail(status));
     } catch {
       // Der Status kann beim ersten Poll noch nicht angelegt sein.
@@ -323,12 +316,11 @@ export class Ultimate3DDirectPrintPanelNext extends HTMLElement {
       printerName: prepared.printer_name,
       fileName: prepared.remote_filename,
       stage: "completed",
-      label: "Druckjob vollständig übertragen",
-      detail: "Dateigröße und SHA-256 wurden verifiziert",
+      message: "Druckjob vollständig übertragen und per Dateigröße sowie SHA-256 verifiziert",
       active: false,
       status: "success",
       progress: 100,
-      transferredBytes: prepared.size_bytes,
+      loadedBytes: prepared.size_bytes,
       totalBytes: prepared.size_bytes,
       rateBytesPerSecond: previous?.rateBytesPerSecond || 0,
       etaSeconds: 0,
@@ -344,8 +336,7 @@ export class Ultimate3DDirectPrintPanelNext extends HTMLElement {
     this.#dispatchTransfer({
       ...previous,
       stage: "error",
-      label: "Druckjob-Übertragung fehlgeschlagen",
-      detail: message,
+      message,
       active: false,
       status: "error",
       etaSeconds: undefined,
@@ -371,6 +362,8 @@ export class Ultimate3DDirectPrintPanelNext extends HTMLElement {
     this.#result = null;
     this.#render();
     try {
+      this.#previousTransferStartedAt = await fetchDirectPrintTransferBaseline(job.id, printer.printer_id);
+      this.#transferTimer = window.setInterval(() => void this.#pollTransfer(), 350);
       const prepared = await prepareDirectPrint(job.id, printer.printer_id);
       if (job.output_sha256 && prepared.sha256.toLowerCase() !== job.output_sha256.toLowerCase()) {
         await discardPreparedPrint(prepared);
@@ -510,7 +503,6 @@ export class Ultimate3DDirectPrintPanelNext extends HTMLElement {
     this.querySelector<HTMLButtonElement>("#dp-discard")?.addEventListener("click", () => void this.#discard());
     this.querySelector<HTMLSelectElement>("#dp-printer")?.addEventListener("change", (event) => {
       this.#printerId = (event.currentTarget as HTMLSelectElement).value;
-      this.#resetTransferTrace();
       this.#prepared = null;
       this.#render();
     });

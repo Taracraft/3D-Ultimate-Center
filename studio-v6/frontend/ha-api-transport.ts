@@ -81,7 +81,7 @@ function auditCategory(path: string): string {
   if (value.includes("profile")) return "Profile";
   if (value.includes("camera")) return "Kamera";
   if (value.includes("ams") || value.includes("filament")) return "AMS";
-  if (value.includes("printer_slicing_server") || value.includes("slicing-server") || value.includes("worker")) return "Slicing-Server";
+  if (value.includes("printer_slicing_server") || value.includes("slicing-server")) return "Slicing-Server";
   if (value.includes("slicer") || value.includes("slice") || value.includes("gcode") || value.includes("toolpath")) return "Slicer";
   if (value.includes("direct-print") || value.includes("print") || value.includes("printer")) return "Druck";
   if (value.includes("studio") || value.includes("scene") || value.includes("model")) return "Studio";
@@ -160,6 +160,108 @@ export function hasHomeAssistantApi(): boolean {
   return homeAssistant !== null;
 }
 
+export type AuthenticatedUploadProgress = Readonly<{
+  loadedBytes: number;
+  totalBytes: number;
+  ratio: number;
+  elapsedSeconds: number;
+  rateBytesPerSecond: number;
+  etaSeconds?: number | undefined;
+}>;
+
+export function uploadProgressSnapshot(
+  loadedBytes: number,
+  totalBytes: number,
+  startedAtMs: number,
+  nowMs: number,
+): AuthenticatedUploadProgress {
+  const loaded = Math.max(0, Number(loadedBytes) || 0);
+  const total = Math.max(loaded, Number(totalBytes) || 0);
+  const elapsedSeconds = Math.max(.001, (Number(nowMs) - Number(startedAtMs)) / 1000);
+  const rateBytesPerSecond = loaded > 0 && elapsedSeconds >= .05 ? loaded / elapsedSeconds : 0;
+  const etaSeconds = rateBytesPerSecond > 0 && total > loaded
+    ? (total - loaded) / rateBytesPerSecond
+    : undefined;
+  return {
+    loadedBytes: loaded,
+    totalBytes: total,
+    ratio: total > 0 ? Math.max(0, Math.min(1, loaded / total)) : 0,
+    elapsedSeconds,
+    rateBytesPerSecond,
+    etaSeconds,
+  };
+}
+
+export async function authenticatedUpload(
+  input: RequestInfo | URL,
+  init: RequestInit,
+  onProgress?: (progress: AuthenticatedUploadProgress) => void,
+): Promise<Response> {
+  if (!homeAssistant) throw new Error("Home-Assistant-API ist noch nicht initialisiert.");
+  const accessToken = homeAssistant.auth?.accessToken ?? homeAssistant.auth?.data?.access_token;
+  if (!accessToken) throw new Error("Kein Home-Assistant-Zugriffstoken verfügbar.");
+  const body = init.body;
+  if (!(body instanceof Blob)) throw new Error("Der authentifizierte Upload erwartet eine Binärdatei.");
+  const headers = new Headers(init.headers);
+  headers.set("Authorization", `Bearer ${accessToken}`);
+  const method = String(init.method || "POST").toUpperCase();
+  const path = auditPath(input);
+  const target = input instanceof URL ? input.toString() : typeof input === "string" ? input : input.url;
+  const started = performance.now();
+
+  return await new Promise<Response>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, target, true);
+    xhr.responseType = "arraybuffer";
+    xhr.withCredentials = true;
+    headers.forEach((value, key) => xhr.setRequestHeader(key, value));
+    xhr.upload.addEventListener("progress", (event) => {
+      const total = Math.max(body.size, event.lengthComputable ? event.total : 0, event.loaded);
+      const snapshot = uploadProgressSnapshot(event.loaded, total, started, performance.now());
+      try { onProgress?.(snapshot); } catch {}
+    });
+    xhr.addEventListener("load", () => {
+      const responseHeaders = new Headers();
+      for (const line of xhr.getAllResponseHeaders().trim().split(/[\r\n]+/)) {
+        if (!line) continue;
+        const separator = line.indexOf(":");
+        if (separator <= 0) continue;
+        responseHeaders.append(line.slice(0, separator).trim(), line.slice(separator + 1).trim());
+      }
+      const duration = Math.round(performance.now() - started);
+      if (path !== AUDIT_PATH) {
+        writeFrontendAudit({
+          category: auditCategory(path),
+          component: "frontend_binary_upload",
+          event: `${method} ${path}`,
+          status: xhr.status >= 200 && xhr.status < 400 ? "success" : "error",
+          duration_ms: duration,
+          details: { method, path, http_status: xhr.status, body_type: body.constructor.name, size_bytes: body.size },
+        });
+      }
+      resolve(new Response(xhr.response ?? new ArrayBuffer(0), { status: xhr.status, statusText: xhr.statusText, headers: responseHeaders }));
+    });
+    const fail = (kind: string): void => {
+      const message = `Upload fehlgeschlagen (${kind}).`;
+      if (path !== AUDIT_PATH) {
+        writeFrontendAudit({
+          category: auditCategory(path),
+          component: "frontend_binary_upload",
+          event: `${method} ${path}`,
+          status: "error",
+          duration_ms: Math.round(performance.now() - started),
+          details: { method, path, error: message, size_bytes: body.size },
+        });
+      }
+      reject(new Error(message));
+    };
+    xhr.addEventListener("error", () => fail("Netzwerkfehler"));
+    xhr.addEventListener("abort", () => fail("abgebrochen"));
+    xhr.addEventListener("timeout", () => fail("Zeitüberschreitung"));
+    xhr.send(body);
+  });
+}
+
 export async function authenticatedFetch(
   input: RequestInfo | URL,
   init: RequestInit = {},
@@ -199,108 +301,6 @@ export async function authenticatedFetch(
     }
     throw error;
   }
-}
-
-
-export type AuthenticatedUploadProgress = Readonly<{
-  loaded: number;
-  total: number | null;
-  progress: number | null;
-  loadedBytes: number;
-  totalBytes: number;
-  ratio: number;
-  rateBytesPerSecond: number;
-  elapsedSeconds: number;
-  etaSeconds: number | null;
-}>;
-
-function uploadProgressSnapshot(loaded: number, total: number | null, started: number): AuthenticatedUploadProgress {
-  const safeTotal = Math.max(0, Number(total) || 0);
-  const safeLoaded = Math.max(0, Math.min(safeTotal || loaded, Number(loaded) || 0));
-  const elapsedSeconds = Math.max(0.001, (performance.now() - started) / 1000);
-  const ratio = safeTotal > 0 ? Math.max(0, Math.min(1, safeLoaded / safeTotal)) : 0;
-  const rateBytesPerSecond = safeLoaded / elapsedSeconds;
-  return {
-    loaded: safeLoaded,
-    total,
-    progress: safeTotal > 0 ? ratio * 100 : null,
-    loadedBytes: safeLoaded,
-    totalBytes: safeTotal,
-    ratio,
-    rateBytesPerSecond,
-    elapsedSeconds,
-    etaSeconds: safeTotal > 0 && rateBytesPerSecond > 0 ? Math.max(0, (safeTotal - safeLoaded) / rateBytesPerSecond) : null,
-  };
-}
-
-function xhrResponseHeaders(rawHeaders: string): Headers {
-  const headers = new Headers();
-  for (const line of rawHeaders.trim().split(/[\r\n]+/)) {
-    const separator = line.indexOf(":");
-    if (separator <= 0) continue;
-    headers.append(line.slice(0, separator).trim(), line.slice(separator + 1).trim());
-  }
-  return headers;
-}
-
-export async function authenticatedUpload(
-  input: RequestInfo | URL,
-  init: RequestInit = {},
-  onProgress?: (progress: AuthenticatedUploadProgress) => void,
-): Promise<Response> {
-  const body = init.body;
-  if (!onProgress || !(body instanceof Blob)) {
-    const response = await authenticatedFetch(input, init);
-    if (body instanceof Blob) onProgress?.(uploadProgressSnapshot(body.size, body.size, performance.now()));
-    return response;
-  }
-  if (!homeAssistant) throw new Error("Home-Assistant-API ist noch nicht initialisiert.");
-  const accessToken = homeAssistant.auth?.accessToken ?? homeAssistant.auth?.data?.access_token;
-  if (!accessToken) throw new Error("Kein Home-Assistant-Zugriffstoken verfügbar.");
-
-  const method = String(init.method || "POST").toUpperCase();
-  const path = auditPath(input);
-  const started = performance.now();
-  const total = body.size;
-  onProgress(uploadProgressSnapshot(0, total, started));
-
-  return new Promise<Response>((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open(method, input instanceof URL ? input.toString() : String(input), true);
-    xhr.responseType = "blob";
-    const headers = new Headers(init.headers);
-    headers.set("Authorization", `Bearer ${accessToken}`);
-    headers.forEach((value, key) => xhr.setRequestHeader(key, value));
-    xhr.upload.addEventListener("progress", (event) => {
-      onProgress(uploadProgressSnapshot(event.loaded, event.lengthComputable ? event.total : total, started));
-    });
-    xhr.addEventListener("load", () => {
-      onProgress(uploadProgressSnapshot(total, total, started));
-      const response = new Response(xhr.response, {
-        status: xhr.status,
-        statusText: xhr.statusText,
-        headers: xhrResponseHeaders(xhr.getAllResponseHeaders()),
-      });
-      if (path !== AUDIT_PATH) {
-        writeFrontendAudit({
-          category: auditCategory(path),
-          component: "frontend_binary_upload",
-          event: `${method} ${path}`,
-          status: xhr.status >= 200 && xhr.status < 300 ? "success" : "error",
-          duration_ms: Math.round(performance.now() - started),
-          details: { method, path, http_status: xhr.status, body_type: body.constructor.name },
-        });
-      }
-      resolve(response);
-    });
-    xhr.addEventListener("error", () => {
-      const message = "Upload konnte nicht abgeschlossen werden.";
-      if (path !== AUDIT_PATH) writeFrontendAudit({ category: auditCategory(path), component: "frontend_binary_upload", event: `${method} ${path}`, status: "error", duration_ms: Math.round(performance.now() - started), details: { method, path, error: message } });
-      reject(new Error(message));
-    });
-    xhr.addEventListener("abort", () => reject(new Error("Upload wurde abgebrochen.")));
-    xhr.send(body);
-  });
 }
 
 export async function callHomeAssistantApi<T>(

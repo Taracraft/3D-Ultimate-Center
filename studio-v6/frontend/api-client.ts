@@ -13,6 +13,22 @@ export type ApiResponse<T> = Readonly<{
   version: string;
 }>;
 
+async function readApiResponse<T>(response: Response, fallback: string): Promise<ApiResponse<T>> {
+  const text = await response.text();
+  if (!text.trim()) {
+    throw new Error(response.ok ? fallback : `${fallback}: HTTP ${response.status}`);
+  }
+  try {
+    return JSON.parse(text) as ApiResponse<T>;
+  } catch {
+    const message = text.trim().replace(/\s+/g, " ").slice(0, 500);
+    if (response.status === 413 || /maximum request body|request entity too large/i.test(message)) {
+      throw new Error("Upload-Chunk wurde vom Server als zu groß abgewiesen.");
+    }
+    throw new Error(message || `${fallback}: HTTP ${response.status}`);
+  }
+}
+
 export class StudioApiClient {
   constructor(
     private readonly baseUrl = "printer_control_center/v1",
@@ -49,7 +65,7 @@ export class StudioApiClient {
           },
         );
 
-    const payload = await response.json() as ApiResponse<unknown>;
+    const payload = await readApiResponse<unknown>(response, "Upload fehlgeschlagen");
     if (!response.ok || payload.error) {
       throw new Error(payload.error?.message ?? `Upload fehlgeschlagen: HTTP ${response.status}`);
     }
@@ -86,7 +102,7 @@ export class StudioApiClient {
     }
 
     const response = await this.fetchImpl(`${this.baseUrl}${path}`, init);
-    const payload = await response.json() as ApiResponse<unknown>;
+    const payload = await readApiResponse<unknown>(response, "API-Anfrage fehlgeschlagen");
     if (!response.ok || payload.error) {
       throw new Error(payload.error?.message ?? `Request failed with ${response.status}`);
     }

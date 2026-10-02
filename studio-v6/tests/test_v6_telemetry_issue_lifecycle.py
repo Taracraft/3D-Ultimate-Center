@@ -173,3 +173,71 @@ def test_new_hms_resets_stale_expiry_confirmation_window() -> None:
 
     state.update({"print": {"gcode_state": "FAILED"}}, now=started + timedelta(seconds=28))
     assert state.hms == []
+
+
+def test_stale_print_error_and_hms_expire_after_confirmed_idle_packets() -> None:
+    state = telemetry.BambuTelemetryState()
+    started = datetime(2026, 8, 13, 13, 20, tzinfo=UTC)
+    state.update({
+        "print": {
+            "gcode_state": "FAILED",
+            "print_error": 0x05004003,
+            "print_error_message": "Datei konnte nicht geparst werden",
+            "hms": [{"attr": 83887104, "code": 65604}],
+        }
+    }, now=started)
+
+    assert state.error_code == 0x05004003
+    assert len(state.issues) == 2
+
+    state.update({"print": {"gcode_state": "IDLE"}}, now=started + timedelta(seconds=5))
+    state.update({"print": {"gcode_state": "IDLE"}}, now=started + timedelta(seconds=10))
+    assert state.error_code == 0x05004003
+    assert state.hms
+
+    state.update({"print": {"gcode_state": "IDLE"}}, now=started + timedelta(seconds=16))
+    assert state.printer_state == "idle"
+    assert state.error_code is None
+    assert state.error_message is None
+    assert state.hms == []
+    assert state.issues == []
+
+
+def test_omitted_error_never_expires_while_failed_or_paused() -> None:
+    state = telemetry.BambuTelemetryState()
+    started = datetime(2026, 8, 13, 13, 20, tzinfo=UTC)
+    state.update({
+        "print": {
+            "gcode_state": "FAILED",
+            "print_error": 0x05004003,
+            "hms": [{"attr": 83887104, "code": 65604}],
+        }
+    }, now=started)
+
+    for offset in (20, 40, 80):
+        state.update({"print": {"gcode_state": "FAILED"}}, now=started + timedelta(seconds=offset))
+    assert state.error_code == 0x05004003
+    assert state.hms
+
+    for offset in (100, 120, 160):
+        state.update({"print": {"gcode_state": "PAUSE"}}, now=started + timedelta(seconds=offset))
+    assert state.error_code == 0x05004003
+    assert state.hms
+
+
+def test_fresh_explicit_error_resets_stale_clear_window() -> None:
+    state = telemetry.BambuTelemetryState()
+    started = datetime(2026, 8, 13, 13, 20, tzinfo=UTC)
+    state.update({"print": {"gcode_state": "FAILED", "print_error": 0x0300400C}}, now=started)
+    state.update({"print": {"gcode_state": "IDLE"}}, now=started + timedelta(seconds=8))
+
+    state.update({"print": {"gcode_state": "FAILED", "print_error": 0x05004003}}, now=started + timedelta(seconds=12))
+    assert state.error_code == 0x05004003
+
+    state.update({"print": {"gcode_state": "IDLE"}}, now=started + timedelta(seconds=20))
+    state.update({"print": {"gcode_state": "IDLE"}}, now=started + timedelta(seconds=25))
+    assert state.error_code == 0x05004003
+
+    state.update({"print": {"gcode_state": "IDLE"}}, now=started + timedelta(seconds=28))
+    assert state.error_code is None
+    assert state.issues == []

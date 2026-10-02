@@ -60,7 +60,22 @@ def test_process_writes_bambu_tower_option_names(tmp_path: Path) -> None:
         '"filament_diameter":["1.75"],"filament_density":["1.24"]}',
         encoding="utf-8",
     )
-    process, _paths, _profiles, tower = module._materialize_process(
+    contract_body = {
+        "schema_version": 1,
+        "profile_id": "local.process.test",
+        "name": "Testprozess",
+        "source": "local",
+        "materialization_policy": "mapped_v6_process",
+        "native_base_profile": "BBL/process/base.json",
+        "settings": {"layer_height": .2},
+    }
+    overrides = {
+        "selected_process_profile": {
+            **contract_body,
+            "contract_sha256": module._contract_digest(contract_body),
+        }
+    }
+    process, _paths, _profiles, tower, proof = module._materialize_process(
         process_source,
         process_root,
         filament_root,
@@ -69,7 +84,7 @@ def test_process_writes_bambu_tower_option_names(tmp_path: Path) -> None:
             {"material": "PLA", "color": "#000000"},
         ],
         "a1",
-        {},
+        overrides,
         {
             "enabled": True,
             "width_mm": 60,
@@ -79,6 +94,8 @@ def test_process_writes_bambu_tower_option_names(tmp_path: Path) -> None:
         },
         0,
     )
+    assert proof["applied"] is True
+    assert proof["profile_id"] == "local.process.test"
     assert process["prime_tower_width"] == "60"
     assert process["prime_tower_brim_width"] == "3"
     assert process["wipe_tower_x"] == "65.9645"

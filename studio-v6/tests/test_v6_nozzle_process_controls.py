@@ -217,16 +217,6 @@ def test_frontend_has_standard_controls_and_only_sends_custom_values() -> None:
         assert f"overrides.{field} !== null" in api
         assert f'query.set("{field}"' in api
         assert f'data-process-override="{field}"' in ui
-    for field in ("support_build_plate_only", "support_threshold_angle"):
-        assert f'query.set("{field}"' in api
-    process_panel = (FRONTEND / "studio-process-options-panel.ts").read_text(encoding="utf-8-sig")
-    analysis_panel = (FRONTEND / "slice-analysis-panel.ts").read_text(encoding="utf-8-sig")
-    direct_strip = (FRONTEND / "studio-direct-print-strip.ts").read_text(encoding="utf-8-sig")
-    assert "auf Modell erlaubt" in process_panel
-    assert "applySupportPreset" in process_panel
-    assert "Normal-Support auf Modell erlauben" in analysis_panel
-    assert "Baum-Support auf Modell erlauben" in analysis_panel
-    assert "v6-apply-support-preset" in direct_strip
     assert "Standard ·" in ui
     assert 'from "./nozzle-process-contract.js"' in ui
     assert "profilebar-process-field" not in ui
@@ -235,6 +225,23 @@ def test_frontend_has_standard_controls_and_only_sends_custom_values() -> None:
     assert 'import "./direct-print-panel.js"' not in contract
     assert "processOverrideValidationError" in workspace
     assert "#selectedNozzleDiameter()" in workspace
+    panel = (FRONTEND / "studio-process-options-panel.ts").read_text(encoding="utf-8-sig")
+    mega_ui = (FRONTEND / "studio-mega-ui-v2.ts").read_text(encoding="utf-8-sig")
+    assert 'from "./nozzle-process-contract.js"' in panel
+    assert "nozzleLayerHeightPresetValues" in panel
+    assert "nearestLayerHeightPreset" in panel
+    assert "nozzleLayerHeightBounds" in panel
+    assert "Schichthoehe fuer ${bounds.label}" in panel
+    assert 'min="${bounds.minimum}" max="${bounds.maximum}"' in panel
+    assert "[data-layer-height-preset]" in panel
+    assert '"nozzle-diameter"' in panel
+    assert 'nozzle-diameter="${state.activeNozzleDiameter ?? ""}"' in mega_ui
+    assert 'preview-z-mm="${state.visibleLayerZ ?? ""}"' in mega_ui
+    assert "activeNozzleDiameter: this.#selectedNozzleDiameter()" in workspace
+    assert "visibleLayerZ: plate.layers[plate.visibleLayer]?.z ?? null" in workspace
+    assert '"preview-z-mm"' in panel
+    assert "activeIndex" in panel
+    assert "range-curve-bar " in panel
 
 
 def test_native_dispatcher_selects_profiles_from_validated_job_only() -> None:
@@ -278,16 +285,3 @@ def test_contract_payload_is_json_serializable() -> None:
             NOZZLES.contract_payload(NOZZLES.a1_nozzle_contract(diameter))
         )
         assert f'"nozzle_diameter_mm": {diameter}' in encoded
-
-
-def test_direct_print_transfer_events_match_popup_contract() -> None:
-    panel = (FRONTEND / "direct-print-panel-next.ts").read_text(encoding="utf-8-sig")
-    event_contract = (FRONTEND / "direct-print-transfer-events.ts").read_text(encoding="utf-8-sig")
-    assert "label:" in panel
-    assert "transferredBytes:" in panel
-    assert "      message:" not in panel
-    assert "      message," not in panel
-    assert "      loadedBytes:" not in panel
-    assert "#resetTransferTrace" in panel
-    assert "label: string" in event_contract
-    assert "transferredBytes?: number" in event_contract

@@ -24,9 +24,9 @@ from .profile_runtime_v2 import install_profile_runtime_v2
 from .profile_views import async_register_profile_views
 from .runtime import Ultimate3DStudioRuntime
 from .slicer_job_delete_views import async_register_slicer_job_delete_views
+from .slicer_queue_views import async_register_slicer_queue_views
 from .slicer_job_list_views import async_register_slicer_job_list_views
 from .slicer_plate_views_v2 import async_register_slicer_plate_views_v2
-from .slicer_queue_views import async_register_slicer_queue_views
 from .slicer_scene_views import async_register_slicer_scene_views
 from .slicer_toolpath_views import async_register_slicer_toolpath_views
 from .slicer_views import async_register_slicer_views

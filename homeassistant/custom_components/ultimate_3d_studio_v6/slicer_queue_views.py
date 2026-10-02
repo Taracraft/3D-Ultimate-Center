@@ -1,9 +1,8 @@
 """Authenticated V6 slicer queue endpoints."""
 from __future__ import annotations
 
-import asyncio
+import json
 from pathlib import Path
-import tempfile
 from typing import Any
 
 from aiohttp import web
@@ -12,6 +11,10 @@ from homeassistant.core import HomeAssistant
 
 from .const import API_BASE, VERSION
 from .slicer_backend_router import V6SlicerBackendRouter
+from .slicer_plate_views_v2 import (
+    _batch_material_plan_for_model,
+    _prepare_plate_job_contract,
+)
 from .slicer_native_contract import (
     SlicerServerConfigurationError,
     SlicerServerError,
@@ -71,9 +74,13 @@ class SlicerBatchCreateView(HomeAssistantView):
     async def post(self, request: web.Request) -> web.Response:
         try:
             reader = await request.multipart()
-            files = []
+            files: list[tuple[str, bytes]] = []
             plate_index = 0
             auto_release = False
+            auto_release_seen = False
+            studio_plate: dict[str, Any] | None = None
+            material_plan: dict[str, Any] | None = None
+            process_overrides: dict[str, Any] = {}
 
             while True:
                 part = await reader.next()
@@ -82,72 +89,124 @@ class SlicerBatchCreateView(HomeAssistantView):
                 if part.name and part.name.startswith("files_"):
                     content = await part.read()
                     if content:
-                        files.append((part.filename or "model", content))
+                        files.append((part.filename or "model.3mf", content))
                 elif part.name == "plate_index":
                     plate_index = int(await part.text())
                 elif part.name == "auto_release":
-                    auto_release = await part.text() == "true"
+                    value = (await part.text()).strip().casefold()
+                    if value not in {"true", "false"}:
+                        return web.json_response({"error": "invalid_auto_release"}, status=400)
+                    auto_release = value == "true"
+                    auto_release_seen = True
+                elif part.name in {"studio_plate", "material_plan", "process_overrides"}:
+                    raw = await part.text()
+                    if len(raw) > 1_000_000:
+                        return web.json_response({"error": f"{part.name}_too_large"}, status=413)
+                    try:
+                        decoded = json.loads(raw)
+                    except json.JSONDecodeError:
+                        return web.json_response({"error": f"invalid_{part.name}_json"}, status=400)
+                    if not isinstance(decoded, dict):
+                        return web.json_response({"error": f"invalid_{part.name}"}, status=400)
+                    if part.name == "studio_plate":
+                        studio_plate = decoded
+                    elif part.name == "material_plan":
+                        material_plan = decoded
+                    else:
+                        process_overrides = decoded
 
             if not files:
-                return web.json_response(
-                    {"error": "No files provided"},
-                    status=400,
+                return web.json_response({"error": "No files provided"}, status=400)
+            if len(files) > 50:
+                return web.json_response({"error": "batch_limit_exceeded", "max_files": 50}, status=413)
+            if not 0 <= plate_index <= 255:
+                return web.json_response({"error": "plate_index_out_of_range"}, status=400)
+            if studio_plate is None or material_plan is None:
+                return web.json_response({
+                    "error": "batch_profile_contract_required",
+                    "message": "Bitte im Studio zuerst Drucker, Profile und Materialquelle auswählen.",
+                }, status=422)
+            if not auto_release_seen:
+                auto_release = False
+
+            invalid_names = [name for name, _ in files if Path(name).suffix.casefold() != ".3mf"]
+            if invalid_names:
+                return web.json_response({
+                    "error": "batch_requires_3mf",
+                    "files": invalid_names[:10],
+                    "message": "Die Warteschlange benötigt 3MF-Projekte mit Objekt- und Materialinformationen.",
+                }, status=415)
+
+            hass: HomeAssistant = request.app["hass"]
+            prepared: list[tuple[str, bytes, dict[str, Any]]] = []
+            # Validate the whole batch before any file is uploaded or any job is created.
+            for filename, content in files:
+                per_file_plate = {
+                    **studio_plate,
+                    "project_name": Path(filename).stem,
+                }
+                per_file_material_plan = _batch_material_plan_for_model(
+                    material_plan,
+                    content,
                 )
+                contract = await _prepare_plate_job_contract(
+                    hass,
+                    filename,
+                    content,
+                    plate_index,
+                    dict(process_overrides),
+                    per_file_material_plan,
+                    per_file_plate,
+                )
+                prepared.append((filename, content, contract))
 
-            result = await self._process_batch(request.app["hass"], files, plate_index, auto_release)
-            return web.json_response({"data": result})
-
+            router = V6SlicerBackendRouter(hass)
+            jobs = []
+            errors = []
+            for filename, content, contract in prepared:
+                try:
+                    job = await router.async_create_plate_job(
+                        "server",
+                        filename,
+                        content,
+                        contract["catalog"],
+                        plate_index,
+                        contract["options"],
+                        target_printer=contract["target_printer"],
+                        material_plan=contract["material_plan"],
+                        selected_process_profile=contract["selected_process_profile"],
+                        source_project_name=contract["project_name"],
+                        manual_release=not auto_release,
+                    )
+                    resolved_plan = contract["material_plan"]
+                    material_summary = contract["material_source_summary"]
+                    job["material_plan"] = {
+                        "applied": False,
+                        "handled_by_native_server": True,
+                        "assignment_count": len(resolved_plan["assignments"]),
+                        "material_channel_count": len(resolved_plan["filaments"]),
+                    }
+                    job["material_source_plan"] = material_summary
+                    job["compatibility_contract"] = contract["compatibility_contract"]
+                    job["target_printer"] = contract["target_printer"]
+                    job["selected_backend"] = "server"
+                    jobs.append(job)
+                except (SlicerServerConfigurationError, SlicerServerError, ValueError) as exc:
+                    errors.append(f"{filename}: {exc}")
+            return web.json_response({"data": {
+                "created": len(jobs),
+                "failed": len(errors),
+                "jobs": jobs,
+                "errors": errors,
+            }})
+        except ValueError as exc:
+            return web.json_response({"error": str(exc)}, status=400)
+        except SlicerServerConfigurationError as exc:
+            return web.json_response({"error": str(exc)}, status=503)
+        except SlicerServerError as exc:
+            return web.json_response({"error": str(exc)}, status=502)
         except Exception as exc:
-            return web.json_response(
-                {"error": str(exc)},
-                status=500,
-            )
-
-    async def _process_batch(
-        self,
-        hass: HomeAssistant,
-        files: list[tuple[str, bytes]],
-        plate_index: int,
-        auto_release: bool,
-    ) -> dict[str, Any]:
-        router = V6SlicerBackendRouter(hass)
-        created = 0
-        failed = 0
-        jobs = []
-        errors = []
-
-        for filename, content in files:
-            tmp_path = None
-            try:
-                tmp_fd, tmp_path = tempfile.mkstemp(suffix=Path(filename).suffix)
-                with os.fdopen(tmp_fd, "wb") as tmp:
-                    tmp.write(content)
-
-                job = await router.async_create_plate_job(
-                    backend="server",
-                    filename=filename,
-                    model=content,
-                    _catalog={},
-                    _plate_index=plate_index,
-                )
-                if auto_release and job.get("status") == "queued":
-                    await router.async_release_job(job["id"])
-                created += 1
-                jobs.append(job)
-
-            except Exception as exc:
-                failed += 1
-                errors.append(f"{filename}: {str(exc)}")
-            finally:
-                if tmp_path:
-                    Path(tmp_path).unlink(missing_ok=True)
-
-        return {
-            "created": created,
-            "failed": failed,
-            "jobs": jobs,
-            "errors": errors,
-        }
+            return web.json_response({"error": str(exc)}, status=500)
 
 
 class SlicerReleaseJobView(HomeAssistantView):
@@ -205,4 +264,4 @@ def async_register_slicer_queue_views(hass: HomeAssistant) -> None:
     hass.http.register_view(SlicerQueueStatusView())
     hass.http.register_view(SlicerBatchCreateView())
     hass.http.register_view(SlicerReleaseJobView())
-    hass.http.register_view(SlicerReleaseAllView())
+    hass.http.register_view(SlicerReleaseAllView())

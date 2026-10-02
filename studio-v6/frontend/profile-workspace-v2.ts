@@ -14,7 +14,7 @@ const GROUPS: ReadonlyArray<Readonly<{ kind: ProfileKind; label: string; descrip
   { kind: "printer", label: "Drucker", description: "Druckraum, Hersteller und Maschinenmodell" },
   { kind: "nozzle", label: "Düse", description: "Durchmesser und Düsenmaterial" },
   { kind: "filament", label: "Filament", description: "Material, Temperatur, Kühlung und Volumenstrom" },
-  { kind: "process", label: "Druckprofil", description: "Schichthöhe, Wände, Infill, Geschwindigkeit und Qualität" },
+  { kind: "process", label: "Druckprofile", description: "Schichthöhe, Wände, Infill, Geschwindigkeit und Qualität" },
   { kind: "build_plate", label: "Druckplatte", description: "Oberfläche, Abmessungen und Temperaturkorrektur" },
 ];
 

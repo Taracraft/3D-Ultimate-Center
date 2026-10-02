@@ -1,4 +1,4 @@
-﻿#!/bin/sh
+#!/bin/sh
 
 # V6_VALID_GCODE_ARTIFACT_V1
 v6_validate_bambu_gcode() {

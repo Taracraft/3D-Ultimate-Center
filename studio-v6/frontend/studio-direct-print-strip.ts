@@ -13,13 +13,6 @@ type AnalysisPanel = HTMLElement & {
   printJob: V6Job | null;
   printer: V6Printer | null;
 };
-type ProcessOptionsPanel = HTMLElement & {
-  applySupportPreset?: (preset: Readonly<{
-    mode?: "normal" | "tree" | "off";
-    buildPlateOnly?: boolean;
-    thresholdAngle?: number;
-  }>) => void;
-};
 
 export class StudioDirectPrintStrip extends HTMLElement {
   static get observedAttributes(): string[] {
@@ -38,7 +31,6 @@ export class StudioDirectPrintStrip extends HTMLElement {
   #activeJobId = "";
 
   connectedCallback(): void {
-    this.addEventListener("v6-apply-support-preset", this.#applySupportPreset as EventListener);
     if (!this.#root.childElementCount) {
       const style = document.createElement("style");
       style.textContent = `:host{display:block;position:relative;width:100%;min-width:0;margin:0;color:#eef6ff}:host([hidden]){display:none}.strip{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;gap:7px;width:100%;min-width:0;padding:5px 9px;border-bottom:1px solid #24384c;background:linear-gradient(180deg,#0c1823,#08111a)}@media(max-width:760px){.strip{padding:5px}}`;
@@ -58,29 +50,9 @@ export class StudioDirectPrintStrip extends HTMLElement {
   }
 
   disconnectedCallback(): void {
-    this.removeEventListener("v6-apply-support-preset", this.#applySupportPreset as EventListener);
     this.#unsubscribe?.();
     this.#unsubscribe = null;
   }
-
-  readonly #applySupportPreset = (event: CustomEvent): void => {
-    event.stopPropagation();
-    const detail = (event.detail || {}) as Readonly<{
-      mode?: "normal" | "tree" | "off";
-      buildPlateOnly?: boolean;
-      thresholdAngle?: number;
-    }>;
-    const root = this.getRootNode();
-    const panel = root instanceof ShadowRoot
-      ? root.querySelector("studio-process-options-panel") as ProcessOptionsPanel | null
-      : null;
-    const preset: { mode?: "normal" | "tree" | "off"; buildPlateOnly?: boolean; thresholdAngle?: number } = {
-      mode: detail.mode || "normal",
-    };
-    if (detail.buildPlateOnly !== undefined) preset.buildPlateOnly = detail.buildPlateOnly;
-    if (detail.thresholdAngle !== undefined) preset.thresholdAngle = detail.thresholdAngle;
-    panel?.applySupportPreset?.(preset);
-  };
 
   attributeChangedCallback(): void {
     if (this.isConnected) this.#sync();

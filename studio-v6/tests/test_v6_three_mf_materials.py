@@ -219,3 +219,36 @@ def test_unsafe_member_path_is_rejected() -> None:
         assert "unsicheren Pfad" in str(error)
     else:
         raise AssertionError("Unsafe archive member was accepted")
+
+
+def _painted_standard_model(paint_index: int) -> str:
+    return f"""<?xml version="1.0" encoding="UTF-8"?>
+<model xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"><resources>
+<basematerials id="1"><base name="red" displaycolor="#FF0000"/><base name="blue" displaycolor="#0000FF"/></basematerials>
+<object id="2" type="model" pid="1" pindex="0"><mesh><vertices><vertex x="0" y="0" z="0"/><vertex x="1" y="0" z="0"/><vertex x="0" y="1" z="0"/></vertices><triangles><triangle v1="0" v2="1" v3="2" pid="1" p1="{paint_index}"/></triangles></mesh></object>
+</resources><build><item objectid="2"/></build></model>"""
+
+
+def test_painted_triangle_material_reference_is_preserved_and_validated() -> None:
+    materials = _load_materials_module()
+    source = _archive({"[Content_Types].xml": "<Types/>", "3D/3dmodel.model": _painted_standard_model(1), "Metadata/model_settings.config": "<config><object id=\"2\"/></config>"})
+    _filename, rewritten, _summary = materials.apply_material_plan(
+        "painted.3mf", source, {"assignments": {"2": 1}, "filaments": [{"name": "PLA Red", "material": "PLA", "color": "#FF0000"}, {"name": "PLA Blue", "material": "PLA", "color": "#0000FF"}], "purge_tower": {}},
+    )
+    root = ET.fromstring(_read_member(rewritten, "3D/3dmodel.model"))
+    triangle = next(item for item in root.iter() if item.tag.rsplit("}", 1)[-1] == "triangle")
+    assert triangle.attrib["pid"] == "1"
+    assert triangle.attrib["p1"] == "1"
+
+
+def test_painted_triangle_with_inactive_material_reference_is_rejected() -> None:
+    materials = _load_materials_module()
+    source = _archive({"[Content_Types].xml": "<Types/>", "3D/3dmodel.model": _painted_standard_model(2), "Metadata/model_settings.config": "<config><object id=\"2\"/></config>"})
+    try:
+        materials.apply_material_plan(
+            "invalid-painted.3mf", source, {"assignments": {"2": 1}, "filaments": [{"name": "PLA Red", "material": "PLA", "color": "#FF0000"}, {"name": "PLA Blue", "material": "PLA", "color": "#0000FF"}], "purge_tower": {}},
+        )
+    except ValueError as error:
+        assert "kein aktives Filament" in str(error)
+    else:
+        raise AssertionError("Invalid painted material reference was accepted")

@@ -50,7 +50,7 @@ def normalize_backend(value: object = BACKEND_SERVER) -> str:
     requested = str(value or BACKEND_SERVER).strip().casefold()
     if requested != BACKEND_SERVER:
         raise ValueError(
-            "Nur der native Linux-Slicing-Server ist zulÃ¤ssig."
+            "Nur der native Linux-Slicing-Server ist zulässig."
         )
     return BACKEND_SERVER
 
@@ -60,11 +60,11 @@ def native_job_id(job_id: str) -> str:
     requested = str(job_id or "").strip()
     if not requested.startswith(SERVER_PREFIX):
         raise SlicerServerError(
-            "UngÃ¼ltige Slicerauftrag-ID: server__-PrÃ¤fix erforderlich."
+            "Ungültige Slicerauftrag-ID: server__-Präfix erforderlich."
         )
     raw_id = requested[len(SERVER_PREFIX):]
     if not raw_id or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,199}", raw_id):
-        raise SlicerServerError("UngÃ¼ltige native Slicerauftrag-ID.")
+        raise SlicerServerError("Ungültige native Slicerauftrag-ID.")
     return raw_id
 
 
@@ -96,7 +96,7 @@ def _server_printer_profile(
     profile = SERVER_PRINTER_PROFILES.get(model)
     if not profile:
         raise SlicerServerConfigurationError(
-            f"FÃ¼r das Druckermodell "
+            f"Für das Druckermodell "
             f"{target.get('model') or target.get('name') or model} "
             "ist auf dem nativen Server noch kein validiertes Profil installiert."
         )
@@ -297,7 +297,7 @@ def _build_detailed_warning(plate, original_warning):
             x, y = obj_info["position"]
             w, d, h = obj_info["size"]
             parts.append(
-                f"  * {obj_info["name"]}: "
+                f"  * {obj_info[ name]}: "
                 f"Position ({x:.1f}, {y:.1f})mm, "
                 f"Size {w:.1f}x{d:.1f}x{h:.1f}mm"
             )
@@ -518,8 +518,8 @@ def _profile_application(
     )
     numeric_value_proof = []
     proof_fields = [
-        ("layer_height", "SchichthÃ¶he", "mm"),
-        ("outer_wall_speed", "AuÃŸenwand", "mm/s"),
+        ("layer_height", "Schichthöhe", "mm"),
+        ("outer_wall_speed", "Außenwand", "mm/s"),
         ("inner_wall_speed", "Innenwand", "mm/s"),
     ]
     proof_fields.extend(field for field in (
@@ -527,18 +527,18 @@ def _profile_application(
         ('wall_loops', 'Wandlinien', 'Linien'),
         ('top_shell_layers', 'Deckschichten', 'Schichten'),
         ('bottom_shell_layers', 'Bodenschichten', 'Schichten'),
-        ('sparse_infill_density', 'FÃ¼llgrad', '%'),
+        ('sparse_infill_density', 'Füllgrad', '%'),
         ('travel_speed', 'Verfahrgeschwindigkeit', 'mm/s'),
         ('line_width', 'Linienbreite', 'mm'),
-        ('outer_wall_line_width', 'AuÃŸenwand-Linienbreite', 'mm'),
+        ('outer_wall_line_width', 'Außenwand-Linienbreite', 'mm'),
         ('inner_wall_line_width', 'Innenwand-Linienbreite', 'mm'),
-        ('top_surface_line_width', 'DeckflÃ¤chen-Linienbreite', 'mm'),
+        ('top_surface_line_width', 'Deckflächen-Linienbreite', 'mm'),
         ('support_line_width', 'Support-Linienbreite', 'mm'),
         ('sparse_infill_speed', 'Infillgeschwindigkeit', 'mm/s'),
-        ('internal_solid_infill_speed', 'MassivfÃ¼llung-Geschwindigkeit', 'mm/s'),
-        ('top_surface_speed', 'DeckflÃ¤chengeschwindigkeit', 'mm/s'),
+        ('internal_solid_infill_speed', 'Massivfüllung-Geschwindigkeit', 'mm/s'),
+        ('top_surface_speed', 'Deckflächengeschwindigkeit', 'mm/s'),
         ('initial_layer_speed', 'Geschwindigkeit erste Schicht', 'mm/s'),
-        ('bridge_speed', 'BrÃ¼ckengeschwindigkeit', 'mm/s'),
+        ('bridge_speed', 'Brückengeschwindigkeit', 'mm/s'),
         ('support_top_z_distance', 'Supportabstand oben', 'mm'),
         ('support_bottom_z_distance', 'Supportabstand unten', 'mm'),
         ('support_object_xy_distance', 'Supportabstand seitlich', 'mm'),
@@ -712,7 +712,7 @@ def _effective_material_plan(
         return plan
     if not all(isinstance(item, dict) for item in raw_filaments):
         raise SlicerServerConfigurationError(
-            "Der AMS-Materialplan enthÃ¤lt ungÃ¼ltige Filamentdaten."
+            "Der AMS-Materialplan enthält ungültige Filamentdaten."
         )
     filaments = [dict(item) for item in raw_filaments]
     try:
@@ -785,7 +785,7 @@ class V6SlicerBackendRouter:
             },
             "server": server,
             "disclaimer": (
-                "Slicing lÃ¤uft ausschlieÃŸlich auf dem nativen "
+                "Slicing läuft ausschließlich auf dem nativen "
                 "Linux-Slicing-Server."
             ),
         }
@@ -803,6 +803,7 @@ class V6SlicerBackendRouter:
         material_plan: dict[str, Any] | None = None,
         selected_process_profile: dict[str, Any] | None = None,
         source_project_name: str | None = None,
+        manual_release: bool = False,
     ) -> dict[str, Any]:
         normalize_backend(backend)
         printer_profile = _server_printer_profile(target_printer)
@@ -813,7 +814,7 @@ class V6SlicerBackendRouter:
         )
         if not isinstance(selected_process_profile, dict):
             raise SlicerServerConfigurationError(
-                "Das ausgewÃ¤hlte Prozessprofil besitzt keinen gÃ¼ltigen Slicing-Vertrag."
+                "Das ausgewählte Prozessprofil besitzt keinen gültigen Slicing-Vertrag."
             )
         validated_overrides["require_selected_process_profile_contract"] = True
         validated_overrides["selected_process_profile"] = dict(
@@ -840,7 +841,7 @@ class V6SlicerBackendRouter:
             )
         requested_plate_index = max(0, int(_plate_index))
         safe_name = re.sub(
-            r"[^A-Za-z0-9Ã„Ã–ÃœÃ¤Ã¶Ã¼ÃŸ._+-]",
+            r"[^A-Za-z0-9ÄÖÜäöüß._+-]",
             "_",
             project_name,
         ).strip("._-") or "Druckauftrag"
@@ -875,6 +876,7 @@ class V6SlicerBackendRouter:
                 "target_printer": target_context,
                 "material_plan": effective_material_plan,
                 "native_multimaterial": True,
+                "manual_release": manual_release,
             }
             async with self.session.post(
                 f"{SERVER_ENDPOINT}/api/v1/jobs",
@@ -916,7 +918,7 @@ class V6SlicerBackendRouter:
             ) from exc
         if not isinstance(payload, dict):
             raise SlicerServerError(
-                "Slicing Server lieferte keinen gÃ¼ltigen Auftrag."
+                "Slicing Server lieferte keinen gültigen Auftrag."
             )
         return payload
 
@@ -954,7 +956,7 @@ class V6SlicerBackendRouter:
             return _server_job(payload, metadata)
         except ValueError as exc:
             raise SlicerServerError(
-                f"SicherheitsprÃ¼fung des Slicergebnisses fehlgeschlagen: {exc}"
+                f"Sicherheitsprüfung des Slicergebnisses fehlgeschlagen: {exc}"
             ) from exc
 
     async def _server_raw_artifact(
@@ -976,6 +978,28 @@ class V6SlicerBackendRouter:
                 f"Slicing Server nicht erreichbar: {exc}"
             ) from exc
 
+    async def async_release_job(
+        self,
+        job_id: str,
+    ) -> dict[str, Any]:
+        """Release a queued job to start slicing."""
+        raw_id = native_job_id(job_id)
+        try:
+            async with self.session.post(
+                f"{SERVER_ENDPOINT}/api/v1/jobs/{raw_id}/release",
+                timeout=ClientTimeout(total=30),
+            ) as response:
+                payload = await response.json(content_type=None)
+                if response.status >= 400:
+                    raise SlicerServerError(
+                        f"Slicerauftrag konnte nicht freigegeben werden: "
+                        f"Server HTTP {response.status}"
+                    )
+        except (ClientError, TimeoutError) as exc:
+            raise SlicerServerError(
+                f"Slicing Server beim Freigeben nicht erreichbar: {exc}"
+            ) from exc
+        return payload if isinstance(payload, dict) else {}
     async def async_list_jobs(self) -> list[dict[str, Any]]:
         """List jobs from the fixed native slicing server."""
         try:
@@ -986,7 +1010,7 @@ class V6SlicerBackendRouter:
                 payload = await response.json(content_type=None)
                 if response.status >= 400:
                     raise SlicerServerError(
-                        f"SlicerauftrÃ¤ge konnten nicht geladen werden: "
+                        f"Sliceraufträge konnten nicht geladen werden: "
                         f"Server HTTP {response.status}"
                     )
         except (ClientError, TimeoutError) as exc:
@@ -996,7 +1020,7 @@ class V6SlicerBackendRouter:
         items = payload.get("jobs") if isinstance(payload, dict) else None
         if not isinstance(items, list):
             raise SlicerServerError(
-                "Der Slicing Server lieferte keine gÃ¼ltige Auftragsliste."
+                "Der Slicing Server lieferte keine gültige Auftragsliste."
             )
         return [
             _server_job(item)
@@ -1023,18 +1047,18 @@ class V6SlicerBackendRouter:
                         else ""
                     )
                     raise SlicerServerError(
-                        f"Slicerauftrag konnte nicht gelÃ¶scht werden: "
+                        f"Slicerauftrag konnte nicht gelöscht werden: "
                         f"Server HTTP {response.status}"
-                        f"{f' â€“ {detail}' if detail else ''}"
+                        f"{f' – {detail}' if detail else ''}"
                     )
         except (ClientError, TimeoutError) as exc:
             raise SlicerServerError(
-                f"Slicing Server beim LÃ¶schen nicht erreichbar: {exc}"
+                f"Slicing Server beim Löschen nicht erreichbar: {exc}"
             ) from exc
         result = payload if isinstance(payload, dict) else None
         if not result or result.get("deleted") is not True:
             raise SlicerServerError(
-                "Der Slicing Server hat die LÃ¶schung nicht bestÃ¤tigt."
+                "Der Slicing Server hat die Löschung nicht bestätigt."
             )
         _COMPLETED_ARTIFACT_CACHE.pop(raw_id, None)
         return result
@@ -1054,26 +1078,3 @@ class V6SlicerBackendRouter:
         )
         return content, filename, digest, "model/3mf"
 
-    async def async_release_job(
-        self,
-        job_id: str,
-    ) -> dict[str, Any]:
-        """Release a queued job to start slicing."""
-        raw_id = native_job_id(job_id)
-        try:
-            async with self.session.post(
-                f"{SERVER_ENDPOINT}/api/v1/jobs/{raw_id}/release",
-                timeout=ClientTimeout(total=30),
-            ) as response:
-                payload = await response.json(content_type=None)
-                if response.status >= 400:
-                    raise SlicerServerError(
-                        f"Slicerauftrag konnte nicht freigegeben werden: "
-                        f"Server HTTP {response.status}"
-                    )
-        except (ClientError, TimeoutError) as exc:
-            raise SlicerServerError(
-                f"Slicing Server beim Freigeben nicht erreichbar: {exc}"
-            ) from exc
-        return payload if isinstance(payload, dict) else {}
-

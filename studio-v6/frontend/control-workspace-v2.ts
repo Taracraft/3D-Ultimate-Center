@@ -1,5 +1,6 @@
 import "./printer-camera-panel.js";
 import "./printer-command-store.js";
+import { Ultimate3DPrintSpeedControl } from "./print-speed-control.js";
 import { jobActivityStore, type JobActivitySnapshot } from "./job-activity-store.js";
 import { isActivePrintState, printStatusLabel } from "./printer-command-policy.js";
 import type { Ultimate3DPrinterActions } from "./printer-command-store.js";
@@ -13,21 +14,10 @@ import { remainingTimeLabel } from "./print-remaining-time.js";
 import { PROGRESS_STYLES, progressMarkup, type ProgressTone } from "./progress-ui.js";
 import type { PrinterCameraPanel } from "./printer-camera-panel.js";
 import type { V6Job, V6Printer } from "./v6-api.js";
+import { PRINT_PHASES } from "./print-phase-progress.js";
+import { printLayerLabel, printSpeedLabel, resolveLivePrintPhase } from "./print-live-telemetry.js";
 
 type HassLike = Readonly<{ states: Readonly<Record<string, unknown>> }>;
-type Phase = Readonly<{ key: string; label: string }>;
-
-const PHASES: readonly Phase[] = [
-  { key: "filament_unloading", label: "Filament zurückziehen" },
-  { key: "filament_loading", label: "Filament einziehen" },
-  { key: "filament_purging", label: "Altes Filament ausspülen" },
-  { key: "nozzle_cleaning", label: "Druckkopf reinigen" },
-  { key: "flow_calibration", label: "Fluss kalibrieren" },
-  { key: "bed_leveling", label: "Druckbett nivellieren" },
-  { key: "test_strip", label: "Teststreifen drucken" },
-  { key: "printing_model", label: "Modell drucken" },
-  { key: "completed", label: "Abschluss" },
-];
 
 function clamp(value: unknown): number {
   const parsed = Number(value);
@@ -81,8 +71,8 @@ export class Ultimate3DSteuerungWorkspaceV2 extends HTMLElement {
   #mount(): void {
     if (this.#mounted) return;
     this.#root.innerHTML = `<style>${PROGRESS_STYLES}${PRINTER_ISSUE_STYLES}
-      :host{display:block;min-height:calc(100vh - 88px);background:#08101a;color:#eef5ff}*{box-sizing:border-box}.page{padding:20px}.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:16px 0}.stat,.panel{border:1px solid #26384f;border-radius:12px;background:#101925}.stat{padding:14px}.stat label{display:block;color:#91a4bc;font-size:10px;text-transform:uppercase}.stat b{display:block;margin-top:7px;font-size:22px}.progress{margin-bottom:14px}.panel{margin-bottom:14px}.panel h2{margin:0;padding:14px;border-bottom:1px solid #26384f;font-size:15px}.body{padding:14px}.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:11px;border:1px solid #25374d;border-radius:9px;background:#0d1622}.row small{display:block;margin-top:4px;color:#8399ae;overflow-wrap:anywhere}.status{align-self:start;padding:5px 8px;border:1px solid #31506e;border-radius:999px;color:#a7c8e2}.status.active{border-color:#3e9d6b;color:#9af0bb}.status.problem{border-color:#b64d5a;background:#35171d;color:#ffdce1}.commands{margin-top:14px}.device-actions{display:flex;justify-content:flex-end;margin-top:12px}.device-actions button{min-height:38px;padding:8px 11px;border:1px solid #8f3f4b;border-radius:8px;background:#3a171d;color:#ffd7dc;cursor:pointer;font-weight:700}.device-actions button:disabled{opacity:.45;cursor:not-allowed}.notice{padding:11px;margin:12px 0;border-radius:10px}.error{background:#3a171d;color:#ffd9dd}.camera{margin-top:14px}.current-stage{padding:12px;border:1px solid #2e5d7c;border-radius:10px;background:#10263a}.current-stage strong{display:block;font-size:16px;color:#8fe3ff}.current-stage small{display:block;margin-top:5px;color:#a5b9cb}.stages ol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 0;padding:0;list-style:none}.stages li{display:flex;align-items:center;gap:8px;min-height:44px;padding:9px;border:1px solid #26384f;border-radius:9px;color:#8195aa;background:#0d1622}.stages li.active{border-color:#42c8ff;background:#12314a;color:#eefaff}.stages li.done{border-color:#27734c;background:#102b1d;color:#8ff0b5}.stages li span{font-size:15px}.issue-list{display:grid;gap:10px}.issue-instruction{margin:10px 0 0;color:#ffd9dd;font-weight:700}@media(max-width:1100px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:900px){.stages ol{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:800px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.stages ol,.stats{grid-template-columns:1fr}}
-    </style><section class="page"><h1>Steuerzentrale</h1><p>Liveübersicht und sichere Steuerung des aktuell verbundenen Druckers.</p><div id="dynamic"></div><article class="panel" id="printer-panel"><h2>Drucker</h2><div class="body"><div id="printer-summary">Kein Drucker erkannt.</div><div class="commands" id="printer-commands"><ultimate-3d-printer-actions id="printer-actions"></ultimate-3d-printer-actions></div><div class="device-actions"><button id="remove-printer" type="button" disabled>Drucker entfernen</button></div></div></article><div class="camera"><printer-camera-panel title="Druckerkamera" storage-key="steuerzentrale" collapsed></printer-camera-panel></div></section>`;
+      :host{display:block;min-height:calc(100vh - 88px);background:#08101a;color:#eef5ff}*{box-sizing:border-box}.page{padding:20px}.stats{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px;margin:16px 0}.stat,.panel{border:1px solid #26384f;border-radius:12px;background:#101925}.stat{padding:14px}.stat label{display:block;color:#91a4bc;font-size:10px;text-transform:uppercase}.stat b{display:block;margin-top:7px;font-size:22px}.progress{margin-bottom:14px}.panel{margin-bottom:14px}.panel h2{margin:0;padding:14px;border-bottom:1px solid #26384f;font-size:15px}.body{padding:14px}.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:11px;border:1px solid #25374d;border-radius:9px;background:#0d1622}.row small{display:block;margin-top:4px;color:#8399ae;overflow-wrap:anywhere}.status{align-self:start;padding:5px 8px;border:1px solid #31506e;border-radius:999px;color:#a7c8e2}.status.active{border-color:#3e9d6b;color:#9af0bb}.status.problem{border-color:#b64d5a;background:#35171d;color:#ffdce1}.commands{margin-top:14px}.device-actions{display:flex;justify-content:flex-end;margin-top:12px}.device-actions button{min-height:38px;padding:8px 11px;border:1px solid #8f3f4b;border-radius:8px;background:#3a171d;color:#ffd7dc;cursor:pointer;font-weight:700}.device-actions button:disabled{opacity:.45;cursor:not-allowed}.notice{padding:11px;margin:12px 0;border-radius:10px}.error{background:#3a171d;color:#ffd9dd}.camera{margin-top:14px}.current-stage{padding:12px;border:1px solid #2e5d7c;border-radius:10px;background:#10263a}.current-stage strong{display:block;font-size:16px;color:#8fe3ff}.current-stage small{display:block;margin-top:5px;color:#a5b9cb}.stages ol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 0;padding:0;list-style:none}.stages li{display:flex;align-items:center;gap:8px;min-height:44px;padding:9px;border:1px solid #26384f;border-radius:9px;color:#8195aa;background:#0d1622}.stages li.active{border-color:#42c8ff;background:#12314a;color:#eefaff}.stages li.done{border-color:#27734c;background:#102b1d;color:#8ff0b5}.stages li span{font-size:15px}.issue-list{display:grid;gap:10px}.issue-instruction{margin:10px 0 0;color:#ffd9dd;font-weight:700}@media(max-width:1100px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:900px){.stages ol{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:800px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.stages ol,.stats{grid-template-columns:1fr}}
+    </style><section class="page"><h1>Steuerzentrale</h1><p>Liveübersicht und sichere Steuerung des aktuell verbundenen Druckers.</p><div id="dynamic"></div><article class="panel" id="printer-panel"><h2>Drucker</h2><div class="body"><div id="printer-summary">Kein Drucker erkannt.</div><div class="commands" id="printer-commands"><ultimate-3d-printer-actions id="printer-actions"></ultimate-3d-printer-actions></div><div class="commands"><ultimate-3d-print-speed-control id="print-speed"></ultimate-3d-print-speed-control></div><div class="device-actions"><button id="remove-printer" type="button" disabled>Drucker entfernen</button></div></div></article><div class="camera"><printer-camera-panel title="Druckerkamera" storage-key="steuerzentrale" collapsed></printer-camera-panel></div></section>`;
     this.#root.querySelector<HTMLButtonElement>("#remove-printer")?.addEventListener("click", () => this.#openPrinterManagement());
     this.#mounted = true;
     this.#forwardHass();
@@ -116,19 +106,25 @@ export class Ultimate3DSteuerungWorkspaceV2 extends HTMLElement {
     });
   }
 
-  #phaseMarkup(printer: V6Printer | null): string {
+  #phaseMarkup(printer: V6Printer | null, job: V6Job | null): string {
     if (!printer) return "";
-    const current = String(printer.print_stage_key || "");
-    const currentIndex = PHASES.findIndex((phase) => phase.key === current);
-    const labels = PHASES.map((phase, index) => {
-      const active = phase.key === current;
-      const done = currentIndex >= 0 && index < currentIndex;
-      return `<li class="${active ? "active" : done ? "done" : ""}"><span>${done ? "✓" : active ? "●" : "○"}</span><b>${esc(phase.label)}</b></li>`;
+    const progress = resolveLivePrintPhase(job, printer);
+    const seen = new Set(progress.seenKeys);
+    const state = String(job?.status || printer.printer_state || "").toLowerCase();
+    const jobEnded = ["completed", "complete", "finished", "finish"].includes(state) || clamp(job?.progress ?? printer.progress) >= 100;
+    const labels = PRINT_PHASES.map((phase, index) => {
+      const active = index === progress.activeIndex;
+      const observed = seen.has(phase.key);
+      const done = observed && !active && (!phase.doneOnlyWhenJobEnds || jobEnded);
+      const visited = observed && !active && !done;
+      const unreported = !active && !observed && progress.activeIndex > index;
+      const className = active ? "active" : done ? "done" : visited ? "active" : "";
+      const icon = active ? "●" : done ? "✓" : visited ? "◐" : unreported ? "–" : "○";
+      const title = unreported ? ' title="Vom Drucker nicht als eigener Status gemeldet"' : "";
+      return `<li class="${className}"${title}><span>${icon}</span><b>${esc(phase.label)}</b></li>`;
     }).join("");
-    const stageLabel = String(printer.print_stage_label || "Druckstatus wird ermittelt");
-    const stageDetail = String(printer.print_stage_detail || "Der nächste Druckerschritt wird erwartet.");
     const stageCode = printer.print_stage_code === null || printer.print_stage_code === undefined ? "" : ` · Stufe ${esc(printer.print_stage_code)}`;
-    return `<article class="panel stages"><h2>Aktueller Druckablauf</h2><div class="body"><div class="current-stage"><strong>${esc(stageLabel)}</strong><small>${esc(stageDetail)}${stageCode}</small></div><ol>${labels}</ol></div></article>`;
+    return `<article class="panel stages"><h2>Aktueller Druckablauf</h2><div class="body"><div class="current-stage"><strong>${esc(progress.currentLabel)}</strong><small>${esc(progress.detail)}${stageCode}<br>${esc(printLayerLabel(job, printer))} · Tempo ${esc(printSpeedLabel(printer))}</small></div><ol>${labels}</ol></div></article>`;
   }
 
   #issueMarkup(printer: V6Printer | null): string {
@@ -145,7 +141,8 @@ export class Ultimate3DSteuerungWorkspaceV2 extends HTMLElement {
     const commands = this.#root.querySelector<HTMLElement>("#printer-commands");
     const removeButton = this.#root.querySelector<HTMLButtonElement>("#remove-printer");
     const actions = this.#root.querySelector<Ultimate3DPrinterActions>("#printer-actions");
-    if (!host || !summary || !commands || !removeButton || !actions) return;
+    const speed = this.#root.querySelector<Ultimate3DPrintSpeedControl>("#print-speed");
+    if (!host || !summary || !commands || !removeButton || !actions || !speed) return;
     const printer = this.#printer();
     const job = this.#currentJob(printer);
     const issues = printerIssues(printer);
@@ -154,7 +151,7 @@ export class Ultimate3DSteuerungWorkspaceV2 extends HTMLElement {
     const online = this.#activity.printers.filter((item) => item.connection_state === "connected").length;
     const printerStatus = printStatusLabel(printer?.printer_state || "Unbekannt");
     const active = Boolean(job) || isActivePrintState(printer?.printer_state);
-    host.innerHTML = `${this.#activity.error ? `<div class="notice error">${esc(this.#activity.error)}</div>` : ""}<div class="stats"><div class="stat"><label>Laufzeit</label><b>${ready ? "Bereit" : "Wartet"}</b></div><div class="stat"><label>Drucker</label><b>${this.#activity.printers.length}</b></div><div class="stat"><label>Online</label><b>${online}</b></div><div class="stat"><label>Störungen</label><b>${issues.length}</b></div><div class="stat"><label>Restzeit</label><b>${esc(remaining)}</b></div></div>${this.#issueMarkup(printer)}<div class="progress">${this.#progress(printer, job)}</div>${this.#phaseMarkup(printer)}`;
+    host.innerHTML = `${this.#activity.error ? `<div class="notice error">${esc(this.#activity.error)}</div>` : ""}<div class="stats"><div class="stat"><label>Laufzeit</label><b>${ready ? "Bereit" : "Wartet"}</b></div><div class="stat"><label>Drucker</label><b>${this.#activity.printers.length}</b></div><div class="stat"><label>Online</label><b>${online}</b></div><div class="stat"><label>Störungen</label><b>${issues.length}</b></div><div class="stat"><label>Restzeit</label><b>${esc(remaining)}</b></div><div class="stat"><label>Layer</label><b>${esc(printLayerLabel(job, printer).replace(/^Layer\s*/, ""))}</b></div><div class="stat"><label>Tempo</label><b>${esc(printSpeedLabel(printer))}</b></div></div>${this.#issueMarkup(printer)}<div class="progress">${this.#progress(printer, job)}</div>${this.#phaseMarkup(printer, job)}`;
     summary.innerHTML = printer
       ? `<div class="row"><div><b>${esc(printer.name || printer.printer_id)}</b><small>${job ? `Aktiver Auftrag: ${esc(job.file || job.model_name || printer.current_file || "Unbenannt")}` : `Letzte gemeldete Datei: ${esc(printer.current_file || "–")}`}<br>Restzeit: ${esc(remaining)}</small></div><span class="status ${issues.length ? "problem" : active ? "active" : ""}">${issues.length ? `${issues.length} Störung${issues.length === 1 ? "" : "en"}` : esc(printerStatus)}</span></div>`
       : "Kein Drucker erkannt.";
@@ -165,6 +162,9 @@ export class Ultimate3DSteuerungWorkspaceV2 extends HTMLElement {
     actions.issue = primaryPrinterIssue(printer);
     actions.issueMode = false;
     actions.capabilities = this.#activity.capabilities;
+    speed.printer = printer;
+    speed.job = job;
+    speed.capabilities = this.#activity.capabilities;
     this.#forwardHass();
   }
 

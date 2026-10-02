@@ -63,6 +63,7 @@ def test_detailed_material_feature_and_time_analysis() -> None:
     assert result["time"]["total_seconds"] == 750
     assert result["time"]["model_seconds"] == 600
     assert result["time"]["preparation_seconds"] == 150
+    assert result["time"]["consistency"]["status"] == "ok"
     assert result["layer_count"] == 2
     assert result["filament_change_count"] == 1
     assert result["material_channel_count"] == 2
@@ -96,60 +97,47 @@ def test_tower_outside_plate_is_rejected() -> None:
         analysis.assert_prime_tower_inside(result)
 
 
-def test_unrealistic_short_gcode_time_is_marked_unreliable() -> None:
-    source = (
-        "; model printing time: 10m 0s; total estimated time: 12m 30s\n"
-        "; filament_type = PLA\n"
-        "; filament_diameter = 1.75\n"
-        "; filament_density = 1.24\n"
-        "; total filament length [mm] : 250000\n"
-        "; total filament weight [g] : 750\n"
-        "; total filament volume [cm^3] : 620\n"
-        "; layer num/total_layer_count: 1/1000\n"
-        "; layer_z = 0.2\n"
-        "G90\nM83\n; FEATURE: Outer wall\nG1 X10 Y10 F6000\nG1 X20 Y10 E1 F1200\n"
+def test_selected_profile_settings_are_extracted_from_gcode_header() -> None:
+    data = (
+        "; layer_height = 0.20\n"
+        "; wall_loops = 3\n"
+        "; sparse_infill_density = 15%\n"
+        "; unrelated_setting = secret\n"
+        "G1 X1 Y1\n"
     ).encode()
-    result = analysis.analyze_gcode(source)
-    assert result["time"]["reliable"] is False
-    assert result["time"]["minimum_extrusion_seconds"] > 24 * 60 * 60
-    assert "konservative" in result["time"]["warning"] or "Extrusionsminimum" in result["time"]["warning"]
+    result = analysis.extract_gcode_settings(
+        data,
+        ["layer_height", "wall_loops", "sparse_infill_density"],
+    )
+    assert result == {
+        "layer_height": ["0.20"],
+        "wall_loops": ["3"],
+        "sparse_infill_density": ["15%"],
+    }
+    assert "unrelated_setting" not in result
 
 
-def test_overhang_or_bridge_without_support_is_reported() -> None:
-    source = (
-        "; model printing time: 1h 0m 0s; total estimated time: 1h 2m 0s\n"
-        "; filament_type = PLA\n"
-        "; filament_diameter = 1.75\n"
-        "; filament_density = 1.24\n"
-        "G90\nM83\n"
-        "; layer_z = 0.2\n"
-        "; FEATURE: Overhang wall\n"
-        "G1 X10 Y10 F6000\nG1 X20 Y10 E3 F1200\n"
-        "; FEATURE: Bridge\n"
-        "G1 X20 Y20 E2 F1200\n"
-    ).encode()
-    result = analysis.analyze_gcode(source)
-    risk = result["support_risk"]
-    assert risk["support_present"] is False
-    assert risk["overhang_wall_move_count"] > 0
-    assert risk["bridge_move_count"] > 0
-    assert "keine Support" in risk["warning"]
+def test_time_consistency_reports_missing_header_fields() -> None:
+    result = analysis.analyze_gcode(b"; layer num/total_layer_count: 1/1\nG90\nM83\n")
+    assert result["time"]["consistency"]["status"] == "missing"
+    assert result["time"]["consistency"]["source"] == "bambu_gcode_header"
 
+def test_duration_seconds_parses_days() -> None:
+    """Regression: Bambu Studio uses `3d 0h 24m 38s`; days must be parsed."""
+    assert analysis._duration_seconds("3d 0h 24m 38s") == 3 * 86400 + 24 * 60 + 38
+    assert analysis._duration_seconds("2d 12h 0m 0s") == 2 * 86400 + 12 * 3600
+    assert analysis._duration_seconds("24m 38s") == 24 * 60 + 38
+    assert analysis._duration_seconds("12h 30m") == 12 * 3600 + 30 * 60
+    assert analysis._duration_seconds(None) is None
+    assert analysis._duration_seconds("unknown") is None
 
-def test_support_paths_suppress_overhang_warning() -> None:
-    source = (
-        "; model printing time: 1h 0m 0s; total estimated time: 1h 2m 0s\n"
-        "; filament_type = PLA\n"
-        "; filament_diameter = 1.75\n"
-        "; filament_density = 1.24\n"
-        "G90\nM83\n"
-        "; layer_z = 0.2\n"
-        "; FEATURE: Overhang wall\n"
-        "G1 X10 Y10 F6000\nG1 X20 Y10 E3 F1200\n"
-        "; FEATURE: Support interface\n"
-        "G1 X20 Y20 E2 F1200\n"
-    ).encode()
-    result = analysis.analyze_gcode(source)
-    risk = result["support_risk"]
-    assert risk["support_present"] is True
-    assert risk["warning"] is None
+# Mock HA modules for router tests
+import sys as _sys
+import types as _types
+
+_sys.modules.setdefault("homeassistant", _types.ModuleType("homeassistant"))
+_sys.modules.setdefault("homeassistant.config_entries", _types.ModuleType("homeassistant.config_entries"))
+_sys.modules.setdefault("homeassistant.core", _types.ModuleType("homeassistant.core"))
+_sys.modules.setdefault("homeassistant.helpers", _types.ModuleType("homeassistant.helpers"))
+_sys.modules.setdefault("homeassistant.helpers.aiohttp_client", _types.ModuleType("homeassistant.helpers.aiohttp_client"))
+

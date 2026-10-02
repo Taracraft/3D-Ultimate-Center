@@ -36,14 +36,14 @@ class PrinterCommandRequest:
         if confirm is not True:
             raise PrinterCommandError("confirm must be true")
 
-        speed_level = None
+        speed_level: int | None = None
         if command == "speed":
             try:
                 speed_level = int(payload.get("speed_level"))
-            except (TypeError, ValueError) as error:
-                raise PrinterCommandError("speed_level must be one of 1, 2, 3 or 4") from error
+            except (TypeError, ValueError):
+                raise PrinterCommandError("speed_level must be one of 1, 2, 3, 4") from None
             if speed_level not in SPEED_LEVEL_PERCENT:
-                raise PrinterCommandError("speed_level must be one of 1, 2, 3 or 4")
+                raise PrinterCommandError("speed_level must be one of 1, 2, 3, 4")
 
         return cls(printer_id=printer_id, command=command, confirm=True, speed_level=speed_level)
 
@@ -137,7 +137,11 @@ def build_bambu_speed_command(sequence_id: str, speed_level: int) -> dict[str, A
     }
 
 
-def build_bambu_command(command: str, sequence_id: str, speed_level: int | None = None) -> dict[str, Any]:
+def build_bambu_command(
+    command: str,
+    sequence_id: str,
+    speed_level: int | None = None,
+) -> dict[str, Any]:
     if command == "retry":
         return build_bambu_retry_command(sequence_id)
     if command == "speed":
@@ -150,7 +154,7 @@ def build_bambu_command(command: str, sequence_id: str, speed_level: int | None 
 def command_qos(command: str) -> int:
     if command not in SUPPORTED_COMMANDS:
         raise PrinterCommandError("Unsupported command")
-    return 1
+    return 0 if command in {"resume", "retry"} else 1
 
 
 def command_capabilities() -> list[dict[str, object]]:
@@ -199,7 +203,7 @@ def command_capabilities() -> list[dict[str, object]]:
             "label": "Geschwindigkeit",
             "enabled": True,
             "destructive": False,
-            "requires_confirmation": True,
+            "requires_confirmation": False,
             "protocol_command": "print_speed",
             "levels": [
                 {"level": level, "percent": percent}

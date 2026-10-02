@@ -1,0 +1,7 @@
+[Unit]
+Description=Restore Puppet Home Assistant Split-DNS
+After=docker.service
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/v6-puppet-hosts.sh
+TimeoutStartSec=15

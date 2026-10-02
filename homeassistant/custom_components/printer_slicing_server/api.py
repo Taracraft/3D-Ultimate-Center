@@ -122,4 +122,4 @@ class SlicingServerApi:
         result = await self._delete(f"/api/v1/jobs/{job_id}")
         if not result or result.get("deleted") is not True:
             raise SlicingServerApiError("Server did not confirm deletion")
-        return result
+        return result
