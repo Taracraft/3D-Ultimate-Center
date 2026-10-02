@@ -51,3 +51,9 @@ Alle Antworten an den Nutzer sind ausschliesslich auf Deutsch zu verfassen.
 - Die adaptive Malauflösung im Studio ist aktuell feiner als der alte 0,7-mm-Vertrag und wird mit 0,35 mm Zielkante fuer beruehrte Dreiecke abgesichert.
 - Malbereiche sind eigene Listeneintraege unter "Malbereich". Sie muessen per Klick, Strg/Klick, Shift/Klick, Strg+A und Entf verwaltbar bleiben, ohne importierte Modellobjekte umzubenennen oder zu vermischen.
 - Live-Abnahme per Puppet ist nur gueltig, wenn das Add-on wirklich mit Home Assistant verbunden ist. Eine HTML-Seite "Connection Failed" wegen Access-Token/HA-URL ist ein Blocker und kein visueller UI-Test.
+
+
+## Laufende Synchronisierung (Benutzerregel 2026-10-02)
+
+- Jede Projektänderung muss in F:\OneDrive - Bad-Timing\Dokumente\GitHub\3D-Ultimate Studio, der HA-Quellkopie und Taracraft/3D-Ultimate-Center im öffentlichen GitHub nachgezogen und per Hash geprüft werden.
+- Produktive HA-Ziele werden erst nach grünem Gesamtgate mit Backup und Live-SHA-Prüfung aktualisiert. Kein abgeschlossener Schritt ohne bestätigten lokalen und öffentlichen Stand.

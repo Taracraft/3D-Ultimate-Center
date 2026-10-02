@@ -1,6 +1,7 @@
 """Robust MakerWorld detail normalization for V6."""
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 from html import unescape
@@ -11,6 +12,10 @@ from .makerworld_download import remember_design_payload
 from .makerworld_runtime import MakerWorldError, MakerWorldRuntime
 
 _LOGGER = logging.getLogger(__name__)
+
+_COMMENTS_TIMEOUT = 8.0
+_RECOMMENDATIONS_TIMEOUT = 3.0
+_FALLBACK_TIMEOUT = 5.0
 
 _IMAGE_URL_RE = re.compile(r"(?:(?:https:)?//[^\s\"'<>)]*\.(?:png|jpe?g|webp|gif)(?:\?[^\s\"'<>)]*)?)", re.IGNORECASE)
 _IMG_SRC_RE = re.compile(r"<img\b[^>]*\bsrc=[\"']([^\"']+)[\"']", re.IGNORECASE)
@@ -138,7 +143,7 @@ def _images(mapping: dict[str, Any]) -> list[str]:
                 if candidate and candidate not in seen:
                     seen.add(candidate)
                     result.append(candidate)
-    for key in ("cover", "coverUrl", "thumbnail", "thumbnailUrl", "image", "imageUrl", "designPicture"):
+    for key in ("cover", "coverUrl", "thumbnail", "thumbnailUrl", "thumbnail_url", "image", "imageUrl", "designPicture"):
         candidate = _image(mapping.get(key))
         if candidate and candidate not in seen:
             seen.add(candidate)
@@ -398,32 +403,69 @@ def _comments(payload: Any) -> list[dict[str, Any]]:
     return result[:50]
 
 
-def _recommendations(payload: Any) -> list[dict[str, Any]]:
+def _recommendation_id(mapping: dict[str, Any]) -> str:
+    # modelId can be an opaque download identifier; detail links need the
+    # numeric public design ID, also when both identifiers are supplied.
+    for key in ("designId", "design_id", "id", "modelId", "model_id"):
+        value = _text(mapping.get(key), 30)
+        if value.isascii() and value.isdigit() and len(value) <= 20:
+            return value
+    return ""
+
+
+def _recommendations(payload: Any, exclude_id: str = "") -> list[dict[str, Any]]:
     result: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    for item in _walk(payload):
-        design_id = _design_id(item)
-        if not design_id or design_id in seen:
-            continue
-        title = _text(_first(item, ("title", "name", "designName", "design_name", "modelName", "model_name")), 300)
-        images = _images(item)
-        if not title and not images:
-            continue
-        seen.add(design_id)
-        result.append({
-            "id": design_id,
-            "title": title or f"MakerWorld Modell {design_id}",
-            "creator": _creator(item),
-            "thumbnail_url": images[0] if images else None,
-            "stats": {
-                "likes": _int(_first(item, ("likeCount", "like_count", "likes", "likedCount"))),
-                "downloads": _int(_first(item, ("downloadCount", "download_count", "downloads"))),
-                "comments": _int(_first(item, ("commentCount", "comment_count", "comments"))),
-                "collects": _int(_first(item, ("collectCount", "collect_count", "favoriteCount", "favorite_count"))),
-                "prints": _int(_first(item, ("printCount", "print_count", "prints"))),
-            },
-        })
+    seen: set[str] = {exclude_id}
+
+    def collect(value: Any) -> None:
+        if isinstance(value, list):
+            for child in value:
+                collect(child)
+            return
+        if not isinstance(value, dict):
+            return
+        design_id = _recommendation_id(value)
+        images = _images(value)
+        title = _text(_first(value, ("title", "designName", "design_name", "modelName", "model_name")), 300)
+        if not title and images:
+            title = _text(value.get("name"), 300)
+        if design_id and (title or images):
+            if design_id not in seen:
+                seen.add(design_id)
+                stats = value.get("stats")
+                stats = stats if isinstance(stats, dict) else {}
+                result.append({
+                    "id": design_id,
+                    "title": title or f"MakerWorld Modell {design_id}",
+                    "creator": _creator(value),
+                    "thumbnail_url": images[0] if images else None,
+                    "stats": {
+                        "likes": _int(_first(value, ("likeCount", "like_count", "likes", "likedCount"), stats.get("likes"))),
+                        "downloads": _int(_first(value, ("downloadCount", "download_count", "downloads"), stats.get("downloads"))),
+                        "comments": _int(_first(value, ("commentCount", "comment_count", "comments"), stats.get("comments"))),
+                        "collects": _int(_first(value, ("collectCount", "collect_count", "favoriteCount", "favorite_count"), stats.get("collects"))),
+                        "prints": _int(_first(value, ("printCount", "print_count", "prints"), stats.get("prints"))),
+                    },
+                })
+            # Creator, plate and profile IDs inside a recognized model are
+            # metadata, not additional recommendation cards.
+            return
+        for child in value.values():
+            if isinstance(child, (dict, list)):
+                collect(child)
+
+    collect(payload)
     return result[:12]
+
+
+def _embedded_recommendations(payload: Any, design_id: str) -> list[dict[str, Any]]:
+    values = []
+    for source in _walk(payload):
+        for key in ("recommendations", "recommendedDesigns", "relatedDesigns", "recommendList", "recommendationList", "youLike"):
+            candidate = source.get(key)
+            if isinstance(candidate, (dict, list)):
+                values.append(candidate)
+    return _recommendations(values, design_id)
 
 
 async def _optional_json(runtime: MakerWorldRuntime, path: str, params: dict[str, Any]) -> Any:
@@ -451,12 +493,16 @@ async def _load_comments(runtime: MakerWorldRuntime, design_id: str) -> list[dic
     )
     merged: list[dict[str, Any]] = []
     seen: set[str] = set()
-    for path, params in attempts:
-        payload = await _optional_json(runtime, path, params)
-        for item in _comments(payload):
-            if item["id"] not in seen:
-                seen.add(item["id"])
-                merged.append(item)
+    try:
+        async with asyncio.timeout(_COMMENTS_TIMEOUT):
+            for path, params in attempts:
+                payload = await _optional_json(runtime, path, params)
+                for item in _comments(payload):
+                    if item["id"] not in seen:
+                        seen.add(item["id"])
+                        merged.append(item)
+    except TimeoutError:
+        _LOGGER.debug("Optional MakerWorld enrichment budget exhausted")
     return merged[:50]
 
 
@@ -470,12 +516,16 @@ async def _load_recommendations(runtime: MakerWorldRuntime, design_id: str) -> l
     )
     merged: list[dict[str, Any]] = []
     seen: set[str] = {design_id}
-    for path, params in attempts:
-        payload = await _optional_json(runtime, path, params)
-        for item in _recommendations(payload):
-            if item["id"] not in seen:
-                seen.add(item["id"])
-                merged.append(item)
+    try:
+        async with asyncio.timeout(_RECOMMENDATIONS_TIMEOUT):
+            for path, params in attempts:
+                payload = await _optional_json(runtime, path, params)
+                for item in _recommendations(payload):
+                    if item["id"] not in seen:
+                        seen.add(item["id"])
+                        merged.append(item)
+    except TimeoutError:
+        _LOGGER.debug("Optional MakerWorld enrichment budget exhausted")
     return merged[:12]
 
 
@@ -493,23 +543,27 @@ async def _fallback_recommendations(runtime: MakerWorldRuntime, detail: dict[str
                 seen.add(item["id"])
                 merged.append(item)
 
-    for term in search_terms[:6]:
-        if len(merged) >= 12:
-            break
-        try:
-            page = await runtime.async_browse(query=term, limit=12)
-            collect({"items": page.get("items", [])})
-        except Exception as exc:
-            _LOGGER.debug("MakerWorld recommendation search fallback for %s failed: %s", term, exc)
-    if len(merged) < 6:
-        for nav_key in ("Trending", "Popular", "Latest"):
-            if len(merged) >= 12:
-                break
-            try:
-                page = await runtime.async_browse(nav_key=nav_key, limit=12)
-                collect({"items": page.get("items", [])})
-            except Exception as exc:
-                _LOGGER.debug("MakerWorld recommendation nav fallback %s failed: %s", nav_key, exc)
+    try:
+        async with asyncio.timeout(_FALLBACK_TIMEOUT):
+            for term in search_terms[:6]:
+                if len(merged) >= 12:
+                    break
+                try:
+                    page = await runtime.async_browse(query=term, limit=12)
+                    collect({"items": page.get("items", [])})
+                except Exception as exc:
+                    _LOGGER.debug("MakerWorld recommendation search fallback for %s failed: %s", term, exc)
+            if len(merged) < 6:
+                for nav_key in ("Trending", "Popular", "Latest"):
+                    if len(merged) >= 12:
+                        break
+                    try:
+                        page = await runtime.async_browse(nav_key=nav_key, limit=12)
+                        collect({"items": page.get("items", [])})
+                    except Exception as exc:
+                        _LOGGER.debug("MakerWorld recommendation nav fallback %s failed: %s", nav_key, exc)
+    except TimeoutError:
+        _LOGGER.debug("Optional MakerWorld enrichment budget exhausted")
     return merged[:12]
 
 
@@ -542,8 +596,33 @@ def _normalize(payload: Any, design_id: str) -> dict[str, Any]:
         "instance_count": len(instances),
         "comments": comments,
         "comment_count": len(comments),
-        "recommendations": [],
+        "recommendations": _embedded_recommendations(payload, design_id),
     }
+
+
+async def _complete_recommendations(runtime: MakerWorldRuntime, detail: dict[str, Any]) -> list[dict[str, Any]]:
+    merged = list(detail["recommendations"])
+    seen = {str(detail["id"]), *(item["id"] for item in merged)}
+
+    def collect(items: list[dict[str, Any]]) -> None:
+        for item in items:
+            if item["id"] not in seen:
+                seen.add(item["id"])
+                merged.append(item)
+
+    if len(merged) < 12:
+        collect(await _load_recommendations(runtime, str(detail["id"])))
+    if len(merged) < 12:
+        collect(await _fallback_recommendations(runtime, detail))
+    return merged[:12]
+
+
+async def _optional_enrichment(operation: Any) -> list[dict[str, Any]]:
+    try:
+        return await operation
+    except Exception as exc:
+        _LOGGER.debug("Optional MakerWorld detail enrichment failed: %s", exc)
+        return []
 
 
 async def async_load_detail(runtime: MakerWorldRuntime, design_id: str) -> dict[str, Any]:
@@ -565,18 +644,24 @@ async def async_load_detail(runtime: MakerWorldRuntime, design_id: str) -> dict[
             payload = await runtime._json(path, params)
             remember_design_payload(payload, normalized)
             detail = _normalize(payload, normalized)
-            extra_comments = await _load_comments(runtime, normalized)
-            if extra_comments:
-                detail["comments"] = extra_comments
-                detail["comment_count"] = len(extra_comments)
-            extra_recommendations = await _load_recommendations(runtime, normalized)
-            if not extra_recommendations:
-                extra_recommendations = await _fallback_recommendations(runtime, detail)
-            if extra_recommendations:
-                detail["recommendations"] = extra_recommendations
-            return detail
+            break
         except Exception as exc:
             errors.append(f"{label}: {exc}")
-    message = f"MakerWorld-Details für Modell {normalized} konnten nicht geladen werden. " + " | ".join(errors)
-    _LOGGER.warning("%s", message)
-    raise MakerWorldError(message)
+    else:
+        message = f"MakerWorld-Details für Modell {normalized} konnten nicht geladen werden. " + " | ".join(errors)
+        _LOGGER.warning("%s", message)
+        raise MakerWorldError(message)
+
+    extra_comments, extra_recommendations = await asyncio.gather(
+        _optional_enrichment(_load_comments(runtime, normalized)),
+        _optional_enrichment(_complete_recommendations(runtime, detail)),
+    )
+    if extra_comments:
+        # Preserve comments already included in the detail response.
+        comments = {item["id"]: item for item in detail["comments"]}
+        comments.update({item["id"]: item for item in extra_comments})
+        detail["comments"] = list(comments.values())[:50]
+        detail["comment_count"] = len(detail["comments"])
+    if extra_recommendations:
+        detail["recommendations"] = extra_recommendations
+    return detail

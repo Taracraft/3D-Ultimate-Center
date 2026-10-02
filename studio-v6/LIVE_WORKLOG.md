@@ -124,3 +124,23 @@ V6-Screenshot über http://127.0.0.1:5000/3d-studio-v6-test/0?viewport=1600x1000
 Veröffentlichter Synchronisierungscommit: 430fdda6285c5df57a0c89aa94b21c6167a4fdfe. Git-Baum: 6a44718b936147299ab2ba92e732910be176a674. Vorheriger main-Stand als backup/v6-before-local-ha-sync-20261002 gesichert. main ohne Force aktualisiert und nach Veröffentlichung verifiziert. CI ausdrücklich übersprungen, damit kein Rebuild vor diesem Dreifachabgleich startet. Dieser Eintrag wird anschließend ebenfalls bytegenau lokal, auf HA und öffentlich nachgezogen.
 
 Puppet über Host-Port 5000 verbunden und Neustartfestigkeit nachgewiesen. Nächste Roadmap-Abnahmen bleiben interaktive Malwerkzeuge/Materialprofile/Touch, Queue-End-to-End und 50-Dateien-Batchleistung; echte Slice-/Release-/Upload-/Druckaktionen erfordern weiterhin ausdrückliche Freigabe. Ein Fresh-Install ist noch nicht durchgeführt. Der ältere öffentliche rebuild-homeassist.sh wurde nicht ausgeführt; er berücksichtigt unter anderem alte V5-Komponenten und muss vor einer etwaigen Verwendung am aktuellen V6-Vertrag geprüft werden.
+
+
+## 2026-10-02 MakerWorld-Empfehlungen und laufende Synchronisierung
+
+Neue Benutzerregel: Jede Projektänderung wird in den kanonischen lokalen Ordner, die HA-Quellkopie und das öffentliche GitHub übernommen; produktive HA-Ziele erst nach grünem Gesamtgate. Lokaler Pfad bleibt F:\OneDrive - Bad-Timing\Dokumente\GitHub\3D-Ultimate Studio. GitHub ist Taracraft/3D-Ultimate-Center.
+
+Roadmap-Arbeitspunkt MakerWorld / Ideen für Sie: eingebettete Empfehlungen erhalten; normalisierte Suchergebnisse behalten Vorschaubilder und Zähler. Öffentliche numerische Design-ID wird von opaken Download-IDs getrennt; verschachtelte Ersteller-/Profilmetadaten werden nicht als Empfehlungen angeboten. Selbstempfehlungen und Dubletten entfernt. Optionale Anreicherung läuft parallel mit Budgets: Kommentare 8 Sekunden, direkte Empfehlungen 3 Sekunden plus Suchfallback 5 Sekunden. Teilergebnisse bleiben erhalten; optionale Ausfälle führen nicht zum erneuten Laden gültiger Modelldetails. Eingebettete Kommentare werden mit weiteren Kommentaren zusammengeführt.
+
+Sieben gezielte Regressionstests ergänzen die vorhandenen Detailtests: Suchmedien/Zähler, öffentliche ID/Metadaten, eingebettete Empfehlungen, Zusammenführung, langsame Endpunkte/Teilergebnisse, vollständige Einbettung und Abbruchweitergabe. Gesamtgate und Live-API-Nachweis stehen nach diesem Eintrag aus. Kein Slice, Release, Druckerupload oder Druckstart.
+
+
+### MakerWorld-Empfehlungen: geprüfter Abschluss 2026-10-02
+
+Gesamtgate abgeschlossen um 23:25:01 Europe/Berlin: Source-Policy, TypeScript, 145 Frontendtests, beide Builds, 531 Python-Tests und 3 Subtests sowie Compileall grün. Sieben neue Regressionstests erfolgreich. Natives Exportbundle SHA256 9e2248d86ba4da47400f22906d6c339a035ca8c24372b60850905e7ac06b1a39. MakerWorld-Komponente SHA256 ff974c6e8971737537b79ba910cdeddfcaed77916cf4e4461246a6d0a8d88c93.
+
+Live-Komponente und neues Buildmanifest nach Same-Day-Backup atomar aus dem geprüften PC-Export übernommen; HA-Core-Konfigurationsprüfung grün, HA-Core neu gestartet. Backup /var/lib/homeassistant/homeassistant/backups/20261002T212742Z-makerworld-runtime. 572 kanonische Quellen erneut direkt vom PC gelesen; HA-Quellkopie und 129 Komponent-/Frontend-Ziele nach Deployment ohne Abweichungen. Native Workerdateien blieben unverändert, Worker und Timer aktiv.
+
+Authentifizierter Live-GET für Modell 2887138: HTTP 200, 3,9 Sekunden; zwölf Empfehlungen, alle mit Bild-URLs und erhaltenen Downloadzählern, zwei Druckprofile, ein Beschreibungsbild und 50 Kommentare. Keine Selbstempfehlung/ungültige Design-ID in der Antwort. Puppet-Startseite auf Host-Port 5000 weiterhin Screenshot Preview. Dies ist eine API-Abnahme des Empfehlungspfads, keine interaktive Gesamt-Abnahme von MakerWorld.
+
+Neue Synchronisierungsregel dauerhaft in AGENTS.md festgehalten. Diese Änderung einschließlich Tests, Regel, Roadmap, Worklog und gebautem Manifest wird vollständig nach Taracraft/3D-Ultimate-Center übertragen und per Git-Blobhash geprüft. Der vorherige öffentliche Stand ist unter backup/v6-before-makerworld-20261002 gesichert. Weiter offen bleiben vollständiger alternativer/kompatibler Druckprofilvertrag, originalgetreue Beschreibungsformatierung, interaktive MakerWorld-Abnahme sowie die zuvor dokumentierten Mal-/Touch-/Queue-Abnahmen. Kein Slice, Job-Release, Druckerupload, Druckstart oder Fresh-Install.
