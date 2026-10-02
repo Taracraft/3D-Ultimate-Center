@@ -1,0 +1,129 @@
+{
+  "title": "3D-Printer Control Center",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connection mode and language",
+        "description": "Choose how the printer is connected and which language the 3D-Printer Control Center dashboard cards should use. Automatic language follows the Home Assistant UI language.",
+        "data": {
+          "connection_mode": "Connection mode",
+          "ui_language": "Dashboard language",
+          "auto_create_dashboards": "Create default dashboards automatically"
+        }
+      },
+      "cloud_login": {
+        "title": "Bambu Cloud login",
+        "description": "The password is used only for login and is not stored. The returned token is stored in the Home Assistant config entry. Cloud access is optional; LAN-only mode works without it.",
+        "data": {
+          "region": "Region",
+          "email": "Email",
+          "password": "Password"
+        }
+      },
+      "cloud_code": {
+        "title": "Email verification",
+        "description": "Enter the verification code sent by Bambu Cloud.",
+        "data": {
+          "code": "Verification code"
+        }
+      },
+      "cloud_device": {
+        "title": "Choose printer",
+        "data": {
+          "serial": "Cloud printer"
+        }
+      },
+      "lan": {
+        "title": "LAN connection",
+        "description": "Enter the printer IP address manually whenever possible. Automatic discovery is available as an optional fallback but is currently a known issue in routed VLAN, VPN and broadcast-restricted networks. Where can I find the device code? On the printer open Settings > LAN Only (on some models under WLAN or Network), enable LAN Only mode and read the IP address and access code shown on that page. Menu placement can differ by printer model and firmware. Use the LAN access code, not a six-digit account PIN.\\n\\nImportant: The entered printer name is shown on the dashboard if no model name can be detected automatically.",
+        "data": {
+          "host": "Printer IP address (recommended)",
+          "serial": "Printer serial number",
+          "access_code": "LAN access code / device code",
+          "printer_name": "Display name",
+          "tls_insecure": "Accept printer self-signed TLS certificate",
+          "auto_discover_ip": "Automatically discover printer IP if no manual IP is entered",
+          "discovery_subnets": "Additional VLAN CIDRs, comma separated, e.g. 192.0.2.0/24",
+          "discovery_hosts": "Known endpoint IPs, comma separated",
+          "discovery_ports": "Additional TCP ports",
+          "scan_profile": "Scan profile",
+          "scan_timeout_ms": "TCP timeout in milliseconds",
+          "scan_workers": "Parallel scanner workers",
+          "scan_max_hosts": "Maximum hosts to scan",
+          "scan_broadcast": "Use local broadcast discovery",
+          "scan_neighbors": "Use ARP neighbors",
+          "scan_connections": "Use already connected TCP endpoints",
+          "scan_routes": "Use small visible routed networks",
+          "rescan_on_disconnect": "Rescan automatically after LAN disconnect"
+        }
+      },
+      "finish": {
+        "title": "AMS and firmware policy",
+        "description": "Automatic AMS detection is best effort. BMCU-370 can emulate official AMS identifiers, so a manual override remains available. Automatic firmware updates are never enabled.",
+        "data": {
+          "ams_type": "AMS type",
+          "show_manual_firmware_update_button": "Show safe manual firmware-update request button"
+        }
+      },
+      "choose_discovered_host": {
+        "title": "Choose discovered printer",
+        "description": "Multiple reachable devices were found. Choose the printer IP address.",
+        "data": {
+          "host": "Printer IP address"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to connect.",
+      "invalid_auth": "Authentication failed.",
+      "unknown": "Unknown error. Please check Home Assistant logs.",
+      "required": "Required field",
+      "discovery_failed": "Automatic IP discovery did not find a printer. Enter a manual IP or add VLAN CIDRs.",
+      "invalid_subnets": "Invalid VLAN list. Use CIDRs such as 192.0.2.0/24.",
+      "invalid_scan_settings": "Invalid scanner settings. Check CIDRs, ports and limits."
+    },
+    "abort": {
+      "cannot_connect": "Unable to connect to Bambu Cloud.",
+      "no_printers": "No printers were returned by Bambu Cloud.",
+      "missing_serial": "Printer serial is missing. Please restart setup."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Printer, dashboard and network options",
+        "description": "Choose the dashboard language, set a manual IP address and configure optional network discovery fallback values. Manual IP is recommended while automatic discovery remains a known issue in some VLAN, VPN and broadcast-restricted environments.",
+        "data": {
+          "ui_language": "Dashboard language",
+          "ams_type": "AMS type",
+          "show_manual_firmware_update_button": "Show safe manual firmware-update request button",
+          "host": "Manual printer IP address (recommended)",
+          "auto_discover_ip": "Automatically discover printer IP if no manual IP is entered",
+          "discovery_hosts": "Known endpoint IPs",
+          "discovery_subnets": "Additional VLAN CIDRs",
+          "scan_profile": "Scan profile",
+          "discovery_ports": "Additional TCP ports",
+          "scan_timeout_ms": "TCP timeout in milliseconds",
+          "scan_workers": "Parallel scanner workers",
+          "scan_max_hosts": "Maximum hosts to scan",
+          "scan_broadcast": "Use local broadcast discovery",
+          "scan_neighbors": "Use ARP neighbors",
+          "scan_connections": "Use already connected TCP endpoints",
+          "scan_routes": "Use small visible routed networks",
+          "rescan_on_disconnect": "Rescan automatically after LAN disconnect",
+          "auto_create_dashboards": "Create default dashboards automatically"
+        }
+      }
+    }
+  },
+  "services": {
+    "scan_network": {
+      "name": "Scan printer network endpoints",
+      "description": "Scan configured endpoints, active TCP peers, ARP neighbors, local discovery, explicit hosts, VLAN CIDRs and small visible route networks. If exactly one valid MQTT endpoint is selected, store it as the active printer IP address."
+    },
+    "install_dashboards": {
+      "name": "Install or repair default dashboards",
+      "description": "Creates or repairs the two managed default dashboards: 3D printing with integrated queue and 3D printer file manager/gallery."
+    }
+  }
+}
