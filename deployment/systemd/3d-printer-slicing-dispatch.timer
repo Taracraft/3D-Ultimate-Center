@@ -1,0 +1,11 @@
+[Unit]
+Description=Run universal 3D-Printer Slicing Dispatcher
+
+[Timer]
+OnBootSec=10s
+OnUnitActiveSec=10s
+AccuracySec=1s
+Unit=3d-printer-slicing-dispatch.service
+
+[Install]
+WantedBy=timers.target
