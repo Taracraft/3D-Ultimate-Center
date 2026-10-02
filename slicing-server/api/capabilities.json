@@ -1,0 +1,32 @@
+{
+  "application": "3D-Printer Slicing Server",
+  "api_version": 2,
+  "mode": "universal_multi_engine",
+  "job_schema_version": 2,
+  "input_formats": [
+    "stl",
+    "3mf",
+    "obj",
+    "amf"
+  ],
+  "output_formats": [
+    "gcode",
+    "3mf"
+  ],
+  "engine_selection": [
+    "auto",
+    "bambu_studio",
+    "prusaslicer",
+    "curaengine"
+  ],
+  "printer_profile_required": true,
+  "supports_custom_printer_profiles": true,
+  "live_progress": true,
+  "progress_source": "bambu_cli_pipe",
+  "progress_history": true,
+  "progress_eta": true,
+  "job_detail": true,
+  "engine_result": true,
+  "runtime_summary": true,
+  "live_warnings": true
+}
