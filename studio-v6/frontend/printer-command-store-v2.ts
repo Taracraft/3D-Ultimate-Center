@@ -15,6 +15,7 @@ import {
   type PrinterIssue,
 } from "./printer-issues.js";
 import type { V6ActionDialog } from "./v6-action-dialog.js";
+import { PRINT_SPEED_MODES, type PrintSpeedLevel } from "./print-live-telemetry.js";
 import {
   v6Api,
   type V6CommandCapability,
@@ -36,6 +37,7 @@ type ExecuteRequest = Readonly<{
   command: PrinterCommand;
   capabilities: readonly V6CommandCapability[];
   job?: V6Job | null;
+  speedLevel?: PrintSpeedLevel;
 }>;
 
 function escapeHtml(value: unknown): string {
@@ -80,6 +82,9 @@ class PrinterCommandStore {
     if (!commandAvailable(request.command, request.printer, request.capabilities, request.job)) {
       throw new Error(`${commandLabel(request.command)} ist im aktuellen Druckerzustand nicht verfügbar.`);
     }
+    if (request.command === "speed" && !PRINT_SPEED_MODES.some((mode) => mode.level === request.speedLevel)) {
+      throw new Error("Ungültige Druckgeschwindigkeit. Erlaubt sind nur 50, 100, 125 oder 166 Prozent.");
+    }
 
     this.#snapshot = {
       busyPrinterId: printerId,
@@ -90,14 +95,16 @@ class PrinterCommandStore {
           ? "Erneuter AMS-/Filamentversuch wird an den Drucker gesendet …"
           : request.command === "resume"
             ? "Fortsetzung wird an den Drucker gesendet …"
-            : "",
+            : request.command === "speed"
+              ? "Druckgeschwindigkeit wird geändert …"
+              : "",
       error: "",
       updatedAt: Date.now(),
     };
     this.#emit();
 
     try {
-      const result = await v6Api.executeCommand(printerId, request.command);
+      const result = await v6Api.executeCommand(printerId, request.command, request.command === "speed" ? { speed_level: request.speedLevel } : undefined);
       if (request.command === "stop" && result.confirmed !== true) {
         throw new Error("Der Stop-Befehl wurde gesendet, aber der Drucker hat den Abbruch nicht bestätigt.");
       }
@@ -115,7 +122,9 @@ class PrinterCommandStore {
             ? "Der Drucker hat den erneuten AMS-/Filamentversuch angenommen. Der Fehlerstatus wird weiter überwacht."
             : request.command === "resume"
               ? "Der Drucker hat die Fortsetzung angenommen. Der Druckstatus wird weiter überwacht."
-              : `${commandLabel(request.command)} wurde vom Drucker angenommen.`),
+              : request.command === "speed"
+                ? "Die neue Druckgeschwindigkeit wurde vom Drucker angenommen."
+                : `${commandLabel(request.command)} wurde vom Drucker angenommen.`),
         error: "",
         updatedAt: Date.now(),
       };
@@ -158,6 +167,7 @@ export class Ultimate3DPrinterActions extends HTMLElement {
   #snapshot: PrinterCommandSnapshot = printerCommandStore.snapshot;
   #unsubscribe: (() => void) | null = null;
   #mounted = false;
+  #confirming = false;
 
   set printer(value: V6Printer | null) { this.#printer = value; this.#update(); }
   set job(value: V6Job | null) { this.#job = value; this.#update(); }
@@ -181,13 +191,15 @@ export class Ultimate3DPrinterActions extends HTMLElement {
 
   async #run(command: PrinterCommand): Promise<void> {
     const printer = this.#printer;
-    if (!printer || !commandAvailable(command, printer, this.#capabilities, this.#job)) return;
+    if (this.#confirming || !printer || !commandAvailable(command, printer, this.#capabilities, this.#job)) return;
+    const requestedJob = String(this.#job?.job_id || this.#job?.id || "");
     const dialog = this.#root.querySelector<V6ActionDialog>("#printer-command-dialog");
     const issueCommand = Boolean(this.#issue && (command === "resume" || command === "retry"));
     const issueDetail = issueCommand && this.#issue
       ? `\n\nAktive/zuletzt gemeldete Störung: ${issueCode(this.#issue)}\n${issueMessage(this.#issue)}\n\nNur ausführen, wenn die physische Ursache am Drucker tatsächlich behoben wurde.`
       : "";
     const actionLabel = issueCommand && this.#issue ? issueActionLabel(this.#issue) : commandLabel(command);
+    this.#confirming = true;
     const confirmed = await dialog?.confirm({
       title: actionLabel,
       message: issueCommand ? "Ist die angezeigte Störung wirklich behoben?" : `${commandLabel(command)} wirklich ausführen?`,
@@ -198,10 +210,14 @@ export class Ultimate3DPrinterActions extends HTMLElement {
       cancelLabel: "Zurück",
       danger: command === "stop",
     });
+    this.#confirming = false;
     if (!confirmed) return;
+    const currentPrinter = this.#printer;
+    if (!this.isConnected || !currentPrinter || currentPrinter.printer_id !== printer.printer_id
+      || String(this.#job?.job_id || this.#job?.id || "") !== requestedJob) return;
     try {
       await printerCommandStore.execute({
-        printer,
+        printer: currentPrinter,
         command,
         capabilities: this.#capabilities,
         job: this.#job,
