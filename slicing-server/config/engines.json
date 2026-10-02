@@ -1,0 +1,35 @@
+{
+  "engines": [
+    {
+      "id": "bambu_studio",
+      "name": "Bambu Studio",
+      "version": "02.07.01.62",
+      "binary": "/var/lib/homeassistant/3d-printer-slicing-server/engines/bambu-studio/squashfs-root/bin/bambu-studio",
+      "library_path": "/var/lib/homeassistant/3d-printer-slicing-server/engines/bambu-studio/squashfs-root/bin",
+      "profile_root": "/var/lib/homeassistant/3d-printer-slicing-server/engines/bambu-studio/squashfs-root/resources/profiles",
+      "formats": ["stl", "3mf", "obj"],
+      "output_formats": ["gcode", "3mf"],
+      "available": true
+    },
+    {
+      "id": "prusaslicer",
+      "name": "PrusaSlicer",
+      "version": "2.9.2+dfsg-1",
+      "binary": "/usr/bin/prusa-slicer",
+      "profile_root": "/var/lib/homeassistant/3d-printer-slicing-server/profiles",
+      "formats": ["stl", "3mf", "obj", "amf"],
+      "output_formats": ["gcode", "3mf"],
+      "available": true
+    },
+    {
+      "id": "curaengine",
+      "name": "CuraEngine",
+      "version": null,
+      "binary": "/usr/bin/CuraEngine",
+      "profile_root": "/var/lib/homeassistant/3d-printer-slicing-server/profiles",
+      "formats": ["stl", "3mf", "obj"],
+      "output_formats": ["gcode"],
+      "available": false
+    }
+  ]
+}
