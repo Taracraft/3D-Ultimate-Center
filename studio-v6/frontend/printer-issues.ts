@@ -4,6 +4,21 @@ import type { V6Printer } from "./v6-api.js";
 export type PrinterIssue = Readonly<Record<string, unknown>>;
 
 const OFFICIAL_WIKI = "https://wiki.bambulab.com/en/home";
+// BambuStudio resources/hms/hms_de_093.json; exact codes, no inferred mechanical cause.
+const KNOWN_MOTION_ISSUES: Readonly<Record<string, { title: string; message: string }>> = {
+  "03004000": {
+    title: "Referenzfahrt der Z-Achse fehlgeschlagen",
+    message: "Der Drucker konnte die Z-Achse nicht referenzieren und hat den Auftrag gestoppt.",
+  },
+  "0300180000010005": {
+    title: "Bewegung des Z-Achsen-Motors blockiert",
+    message: "Der Drucker meldet eine blockierte Z-Bewegung. Laut Bambu-Hilfe sind Z-Schlitten und Z-Riemenscheibe auf Fremdkörper sowie die Lage der Druckplatte auf mögliche Kollisionen zu prüfen.",
+  },
+};
+function compactIssueCode(issue: PrinterIssue | null | undefined): string {
+  return issueCode(issue).toUpperCase().replace(/^HMS[_-]?/, "").replace(/[-_]/g, "");
+}
+
 const RETRY_CODE = /^(?:07|12)[0-9A-F]{2}-80(?:01|02|03|04|05|06|07|10|11|12|13|14|15|16)$/i;
 
 function record(value: unknown): PrinterIssue {
@@ -52,11 +67,11 @@ export function issueCode(issue: PrinterIssue | null | undefined): string {
 }
 
 export function issueTitle(issue: PrinterIssue | null | undefined): string {
-  return String(issue?.title || "Druckerstörung");
+  return KNOWN_MOTION_ISSUES[compactIssueCode(issue)]?.title || String(issue?.title || "Druckerstörung");
 }
 
 export function issueMessage(issue: PrinterIssue | null | undefined): string {
-  return String(issue?.message || "Der Drucker hat eine Störung gemeldet.");
+  return KNOWN_MOTION_ISSUES[compactIssueCode(issue)]?.message || String(issue?.message || "Der Drucker hat eine Störung gemeldet.");
 }
 
 export function issueSeverity(issue: PrinterIssue | null | undefined): "error" | "warning" | "info" {
@@ -81,7 +96,13 @@ export function issueActionLabel(issue: PrinterIssue | null | undefined): string
 
 export function issueHelpUrl(issue: PrinterIssue | null | undefined): string {
   const configured = String(issue?.help_url || issue?.qr_url || "").trim();
-  if (/^https:\/\/([a-z0-9-]+\.)*bambulab\.com(?:\/|$)/i.test(configured)) return configured;
+  const official = /^https:\/\/([a-z0-9-]+\.)*bambulab\.com(?:\/|$)/i.test(configured);
+  const generic = official && /\/(?:en\/)?(?:home|hms\/error-code)\/?(?:[?#]|$)/i.test(configured);
+  if (official && !generic) return configured;
+  const compact = compactIssueCode(issue);
+  if (/^(?:[0-9A-F]{8}|[0-9A-F]{16})$/.test(compact)) {
+    return `https://e.bambulab.com/index.php?e=${compact}&s=device_hms&lang=de`;
+  }
   const code = issueCode(issue);
   return `${OFFICIAL_WIKI}?search=${encodeURIComponent(code)}`;
 }
