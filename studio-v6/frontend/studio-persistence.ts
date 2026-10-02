@@ -1,5 +1,6 @@
 import type { StudioPlateProfileSelection } from "./studio-profile-catalog.js";
 import type { Vec3 } from "./webgl-studio-viewport.js";
+import type { PaintRegion } from "./studio-mesh-paint.js";
 
 export type PersistedStudioInstance = Readonly<{
   id: string;
@@ -39,6 +40,30 @@ export type PersistedStudioMaterial = Readonly<{
   filament_id?: string;
 }>;
 
+export type PersistedStudioPaintRegion = PaintRegion & Readonly<{ plateId: number }>;
+
+export type PersistedStudioPaintLayerPoint = Readonly<{
+  x: number;
+  y: number;
+  z: number;
+  screenX: number;
+  screenY: number;
+}>;
+
+export type PersistedStudioPaintLayer = Readonly<{
+  id: string;
+  plateId: number;
+  objectId: string;
+  kind: "stroke" | "rectangle" | "circle" | "text";
+  label: string;
+  color: string;
+  materialKey: string;
+  radiusMm: number;
+  points: PersistedStudioPaintLayerPoint[];
+  text?: string;
+  textSizePx?: number;
+}>;
+
 export type PersistedStudioWorkspace = Readonly<{
   version: 1;
   savedAt: number;
@@ -48,6 +73,9 @@ export type PersistedStudioWorkspace = Readonly<{
   selected: string[];
   assignments: Array<readonly [string, string]>;
   modelMaterials: PersistedStudioMaterial[];
+  paintRegions: PersistedStudioPaintRegion[];
+  paintLayers: Array<readonly [number, PersistedStudioPaintLayer[]]>;
+  nextPaintLayerId: number;
   plates: PersistedStudioPlate[];
 }>;
 
