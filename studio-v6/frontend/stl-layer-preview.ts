@@ -162,3 +162,70 @@ export function drawLayerPreview(
   context.lineWidth = 1;
   context.strokeRect(offsetX, offsetY, sizeX * scale, sizeY * scale);
 }
+
+
+
+/**
+ * Cached wrapper for sliceSegmentsAtZ to avoid recomputing for same Z values.
+ * This is critical for performance with 1000+ layers when the slider is dragged.
+ */
+export const segmentCache = new Map<string, LayerSegment[]>();
+let lastGeometryHash: string | null = null;
+let lastEpsilon: number | null = null;
+let lastGeometry: MeshGeometry | null = null;
+
+function computeGeometryHash(positions: Float32Array): string {
+  // Hash every coordinate so in-place edits outside former sample points are detected.
+  let left = 0x811c9dc5;
+  let right = 0x9e3779b9;
+  const bits = new DataView(positions.buffer, positions.byteOffset, positions.byteLength);
+  for (let i = 0; i < positions.length; i++) {
+    const word = bits.getUint32(i * 4, true);
+    left ^= word;
+    left = Math.imul(left, 0x01000193);
+    right ^= (word + Math.imul(i + 1, 0x45d9f3b)) >>> 0;
+    right = Math.imul(right, 0x27d4eb2d);
+  }
+  return [positions.length, left >>> 0, right >>> 0].join(":");
+}
+
+export function getCachedSliceSegmentsAtZ(
+  geometry: MeshGeometry,
+  z: number,
+  epsilon = 1e-5,
+): LayerSegment[] {
+  const geomHash = computeGeometryHash(geometry.positions);
+  if (geometry !== lastGeometry || geomHash !== lastGeometryHash || epsilon !== lastEpsilon) {
+    clearSegmentCache();
+    lastGeometry = geometry;
+    lastGeometryHash = geomHash;
+    lastEpsilon = epsilon;
+  }
+  const cacheKey = `${geomHash}_${z}_${epsilon}`;
+  
+  if (segmentCache.has(cacheKey)) {
+    return segmentCache.get(cacheKey)!;
+  }
+  
+  const result = sliceSegmentsAtZ(geometry, z, epsilon);
+  
+  // Limit cache size to prevent memory leaks
+  if (segmentCache.size >= 5000) {
+    // Remove oldest entries (first key)
+    const firstKey = segmentCache.keys().next().value;
+    if (firstKey !== undefined) {
+      segmentCache.delete(firstKey);
+    }
+  }
+  
+  segmentCache.set(cacheKey, result);
+  return result;
+}
+
+export function clearSegmentCache(): void {
+  segmentCache.clear();
+  lastGeometry = null;
+  lastGeometryHash = null;
+  lastEpsilon = null;
+}
+
