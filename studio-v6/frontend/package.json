@@ -1,0 +1,13 @@
+{
+  "name": "ultimate-3d-printing-studio-frontend",
+  "private": true,
+  "version": "6.0.0-alpha1",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "check": "tsc --project tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}
