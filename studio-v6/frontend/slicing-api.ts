@@ -1,5 +1,6 @@
 import { authenticatedFetch, callHomeAssistantApi, errorMessage } from "./ha-api-transport.js";
 import type { V6ProfileSelection } from "./profile-api.js";
+import type { BatchQueueContext, SliceProcessOverrides } from "./plate-slice-api.js";
 
 const API_PREFIX = "/api/ultimate_3d_studio_v6/v1/slicer";
 
@@ -156,26 +157,19 @@ export type SliceTowerSafety = Readonly<{
   source?: string;
 }>;
 
-export type SliceSupportRisk = Readonly<{
-  support_present?: boolean;
-  support_weight_g?: number | null;
-  support_move_count?: number | null;
-  overhang_wall_weight_g?: number | null;
-  overhang_wall_move_count?: number | null;
-  bridge_weight_g?: number | null;
-  bridge_move_count?: number | null;
-  warning?: string | null;
-}>;
-
 export type SliceGcodeAnalysis = Readonly<{
   schema_version?: number;
   time?: Readonly<{
     total_seconds?: number | null;
     model_seconds?: number | null;
     preparation_seconds?: number | null;
-    minimum_extrusion_seconds?: number | null;
-    reliable?: boolean;
-    warning?: string | null;
+    consistency?: {
+      status?: "ok" | "mismatch" | "missing";
+      source?: string;
+      expected_total_seconds?: number | null;
+      delta_seconds?: number | null;
+      note?: string;
+    } | null;
     feature_time_method?: string;
     feature_time_estimated?: boolean;
   }>;
@@ -190,7 +184,6 @@ export type SliceGcodeAnalysis = Readonly<{
     volume_cm3?: number | null;
     weight_g?: number | null;
   }>;
-  support_risk?: SliceSupportRisk;
   tower_safety?: SliceTowerSafety;
   estimated_material_values?: boolean;
 }>;
@@ -310,6 +303,34 @@ export type SliceAmsMaterialPlan = Readonly<{
   purge_tower?: SlicePurgeTower;
 }>;
 
+export type SliceProfileApplication = Readonly<{
+  selected: boolean;
+  applied: boolean;
+  gcode_confirmed: boolean;
+  process?: Readonly<{
+    profile_id?: string;
+    name?: string;
+    contract_sha256?: string;
+    selected_setting_count?: number;
+    effective_setting_count?: number;
+    numeric_value_proof?: readonly Readonly<{
+      key: string;
+      label: string;
+      unit: string;
+      profile_value?: unknown;
+      requested_value?: unknown;
+      applied_value?: unknown;
+      gcode_value?: unknown;
+      overridden: boolean;
+      status: "confirmed" | "mismatch" | "unverified";
+    }>[];
+    gcode_confirmed_setting_count?: number;
+  }>;
+  filament_profile_count?: number;
+  material_channel_count?: number;
+  confirmation_source?: string;
+}>;
+
 export type SliceJob = Readonly<{
   id: string;
   status: SliceJobStatus;
@@ -343,6 +364,7 @@ export type SliceJob = Readonly<{
   slicer_progress?: SliceSlicerProgress;
   runtime_summary?: SliceRuntimeSummary;
   engine_result?: SliceEngineResult;
+  profile_application?: SliceProfileApplication;
 }>;
 
 export type DirectPrintSlot = Readonly<{
@@ -528,10 +550,6 @@ export async function fetchSliceJob(jobId: string): Promise<SliceJob> {
   return jsonRequest<SliceJob>(`${API_PREFIX}/jobs/${encodeURIComponent(jobId)}`);
 }
 
-export async function cancelSliceJob(jobId: string): Promise<SliceJob> {
-  return jsonRequest<SliceJob>(`${API_PREFIX}/jobs/${encodeURIComponent(jobId)}/cancel`, { method: "POST", body: JSON.stringify({ confirmed: true }) });
-}
-
 export async function downloadSliceArtifact(jobId: string): Promise<{ blob: Blob; filename: string; sha256: string | null }> {
   const response = await authenticatedFetch(`${API_PREFIX}/jobs/${encodeURIComponent(jobId)}/artifact`, { headers: { Accept: "model/3mf,application/octet-stream" } });
   if (!response.ok) throw new Error(await responseError(response));
@@ -546,6 +564,21 @@ export async function fetchDirectPrintStatus(): Promise<DirectPrintStatus> {
 
 export async function prepareDirectPrint(jobId: string, printerId: string): Promise<PreparedDirectPrint> {
   return jsonRequest<PreparedDirectPrint>(`${API_PREFIX}/jobs/${encodeURIComponent(jobId)}/print/prepare`, { method: "POST", body: JSON.stringify({ printer_id: printerId, confirmed: true }) });
+}
+
+export async function fetchDirectPrintTransferBaseline(jobId: string, printerId: string): Promise<string> {
+  const query = new URLSearchParams({ printer_id: printerId });
+  const response = await authenticatedFetch(
+    `${API_PREFIX}/jobs/${encodeURIComponent(jobId)}/print/transfer-status?${query}`,
+    { method: "GET", cache: "no-store" },
+  );
+  if (response.status === 404) return "";
+  if (!response.ok) throw new Error(await responseError(response));
+  const payload = await response.json() as { data?: DirectPrintTransferStatus };
+  if (!payload.data || payload.data.job_id !== jobId || payload.data.printer_id !== printerId || !payload.data.started_at) {
+    throw new Error("Der vorherige Transferstand konnte nicht eindeutig zugeordnet werden.");
+  }
+  return payload.data.started_at;
 }
 
 export async function fetchDirectPrintTransferStatus(
@@ -567,3 +600,57 @@ export async function startDirectPrint(prepared: PreparedDirectPrint, options: D
 export async function discardPreparedPrint(prepared: PreparedDirectPrint): Promise<Readonly<{ discarded: boolean; remote_deleted: boolean }>> {
   return jsonRequest<Readonly<{ discarded: boolean; remote_deleted: boolean }>>(`${API_PREFIX}/jobs/${encodeURIComponent(prepared.job_id)}/print/discard`, { method: "POST", body: JSON.stringify({ token: prepared.token, confirmed: true }) });
 }
+
+export type SlicerQueueStatus = Readonly<{
+  total_jobs: number;
+  queued_jobs: number;
+  running_jobs: number;
+  completed_jobs: number;
+  failed_jobs: number;
+}>;
+
+export type BatchCreateJobResult = Readonly<{
+  created: number;
+  failed: number;
+  jobs: SliceJob[];
+  errors: string[];
+}>;
+
+export async function getQueueStatus(): Promise<SlicerQueueStatus> {
+  return jsonRequest<SlicerQueueStatus>(`${API_PREFIX}/queue/status`);
+}
+
+export async function batchCreateJobs(
+  files: File[],
+  plateIndex = 0,
+  context?: BatchQueueContext,
+  processOverrides?: SliceProcessOverrides,
+): Promise<BatchCreateJobResult> {
+  if (!context || !processOverrides) throw new Error("Für Batch-Aufträge fehlt die gültige Studio-Profil- und Prozesseinstellung.");
+  const formData = new FormData();
+  files.forEach((file, index) => {
+    formData.append(`files_${index}`, file);
+  });
+  formData.append('plate_index', String(plateIndex));
+  formData.append('auto_release', 'false');
+  formData.append("studio_plate", JSON.stringify(context.studio_plate));
+  formData.append("material_plan", JSON.stringify(context.material_plan));
+  formData.append("process_overrides", JSON.stringify(processOverrides));
+
+  const response = await authenticatedFetch(
+    `${API_PREFIX}/jobs/batch`,
+    { method: "POST", body: formData },
+  );
+  if (!response.ok) throw new Error(await responseError(response));
+  const payload = await response.json() as { data: BatchCreateJobResult };
+  return payload.data;
+}
+
+export async function releaseQueueJob(jobId: string): Promise<{ released: boolean }> {
+  return jsonRequest<{ released: boolean }>(`${API_PREFIX}/jobs/${encodeURIComponent(jobId)}/release`, { method: "POST" });
+}
+
+export async function releaseAllQueuedJobs(): Promise<{ released: number }> {
+  return jsonRequest<{ released: number }>(`${API_PREFIX}/jobs/release-all`, { method: "POST" });
+}
+
