@@ -58,8 +58,7 @@ abstract class JobsWorkspaceV8 extends HTMLElement {
   #slicerRow(): string {
     const job = this.#state.slicer;
     if (this.mode !== "tasks" || !job) return "";
-    const active = ["queued", "running", "cancelling"].includes(job.status);
-    return `<article class="slicer"><div><strong>${esc(job.model_file || job.output_file || "Slicer-Auftrag")}</strong><small>Slicer · ${esc(job.status)}</small></div><div class="actions">${active ? `<button class="danger" data-cancel-slicer ${job.status === "cancelling" ? "disabled" : ""}>${job.status === "cancelling" ? "Wird abgebrochen …" : "Slicing abbrechen"}</button>` : ""}</div></article>`;
+    return `<article class="slicer"><div><strong>${esc(job.model_file || job.output_file || "Slicer-Auftrag")}</strong><small>Slicer · ${esc(job.status)}</small></div></article>`;
   }
 
   async #repeat(job: V6Job): Promise<void> {
@@ -96,16 +95,6 @@ abstract class JobsWorkspaceV8 extends HTMLElement {
     }
   }
 
-  async #cancelSlicer(): Promise<void> {
-    const job = this.#state.slicer;
-    if (!job || !window.confirm("Slicerauftrag wirklich abbrechen?")) return;
-    try {
-      await jobActivityStore.cancelActiveSlicerJob(job.id);
-      this.#message = "Slicerabbruch wurde angefordert.";
-    } catch (error) {
-      this.#error = errorMessage(error);
-    }
-  }
 
   #render(): void {
     if (!this.isConnected) return;
@@ -133,7 +122,6 @@ abstract class JobsWorkspaceV8 extends HTMLElement {
       const job = jobs.find((item) => this.#id(item) === button.dataset.remove);
       if (job) void this.#remove(job);
     }));
-    this.#root.querySelector<HTMLButtonElement>("[data-cancel-slicer]")?.addEventListener("click", () => void this.#cancelSlicer());
   }
 }
 
