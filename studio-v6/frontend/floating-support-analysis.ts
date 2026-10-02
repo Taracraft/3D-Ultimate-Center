@@ -6,6 +6,10 @@ export type FloatingSupportIssue = Readonly<{
   name: string;
   floatingShellCount: number;
   minimumGapMm: number;
+  overhangTriangleCount: number;
+  maxOverhangMm: number;
+  maxOverhangAngleDeg: number;
+  bridgeOverhangMm: number;
 }>;
 
 const BED_TOLERANCE_MM = 0.35;
@@ -167,10 +171,66 @@ function componentBounds(instance: MeshInstance): ComponentBounds[] {
   return [...byRoot.values()];
 }
 
-export function analyzeFloatingSupportNeeds(instances: readonly MeshInstance[]): FloatingSupportIssue[] {
+const DEFAULT_SUPPORT_THRESHOLD_ANGLE_DEG = 30;
+const BRIDGE_VERTICAL_TOLERANCE_MM = 0.25;
+const MIN_OVERHANG_SPAN_MM = 0.25;
+
+function overhangMetrics(instance: MeshInstance, thresholdAngleDeg: number): {
+  overhangTriangleCount: number;
+  maxOverhangMm: number;
+  maxOverhangAngleDeg: number;
+  bridgeOverhangMm: number;
+} {
+  const positions = instance.geometry.positions;
+  const whole = wholeInstanceBounds(instance);
+  const rawThreshold = Number(thresholdAngleDeg);
+  const threshold = Number.isFinite(rawThreshold)
+    ? Math.max(0, Math.min(89, rawThreshold))
+    : DEFAULT_SUPPORT_THRESHOLD_ANGLE_DEG;
+  let overhangTriangleCount = 0;
+  let maxOverhangMm = 0;
+  let maxOverhangAngleDeg = 0;
+  let bridgeOverhangMm = 0;
+  for (let triangle = 0; triangle < Math.floor(positions.length / 9); triangle += 1) {
+    const offset = triangle * 9;
+    const a = transformedVertex(instance, positions[offset]!, positions[offset + 1]!, positions[offset + 2]!);
+    const b = transformedVertex(instance, positions[offset + 3]!, positions[offset + 4]!, positions[offset + 5]!);
+    const c = transformedVertex(instance, positions[offset + 6]!, positions[offset + 7]!, positions[offset + 8]!);
+    const ux = b[0] - a[0]; const uy = b[1] - a[1]; const uz = b[2] - a[2];
+    const vx = c[0] - a[0]; const vy = c[1] - a[1]; const vz = c[2] - a[2];
+    const nx = uy * vz - uz * vy; const ny = uz * vx - ux * vz; const nz = ux * vy - uy * vx;
+    const normalLength = Math.hypot(nx, ny, nz);
+    // Use direction, not triangle area; fine/skinny triangles need the same warning.
+    const orientation = instance.scale[0] * instance.scale[1] * instance.scale[2] < 0 ? -1 : 1;
+    if (!normalLength || (nz * orientation) / normalLength >= -0.05) continue;
+    const surfaceAngleDeg = Math.acos(Math.min(1, Math.max(0, Math.abs(nz) / normalLength))) * 180 / Math.PI;
+    if (surfaceAngleDeg > threshold) continue;
+    const minZ = Math.min(a[2], b[2], c[2]);
+    if (minZ <= whole.minZ + BED_TOLERANCE_MM) continue;
+    const spanAB = Math.hypot(a[0] - b[0], a[1] - b[1]);
+    const spanAC = Math.hypot(a[0] - c[0], a[1] - c[1]);
+    const spanBC = Math.hypot(b[0] - c[0], b[1] - c[1]);
+    const span = Math.max(spanAB, spanAC, spanBC);
+    if (span < MIN_OVERHANG_SPAN_MM) continue;
+    overhangTriangleCount += 1;
+    maxOverhangMm = Math.max(maxOverhangMm, span);
+    maxOverhangAngleDeg = Math.max(maxOverhangAngleDeg, surfaceAngleDeg);
+    if (Math.max(a[2], b[2], c[2]) - minZ <= BRIDGE_VERTICAL_TOLERANCE_MM) bridgeOverhangMm = Math.max(bridgeOverhangMm, span);
+  }
+  return { overhangTriangleCount, maxOverhangMm, maxOverhangAngleDeg, bridgeOverhangMm };
+}
+
+export function analyzeFloatingSupportNeeds(
+  instances: readonly MeshInstance[],
+  supportThresholdAngleDeg = DEFAULT_SUPPORT_THRESHOLD_ANGLE_DEG,
+): FloatingSupportIssue[] {
   const components: SupportComponent[] = [];
+  const overhangByInstance = new Map<string, ReturnType<typeof overhangMetrics>>();
+  const names = new Map<string, string>();
   for (const instance of instances) {
     if (!instance.visible || !instance.geometry.positions.length) continue;
+    names.set(instance.id, instance.name);
+    overhangByInstance.set(instance.id, overhangMetrics(instance, supportThresholdAngleDeg));
     for (const bounds of componentBounds(instance)) {
       components.push({ instanceId: instance.id, name: instance.name, bounds });
     }
@@ -210,10 +270,16 @@ export function analyzeFloatingSupportNeeds(instances: readonly MeshInstance[]):
     byInstance.set(component.instanceId, current);
   });
 
-  return [...byInstance.entries()].map(([instanceId, issue]) => ({
-    instanceId,
-    name: issue.name,
-    floatingShellCount: issue.count,
-    minimumGapMm: Number.isFinite(issue.minimumGapMm) ? issue.minimumGapMm : 0,
-  }));
+  const instanceIds = new Set([...names.keys(), ...byInstance.keys()]);
+  return [...instanceIds].map((instanceId) => {
+    const floating = byInstance.get(instanceId);
+    const metrics = overhangByInstance.get(instanceId) ?? { overhangTriangleCount: 0, maxOverhangMm: 0, maxOverhangAngleDeg: 0, bridgeOverhangMm: 0 };
+    return {
+      instanceId,
+      name: floating?.name ?? names.get(instanceId) ?? "Objekt",
+      floatingShellCount: floating?.count ?? 0,
+      minimumGapMm: floating && Number.isFinite(floating.minimumGapMm) ? floating.minimumGapMm : 0,
+      ...metrics,
+    };
+  }).filter((issue) => issue.floatingShellCount > 0 || issue.overhangTriangleCount > 0);
 }
