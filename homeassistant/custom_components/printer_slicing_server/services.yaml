@@ -1,0 +1,72 @@
+upload_model:
+  name: Modell hochladen
+  description: Lädt ein Modell aus dem freigegebenen lokalen Upload-Verzeichnis zum Slicing Server hoch.
+  fields:
+    source_path:
+      name: Quelldatei
+      description: Vollständiger Pfad unter /config/3d-printer-slicing-server/uploads.
+      required: true
+      example: /config/3d-printer-slicing-server/uploads/model.stl
+      selector:
+        text:
+    target_filename:
+      name: Zieldateiname
+      description: Optionaler Dateiname auf dem Slicing Server.
+      required: false
+      example: model.stl
+      selector:
+        text:
+
+create_job:
+  name: Slicing-Auftrag erstellen
+  description: Erstellt einen universellen Slicing-Auftrag auf dem 3D-Printer Slicing Server.
+  fields:
+    printer_profile:
+      name: Druckerprofil
+      required: true
+      example: bambu_lab_a1_04
+      selector:
+        text:
+    input_file:
+      name: Eingabedatei
+      required: true
+      example: model.stl
+      selector:
+        text:
+    engine:
+      name: Engine
+      required: false
+      default: auto
+      selector:
+        select:
+          options:
+            - auto
+            - bambu_studio
+            - prusaslicer
+            - curaengine
+    process_profile:
+      name: Prozessprofil
+      required: false
+      default: default
+      selector:
+        text:
+    filament_profile:
+      name: Filamentprofil
+      required: false
+      default: default
+      selector:
+        text:
+    output_format:
+      name: Ausgabeformat
+      required: false
+      default: gcode
+      selector:
+        select:
+          options:
+            - gcode
+            - 3mf
+    job_id:
+      name: Job-ID
+      required: false
+      selector:
+        text:
