@@ -77,6 +77,7 @@ export class V6Api {
   async executeCommand(
     printerId: unknown,
     command: string,
+    parameters?: Readonly<Record<string, unknown>>,
   ): Promise<Record<string, unknown>> {
     return this.#request<Record<string, unknown>>(
       "POST",
@@ -84,6 +85,7 @@ export class V6Api {
       {
         printer_id: printerId,
         command,
+        ...(parameters ?? {}),
         confirmed: true,
       },
     );
