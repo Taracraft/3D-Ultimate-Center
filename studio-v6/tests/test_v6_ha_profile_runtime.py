@@ -341,3 +341,14 @@ async def test_invalid_profile_payloads_are_rejected() -> None:
                 "payload": {},
             }
         )
+
+
+@pytest.mark.asyncio
+async def test_visible_builtin_a1_keeps_hardware_limits_without_duplicate_nozzle_profiles() -> None:
+    runtime = module.V6ProfileRuntime(object())
+    catalog = await runtime.async_catalog()
+    a1 = next(p for p in catalog["profiles"] if p["id"] == "printer.bambu_a1")
+    assert a1["payload"]["max_nozzle_temperature_c"] == 300
+    assert a1["payload"]["max_bed_temperature_c"] == 100
+    assert "nozzle_diameter_mm" not in a1["payload"]
+    assert "default_nozzle_profile_id" not in a1["payload"]

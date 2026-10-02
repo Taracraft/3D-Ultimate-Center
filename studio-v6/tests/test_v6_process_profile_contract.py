@@ -411,3 +411,14 @@ def test_support_interface_bottom_layers_must_be_integer() -> None:
     }
     with pytest.raises(CONTRACTS.ProcessProfileContractError, match="support_interface_bottom_layers"):
         CONTRACTS.resolve_selected_process_contract(_catalog(profile), NOZZLES.a1_nozzle_contract(.4))
+
+
+def test_empty_legacy_sound_fields_do_not_block_local_process() -> None:
+    profile = {"id": "local.test", "name": "A1 0.20 Test", "kind": "process", "source": "local", "payload": {
+        "layer_height_mm": .20, "start_sound_gcode": "", "end_sound_gcode": " ",
+        "custom_gcode_1": "", "custom_gcode_2": ""}}
+    result = CONTRACTS.resolve_selected_process_contract(_catalog(profile), NOZZLES.a1_nozzle_contract(.4))
+    assert result["settings"] == {"layer_height": .20}
+    profile["payload"]["custom_gcode_1"] = "M400"
+    with pytest.raises(CONTRACTS.ProcessProfileContractError, match="custom_gcode_1"):
+        CONTRACTS.resolve_selected_process_contract(_catalog(profile), NOZZLES.a1_nozzle_contract(.4))

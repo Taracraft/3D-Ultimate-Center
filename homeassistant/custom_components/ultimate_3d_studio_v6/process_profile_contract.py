@@ -229,7 +229,11 @@ def _local_settings(
                 "Düsendurchmesser."
             )
 
-    unknown = set(payload) - set(_LOCAL_SETTING_MAP) - _LOCAL_METADATA
+    empty_legacy_gcode = {
+        key for key in ("start_sound_gcode", "end_sound_gcode", "custom_gcode_1", "custom_gcode_2")
+        if isinstance(payload.get(key), str) and not payload[key].strip()
+    }
+    unknown = set(payload) - set(_LOCAL_SETTING_MAP) - _LOCAL_METADATA - empty_legacy_gcode
     if unknown:
         raise ProcessProfileContractError(
             "Das lokale Prozessprofil enthält noch nicht materialisierbare "

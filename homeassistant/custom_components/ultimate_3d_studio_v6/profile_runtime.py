@@ -59,17 +59,17 @@ BUILTIN_PROFILES: tuple[dict[str, Any], ...] = (
     _profile("printer.bambu_a1", "printer", "Bambu Lab A1", {
         "vendor": "Bambu Lab", "model": "A1", "technology": "FFF",
         "build_volume_mm": [256, 256, 256],
-        "default_nozzle_profile_id": "nozzle.0_4_hardened",
+        # Hardware limits belong to the printer, independently of nozzle choice.
+        "max_nozzle_temperature_c": 300,
+        "max_bed_temperature_c": 100,
     }),
     _profile("printer.bambu_x1c", "printer", "Bambu Lab X1 Carbon", {
         "vendor": "Bambu Lab", "model": "X1 Carbon", "technology": "FFF",
         "build_volume_mm": [256, 256, 256],
-        "default_nozzle_profile_id": "nozzle.0_4_hardened",
     }),
     _profile("printer.bambu_p1s", "printer", "Bambu Lab P1S", {
         "vendor": "Bambu Lab", "model": "P1S", "technology": "FFF",
         "build_volume_mm": [256, 256, 256],
-        "default_nozzle_profile_id": "nozzle.0_4_hardened",
     }),
     _profile("nozzle.0_2_stainless", "nozzle", "0,2 mm Edelstahl", {
         "diameter_mm": 0.2, "material": "stainless_steel",

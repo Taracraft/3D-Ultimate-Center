@@ -176,10 +176,22 @@ def printer_profile_with_validated_limits(
                 and candidate_bed > 0
             ):
                 candidates.append(profile)
+    # The public catalog intentionally excludes nozzle-specific printer rows.
+    # The curated A1 printer is the model-level authority for every supported nozzle.
+    policy = "exact_local_a1_nozzle_authority"
+    if not candidates and isinstance(profiles, list) and target_model in {"a1", "bambu lab a1"}:
+        candidates = [profile for profile in profiles if isinstance(profile, dict)
+                      and profile.get("id") == "printer.bambu_a1"
+                      and profile.get("kind") == "printer"
+                      and profile.get("source") == "builtin"
+                      and _payload(profile).get("model") == "A1"
+                      and _payload(profile).get("max_nozzle_temperature_c") == 300
+                      and _payload(profile).get("max_bed_temperature_c") == 100]
+        policy = "validated_builtin_a1_hardware"
     if len(candidates) != 1:
         raise CompatibilityContractError(
-            "Für das gewählte Cloud-A1-Profil wurde keine eindeutige validierte "
-            "lokale Temperaturautorität gefunden."
+            "Für das gewählte A1-Druckerprofil fehlen eindeutige validierte "
+            "Hardware-Temperaturgrenzen im Profilkatalog."
         )
 
     authority = candidates[0]
@@ -192,7 +204,7 @@ def printer_profile_with_validated_limits(
         authority_payload["max_bed_temperature_c"]
     )
     merged["temperature_limits_source_profile_id"] = str(authority.get("id") or "")
-    merged["temperature_limits_policy"] = "exact_local_a1_nozzle_authority"
+    merged["temperature_limits_policy"] = policy
     result["payload"] = merged
     return result
 

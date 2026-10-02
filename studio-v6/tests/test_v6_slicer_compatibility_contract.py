@@ -354,6 +354,26 @@ def test_cloud_a1_machine_limit_resolution_fails_closed_without_exact_nozzle_mat
     }
     with pytest.raises(
         CONTRACT.CompatibilityContractError,
-        match="keine eindeutige validierte",
+        match="eindeutige validierte",
     ):
+        CONTRACT.printer_profile_with_validated_limits(catalog, cloud)
+
+
+def test_nozzle_independent_builtin_a1_resolves_cloud_hardware_limits() -> None:
+    authority = {"id": "printer.bambu_a1", "kind": "printer", "source": "builtin",
+                 "payload": {"model": "A1", "max_nozzle_temperature_c": 300,
+                             "max_bed_temperature_c": 100,
+                             "temperature_limits_policy": "validated_builtin_a1_hardware"}}
+    nozzle = {"id": "nozzle.04", "kind": "nozzle", "payload": {"diameter_mm": 0.4}}
+    cloud = {"id": "cloud.a1", "payload": {"model": "A1", "custom_setting": "preserved"}}
+    catalog = {"selection": {"nozzle_profile_id": nozzle["id"]}, "profiles": [authority, nozzle]}
+    result = CONTRACT.printer_profile_with_validated_limits(catalog, cloud)
+    assert result["payload"]["max_nozzle_temperature_c"] == 300
+    assert result["payload"]["max_bed_temperature_c"] == 100
+    assert result["payload"]["temperature_limits_policy"] == "validated_builtin_a1_hardware"
+    assert result["payload"]["custom_setting"] == "preserved"
+    assert "max_nozzle_temperature_c" not in cloud["payload"]
+    # A1 mini must not inherit the full-size A1 bed limit.
+    cloud["payload"]["model"] = "A1 mini"
+    with pytest.raises(CONTRACT.CompatibilityContractError):
         CONTRACT.printer_profile_with_validated_limits(catalog, cloud)
