@@ -1,0 +1,38 @@
+name: Rebuild Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  source-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Compile Python sources
+        run: |
+          python -m compileall -q studio-v6/core studio-v6/api
+          python -m compileall -q homeassistant/custom_components/ultimate_3d_studio_v6
+          python -m compileall -q homeassistant/custom_components/printer_control_center
+          python -m compileall -q homeassistant/custom_components/printer_slicing_server
+          python -m compileall -q slicing-server
+      - name: Install frontend dependencies
+        working-directory: studio-v6
+        run: npm install
+      - name: Typecheck frontend
+        working-directory: studio-v6
+        run: npm run typecheck
+      - name: Build frontend
+        working-directory: studio-v6
+        run: npm run build
