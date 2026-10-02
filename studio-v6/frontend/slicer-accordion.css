@@ -1,0 +1,98 @@
+ultimate-3d-slicer-workspace {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 720px;
+  align-self: stretch;
+}
+
+ultimate-3d-slicer-workspace > .slicer {
+  display: grid;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+ultimate-3d-slicer-workspace .workspace {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.accordion {
+  margin: 0 0 9px;
+  border: 1px solid #353c43;
+  border-radius: 9px;
+  background: #20262b;
+  overflow: hidden;
+}
+
+.accordion[open] {
+  border-color: #46515a;
+}
+
+.accordion summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 11px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: #b8c2ca;
+  background: #1d2328;
+}
+
+.accordion summary::-webkit-details-marker {
+  display: none;
+}
+
+.accordion summary::before {
+  content: '›';
+  font-size: 18px;
+  line-height: 1;
+  transition: transform .15s;
+}
+
+.accordion[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.accordion summary span {
+  margin-right: auto;
+}
+
+.accordion summary small {
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #83909a;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.accordion-body {
+  padding: 10px;
+}
+
+.job .accordion {
+  margin: 0;
+}
+
+.job[data-status=succeeded] .accordion {
+  border-color: #3f7c48;
+  background: #1d2a21;
+}
+
+@media (max-width: 760px) {
+  ultimate-3d-slicer-workspace {
+    min-height: 0;
+  }
+}
