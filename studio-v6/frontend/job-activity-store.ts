@@ -1,5 +1,4 @@
 import {
-  cancelSliceJob,
   fetchSliceJob,
   type SliceJob,
 } from "./slicing-api.js";
@@ -42,7 +41,6 @@ class JobActivityStore {
   #authenticationBlocked = false;
   #slicerJobId = "";
   #restoredSlicerJobId = "";
-  #slicerCancelPromise: Promise<SliceJob> | null = null;
   #lastAuditFingerprint = "";
   #snapshot: JobActivitySnapshot = {
     health: null,
@@ -101,28 +99,6 @@ class JobActivityStore {
     this.#persistActiveSlicerJob("");
     this.#snapshot = { ...this.#snapshot, slicer: null, updatedAt: Date.now() };
     this.#emit();
-  }
-
-  async cancelActiveSlicerJob(jobId: string): Promise<SliceJob> {
-    const slicer = this.#snapshot.slicer;
-    if (!slicer || slicer.id !== jobId || !ACTIVE_SLICE_STATES.has(slicer.status)) {
-      throw new Error("Der Slicerauftrag ist nicht mehr abbrechbar.");
-    }
-    if (this.#slicerCancelPromise) return this.#slicerCancelPromise;
-    const cancelling: SliceJob = { ...slicer, status: "cancelling", cancel_requested: true };
-    this.#snapshot = { ...this.#snapshot, slicer: cancelling, updatedAt: Date.now() };
-    this.#emit();
-    this.#slicerCancelPromise = cancelSliceJob(jobId);
-    try {
-      const updated = await this.#slicerCancelPromise;
-      if (this.#slicerJobId === jobId) this.registerSlicerJob(updated);
-      return updated;
-    } catch (error) {
-      if (this.#slicerJobId === jobId) this.registerSlicerJob(slicer);
-      throw error;
-    } finally {
-      this.#slicerCancelPromise = null;
-    }
   }
 
   start(): void {
