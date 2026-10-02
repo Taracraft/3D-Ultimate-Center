@@ -1,25 +1,87 @@
-import type { V6Job, V6Printer } from "./v6-api.js";
-
-type CapabilityMap = readonly Readonly<Record<string, unknown>>[] | Readonly<Record<string, unknown>> | null | undefined;
+import { commandAvailable } from "./printer-command-policy.js";
+import { printerCommandStore, type PrinterCommandSnapshot } from "./printer-command-store.js";
+import {
+  PRINT_SPEED_MODES,
+  printSpeedLevel,
+  type PrintSpeedLevel,
+} from "./print-live-telemetry.js";
+import type { V6CommandCapability, V6Job, V6Printer } from "./v6-api.js";
 
 export class Ultimate3DPrintSpeedControl extends HTMLElement {
+  readonly #root = this.attachShadow({ mode: "open" });
   #printer: V6Printer | null = null;
   #job: V6Job | null = null;
-  #capabilities: CapabilityMap = null;
+  #capabilities: readonly V6CommandCapability[] = [];
+  #snapshot: PrinterCommandSnapshot = printerCommandStore.snapshot;
+  #unsubscribe: (() => void) | null = null;
 
-  set printer(value: V6Printer | null) { this.#printer = value; this.#render(); }
-  get printer(): V6Printer | null { return this.#printer; }
-  set job(value: V6Job | null) { this.#job = value; this.#render(); }
-  get job(): V6Job | null { return this.#job; }
-  set capabilities(value: CapabilityMap) { this.#capabilities = value; this.#render(); }
-  get capabilities(): CapabilityMap { return this.#capabilities; }
+  set printer(value: V6Printer | null) {
+    this.#printer = value;
+    this.#update();
+  }
 
-  connectedCallback(): void { this.#render(); }
+  set job(value: V6Job | null) {
+    this.#job = value;
+    this.#update();
+  }
 
-  #render(): void {
-    const speed = String((this.#printer as unknown as Record<string, unknown> | null)?.speed_profile || "standard");
-    const disabled = !this.#job || !this.#printer;
-    this.innerHTML = `<style>:host{display:block}.speed{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.speed button{border:1px solid rgba(125,211,252,.45);background:rgba(15,23,42,.72);color:#dff7ff;border-radius:6px;padding:4px 8px;font:inherit}.speed button[disabled]{opacity:.45}.speed .active{background:rgba(34,197,94,.22);border-color:#22c55e}</style><div class="speed" aria-label="Druckgeschwindigkeit"><span>Tempo</span>${["silent","standard","sport","ludicrous"].map((item) => `<button type="button" data-speed="${item}" class="${speed === item ? "active" : ""}" ${disabled ? "disabled" : ""}>${item === "silent" ? "50%" : item === "standard" ? "100%" : item === "sport" ? "125%" : "166%"}</button>`).join("")}</div>`;
+  set capabilities(value: readonly V6CommandCapability[]) {
+    this.#capabilities = value;
+    this.#update();
+  }
+
+  connectedCallback(): void {
+    if (!this.#unsubscribe) {
+      this.#unsubscribe = printerCommandStore.subscribe((snapshot) => {
+        this.#snapshot = snapshot;
+        this.#update();
+      });
+    }
+    this.#update();
+  }
+
+  disconnectedCallback(): void {
+    this.#unsubscribe?.();
+    this.#unsubscribe = null;
+  }
+
+  async #setSpeed(level: PrintSpeedLevel): Promise<void> {
+    const printer = this.#printer;
+    if (!printer || !commandAvailable("speed", printer, this.#capabilities, this.#job)) return;
+    try {
+      await printerCommandStore.execute({
+        printer,
+        command: "speed",
+        capabilities: this.#capabilities,
+        job: this.#job,
+        speedLevel: level,
+      });
+    } catch {
+      // Der zentrale Store hält die sichtbare Fehlermeldung.
+    }
+  }
+
+  #update(): void {
+    if (!this.isConnected) return;
+    const current = printSpeedLevel(this.#printer);
+    const busy = Boolean(this.#printer && printerCommandStore.isBusy(this.#printer.printer_id));
+    const enabled = Boolean(
+      this.#printer
+      && !busy
+      && commandAvailable("speed", this.#printer, this.#capabilities, this.#job),
+    );
+    this.#root.innerHTML = `<style>
+      :host{display:block}
+      *{box-sizing:border-box}
+      .speed{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+      .speed>span{color:#91a5b9;font-size:10px;font-weight:800;text-transform:uppercase}
+      button{min-height:32px;padding:6px 9px;border:1px solid #355773;border-radius:8px;background:#102131;color:#b9cada;font-weight:800;cursor:pointer}
+      button.active{border-color:#42c8ff;background:#12314a;color:#fff}
+      button:disabled{opacity:.4;cursor:not-allowed}
+    </style><div class="speed"><span>Drucktempo</span>${PRINT_SPEED_MODES.map((mode) => `<button type="button" data-speed="${mode.level}" class="${current === mode.level ? "active" : ""}" ${enabled ? "" : "disabled"}>${mode.label}</button>`).join("")}</div>`;
+    this.#root.querySelectorAll<HTMLButtonElement>("[data-speed]").forEach((button) => {
+      button.addEventListener("click", () => void this.#setSpeed(Number(button.dataset.speed) as PrintSpeedLevel));
+    });
   }
 }
 
