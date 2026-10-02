@@ -18,6 +18,28 @@ export type MakerWorldPlate = Readonly<{
   filaments: readonly unknown[];
 }>;
 
+export type MakerWorldComment = Readonly<{
+  id: string;
+  author: string;
+  avatar_url: string | null;
+  content: string;
+  created_at: string;
+  like_count: number;
+  reply_count: number;
+  rating: number;
+  boosted: boolean;
+  original_available: boolean;
+  replies: readonly MakerWorldComment[];
+}>;
+
+export type MakerWorldRecommendation = Readonly<{
+  id: string;
+  title: string;
+  creator: string;
+  thumbnail_url: string | null;
+  stats: MakerWorldStats;
+}>;
+
 export type MakerWorldInstance = Readonly<{
   id: string;
   design_id: string;
@@ -41,6 +63,7 @@ export type MakerWorldDesign = Readonly<{
   creator: string;
   thumbnail_url: string | null;
   images: readonly string[];
+  description_images?: readonly string[];
   tags: readonly string[];
   stats: MakerWorldStats;
   model_url: string;
@@ -51,6 +74,9 @@ export type MakerWorldDesign = Readonly<{
 export type MakerWorldDetail = MakerWorldDesign & Readonly<{
   instances: readonly MakerWorldInstance[];
   instance_count: number;
+  comments: readonly MakerWorldComment[];
+  comment_count: number;
+  recommendations: readonly MakerWorldRecommendation[];
 }>;
 
 export type MakerWorldBrowseResult = Readonly<{
@@ -125,6 +151,7 @@ export class MakerWorldApi {
     return {
       ...data,
       images: Array.isArray(data.images) ? data.images : [],
+      description_images: Array.isArray(data.description_images) ? data.description_images : [],
       tags: Array.isArray(data.tags) ? data.tags : [],
       instances,
     };
