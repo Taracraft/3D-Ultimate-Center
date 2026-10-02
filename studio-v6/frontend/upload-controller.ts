@@ -10,6 +10,11 @@ export type UploadProgress = Readonly<{
   percent: number;
 }>;
 
+export type UploadOptions = Readonly<{
+  folder?: string;
+  overwrite?: boolean;
+}>;
+
 export class UploadController {
   constructor(
     private readonly api: StudioApiClient,
@@ -21,6 +26,7 @@ export class UploadController {
     sourceUi: UploadSource,
     target: UploadTarget,
     onProgress?: (progress: UploadProgress) => void,
+    options: UploadOptions = {},
   ): Promise<unknown> {
     const session = (await this.api.createUpload({
       original_name: file.name,
@@ -28,6 +34,9 @@ export class UploadController {
       source_ui: sourceUi,
       target,
       chunk_size: this.chunkSize,
+      folder: options.folder ?? "",
+      overwrite: options.overwrite ?? false,
+      confirmed: true,
     })) as { id: string };
 
     let offset = 0;
