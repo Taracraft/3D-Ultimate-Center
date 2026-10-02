@@ -1,3 +1,4 @@
+import { V6_BRANDING } from "./branding.js";
 import { yieldToBrowser } from "./browser-yield.js";
 import { transformPoint } from "./mesh-export.js";
 import type { ThreeMfMesh, ThreeMfMetadata } from "./three-mf-export.js";
@@ -112,11 +113,14 @@ async function* modelXmlChunks(
   metadata: ThreeMfMetadata,
   onProgress?: (progress: number) => void,
 ): AsyncGenerator<Uint8Array> {
-  const colors = meshes.map((mesh) => normalizeColor(mesh.color));
+  const materials = metadata.materials?.length
+    ? metadata.materials.map((item) => ({ name: String(item.name || "Material"), color: normalizeColor(item.color) }))
+    : meshes.map((mesh, index) => ({ name: `Material ${index + 1}`, color: normalizeColor(mesh.color) }));
+  const colors = materials.map((item) => item.color);
   const metadataEntries = [
     ["Title", metadata.title],
-    ["Description", metadata.description || "Exportiert mit Ultimate 3D Studio V6"],
-    ["Application", "Ultimate 3D Studio V6"],
+    ["Description", metadata.description || V6_BRANDING.exportDescription],
+    ["Application", V6_BRANDING.exportApplication],
     ["Ultimate3D:BuildPlateProfile", metadata.buildPlateProfileId || ""],
     ["Ultimate3D:BuildPlateName", metadata.buildPlateName || ""],
     ["Ultimate3D:PlateWidthMm", metadata.plateWidthMm ?? ""],
@@ -128,7 +132,7 @@ async function* modelXmlChunks(
   const totalTriangles = Math.max(1, meshes.reduce((sum, mesh) => sum + mesh.geometry.triangleCount, 0));
   const totalWork = totalTriangles * 2;
   let completedWork = 0;
-  let buffer = `<?xml version="1.0" encoding="UTF-8"?><model unit="millimeter" xml:lang="de-DE" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">${metadataEntries}<resources><basematerials id="1">${colors.map((color, index) => `<base name="Material ${index + 1}" displaycolor="${color}"/>`).join("")}</basematerials>`;
+  let buffer = `<?xml version="1.0" encoding="UTF-8"?><model unit="millimeter" xml:lang="de-DE" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">${metadataEntries}<resources><basematerials id="1">${materials.map((item) => `<base name="${xml(item.name)}" displaycolor="${item.color}"/>`).join("")}</basematerials>`;
 
   const flush = async (): Promise<Uint8Array | null> => {
     if (!buffer.length) return null;
@@ -143,7 +147,8 @@ async function* modelXmlChunks(
     const mesh = meshes[meshIndex]!;
     const objectId = meshIndex + 2;
     const positions = mesh.geometry.positions;
-    buffer += `<object id="${objectId}" type="model" name="${xml(mesh.name)}" pid="1" pindex="${meshIndex}"><mesh><vertices>`;
+    const materialIndex = Number.isInteger(mesh.materialIndex) && mesh.materialIndex! >= 0 && mesh.materialIndex! < colors.length ? mesh.materialIndex! : Math.min(meshIndex, colors.length - 1);
+    buffer += `<object id="${objectId}" type="model" name="${xml(mesh.name)}" pid="1" pindex="${materialIndex}"><mesh><vertices>`;
 
     for (let index = 0; index < positions.length; index += 9) {
       const points = [
@@ -162,7 +167,10 @@ async function* modelXmlChunks(
     buffer += `</vertices><triangles>`;
     let vertexIndex = 0;
     for (let index = 0; index < positions.length; index += 9) {
-      buffer += `<triangle v1="${vertexIndex}" v2="${vertexIndex + 1}" v3="${vertexIndex + 2}"/>`;
+      const paintedMaterial = mesh.triangleMaterialIndices?.[index / 9];
+      const faceMaterial = Number.isInteger(paintedMaterial) && paintedMaterial! >= 0 && paintedMaterial! < colors.length ? paintedMaterial! : materialIndex;
+      const materialProperty = faceMaterial === materialIndex ? "" : ` pid="1" p1="${faceMaterial}"`;
+      buffer += `<triangle v1="${vertexIndex}" v2="${vertexIndex + 1}" v3="${vertexIndex + 2}"${materialProperty}/>`;
       vertexIndex += 3;
       completedWork += 1;
       if (buffer.length >= XML_CHUNK_CHARACTERS) {
