@@ -1,6 +1,7 @@
+import { V6_BRANDING } from "./branding.js";
 import { transformPoint, type ExportMesh } from "./mesh-export.js";
 
-export type ThreeMfMesh = ExportMesh & Readonly<{ color?: string }>;
+export type ThreeMfMesh = ExportMesh & Readonly<{ color?: string; materialIndex?: number; triangleMaterialIndices?: readonly (number | null | undefined)[] }>;
 export type ThreeMfMetadata = Readonly<{
   title: string;
   description?: string;
@@ -8,6 +9,7 @@ export type ThreeMfMetadata = Readonly<{
   buildPlateName?: string;
   plateWidthMm?: number;
   plateDepthMm?: number;
+  materials?: readonly Readonly<{ name: string; color: string }>[];
 }>;
 
 const encoder = new TextEncoder();
@@ -28,9 +30,12 @@ function normalizeColor(value: string | undefined): string {
 }
 
 function modelXml(meshes: readonly ThreeMfMesh[], metadata: ThreeMfMetadata): string {
-  const colors = meshes.map((mesh) => normalizeColor(mesh.color));
+  const materials = metadata.materials?.length
+    ? metadata.materials.map((item) => ({ name: String(item.name || "Material"), color: normalizeColor(item.color) }))
+    : meshes.map((mesh, index) => ({ name: `Material ${index + 1}`, color: normalizeColor(mesh.color) }));
+  const colors = materials.map((item) => item.color);
   const resources: string[] = [
-    `<basematerials id="1">${colors.map((color, index) => `<base name="Material ${index + 1}" displaycolor="${color}"/>`).join("")}</basematerials>`,
+    `<basematerials id="1">${materials.map((item) => `<base name="${xml(item.name)}" displaycolor="${item.color}"/>`).join("")}</basematerials>`,
   ];
   const build: string[] = [];
 
@@ -38,6 +43,7 @@ function modelXml(meshes: readonly ThreeMfMesh[], metadata: ThreeMfMetadata): st
     const vertices: string[] = [];
     const triangles: string[] = [];
     const positions = mesh.geometry.positions;
+    const materialIndex = Number.isInteger(mesh.materialIndex) && mesh.materialIndex! >= 0 && mesh.materialIndex! < colors.length ? mesh.materialIndex! : Math.min(meshIndex, colors.length - 1);
     let vertexIndex = 0;
     for (let index = 0; index < positions.length; index += 9) {
       const points = [
@@ -48,18 +54,21 @@ function modelXml(meshes: readonly ThreeMfMesh[], metadata: ThreeMfMetadata): st
       for (const point of points) {
         vertices.push(`<vertex x="${point[0]}" y="${point[1]}" z="${point[2]}"/>`);
       }
-      triangles.push(`<triangle v1="${vertexIndex}" v2="${vertexIndex + 1}" v3="${vertexIndex + 2}"/>`);
+      const paintedMaterial = mesh.triangleMaterialIndices?.[index / 9];
+      const faceMaterial = Number.isInteger(paintedMaterial) && paintedMaterial! >= 0 && paintedMaterial! < colors.length ? paintedMaterial! : materialIndex;
+      const materialProperty = faceMaterial === materialIndex ? "" : ` pid="1" p1="${faceMaterial}"`;
+      triangles.push(`<triangle v1="${vertexIndex}" v2="${vertexIndex + 1}" v3="${vertexIndex + 2}"${materialProperty}/>`);
       vertexIndex += 3;
     }
     const objectId = meshIndex + 2;
-    resources.push(`<object id="${objectId}" type="model" name="${xml(mesh.name)}" pid="1" pindex="${meshIndex}"><mesh><vertices>${vertices.join("")}</vertices><triangles>${triangles.join("")}</triangles></mesh></object>`);
+    resources.push(`<object id="${objectId}" type="model" name="${xml(mesh.name)}" pid="1" pindex="${materialIndex}"><mesh><vertices>${vertices.join("")}</vertices><triangles>${triangles.join("")}</triangles></mesh></object>`);
     build.push(`<item objectid="${objectId}"/>`);
   });
 
   const metadataEntries = [
     ["Title", metadata.title],
-    ["Description", metadata.description || "Exportiert mit Ultimate 3D Studio V6"],
-    ["Application", "Ultimate 3D Studio V6"],
+    ["Description", metadata.description || V6_BRANDING.exportDescription],
+    ["Application", V6_BRANDING.exportApplication],
     ["Ultimate3D:BuildPlateProfile", metadata.buildPlateProfileId || ""],
     ["Ultimate3D:BuildPlateName", metadata.buildPlateName || ""],
     ["Ultimate3D:PlateWidthMm", metadata.plateWidthMm ?? ""],
