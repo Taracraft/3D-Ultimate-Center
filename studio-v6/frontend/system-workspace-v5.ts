@@ -1,6 +1,7 @@
 import "./audit-log-panel.js";
 import "./printer-camera-panel.js";
 import "./printer-command-store.js";
+import { Ultimate3DPrintSpeedControl } from "./print-speed-control.js";
 import { jobActivityStore, type JobActivitySnapshot } from "./job-activity-store.js";
 import { printStatusLabel } from "./printer-command-policy.js";
 import type { Ultimate3DPrinterActions } from "./printer-command-store.js";
@@ -13,6 +14,7 @@ import {
 import { remainingTimeLabel } from "./print-remaining-time.js";
 import type { PrinterCameraPanel } from "./printer-camera-panel.js";
 import type { V6Job, V6Printer } from "./v6-api.js";
+import { printLayerLabel, printSpeedLabel } from "./print-live-telemetry.js";
 
 type HassState = Readonly<{
   state?: string;
@@ -111,7 +113,7 @@ export class Ultimate3DSystemWorkspaceV5 extends HTMLElement {
   #mount(): void {
     this.#root.innerHTML = `<style>${PRINTER_ISSUE_STYLES}
       :host{display:block;min-height:calc(100vh - 88px);background:#08101a;color:#eef5ff;font:13px/1.4 Segoe UI,sans-serif}*{box-sizing:border-box}.page{padding:18px}.head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.head h1{margin:0}.head p{margin:4px 0 0;color:#91a5bb}.grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:14px;margin-top:14px}.panel{overflow:hidden;border:1px solid #26384f;border-radius:12px;background:#101925}.panel h2{margin:0;padding:12px 14px;border-bottom:1px solid #26384f;font-size:15px}.body{padding:13px}.wide{grid-column:1/-1}.summary{padding:11px;border:1px solid #26384f;border-radius:9px;background:#0c1622}.summary strong,.summary small{display:block}.summary small{margin-top:4px;color:#8298ae}.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.metric{min-width:0;padding:9px;border:1px solid #26384f;border-radius:8px;background:#0c1622}.metric small,.metric strong,.metric span{display:block;overflow:hidden;text-overflow:ellipsis}.metric small{color:#8298ae;font-size:10px;text-transform:uppercase}.metric strong{margin-top:3px}.metric span{margin-top:2px;color:#8198ad;font-size:10px}.slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}.slot{display:flex;align-items:center;gap:9px;padding:9px;border:1px solid #26384f;border-radius:8px;background:#0c1622}.slot.active{border-color:#34b9ff}.slot i{width:15px;height:34px;border-radius:5px;background:var(--slot-color)}.slot div{min-width:0;flex:1}.slot small{display:block;color:#8298ae}.empty{padding:18px;color:#8298ae;text-align:center}.raw{max-height:360px;overflow:auto;padding:10px;border:1px solid #26384f;border-radius:8px;background:#07111b;color:#b8c9d8;font:10px/1.4 Consolas,monospace;white-space:pre-wrap}.issue-list{display:grid;gap:10px}.issue-clear{padding:12px;border:1px solid #27734c;border-radius:9px;background:#102b1d;color:#8ff0b5}@media(max-width:1100px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:850px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}}@media(max-width:560px){.page{padding:10px}.metrics{grid-template-columns:1fr}}
-    </style><section class="page"><header class="head"><div><h1>System</h1><p>V6-Laufzeit, Druckertelemetrie, Störungen, Home Assistant und Frontend-Lifecycle.</p></div><strong id="printer-name">V6</strong></header><div class="grid"><printer-camera-panel title="Kamera-Snapshot" storage-key="system"></printer-camera-panel><article class="panel"><h2>Druckertelemetrie und Steuerung</h2><div class="body"><div class="summary"><strong id="job-name">Kein aktiver Druckauftrag</strong><small id="job-status">–</small></div><div class="metrics" id="printer-metrics"></div><ultimate-3d-printer-actions id="actions"></ultimate-3d-printer-actions></div></article><article class="panel wide"><h2>Aktive Druckerstörungen</h2><div class="body" id="printer-issues"><span class="empty">Störungsstatus wird geladen …</span></div></article><article class="panel wide"><h2>V6- und Home-Assistant-Laufzeit</h2><div class="body"><div class="metrics" id="runtime-metrics"></div></div></article><article class="panel wide"><h2>AMS / AMS Lite</h2><div class="body" id="ams"><span class="empty">Materialsystem wird geladen …</span></div></article><article class="panel wide"><h2>Diagnosedaten</h2><div class="body"><details><summary>Aktuellen V6-Zustand anzeigen</summary><pre class="raw" id="raw-diagnostics"></pre></details></div></article><ultimate-3d-audit-log-panel class="wide"></ultimate-3d-audit-log-panel></div></section>`;
+    </style><section class="page"><header class="head"><div><h1>System</h1><p>Studio-Laufzeit, Druckertelemetrie, Störungen, Home Assistant und Frontend-Lifecycle.</p></div><strong id="printer-name">Drucker</strong></header><div class="grid"><printer-camera-panel title="Kamera-Snapshot" storage-key="system"></printer-camera-panel><article class="panel"><h2>Druckertelemetrie und Steuerung</h2><div class="body"><div class="summary"><strong id="job-name">Kein aktiver Druckauftrag</strong><small id="job-status">–</small></div><div class="metrics" id="printer-metrics"></div><ultimate-3d-printer-actions id="actions"></ultimate-3d-printer-actions><div style="margin-top:10px"><ultimate-3d-print-speed-control id="system-speed"></ultimate-3d-print-speed-control></div></div></article><article class="panel wide"><h2>Aktive Druckerstörungen</h2><div class="body" id="printer-issues"><span class="empty">Störungsstatus wird geladen …</span></div></article><article class="panel wide"><h2>Studio- und Home-Assistant-Laufzeit</h2><div class="body"><div class="metrics" id="runtime-metrics"></div></div></article><article class="panel wide"><h2>AMS / AMS Lite</h2><div class="body" id="ams"><span class="empty">Materialsystem wird geladen …</span></div></article><article class="panel wide"><h2>Diagnosedaten</h2><div class="body"><details><summary>Aktuellen Studio-Zustand anzeigen</summary><pre class="raw" id="raw-diagnostics"></pre></details></div></article><ultimate-3d-audit-log-panel class="wide"></ultimate-3d-audit-log-panel></div></section>`;
     this.#mounted = true;
     this.#forwardHass();
     this.#updateOverview();
@@ -154,11 +156,11 @@ export class Ultimate3DSystemWorkspaceV5 extends HTMLElement {
       metric("Düse", temperature(printer?.nozzle_temperature, printer?.nozzle_target_temperature)),
       metric("Druckbett", temperature(printer?.bed_temperature, printer?.bed_target_temperature)),
       metric("Bauraum", temperature(printer?.chamber_temperature, printer?.chamber_target_temperature)),
-      metric("Schicht", `${text(job?.current_layer ?? printer?.current_layer)} / ${text(job?.total_layers ?? printer?.total_layers)}`),
+      metric("Schicht", printLayerLabel(job, printer).replace(/^Layer\s*/, "")),
       metric("Restzeit", remainingTimeLabel(job, printer)),
       metric("Aktuelle Datei", job?.file || job?.model_name || printer?.current_file),
       metric("Anbieter", printer?.provider),
-      metric("Druckgeschwindigkeit", printer?.print_speed ?? printer?.speed_level ?? "–"),
+      metric("Druckgeschwindigkeit", printSpeedLabel(printer)),
     ].join("");
 
     const issueHost = this.#root.querySelector<HTMLElement>("#printer-issues");
@@ -187,12 +189,18 @@ export class Ultimate3DSystemWorkspaceV5 extends HTMLElement {
 
     this.#renderAms(printer);
     const actions = this.#root.querySelector<Ultimate3DPrinterActions>("#actions");
+    const speed = this.#root.querySelector<Ultimate3DPrintSpeedControl>("#system-speed");
     if (actions) {
       actions.printer = printer;
       actions.job = job;
       actions.issue = primaryPrinterIssue(printer);
       actions.issueMode = false;
       actions.capabilities = this.#state.capabilities;
+    }
+    if (speed) {
+      speed.printer = printer;
+      speed.job = job;
+      speed.capabilities = this.#state.capabilities;
     }
     const raw = this.#root.querySelector<HTMLElement>("#raw-diagnostics");
     if (raw) raw.textContent = JSON.stringify({
