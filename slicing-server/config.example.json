@@ -1,0 +1,13 @@
+{
+  "host": "127.0.0.1",
+  "port": 8099,
+  "token": "",
+  "data_dir": "/var/lib/homeassistant/3d-printer-slicing-server/data",
+  "slicer_paths": [
+    "/usr/bin/PrusaSlicer",
+    "/usr/bin/prusa-slicer",
+    "/usr/bin/OrcaSlicer",
+    "/usr/local/bin/OrcaSlicer",
+    "/usr/bin/CuraEngine"
+  ]
+}
