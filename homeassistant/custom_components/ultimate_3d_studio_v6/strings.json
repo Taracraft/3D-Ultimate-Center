@@ -1,0 +1,61 @@
+{
+  "title": "Ultimate 3D Studio V6",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ultimate 3D Studio V6 einrichten",
+        "description": "Erstellt eine vollständig isolierte V6-Testlaufzeit.",
+        "data": {
+          "instance_name": "Name der Testinstanz"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Die V6-Testintegration ist bereits eingerichtet."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Drucker- und Bambu-Konto konfigurieren",
+        "description": "Der LAN-Provider arbeitet direkt mit dem Drucker. Die optionale Kontoanmeldung synchronisiert deine eigenen Filament-, Druck- und Maschinenprofile sowie MakerWorld direkt nach V6. Das Passwort wird nur für diese Anmeldung verwendet und nicht gespeichert. Wenn bereits ein Token vorhanden ist, bleiben Passwort und E-Mail optional. Aktueller Tokenstatus: {cloud_token_status}.",
+        "data": {
+          "lan_enabled": "Bambu-LAN-Provider aktivieren",
+          "printer_name": "Anzeigename des Druckers",
+          "host": "IP-Adresse oder Hostname",
+          "serial": "Seriennummer",
+          "access_code": "LAN Access Code",
+          "tls_insecure": "Selbstsigniertes Druckerzertifikat akzeptieren",
+          "cloud_enabled": "Bambu-Kontozugang aktivieren",
+          "cloud_profile_sync": "Eigene Kontoprofile automatisch synchronisieren",
+          "cloud_region": "Bambu-Kontoregion",
+          "cloud_email": "Bambu-Konto-E-Mail-Adresse",
+          "password": "Bambu-Konto-Passwort für die einmalige Anmeldung"
+        }
+      },
+      "cloud_code": {
+        "title": "Bambu-E-Mail-Verifizierung",
+        "description": "Bambu hat einen Verifizierungscode an die Konto-E-Mail-Adresse gesendet. Der Code wird nur für diesen Anmeldevorgang verwendet.",
+        "data": {
+          "verification_code": "Verifizierungscode"
+        }
+      }
+    },
+    "error": {
+      "required": "Dieses Feld ist für die aktivierte Funktion erforderlich.",
+      "invalid_auth": "Die Bambu-Anmeldung oder der Verifizierungscode wurde abgelehnt.",
+      "cannot_connect": "Die Bambu Cloud ist momentan nicht erreichbar."
+    },
+    "abort": {
+      "cloud_login_expired": "Der Bambu-Anmeldevorgang ist abgelaufen. Öffne die Optionen erneut."
+    }
+  },
+  "selector": {
+    "cloud_region": {
+      "options": {
+        "global": "Global / Europa",
+        "china": "China"
+      }
+    }
+  }
+}
