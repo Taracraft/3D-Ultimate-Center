@@ -1,0 +1,50 @@
+name: Recover Canonical V6 Source
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/recover-canonical-v6.yml"
+      - ".recovery/studio-mega-workspace-v2.url"
+
+permissions:
+  contents: write
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Recover canonical studio mega workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          TARGET="studio-v6/frontend/studio-mega-workspace-v2.ts"
+          URL="https://homeassist.bad-timing.eu/local/recovery-import/studio-mega-workspace-v2.ts"
+          EXPECTED_SIZE="172531"
+          EXPECTED_SHA="1955d2618f5ceabc33d804099557033b2bc1a35e120c2784138201ea3ccf2b13"
+
+          mkdir -p "$(dirname "$TARGET")"
+          curl --fail --location --retry 3 --output "$TARGET.tmp" "$URL"
+
+          ACTUAL_SIZE="$(stat -c %s "$TARGET.tmp")"
+          ACTUAL_SHA="$(sha256sum "$TARGET.tmp" | awk '{print $1}')"
+
+          test "$ACTUAL_SIZE" = "$EXPECTED_SIZE"
+          test "$ACTUAL_SHA" = "$EXPECTED_SHA"
+
+          mv "$TARGET.tmp" "$TARGET"
+
+          if git diff --quiet -- "$TARGET"; then
+            echo "Canonical file already current."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$TARGET"
+          git commit -m "recovery: restore canonical studio-mega-workspace-v2"
+          git push
