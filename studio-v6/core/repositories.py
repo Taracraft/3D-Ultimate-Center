@@ -1,0 +1,43 @@
+"""Repository protocols used by V6 domain services."""
+
+from __future__ import annotations
+
+from typing import Protocol
+
+from .assets import AssetRecord
+from .profiles import ProfileRecord
+from .queue import QueueItemRecord
+from .slicing import SliceJobRecord
+from .studio import ProjectRecord
+from .uploads import UploadSession
+
+
+class AssetRepository(Protocol):
+    def get(self, asset_id: str) -> AssetRecord | None: ...
+    def find_by_digest(self, digest: str) -> AssetRecord | None: ...
+    def add(self, asset: AssetRecord) -> None: ...
+
+
+class ProjectRepository(Protocol):
+    def get(self, project_id: str) -> ProjectRecord | None: ...
+    def save(self, project: ProjectRecord) -> None: ...
+
+
+class ProfileRepository(Protocol):
+    def get(self, profile_id: str) -> ProfileRecord | None: ...
+    def save(self, profile: ProfileRecord) -> None: ...
+
+
+class SliceJobRepository(Protocol):
+    def get(self, job_id: str) -> SliceJobRecord | None: ...
+    def save(self, job: SliceJobRecord) -> None: ...
+
+
+class QueueRepository(Protocol):
+    def get(self, item_id: str) -> QueueItemRecord | None: ...
+    def save(self, item: QueueItemRecord) -> None: ...
+
+
+class UploadRepository(Protocol):
+    def get(self, upload_id: str) -> UploadSession | None: ...
+    def save(self, upload: UploadSession) -> None: ...
