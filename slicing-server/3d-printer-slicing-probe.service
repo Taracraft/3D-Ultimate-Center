@@ -1,0 +1,7 @@
+[Unit]
+Description=Install jq for universal slicing dispatcher
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /var/lib/homeassistant/3d-printer-slicing-server/install-jq.sh
