@@ -10,9 +10,11 @@ type SlicingOverview = Readonly<{
   files?: Readonly<{ files?: DataRecord[] }> | DataRecord[];
   jobs?: Readonly<{ jobs?: DataRecord[] }> | DataRecord[];
   diagnostics?: DataRecord;
+  capabilities?: DataRecord;
   engines?: DataRecord;
 }>;
 type JobFilter = "all" | "active" | "failed" | "completed";
+type ScrollSnapshot = Readonly<{ selector: string; index: number; scrollTop: number; scrollLeft: number }>;
 
 function record(value: unknown): DataRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? value as DataRecord : {};
@@ -46,6 +48,19 @@ function bytes(value: unknown): string {
   if (size >= 1024) return `${(size / 1024).toFixed(1)} KB`;
   return `${size.toFixed(0)} B`;
 }
+function durationSeconds(value: unknown): string {
+  const seconds = numberValue(value);
+  if (seconds === null) return "–";
+  if (seconds < 60) return `${seconds.toFixed(seconds < 10 ? 1 : 0)} s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} min ${Math.round(seconds % 60)} s`;
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.round((seconds % 3600) / 60);
+  return `${hours} h ${minutes} min`;
+}
+function durationMilliseconds(value: unknown): string {
+  const milliseconds = numberValue(value);
+  return milliseconds === null ? "–" : durationSeconds(milliseconds / 1000);
+}
 function dateTime(value: unknown): string {
   const numeric = numberValue(value);
   const date = numeric !== null ? new Date(numeric * 1000) : new Date(String(value || ""));
@@ -61,6 +76,11 @@ function stateClass(value: unknown): string {
   if (["queued", "slicing", "running", "cancelling"].includes(state)) return "warn";
   return "";
 }
+function isTerminalState(value: unknown): boolean {
+  const state = String(value || "").toLowerCase();
+  return ["completed", "succeeded", "failed", "error", "cancelled", "interrupted"].includes(state);
+}
+
 
 export class Ultimate3DSlicingServerWorkspace extends HTMLElement {
   readonly #root = this.attachShadow({ mode: "open" });
@@ -83,6 +103,8 @@ export class Ultimate3DSlicingServerWorkspace extends HTMLElement {
   #notice = "";
   #noticeError = false;
   #lastAuditFingerprint = "";
+  #selectedJobId = "";
+  #jobDetail: DataRecord | null = null;
 
   set hass(value: HassLike | null) {
     this.#hass = value;
@@ -115,6 +137,13 @@ export class Ultimate3DSlicingServerWorkspace extends HTMLElement {
     if (full) this.#render();
     try {
       this.#server = await this.#hass.callWS<SlicingOverview>({ type: "printer_slicing_server/overview" });
+      if (this.#selectedJobId) {
+        try {
+          this.#jobDetail = await this.#hass.callWS<DataRecord>({ type: "printer_slicing_server/job", job_id: this.#selectedJobId });
+        } catch {
+          this.#jobDetail = null;
+        }
+      }
       const auditFingerprint = JSON.stringify({ info: this.#server.info, status: this.#server.status, jobs: nestedRecords(this.#server.jobs, "jobs").map((job) => [job.job_id, job.status, job.modified]) });
       if (auditFingerprint !== this.#lastAuditFingerprint) {
         this.#lastAuditFingerprint = auditFingerprint;
@@ -152,9 +181,35 @@ export class Ultimate3DSlicingServerWorkspace extends HTMLElement {
     });
   }
 
-  #render(): void {
+  #captureScrollPositions(): ScrollSnapshot[] {
+    const snapshots: ScrollSnapshot[] = [];
+    for (const selector of ["#content", ".body.jobs", ".raw"]) {
+      this.#root.querySelectorAll<HTMLElement>(selector).forEach((node, index) => {
+        if (node.scrollTop > 0 || node.scrollLeft > 0) {
+          snapshots.push({ selector, index, scrollTop: node.scrollTop, scrollLeft: node.scrollLeft });
+        }
+      });
+    }
+    return snapshots;
+  }
+
+  #restoreScrollPositions(snapshots: readonly ScrollSnapshot[]): void {
+    const restore = (): void => {
+      for (const snapshot of snapshots) {
+        const node = this.#root.querySelectorAll<HTMLElement>(snapshot.selector)[snapshot.index];
+        if (!node) continue;
+        node.scrollTop = Math.min(snapshot.scrollTop, Math.max(0, node.scrollHeight - node.clientHeight));
+        node.scrollLeft = Math.min(snapshot.scrollLeft, Math.max(0, node.scrollWidth - node.clientWidth));
+      }
+    };
+    restore();
+    requestAnimationFrame(restore);
+  }
+
+  #render(preserveScroll = true): void {
     const host = this.#root.querySelector<HTMLElement>("#content");
     if (!host) return;
+    const scrollSnapshot = preserveScroll ? this.#captureScrollPositions() : [];
     const info = record(this.#server?.info);
     const status = record(this.#server?.status);
     const printers = nestedRecords(this.#server?.printers, "printers");
@@ -172,10 +227,52 @@ export class Ultimate3DSlicingServerWorkspace extends HTMLElement {
     host.innerHTML = `<div class="grid"><article class="panel wide"><h2>Serverstatus</h2><div class="body"><div class="server-summary">${[
       metric("Status", state), metric("Version", info.version), metric("Engines", info.engine_count),
       metric("Warteschlange", status.queued_jobs ?? activeJobs), metric("Modelle / Jobs", `${files.length} / ${jobs.length}`, `${failedJobs} fehlerhaft`),
-    ].join("")}</div>${this.#error ? `<div class="error">${esc(this.#error)}</div>` : ""}<div class="toolbar"><input id="server-search" type="search" placeholder="Modelle und Aufträge durchsuchen" value="${esc(this.#search)}"><select id="job-filter"><option value="all" ${this.#jobFilter === "all" ? "selected" : ""}>Alle Aufträge</option><option value="active" ${this.#jobFilter === "active" ? "selected" : ""}>Aktiv</option><option value="failed" ${this.#jobFilter === "failed" ? "selected" : ""}>Fehler</option><option value="completed" ${this.#jobFilter === "completed" ? "selected" : ""}>Abgeschlossen</option></select><button class="button" id="server-refresh" type="button" ${this.#loading ? "disabled" : ""}>${this.#loading ? "Aktualisierung …" : "Aktualisieren"}</button></div><div class="notice">Automatische Aktualisierung alle 10 Sekunden. Geöffnete Bereiche und Formulare bleiben dabei geöffnet.</div></div></article><article class="panel"><h2>Neuer Auftrag</h2><div class="body form"><details id="new-job" ${this.#newJobOpen ? "open" : ""}><summary>Upload und Slicing</summary><div class="form-grid"><label>Modell hochladen<input id="server-file" type="file" accept=".stl,.3mf,.obj,.amf"></label><label>Ausgewähltes Modell<select id="server-model">${files.length ? files.map((file) => `<option value="${esc(file.filename)}" ${String(file.filename) === this.#selectedModel ? "selected" : ""}>${esc(file.filename)}</option>`).join("") : '<option value="">Keine Modelle</option>'}</select></label><label>Drucker<select id="server-printer">${printers.map((printer) => `<option value="${esc(printer.id)}" ${String(printer.id) === this.#draftPrinter ? "selected" : ""}>${esc(printer.name || printer.id)}</option>`).join("")}</select></label><label>Engine<select id="server-engine"><option value="auto" ${this.#draftEngine === "auto" ? "selected" : ""}>Automatisch</option><option value="bambu_studio" ${this.#draftEngine === "bambu_studio" ? "selected" : ""}>Bambu Studio</option><option value="prusaslicer" ${this.#draftEngine === "prusaslicer" ? "selected" : ""}>PrusaSlicer</option><option value="curaengine" ${this.#draftEngine === "curaengine" ? "selected" : ""}>CuraEngine</option></select></label><label>Ausgabe<select id="server-format"><option value="gcode" ${this.#draftFormat === "gcode" ? "selected" : ""}>G-Code</option><option value="3mf" ${this.#draftFormat === "3mf" ? "selected" : ""}>3MF</option></select></label><label>Job-ID<input id="server-job-id" placeholder="automatisch" value="${esc(this.#draftJobId)}"></label></div>${this.#uploadFile ? `<div class="selected-file">Vorgemerkt: ${esc(this.#uploadFile.name)} · ${bytes(this.#uploadFile.size)}</div>` : ""}<div class="form-actions"><button class="button" id="server-upload" type="button" ${this.#uploadFile ? "" : "disabled"}>Hochladen</button><button class="button primary" id="server-slice" type="button" ${this.#selectedModel ? "" : "disabled"}>Slicing starten</button></div>${this.#notice ? `<div class="${this.#noticeError ? "error" : "notice"}">${esc(this.#notice)}</div>` : ""}</details></div></article><article class="panel"><h2>Modelle</h2><div class="body"><div class="models">${filteredFiles.length ? filteredFiles.map((file) => `<article class="model ${String(file.filename) === this.#selectedModel ? "selected" : ""}"><div class="preview">⬡</div><div class="model-body"><div class="model-name">${esc(file.filename)}</div><div class="model-meta">${bytes(file.size)} · ${dateTime(file.modified)}</div><button class="button choose-model" data-file="${esc(file.filename)}" type="button">Auswählen</button></div></article>`).join("") : '<div class="empty">Keine passenden Modelle.</div>'}</div></div></article><article class="panel wide"><h2>Aufträge</h2><div class="body jobs">${filteredJobs.length ? `<table><thead><tr><th>Job</th><th>Status</th><th>Engine</th><th>Datei</th><th>Geändert</th><th></th></tr></thead><tbody>${filteredJobs.map((job) => `<tr><td class="mono">${esc(job.job_id)}</td><td class="state ${stateClass(job.status)}">${esc(job.status)}</td><td>${esc(job.engine || "–")}</td><td>${esc(job.input_file || job.download_name || "–")}</td><td>${dateTime(job.modified)}</td><td>${job.download_url ? `<button class="button download-job" data-job="${esc(job.job_id)}" type="button">Download</button>` : ""}</td></tr>`).join("")}</tbody></table>` : '<div class="empty">Keine passenden Aufträge.</div>'}</div></article><article class="panel wide"><h2>Serverdiagnose</h2><div class="body"><details id="server-diagnostics" ${this.#diagnosticsOpen ? "open" : ""}><summary>Rohdaten anzeigen</summary><pre class="raw">${esc(JSON.stringify({ info, status, diagnostics: this.#server?.diagnostics, engines: this.#server?.engines }, null, 2))}</pre></details></div></article></div>`;
+    ].join("")}</div>${this.#error ? `<div class="error">${esc(this.#error)}</div>` : ""}<div class="toolbar"><input id="server-search" type="search" placeholder="Modelle und Aufträge durchsuchen" value="${esc(this.#search)}"><select id="job-filter"><option value="all" ${this.#jobFilter === "all" ? "selected" : ""}>Alle Aufträge</option><option value="active" ${this.#jobFilter === "active" ? "selected" : ""}>Aktiv</option><option value="failed" ${this.#jobFilter === "failed" ? "selected" : ""}>Fehler</option><option value="completed" ${this.#jobFilter === "completed" ? "selected" : ""}>Abgeschlossen</option></select><button class="button" id="server-refresh" type="button" ${this.#loading ? "disabled" : ""}>${this.#loading ? "Aktualisierung …" : "Aktualisieren"}</button></div><div class="notice">Automatische Aktualisierung alle 10 Sekunden. Geöffnete Bereiche und Formulare bleiben dabei geöffnet.</div></div></article><article class="panel"><h2>Neuer Auftrag</h2><div class="body form"><details id="new-job" ${this.#newJobOpen ? "open" : ""}><summary>Upload und Slicing</summary><div class="form-grid"><label>Modell hochladen<input id="server-file" type="file" accept=".stl,.3mf,.obj,.amf"></label><label>Ausgewähltes Modell<select id="server-model">${files.length ? files.map((file) => `<option value="${esc(file.filename)}" ${String(file.filename) === this.#selectedModel ? "selected" : ""}>${esc(file.filename)}</option>`).join("") : '<option value="">Keine Modelle</option>'}</select></label><label>Druckerprofil<select id="server-printer">${printers.map((printer) => `<option value="${esc(printer.id)}" ${String(printer.id) === this.#draftPrinter ? "selected" : ""}>${esc(printer.name || printer.id)}</option>`).join("")}</select></label><label>Engine<select id="server-engine"><option value="auto" ${this.#draftEngine === "auto" ? "selected" : ""}>Automatisch</option><option value="bambu_studio" ${this.#draftEngine === "bambu_studio" ? "selected" : ""}>Bambu Studio</option><option value="prusaslicer" ${this.#draftEngine === "prusaslicer" ? "selected" : ""}>PrusaSlicer</option><option value="curaengine" ${this.#draftEngine === "curaengine" ? "selected" : ""}>CuraEngine</option></select></label><label>Ausgabe<select id="server-format"><option value="gcode" ${this.#draftFormat === "gcode" ? "selected" : ""}>G-Code</option><option value="3mf" ${this.#draftFormat === "3mf" ? "selected" : ""}>3MF</option></select></label><label>Job-ID<input id="server-job-id" placeholder="automatisch" value="${esc(this.#draftJobId)}"></label></div>${this.#uploadFile ? `<div class="selected-file">Vorgemerkt: ${esc(this.#uploadFile.name)} · ${bytes(this.#uploadFile.size)}</div>` : ""}<div class="form-actions"><button class="button" id="server-upload" type="button" ${this.#uploadFile ? "" : "disabled"}>Hochladen</button><button class="button primary" id="server-slice" type="button" ${this.#selectedModel ? "" : "disabled"}>Slicing starten</button></div>${this.#notice ? `<div class="${this.#noticeError ? "error" : "notice"}">${esc(this.#notice)}</div>` : ""}</details></div></article><article class="panel"><h2>Modelle</h2><div class="body"><div class="models">${filteredFiles.length ? filteredFiles.map((file) => `<article class="model ${String(file.filename) === this.#selectedModel ? "selected" : ""}"><div class="preview">⬡</div><div class="model-body"><div class="model-name">${esc(file.filename)}</div><div class="model-meta">${bytes(file.size)} · ${dateTime(file.modified)}</div><button class="button choose-model" data-file="${esc(file.filename)}" type="button">Auswählen</button></div></article>`).join("") : '<div class="empty">Keine passenden Modelle.</div>'}</div></div></article><article class="panel wide"><h2>Aufträge</h2><div class="body jobs">${filteredJobs.length ? `<table><thead><tr><th>Job</th><th>Status</th><th>Fortschritt</th><th>Engine</th><th>Datei</th><th>Geändert</th><th></th></tr></thead><tbody>${filteredJobs.map((job) => `<tr><td class="mono">${esc(job.job_id)}</td><td class="state ${stateClass(job.status)}">${esc(job.status)}</td><td>${numberValue(record(job.progress).total_percent) === null ? "–" : `${Math.round(numberValue(record(job.progress).total_percent) || 0)} %`}</td><td>${esc(job.engine || "–")}</td><td>${esc(job.input_file || job.download_name || "–")}</td><td>${dateTime(job.modified)}</td><td><button class="button job-details" data-job="${esc(job.job_id)}" type="button">Details</button>${job.download_url ? ` <button class="button download-job" data-job="${esc(job.job_id)}" type="button">Download</button>` : ""}${isTerminalState(job.status) ? ` <button class="button job-delete" data-job="${esc(job.job_id)}" type="button" title="Job löschen">✕</button>` : ""}}</td></tr>`).join("")}</tbody></table>` : '<div class="empty">Keine passenden Aufträge.</div>'}</div></article>${this.#jobDetailMarkup()}<article class="panel wide"><h2>Serverdiagnose</h2><div class="body"><details id="server-diagnostics" ${this.#diagnosticsOpen ? "open" : ""}><summary>Rohdaten anzeigen</summary><pre class="raw">${esc(JSON.stringify({ info, status, capabilities: this.#server?.capabilities, diagnostics: this.#server?.diagnostics, engines: this.#server?.engines }, null, 2))}</pre></details></div></article></div>`;
     this.#bind();
+    if (scrollSnapshot.length) this.#restoreScrollPositions(scrollSnapshot);
   }
 
+  #jobDetailMarkup(): string {
+    if (!this.#selectedJobId) return "";
+    const detail = record(this.#jobDetail);
+    if (!Object.keys(detail).length) return `<article class="panel wide"><h2>Auftragsdetails</h2><div class="body empty">Job ${esc(this.#selectedJobId)} wird geladen …</div></article>`;
+    const progress = record(detail.progress);
+    const runtime = record(detail.runtime);
+    const process = record(runtime.process);
+    const machine = record(runtime.machine);
+    const engine = record(detail.engine_result);
+    const plates = records(engine.sliced_plates);
+    const plate = plates[0] || {};
+    const featureTimes = Object.entries(record(plate.feature_type_times))
+      .map(([name, value]) => ({ name, seconds: numberValue(value) || 0 }))
+      .filter((item) => item.seconds > 0)
+      .sort((a, b) => b.seconds - a.seconds);
+    const filaments = records(runtime.filaments);
+    const outputFilaments = records(plate.filaments);
+    const totalPercent = numberValue(progress.total_percent);
+    const eta = numberValue(progress.eta_seconds);
+    const filamentGrams = outputFilaments.reduce((sum, item) => sum + (numberValue(item.total_used_g) || 0), 0);
+    const filamentNames = filaments.map((item) => text(item.name, "")).filter((item) => item !== "–").join(" · ");
+    const support = process.support_enabled === true ? text(process.support_type, "an") : process.support_enabled === false ? "aus" : "–";
+    const metrics = [
+      metric("Status", detail.status),
+      metric("Live-Fortschritt", totalPercent === null ? "–" : `${Math.round(totalPercent)} %`, text(progress.warning || progress.message, "")),
+      metric("Slicer-ETA", eta === null ? "–" : durationSeconds(eta), text(progress.eta_confidence, "")),
+      metric("Slicing-Rechenzeit", durationMilliseconds(plate.sliced_time), `Cache ${durationMilliseconds(plate.sliced_time_with_cache)}`),
+      metric("Druckprognose", durationSeconds(plate.total_predication), `Modell ${durationSeconds(plate.main_predication)}`),
+      metric("Dreiecke", runtime.triangle_count ?? plate.triangle_count),
+      metric("Layerhöhe", process.layer_height_mm === undefined ? engine.layer_height ?? "–" : `${process.layer_height_mm} mm`),
+      metric("Wände / Infill", `${text(process.wall_loops, text(engine.wall_loops))} / ${text(process.sparse_infill_density_percent, text(engine.sparse_infill_density))} %`),
+      metric("Support", support, process.support_threshold_angle === undefined ? "" : `${process.support_threshold_angle}°`),
+      metric("Druckplatte", process.bed_type, `${text(runtime.model, "")} · Düse ${text(machine.nozzle_diameter_mm, "?")} mm`),
+      metric("Filament", filamentGrams > 0 ? `${filamentGrams.toFixed(1)} g` : "–", filamentNames),
+      metric("Slicer Prepare / Export", `${durationMilliseconds(engine.prepare_time)} / ${durationMilliseconds(engine.export_time)}`),
+    ].join("");
+    const historyRows = records(progress.history).slice(-30).map((event) => `<tr><td>${dateTime(event.at)}</td><td>${esc(event.total_percent)} %</td><td>${esc(event.plate_index)} / ${esc(event.plate_count)}</td><td>${esc(event.warning || event.message || "–")}</td></tr>`).join("");
+    const featureRows = featureTimes.slice(0, 24).map((item) => `<tr><td>${esc(item.name)}</td><td>${esc(durationSeconds(item.seconds))}</td></tr>`).join("");
+    const warning = text(progress.warning || plate.warning_message, "");
+    return `<article class="panel wide"><h2>Auftragsdetails · ${esc(this.#selectedJobId)}</h2><div class="body">${warning && warning !== "–" ? `<div class="error">${esc(warning)}</div>` : ""}<div class="server-summary">${metrics}</div>${historyRows ? `<h3>Live-Fortschritt</h3><div class="jobs"><table><thead><tr><th>Zeit</th><th>Gesamt</th><th>Platte</th><th>Meldung</th></tr></thead><tbody>${historyRows}</tbody></table></div>` : ""}${featureRows ? `<h3>Bambu-Zeitanteile</h3><div class="jobs"><table><thead><tr><th>Drucktyp</th><th>Zeit</th></tr></thead><tbody>${featureRows}</tbody></table></div>` : ""}<details><summary>Vollständige Server-Daten</summary><pre class="raw">${esc(JSON.stringify(detail, null, 2))}</pre></details></div></article>`;
+  }
   #bind(): void {
     this.#root.querySelector<HTMLDetailsElement>("#new-job")?.addEventListener("toggle", (event) => {
       this.#newJobOpen = (event.currentTarget as HTMLDetailsElement).open;
@@ -185,11 +282,11 @@ export class Ultimate3DSlicingServerWorkspace extends HTMLElement {
     });
     this.#root.querySelector<HTMLInputElement>("#server-search")?.addEventListener("input", (event) => {
       this.#search = (event.currentTarget as HTMLInputElement).value;
-      this.#render();
+      this.#render(false);
     });
     this.#root.querySelector<HTMLSelectElement>("#job-filter")?.addEventListener("change", (event) => {
       this.#jobFilter = (event.currentTarget as HTMLSelectElement).value as JobFilter;
-      this.#render();
+      this.#render(false);
     });
     this.#root.querySelector<HTMLInputElement>("#server-file")?.addEventListener("change", (event) => {
       this.#uploadFile = (event.currentTarget as HTMLInputElement).files?.[0] ?? null;
@@ -211,9 +308,24 @@ export class Ultimate3DSlicingServerWorkspace extends HTMLElement {
     this.#root.querySelector<HTMLButtonElement>("#server-refresh")?.addEventListener("click", () => void this.#load(true));
     this.#root.querySelector<HTMLButtonElement>("#server-upload")?.addEventListener("click", () => void this.#upload());
     this.#root.querySelector<HTMLButtonElement>("#server-slice")?.addEventListener("click", () => void this.#createJob());
+    this.#root.querySelectorAll<HTMLButtonElement>(".job-details").forEach((button) => button.addEventListener("click", () => void this.#openJob(button.dataset.job || "")));
     this.#root.querySelectorAll<HTMLButtonElement>(".download-job").forEach((button) => button.addEventListener("click", () => void this.#download(button.dataset.job || "")));
+    this.#root.querySelectorAll<HTMLButtonElement>(".job-delete").forEach((button) => button.addEventListener("click", () => void this.#deleteJob(button.dataset.job || "")));
   }
 
+  async #openJob(jobId: string): Promise<void> {
+    if (!this.#hass || !jobId) return;
+    this.#selectedJobId = jobId;
+    this.#jobDetail = null;
+    this.#render();
+    try {
+      this.#jobDetail = await this.#hass.callWS<DataRecord>({ type: "printer_slicing_server/job", job_id: jobId });
+      writeFrontendAudit({ category: "Slicing-Server", component: "slicing-server-workspace", event: "job_detail_opened", status: "info", job_id: jobId, details: { job_status: this.#jobDetail.status, progress: record(this.#jobDetail.progress).total_percent } });
+    } catch (error) {
+      this.#error = error instanceof Error ? error.message : String(error);
+    }
+    this.#render();
+  }
   async #upload(): Promise<void> {
     if (!this.#hass || !this.#uploadFile) return;
     const file = this.#uploadFile;
@@ -263,6 +375,19 @@ export class Ultimate3DSlicingServerWorkspace extends HTMLElement {
     } catch (error) {
       this.#notice = error instanceof Error ? error.message : String(error);
       this.#noticeError = true;
+      this.#render();
+    }
+  }
+
+  async #deleteJob(jobId: string): Promise<void> {
+    if (!this.#hass || !jobId) return;
+    if (!globalThis.confirm(`Job "${jobId}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`)) return;
+    try {
+      await this.#hass.callWS({ type: "printer_slicing_server/delete_job", job_id: jobId });
+      writeFrontendAudit({ category: "Slicing-Server", component: "slicing-server-workspace", event: "job_deleted", status: "success", job_id: jobId });
+      await this.#load(true);
+    } catch (error) {
+      this.#error = error instanceof Error ? error.message : String(error);
       this.#render();
     }
   }
