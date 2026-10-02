@@ -11,16 +11,40 @@ import {
 } from "./profile-api.js";
 import { V6ActionDialog } from "./v6-action-dialog.js";
 
-const GROUPS: ReadonlyArray<Readonly<{
+type GcodeSlotKey = "start_sound" | "end_sound" | "gcode_1" | "gcode_2";
+
+type ProfileGroup = Readonly<{
+  id: string;
   kind: ProfileKind;
   label: string;
   description: string;
-}>> = [
-  { kind: "printer", label: "Drucker", description: "Druckraum, Hersteller und Maschinenmodell" },
-  { kind: "nozzle", label: "Düse", description: "Durchmesser und Düsenmaterial" },
-  { kind: "filament", label: "Filament", description: "Hersteller, Material, Variante und vollständige Druckeigenschaften" },
-  { kind: "process", label: "Druckprofil", description: "Schichthöhe, Wände, Infill, Geschwindigkeit und Qualität" },
-  { kind: "build_plate", label: "Druckplatte", description: "Oberflächen, Abmessungen und Temperaturkorrekturen" },
+  slot?: GcodeSlotKey;
+}>;
+
+const GCODE_SLOT_KEYS: Readonly<Record<GcodeSlotKey, readonly string[]>> = {
+  start_sound: ["start_sound_gcode", "start_sound", "startsound"],
+  end_sound: ["end_sound_gcode", "end_sound", "endsound"],
+  gcode_1: ["custom_gcode_1", "gcode_1", "before_layer_change_gcode"],
+  gcode_2: ["custom_gcode_2", "gcode_2", "after_layer_change_gcode"],
+};
+
+const GCODE_TEMPLATE_KEY: Readonly<Record<GcodeSlotKey, string>> = {
+  start_sound: "start_sound_gcode",
+  end_sound: "end_sound_gcode",
+  gcode_1: "custom_gcode_1",
+  gcode_2: "custom_gcode_2",
+};
+
+const GROUPS: readonly ProfileGroup[] = [
+  { id: "printer", kind: "printer", label: "Drucker", description: "Druckraum, Hersteller und Maschinenmodell" },
+  { id: "nozzle", kind: "nozzle", label: "Düse", description: "Durchmesser und Düsenmaterial" },
+  { id: "filament", kind: "filament", label: "Filamentprofile", description: "Hersteller, Material, Variante und vollständige Druckeigenschaften" },
+  { id: "process", kind: "process", label: "Druckprofile", description: "Schichthöhe, Wände, Infill, Geschwindigkeit und Qualität" },
+  { id: "start_sound", kind: "process", label: "Startsound", description: "Startsound-Bausteine für den Druckstart", slot: "start_sound" },
+  { id: "end_sound", kind: "process", label: "Endsound", description: "Endsound-Bausteine für das Druckende", slot: "end_sound" },
+  { id: "gcode_1", kind: "process", label: "G-Code 1", description: "Erster frei benennbarer Benutzer-G-Code-Baustein", slot: "gcode_1" },
+  { id: "gcode_2", kind: "process", label: "G-Code 2", description: "Zweiter frei benennbarer Benutzer-G-Code-Baustein", slot: "gcode_2" },
+  { id: "build_plate", kind: "build_plate", label: "Druckplatten", description: "Oberflächen, Abmessungen und Temperaturkorrekturen" },
 ];
 
 type EditorSaveDetail = V6ProfileSaveRequest & Readonly<{ select_after_save?: boolean }>;
@@ -33,6 +57,30 @@ function selectedId(selection: V6ProfileSelection, kind: ProfileKind): string | 
   if (kind === "process") return selection.process_profile_id;
   if (kind === "build_plate") return selection.build_plate_profile_id;
   return selection.filament_profile_ids[0] ?? null;
+}
+
+function payloadText(payload: Readonly<Record<string, unknown>>, key: string): string {
+  return String(payload[key] ?? "").trim();
+}
+
+function gcodeSlot(profile: V6Profile): GcodeSlotKey | null {
+  const explicit = profile.payload.gcode_slot;
+  if (explicit === "start_sound" || explicit === "end_sound" || explicit === "gcode_1" || explicit === "gcode_2") return explicit;
+  for (const slot of Object.keys(GCODE_SLOT_KEYS) as GcodeSlotKey[]) {
+    if (GCODE_SLOT_KEYS[slot].some((key) => payloadText(profile.payload, key))) return slot;
+  }
+  return null;
+}
+
+function profilesForGroup(catalog: V6ProfileCatalog | null, group: ProfileGroup): V6Profile[] {
+  const profiles = catalog?.groups[group.kind] ?? [];
+  if (group.kind !== "process") return profiles;
+  return profiles.filter((profile) => group.slot ? gcodeSlot(profile) === group.slot : gcodeSlot(profile) === null);
+}
+
+function groupIdForProfile(profile: V6Profile): string {
+  if (profile.kind !== "process") return profile.kind;
+  return gcodeSlot(profile) ?? "process";
 }
 
 function selectionPatch(kind: ProfileKind, profileId: string): Partial<V6ProfileSelection> {
@@ -231,15 +279,19 @@ function defaultPayload(kind: ProfileKind): Record<string, unknown> {
   return { surface: "smooth_pei", width_mm: 256, depth_mm: 256, temperature_offset_c: 0 };
 }
 
-function templateProfile(kind: ProfileKind): V6Profile {
-  const label = GROUPS.find((group) => group.kind === kind)?.label ?? "Benutzer";
+function templateProfile(group: ProfileGroup): V6Profile {
   const now = new Date().toISOString();
+  const payload = defaultPayload(group.kind);
+  if (group.slot) {
+    payload.gcode_slot = group.slot;
+    payload[GCODE_TEMPLATE_KEY[group.slot]] = "";
+  }
   return {
-    id: `template.${kind}`,
-    kind,
-    name: `Neues ${label}-Profil`,
+    id: `template.${group.id}`,
+    kind: group.kind,
+    name: `Neues ${group.label}-Profil`,
     source: "builtin",
-    payload: defaultPayload(kind),
+    payload,
     builtin: true,
     base_id: null,
     version: null,
@@ -260,7 +312,7 @@ export class Ultimate3DProfileWorkspaceV3 extends HTMLElement {
   #busyId = "";
   #error = "";
   #message = "";
-  #activeKind: ProfileKind = "printer";
+  #activeGroupId = "printer";
 
   connectedCallback(): void {
     if (!this.#editor.isConnected) document.body.append(this.#editor);
@@ -296,8 +348,12 @@ export class Ultimate3DProfileWorkspaceV3 extends HTMLElement {
     }
   }
 
+  #activeGroup(): ProfileGroup {
+    return GROUPS.find((item) => item.id === this.#activeGroupId) ?? GROUPS[0]!;
+  }
+
   #openSelectedHierarchy(): void {
-    if (!this.#catalog || this.#activeKind !== "filament") return;
+    if (!this.#catalog || this.#activeGroup().kind !== "filament") return;
     const selected = selectedId(this.#catalog.selection, "filament");
     const profile = this.#catalog.groups.filament.find((item) => item.id === selected);
     if (!profile) return;
@@ -310,9 +366,9 @@ export class Ultimate3DProfileWorkspaceV3 extends HTMLElement {
   #render(): void {
     if (!this.isConnected) return;
     const catalog = this.#catalog;
-    const group = GROUPS.find((item) => item.kind === this.#activeKind) ?? GROUPS[0]!;
-    const profiles = catalog?.groups[this.#activeKind] ?? [];
-    const selected = catalog ? selectedId(catalog.selection, this.#activeKind) : null;
+    const group = this.#activeGroup();
+    const profiles = profilesForGroup(catalog, group);
+    const selected = catalog && !group.slot ? selectedId(catalog.selection, group.kind) : null;
     const cloud = catalog?.cloud_sync;
     const body = this.#loading
       ? '<div class="empty">Profilkatalog wird geladen …</div>'
@@ -330,13 +386,13 @@ export class Ultimate3DProfileWorkspaceV3 extends HTMLElement {
       .title{min-width:0}.title strong,.title small{display:block}.title strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.title small{margin-top:3px;color:#7f96ac;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.badge{padding:3px 7px;border:1px solid #385b78;border-radius:999px;color:#9cc5e4;font-size:10px;text-transform:uppercase}.card[selected] .badge{border-color:#45c5ff;color:#d9f4ff}
       .body{padding:0 13px 13px;border-top:1px solid #223449}.values{display:grid}.value{display:grid;grid-template-columns:minmax(170px,.85fr) minmax(0,1.15fr);gap:8px;padding:7px 0;border-bottom:1px solid #223449;font-size:12px}.value span:first-child{color:#7890a8}.value span:last-child{overflow-wrap:anywhere}.more{padding:8px 0;color:#71899f;font-size:11px}.card-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px}.card-actions button{flex:1;min-width:130px}
       @media(max-width:700px){.head{display:block}.actions{justify-content:flex-start;margin-top:10px}.cloud{grid-template-columns:1fr}.value{grid-template-columns:1fr}.card>summary{grid-template-columns:auto minmax(0,1fr)}}
-    </style><section class="page"><header class="head"><div><h1>Profile</h1><p>${esc(group.description)}. Lokale Profile bleiben vom Bambu-Cloud-Sync unabhängig.</p></div><div class="actions"><span class="status">${catalog?.persistent ? "Lokal persistent" : "Wird geladen"}</span><button class="primary" id="new-profile" type="button" ${this.#busyId ? "disabled" : ""}>Neues ${esc(group.label)}-Profil</button><button id="collapse-all" type="button">Alles einklappen</button></div></header>${catalog ? `<section class="cloud"><div><strong>${cloud?.available_offline ? `${catalog.source_counts.bambu_cloud} Cloud-Profile lokal verfügbar` : "Bambu-Cloud-Profile"}</strong><small>${cloud?.last_error ? esc(cloud.last_error) : cloud?.available_offline ? "Der synchronisierte Stand bleibt offline verfügbar. Lokale Profile werden durch Cloud-Sync weder gelöscht noch überschrieben." : "Cloudprofile können synchronisiert und als lokale Profile übernommen werden."}</small></div><button id="cloud-sync" type="button" ${this.#busyId || cloud?.syncing ? "disabled" : ""}>${cloud?.syncing || this.#busyId === "cloud-sync" ? "Synchronisiert …" : "Cloud synchronisieren"}</button></section>` : ""}<nav class="tabs">${GROUPS.map((item) => `<button type="button" data-kind="${item.kind}" aria-current="${item.kind === this.#activeKind}">${esc(item.label)}</button>`).join("")}</nav>${this.#message ? `<div class="message">${esc(this.#message)}</div>` : ""}${this.#error ? `<div class="error">${esc(this.#error)}</div>` : ""}${body}</section>`;
+    </style><section class="page"><header class="head"><div><h1>Profile</h1><p>${esc(group.description)}. Lokale Profile bleiben vom Bambu-Cloud-Sync unabhängig.</p></div><div class="actions"><span class="status">${catalog?.persistent ? "Lokal persistent" : "Wird geladen"}</span><button class="primary" id="new-profile" type="button" ${this.#busyId ? "disabled" : ""}>Neues ${esc(group.label)}-Profil</button><button id="collapse-all" type="button">Alles einklappen</button></div></header>${catalog ? `<section class="cloud"><div><strong>${cloud?.available_offline ? `${catalog.source_counts.bambu_cloud} Cloud-Profile lokal verfügbar` : "Bambu-Cloud-Profile"}</strong><small>${cloud?.last_error ? esc(cloud.last_error) : cloud?.available_offline ? "Der synchronisierte Stand bleibt offline verfügbar. Lokale Profile werden durch Cloud-Sync weder gelöscht noch überschrieben." : "Cloudprofile können synchronisiert und als lokale Profile übernommen werden."}</small></div><button id="cloud-sync" type="button" ${this.#busyId || cloud?.syncing ? "disabled" : ""}>${cloud?.syncing || this.#busyId === "cloud-sync" ? "Synchronisiert …" : "Cloud synchronisieren"}</button></section>` : ""}<nav class="tabs">${GROUPS.map((item) => `<button type="button" data-group-id="${esc(item.id)}" aria-current="${item.id === this.#activeGroupId}">${esc(item.label)}</button>`).join("")}</nav>${this.#message ? `<div class="message">${esc(this.#message)}</div>` : ""}${this.#error ? `<div class="error">${esc(this.#error)}</div>` : ""}${body}</section>`;
 
     this.#bind(profiles);
   }
 
   #profilesHtml(profiles: readonly V6Profile[], selected: string | null): string {
-    if (this.#activeKind !== "filament") {
+    if (this.#activeGroup().kind !== "filament") {
       return profiles.map((profile) => this.#profileCard(profile, selected)).join("");
     }
     const hierarchy = buildFilamentHierarchy(profiles);
@@ -351,7 +407,9 @@ export class Ultimate3DProfileWorkspaceV3 extends HTMLElement {
   }
 
   #profileCard(profile: V6Profile, selected: string | null, displayName = profile.name): string {
-    const active = profile.id === selected;
+    const group = this.#activeGroup();
+    const selectable = !group.slot;
+    const active = selectable && profile.id === selected;
     const priority = [
       "vendor", "material", "sub_brand", "diameter_mm", "nozzle_temperature_c",
       "recommended_nozzle_temperature_c", "first_layer_nozzle_temperature_c",
@@ -366,7 +424,7 @@ export class Ultimate3DProfileWorkspaceV3 extends HTMLElement {
       "cloud_sync_protected", "profile_completeness",
     ];
     const entries = Object.entries(profile.payload)
-      .filter(([key]) => key !== "_bambu_cloud" && !key.toLowerCase().includes("gcode"))
+      .filter(([key]) => key !== "_bambu_cloud" && (group.slot ? true : !key.toLowerCase().includes("gcode")))
       .sort(([left], [right]) => {
         const leftIndex = priority.indexOf(left);
         const rightIndex = priority.indexOf(right);
@@ -376,20 +434,20 @@ export class Ultimate3DProfileWorkspaceV3 extends HTMLElement {
     const preview = entries.slice(0, 28);
     const hiddenCount = Math.max(0, entries.length - preview.length);
     const editLabel = profile.source === "local" ? "Bearbeiten" : "Als lokales Profil bearbeiten";
-    return `<details class="card" data-profile-id="${esc(profile.id)}" ${active ? "selected" : ""} ${this.#openProfiles.has(profile.id) ? "open" : ""}><summary><span></span><span class="title"><strong>${esc(displayName)}</strong><small>${esc(profile.id)}${profile.base_id ? ` · Basis ${esc(profile.base_id)}` : ""}</small></span><span class="badge">${active ? `Aktiv · ${sourceLabel(profile)}` : sourceLabel(profile)}</span></summary><div class="body"><div class="values">${preview.map(([key, value]) => `<div class="value"><span>${esc(parameterLabel(key))}</span><span>${esc(formattedValue(key, value))}</span></div>`).join("")}</div>${hiddenCount ? `<div class="more">${hiddenCount} weitere Parameter sind im Editor verfügbar.</div>` : ""}<div class="card-actions"><button type="button" data-action="select" data-profile-id="${esc(profile.id)}" ${active || this.#busyId ? "disabled" : ""}>${active ? "Ausgewählt" : "Auswählen"}</button><button class="primary" type="button" data-action="edit" data-profile-id="${esc(profile.id)}" ${this.#busyId ? "disabled" : ""}>${editLabel}</button><button class="danger" type="button" data-action="delete" data-profile-id="${esc(profile.id)}" ${this.#busyId ? "disabled" : ""}>Löschen</button></div></div></details>`;
+    return `<details class="card" data-profile-id="${esc(profile.id)}" ${active ? "selected" : ""} ${this.#openProfiles.has(profile.id) ? "open" : ""}><summary><span></span><span class="title"><strong>${esc(displayName)}</strong><small>${esc(profile.id)}${profile.base_id ? ` · Basis ${esc(profile.base_id)}` : ""}</small></span><span class="badge">${active ? `Aktiv · ${sourceLabel(profile)}` : group.slot ? `Baustein · ${sourceLabel(profile)}` : sourceLabel(profile)}</span></summary><div class="body"><div class="values">${preview.map(([key, value]) => `<div class="value"><span>${esc(parameterLabel(key))}</span><span>${esc(formattedValue(key, value))}</span></div>`).join("")}</div>${hiddenCount ? `<div class="more">${hiddenCount} weitere Parameter sind im Editor verfügbar.</div>` : ""}<div class="card-actions">${selectable ? `<button type="button" data-action="select" data-profile-id="${esc(profile.id)}" ${active || this.#busyId ? "disabled" : ""}>${active ? "Ausgewählt" : "Auswählen"}</button>` : ""}<button class="primary" type="button" data-action="edit" data-profile-id="${esc(profile.id)}" ${this.#busyId ? "disabled" : ""}>${editLabel}</button><button class="danger" type="button" data-action="delete" data-profile-id="${esc(profile.id)}" ${this.#busyId ? "disabled" : ""}>Löschen</button></div></div></details>`;
   }
 
   #bind(profiles: readonly V6Profile[]): void {
-    this.#root.querySelector<HTMLButtonElement>("#new-profile")?.addEventListener("click", () => this.#editor.open(templateProfile(this.#activeKind)));
+    this.#root.querySelector<HTMLButtonElement>("#new-profile")?.addEventListener("click", () => this.#openEditor(templateProfile(this.#activeGroup())));
     this.#root.querySelector<HTMLButtonElement>("#collapse-all")?.addEventListener("click", () => {
       this.#openProfiles.clear();
       this.#openGroups.clear();
       this.#render();
     });
     this.#root.querySelector<HTMLButtonElement>("#cloud-sync")?.addEventListener("click", () => void this.#syncCloud());
-    this.#root.querySelectorAll<HTMLButtonElement>("[data-kind]").forEach((button) => {
+    this.#root.querySelectorAll<HTMLButtonElement>("[data-group-id]").forEach((button) => {
       button.addEventListener("click", () => {
-        this.#activeKind = button.dataset.kind as ProfileKind;
+        this.#activeGroupId = button.dataset.groupId || "printer";
         this.#message = "";
         this.#error = "";
         this.#openSelectedHierarchy();
@@ -424,7 +482,7 @@ export class Ultimate3DProfileWorkspaceV3 extends HTMLElement {
       button.addEventListener("click", (event) => {
         event.stopPropagation();
         const profile = profiles.find((item) => item.id === button.dataset.profileId);
-        if (profile) this.#editor.open(profile);
+        if (profile) this.#openEditor(profile);
       });
     });
     this.#root.querySelectorAll<HTMLButtonElement>("[data-action='delete']").forEach((button) => {
@@ -434,6 +492,11 @@ export class Ultimate3DProfileWorkspaceV3 extends HTMLElement {
         if (profile) void this.#remove(profile);
       });
     });
+  }
+
+  #openEditor(profile: V6Profile): void {
+    const nozzle = this.#catalog?.profiles.find((item) => item.id === this.#catalog?.selection.nozzle_profile_id && item.kind === "nozzle");
+    this.#editor.open(profile, nozzle?.payload.diameter_mm);
   }
 
   async #saveEditorProfile(detail: EditorSaveDetail): Promise<void> {
@@ -453,8 +516,13 @@ export class Ultimate3DProfileWorkspaceV3 extends HTMLElement {
         origin_profile_id: detail.origin_profile_id,
       });
       await this.#load();
-      if (detail.select_after_save) await this.#select(profile);
-      this.#activeKind = profile.kind;
+      const savedSlot = gcodeSlot(profile);
+      if (detail.select_after_save && !savedSlot) {
+        const selection = await this.#api.saveSelection(selectionPatch(profile.kind, profile.id));
+        if (this.#catalog) this.#catalog = { ...this.#catalog, selection };
+        this.#openSelectedHierarchy();
+      }
+      this.#activeGroupId = groupIdForProfile(profile);
       this.#openProfiles.add(profile.id);
       this.#message = `${profile.name} wurde gespeichert${detail.select_after_save ? " und ausgewählt" : ""}.`;
       this.#editor.close();
@@ -486,7 +554,7 @@ export class Ultimate3DProfileWorkspaceV3 extends HTMLElement {
   }
 
   async #select(profile: V6Profile): Promise<void> {
-    if (!this.#catalog || this.#busyId) return;
+    if (!this.#catalog || this.#busyId || this.#activeGroup().slot) return;
     this.#busyId = profile.id;
     this.#error = "";
     this.#render();
@@ -522,7 +590,7 @@ export class Ultimate3DProfileWorkspaceV3 extends HTMLElement {
       await this.#api.removeProfile(profile.id);
       this.#openProfiles.delete(profile.id);
       await this.#load();
-      this.#message = `${profile.name} wurde aus dem lokalen V6-Profilkatalog gelöscht.`;
+      this.#message = `${profile.name} wurde aus dem lokalen Profilkatalog gelöscht.`;
     } catch (error) {
       this.#error = errorMessage(error);
     } finally {
@@ -533,8 +601,8 @@ export class Ultimate3DProfileWorkspaceV3 extends HTMLElement {
 
   #openContext(event: MouseEvent, profile: V6Profile): void {
     const actions: ContextMenuAction[] = [
-      { label: "Profil bearbeiten", disabled: this.#busyId !== "", run: () => this.#editor.open(profile) },
-      { label: "Profil auswählen", disabled: this.#busyId !== "", run: () => this.#select(profile) },
+      { label: "Profil bearbeiten", disabled: this.#busyId !== "", run: () => this.#openEditor(profile) },
+      { label: "Profil auswählen", disabled: this.#busyId !== "" || this.#activeGroup().slot !== undefined, run: () => this.#select(profile) },
       {
         label: "Profil-ID kopieren",
         run: async () => {
