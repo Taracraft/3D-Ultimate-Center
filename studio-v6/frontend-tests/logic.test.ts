@@ -1,3 +1,4 @@
+import { safeMediaUrl, descriptionImageUrls, missingDescriptionImages } from "../frontend/makerworld-description-media.js";
 import { buildContinuousToolpathMeshes, extrusionRibbonWidth, type RibbonSegment } from "../frontend/toolpath-ribbon-geometry.js";
 import { transferMatchesAttempt } from "../frontend/transfer-attempt.js";
 import { issueTitle, issueMessage, issueHelpUrl, issueQrImageUrl } from "../frontend/printer-issues.js";
@@ -2258,4 +2259,23 @@ test("unified filament picker dispatches by material source without cloud synchr
   assert.ok(picker.includes("this.#externalFilamentProfileChanged"));
   assert.ok(picker.includes("this.#toggleFilamentProfile"));
   assert.doesNotMatch(source, /#cloudFilamentProfileChanged|syncCloudProfiles\(/);
+});
+
+
+test("MakerWorld description media rejects empty relative and active URLs", () => {
+  for (const value of ["", "  ", "/dashboard", "javascript:alert(1)", "data:image/png;base64,x"]) {
+    assert.equal(safeMediaUrl(value), "");
+  }
+  assert.equal(safeMediaUrl("https://example.com/a.png"), "https://example.com/a.png");
+});
+
+test("MakerWorld text image links remain visible unless actually rendered inline", () => {
+  const url = "https://example.com/a.png";
+  const candidates = descriptionImageUrls(`Image: ${url} ![image](${url})`);
+  assert.deepEqual(missingDescriptionImages(candidates, []), [url]);
+  assert.deepEqual(missingDescriptionImages(candidates, [url]), []);
+});
+
+test("MakerWorld additional images are normalized deduplicated and validated", () => {
+  assert.deepEqual(missingDescriptionImages(["https://example.com/a.png", "https://example.com/a.png", "javascript:x", "https://example.com/b.png"], ["https://example.com/a.png"]), ["https://example.com/b.png"]);
 });

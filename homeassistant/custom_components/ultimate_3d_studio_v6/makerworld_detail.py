@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import json
 import re
 from html import unescape
 from typing import Any, Iterable
@@ -234,7 +235,20 @@ def _instance(mapping: dict[str, Any], design_id: str) -> dict[str, Any] | None:
     instance_id = _instance_id(mapping)
     if not instance_id:
         return None
+    extension = mapping.get("extention", mapping.get("extension", {}))
+    if isinstance(extension, str):
+        try:
+            extension = json.loads(extension)
+        except (ValueError, TypeError):
+            extension = {}
+    extension = extension if isinstance(extension, dict) else {}
+    info = extension.get("modelInfo", {})
+    info = info if isinstance(info, dict) else {}
+    compatibility = info.get("compatibility", {})
+    compatibility = compatibility if isinstance(compatibility, dict) else {}
     plate_values = _first(mapping, ("plates", "plateList", "plate_list", "printPlates", "print_plates", "plateInfos", "plate_infos"), [])
+    if not plate_values:
+        plate_values = info.get("plates", [])
     plates = [_plate(item, index) for index, item in enumerate(plate_values) if isinstance(item, dict)] if isinstance(plate_values, list) else []
     images = _images(mapping)
     return {
@@ -245,8 +259,8 @@ def _instance(mapping: dict[str, Any], design_id: str) -> dict[str, Any] | None:
         "thumbnail_url": images[0] if images else None,
         "images": images,
         "is_default": _bool(_first(mapping, ("isDefault", "is_default", "default", "defaultInstance"))),
-        "printer_model": _text(_first(mapping, ("printerModel", "printer_model", "printer", "machineName", "machine_name", "printerType", "printer_type")), 240),
-        "nozzle_diameter": _text(_first(mapping, ("nozzleDiameter", "nozzle_diameter", "nozzle", "nozzleSize", "nozzle_size")), 40),
+        "printer_model": _text(_first(mapping, ("printerModel", "printer_model", "printer", "machineName", "machine_name", "printerType", "printer_type"), compatibility.get("devProductName", "")), 240),
+        "nozzle_diameter": _text(_first(mapping, ("nozzleDiameter", "nozzle_diameter", "nozzle", "nozzleSize", "nozzle_size"), compatibility.get("nozzleDiameter", "")), 40),
         "profile_name": _text(_first(mapping, ("profileName", "profile_name", "processName", "process_name", "printProfileName")), 300),
         "plates": plates,
         "plate_count": len(plates),
@@ -257,13 +271,46 @@ def _instance(mapping: dict[str, Any], design_id: str) -> dict[str, Any] | None:
 def _instances(payload: Any, raw: dict[str, Any], design_id: str) -> list[dict[str, Any]]:
     keys = ("instances", "modelInstances", "model_instances", "designInstances", "design_instances", "instanceList", "instance_list", "profiles", "printProfiles", "print_profiles")
     candidates: list[dict[str, Any]] = []
-    for source in (raw, *_walk(payload)):
+    # Only the selected design and its response wrappers own these profiles.
+    sources = [raw]
+    if isinstance(payload, dict):
+        sources.append(payload)
+        for key in ("data", "result", "detail"):
+            wrapper = payload.get(key)
+            if isinstance(wrapper, dict) and not _first(wrapper, ("title", "name")):
+                sources.append(wrapper)
+    for source in sources:
         for key in keys:
             values = source.get(key)
             if isinstance(values, list):
                 candidates.extend(item for item in values if isinstance(item, dict))
-    if not candidates:
-        candidates = [item for item in _walk(payload) if any(key in item for key in ("instanceId", "instance_id", "plateList", "plates", "isDefault", "profileName", "printerModel"))]
+    expanded: list[dict[str, Any]] = []
+    for item in candidates:
+        owner = _text(_first(item, ("designId", "design_id")), 90)
+        if owner and owner != design_id:
+            continue
+        expanded.append(item)
+        extension = item.get("extention", item.get("extension", {}))
+        if isinstance(extension, str):
+            try:
+                extension = json.loads(extension)
+            except (ValueError, TypeError):
+                extension = {}
+        alternatives = extension.get("otherCompatibilityModelInfo", []) if isinstance(extension, dict) else []
+        for alternative in alternatives if isinstance(alternatives, list) else []:
+            if not isinstance(alternative, dict) or not alternative.get("profileId"):
+                continue
+            variant = dict(item)
+            for key in ("instanceId", "instance_id", "modelInstanceId", "model_instance_id", "profile_id"):
+                variant.pop(key, None)
+            variant.update({"profileId": alternative["profileId"], "isDefault": False,
+                            "printerModel": alternative.get("devProductName", ""),
+                            "extention": {"modelInfo": alternative.get("modelInfo", {})}})
+            # Per-printer plates must never be inherited from another variant.
+            for key in ("plates", "plateList", "plate_list", "printPlates", "print_plates", "plateInfos", "plate_infos", "nozzleDiameter", "nozzle_diameter"):
+                variant.pop(key, None)
+            expanded.append(variant)
+    candidates = expanded
     result: list[dict[str, Any]] = []
     seen: set[str] = set()
     for item in candidates:
@@ -576,7 +623,7 @@ def _normalize(payload: Any, design_id: str) -> dict[str, Any]:
     return {
         "id": design_id,
         "title": _text(_first(raw, ("title", "name", "designName", "design_name", "modelName", "model_name")), 300) or f"MakerWorld Modell {design_id}",
-        "description": _text(_first(raw, ("description", "summary", "designDescription", "design_description", "content", "introduction")), 30000),
+        "description": str(_first(raw, ("description", "summary", "designDescription", "design_description", "content", "introduction")) or "")[:30000],
         "creator": _creator(raw),
         "thumbnail_url": images[0] if images else None,
         "images": images,

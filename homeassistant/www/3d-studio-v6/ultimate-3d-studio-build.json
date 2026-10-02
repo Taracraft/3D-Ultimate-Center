@@ -4,8 +4,8 @@
   "version": "6.0.0-beta3",
   "entry": "frontend/v6-entry.ts",
   "output": "deploy/homeassistant/www/3d-studio-v6/ultimate-3d-studio.js",
-  "size_bytes": 607533,
-  "sha256": "2bc55c5ec1da45b2fd3b3b681db8c01b0094dc168aa6a49baccd71dbd4e658f9",
+  "size_bytes": 608249,
+  "sha256": "c1916d3c1dfb28c3b4af587bac12eaa4c197da50e1674b7dc23353e15617bbf6",
   "css": {
     "output": "deploy/homeassistant/www/3d-studio-v6/ultimate-3d-studio.css",
     "size_bytes": 801,
@@ -28,7 +28,7 @@
     "target": "es2022",
     "minified": true,
     "sourcemap": false,
-    "bundled_input_count": 114,
+    "bundled_input_count": 115,
     "inputs": [
       "frontend/ams-workspace.ts",
       "frontend/api-client.ts",
@@ -65,6 +65,7 @@
       "frontend/job-workspaces.ts",
       "frontend/jobs-workspaces-v9.ts",
       "frontend/makerworld-api.ts",
+      "frontend/makerworld-description-media.ts",
       "frontend/makerworld-detail-dialog-v6.ts",
       "frontend/makerworld-search-filters.ts",
       "frontend/makerworld-v6-adapter2.ts",
@@ -158,5 +159,5 @@
       "__transformMountPatched"
     ]
   },
-  "built_at": "2026-10-02T21:20:44.216Z"
+  "built_at": "2026-10-02T21:44:34.700Z"
 }

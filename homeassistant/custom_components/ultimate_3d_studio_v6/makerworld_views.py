@@ -17,7 +17,7 @@ from .geometry_export import export_binary_stl
 from .makerworld_detail import async_load_detail
 from .makerworld_download import async_download_instance as async_resolve_download
 from .makerworld_runtime import MakerWorldError, get_makerworld_runtime
-from .rich_text import readable_rich_text
+from .rich_text import readable_rich_text, safe_rich_html
 
 _LOGGER = logging.getLogger(__name__)
 _DATA_VIEWS = "makerworld_browser_views_registered"
@@ -157,6 +157,7 @@ class MakerWorldDetailView(HomeAssistantView):
         runtime = get_makerworld_runtime(request.app["hass"])
         try:
             detail = await async_load_detail(runtime, design_id)
+            detail["description_html"] = safe_rich_html(detail.get("description", ""))
             detail["description"] = readable_rich_text(
                 detail.get("description", ""),
                 30_000,

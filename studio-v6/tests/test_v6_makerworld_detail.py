@@ -331,3 +331,43 @@ async def test_cancelling_detail_request_propagates_to_optional_operations() -> 
     with pytest.raises(asyncio.CancelledError):
         await task
     assert cancelled.is_set()
+
+
+def test_nested_profile_metadata_and_printer_variants_keep_distinct_plate_data() -> None:
+    raw = {"id": 42, "title": "Fixture", "instances": [{
+        "id": 12, "profileId": 100, "title": "Process", "isDefault": True,
+        "extention": {"modelInfo": {
+            "compatibility": {"devProductName": "X1 Carbon", "nozzleDiameter": 0.4},
+            "plates": [{"index": 1, "prediction": 3600, "weight": 25}]},
+            "otherCompatibilityModelInfo": [{"profileId": 101, "devProductName": "A1",
+                "modelInfo": {"compatibility": {"devProductName": "A1", "nozzleDiameter": 0.6},
+                              "plates": [{"index": 1, "prediction": 4200, "weight": 26}]}}]}}]}
+    profiles = detail_module._instances(raw, raw, "42")
+    assert len(profiles) == 2
+    primary = next(p for p in profiles if p["id"] == "100")
+    variant = next(p for p in profiles if p["id"] == "101")
+    assert primary["printer_model"] == "X1 Carbon"
+    assert primary["nozzle_diameter"] == "0.4"
+    assert primary["is_default"]
+    assert variant["printer_model"] == "A1"
+    assert variant["nozzle_diameter"] == "0.6"
+    assert not variant["is_default"]
+    assert variant["plates"][0]["print_time_seconds"] == 4200
+    assert primary["plates"][0]["weight_grams"] == 25
+
+
+def test_profile_scope_excludes_recommendations_and_foreign_designs() -> None:
+    raw = {"id": 42, "title": "Fixture", "instances": [
+        {"profileId": 100, "title": "Own"},
+        {"profileId": 200, "title": "Foreign", "designId": 99}],
+        "recommendations": [{"id": 99, "title": "Other", "instances": [{"profileId": 300}]}]}
+    assert [p["id"] for p in detail_module._instances(raw, raw, "42")] == ["100"]
+
+
+def test_json_extension_and_plain_description_paragraphs_are_preserved() -> None:
+    raw = {"id": 42, "title": "Fixture", "summary": "First\n\nSecond", "instances": [
+        {"profileId": 100, "extention": '{"modelInfo":{"compatibility":{"devProductName":"P1S"},"plates":[{"prediction":60}]}}'}]}
+    detail = detail_module._normalize(raw, "42")
+    assert detail["description"] == "First\n\nSecond"
+    assert detail["instances"][0]["printer_model"] == "P1S"
+    assert detail["instances"][0]["plate_count"] == 1

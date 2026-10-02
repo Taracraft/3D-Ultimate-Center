@@ -1,9 +1,10 @@
 """Safe conversion of remote rich HTML into readable plain text."""
 from __future__ import annotations
 
-from html import unescape
+from html import unescape, escape
 from html.parser import HTMLParser
 import re
+from urllib.parse import urlsplit
 
 _BLOCK_TAGS = {
     "address",
@@ -102,3 +103,76 @@ def readable_rich_text(value: object, limit: int = 30_000) -> str:
     text = re.sub(r" *\n *", "\n", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()[: max(1, int(limit))]
+
+
+_HTML_TAGS = {"p", "br", "strong", "b", "em", "i", "u", "s", "ul", "ol", "li",
+              "h1", "h2", "h3", "h4", "h5", "h6", "img", "a", "blockquote",
+              "pre", "code", "table", "thead", "tbody", "tfoot", "tr", "th", "td", "hr"}
+_VOID_TAGS = {"br", "img", "hr"}
+
+
+def _safe_remote_url(value: str) -> str:
+    value = value.strip()
+    if value.startswith("//"):
+        value = "https:" + value
+    try:
+        parsed = urlsplit(value)
+        return value if parsed.scheme.lower() in {"http", "https"} and parsed.hostname else ""
+    except ValueError:
+        return ""
+
+
+class _SafeHtmlParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.parts: list[str] = []
+        self.dropped: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs) -> None:
+        if tag in _DROP_TAGS:
+            self.dropped.append(tag)
+            return
+        if self.dropped or tag not in _HTML_TAGS:
+            return
+        values = dict(attrs)
+        attributes = ""
+        if tag in {"img", "a"}:
+            key = "src" if tag == "img" else "href"
+            url = _safe_remote_url(values.get(key) or "")
+            if tag == "img" and not url:
+                return
+            if url:
+                attributes = f' {key}="{escape(url, quote=True)}"'
+            if tag == "img":
+                attributes += f' alt="{escape(values.get("alt") or "", quote=True)}" loading="lazy"'
+            else:
+                attributes += ' target="_blank" rel="noopener noreferrer"'
+        self.parts.append(f"<{tag}{attributes}>")
+
+    def handle_startendtag(self, tag: str, attrs) -> None:
+        self.handle_starttag(tag, attrs)
+        if tag not in _VOID_TAGS:
+            self.handle_endtag(tag)
+
+    def handle_endtag(self, tag: str) -> None:
+        if self.dropped:
+            if tag == self.dropped[-1]:
+                self.dropped.pop()
+            return
+        if tag in _HTML_TAGS and tag not in _VOID_TAGS:
+            self.parts.append(f"</{tag}>")
+
+    def handle_data(self, data: str) -> None:
+        if not self.dropped:
+            self.parts.append(escape(data))
+
+
+def safe_rich_html(value: object, limit: int = 30_000) -> str:
+    """Preserve remote document structure using a passive HTML allowlist."""
+    raw = str(value or "")[:max(1, int(limit))]
+    if not re.search(r"<[a-z][\s\S]*>", raw, re.I):
+        return "<p>" + escape(raw).replace("\n\n", "</p><p>").replace("\n", "<br>") + "</p>" if raw else ""
+    parser = _SafeHtmlParser()
+    parser.feed(raw)
+    parser.close()
+    return "".join(parser.parts)

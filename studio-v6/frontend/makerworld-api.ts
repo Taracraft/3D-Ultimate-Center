@@ -72,6 +72,7 @@ export type MakerWorldDesign = Readonly<{
 }>;
 
 export type MakerWorldDetail = MakerWorldDesign & Readonly<{
+  description_html?: string;
   instances: readonly MakerWorldInstance[];
   instance_count: number;
   comments: readonly MakerWorldComment[];
