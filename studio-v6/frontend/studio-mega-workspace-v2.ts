@@ -2838,6 +2838,10 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       torus: "Ring",
       plate: "Platte",
       "first-layer": "First-Layer-Test",
+      text: "Text",
+      rectangle: "Rechteck",
+      circle: "Kreis",
+      line: "Linie",
     };
     const mesh = createPrimitiveGeometry(kind, plate.width, plate.depth);
     const id = `primitive-${this.#nextId++}`;
@@ -3295,7 +3299,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
               totalBytes: upload.totalBytes,
               rateBytesPerSecond: upload.rateBytesPerSecond || undefined,
               elapsedSeconds: upload.elapsedSeconds,
-              etaSeconds: upload.etaSeconds,
+              etaSeconds: upload.etaSeconds ?? undefined,
             },
           });
         },
