@@ -1,10 +1,112 @@
-﻿import type { StudioBuildPlateVisual } from "./studio-build-plates.js";
+import type { StudioBuildPlateVisual } from "./studio-build-plates.js";
 import type { MeshInstance, Vec3 } from "./webgl-studio-viewport.js";
+import type { PaintRegion } from "./studio-mesh-paint.js";
 
 type GpuMesh = { position: WebGLBuffer; normal: WebGLBuffer; count: number };
 type FlatMesh = { buffer: WebGLBuffer; count: number; mode: number; color: string };
 export type MegaGizmoMode = "select" | "translate" | "rotate" | "scale";
 export type MegaAxis = "x" | "y" | "z";
+export type PaintPickResult = Readonly<{
+  objectId: string;
+  triangleIndex: number;
+  localPosition: Vec3;
+  distancePx: number;
+}>;
+
+export type PaintShapeKind = "rectangle" | "circle";
+export type PaintScreenPoint = Readonly<{ x: number; y: number }>;
+export type PaintShapeBounds = Readonly<{ left: number; right: number; top: number; bottom: number }>;
+
+function pointInProjectedTriangle(point: PaintScreenPoint, a: PaintScreenPoint, b: PaintScreenPoint, c: PaintScreenPoint): boolean {
+  const cross = (left: PaintScreenPoint, right: PaintScreenPoint, target: PaintScreenPoint): number =>
+    (right.x - left.x) * (target.y - left.y) - (right.y - left.y) * (target.x - left.x);
+  const first = cross(a, b, point);
+  const second = cross(b, c, point);
+  const third = cross(c, a, point);
+  const epsilon = 0.0001;
+  return (first >= -epsilon && second >= -epsilon && third >= -epsilon)
+    || (first <= epsilon && second <= epsilon && third <= epsilon);
+}
+
+function projectedSegmentsIntersect(a: PaintScreenPoint, b: PaintScreenPoint, c: PaintScreenPoint, d: PaintScreenPoint): boolean {
+  const cross = (left: PaintScreenPoint, right: PaintScreenPoint, target: PaintScreenPoint): number =>
+    (right.x - left.x) * (target.y - left.y) - (right.y - left.y) * (target.x - left.x);
+  const between = (left: number, value: number, right: number): boolean => value >= Math.min(left, right) - 0.0001 && value <= Math.max(left, right) + 0.0001;
+  const first = cross(a, b, c), second = cross(a, b, d), third = cross(c, d, a), fourth = cross(c, d, b);
+  if (((first > 0 && second < 0) || (first < 0 && second > 0)) && ((third > 0 && fourth < 0) || (third < 0 && fourth > 0))) return true;
+  return Math.abs(first) <= 0.0001 && between(a.x, c.x, b.x) && between(a.y, c.y, b.y)
+    || Math.abs(second) <= 0.0001 && between(a.x, d.x, b.x) && between(a.y, d.y, b.y)
+    || Math.abs(third) <= 0.0001 && between(c.x, a.x, d.x) && between(c.y, a.y, d.y)
+    || Math.abs(fourth) <= 0.0001 && between(c.x, b.x, d.x) && between(c.y, b.y, d.y);
+}
+
+function projectedSegmentIntersectsRectangle(a: PaintScreenPoint, b: PaintScreenPoint, bounds: PaintShapeBounds): boolean {
+  const inside = (point: PaintScreenPoint): boolean => point.x >= bounds.left && point.x <= bounds.right && point.y >= bounds.top && point.y <= bounds.bottom;
+  if (inside(a) || inside(b)) return true;
+  const corners: readonly PaintScreenPoint[] = [
+    { x: bounds.left, y: bounds.top }, { x: bounds.right, y: bounds.top },
+    { x: bounds.right, y: bounds.bottom }, { x: bounds.left, y: bounds.bottom },
+  ];
+  return corners.some((corner, index) => projectedSegmentsIntersect(a, b, corner, corners[(index + 1) % corners.length]!));
+}
+
+function pointInProjectedEllipse(point: PaintScreenPoint, bounds: PaintShapeBounds): boolean {
+  const radiusX = Math.max(1, (bounds.right - bounds.left) / 2);
+  const radiusY = Math.max(1, (bounds.bottom - bounds.top) / 2);
+  const centerX = (bounds.left + bounds.right) / 2;
+  const centerY = (bounds.top + bounds.bottom) / 2;
+  const dx = (point.x - centerX) / radiusX;
+  const dy = (point.y - centerY) / radiusY;
+  return dx * dx + dy * dy <= 1.0001;
+}
+
+function projectedSegmentIntersectsEllipse(a: PaintScreenPoint, b: PaintScreenPoint, bounds: PaintShapeBounds): boolean {
+  if (pointInProjectedEllipse(a, bounds) || pointInProjectedEllipse(b, bounds)) return true;
+  const radiusX = Math.max(1, (bounds.right - bounds.left) / 2);
+  const radiusY = Math.max(1, (bounds.bottom - bounds.top) / 2);
+  const centerX = (bounds.left + bounds.right) / 2;
+  const centerY = (bounds.top + bounds.bottom) / 2;
+  const ax = (a.x - centerX) / radiusX, ay = (a.y - centerY) / radiusY;
+  const bx = (b.x - centerX) / radiusX, by = (b.y - centerY) / radiusY;
+  const dx = bx - ax, dy = by - ay;
+  const quadratic = dx * dx + dy * dy;
+  if (quadratic <= 0.0000001) return false;
+  const linear = 2 * (ax * dx + ay * dy);
+  const constant = ax * ax + ay * ay - 1;
+  const discriminant = linear * linear - 4 * quadratic * constant;
+  if (discriminant < 0) return false;
+  const root = Math.sqrt(discriminant);
+  const first = (-linear - root) / (2 * quadratic);
+  const second = (-linear + root) / (2 * quadratic);
+  return (first >= 0 && first <= 1) || (second >= 0 && second <= 1);
+}
+
+export function projectedTriangleIntersectsPaintShape(
+  triangle: readonly [PaintScreenPoint, PaintScreenPoint, PaintScreenPoint],
+  shape: PaintShapeKind,
+  bounds: PaintShapeBounds,
+): boolean {
+  const [a, b, c] = triangle;
+  if (shape === "rectangle") {
+    if ([a, b, c].some((point) => point.x >= bounds.left && point.x <= bounds.right && point.y >= bounds.top && point.y <= bounds.bottom)) return true;
+    const corners: readonly PaintScreenPoint[] = [
+      { x: bounds.left, y: bounds.top }, { x: bounds.right, y: bounds.top },
+      { x: bounds.right, y: bounds.bottom }, { x: bounds.left, y: bounds.bottom },
+    ];
+    if (corners.some((corner) => pointInProjectedTriangle(corner, a, b, c))) return true;
+    return projectedSegmentIntersectsRectangle(a, b, bounds)
+      || projectedSegmentIntersectsRectangle(b, c, bounds)
+      || projectedSegmentIntersectsRectangle(c, a, bounds);
+  }
+  const center = { x: (bounds.left + bounds.right) / 2, y: (bounds.top + bounds.bottom) / 2 };
+  return pointInProjectedEllipse(a, bounds)
+    || pointInProjectedEllipse(b, bounds)
+    || pointInProjectedEllipse(c, bounds)
+    || pointInProjectedTriangle(center, a, b, c)
+    || projectedSegmentIntersectsEllipse(a, b, bounds)
+    || projectedSegmentIntersectsEllipse(b, c, bounds)
+    || projectedSegmentIntersectsEllipse(c, a, bounds);
+}
 
 const DEG = Math.PI / 180;
 
@@ -27,41 +129,6 @@ function multiply(a: Float32Array, b: Float32Array): Float32Array {
     }
   }
   return result;
-}
-function invert(m: Float32Array): Float32Array | null {
-  const out = new Float32Array(16);
-  const b00 = m[0]! * m[5]! - m[1]! * m[4]!;
-  const b01 = m[0]! * m[6]! - m[2]! * m[4]!;
-  const b02 = m[0]! * m[7]! - m[3]! * m[4]!;
-  const b03 = m[1]! * m[6]! - m[2]! * m[5]!;
-  const b04 = m[1]! * m[7]! - m[3]! * m[5]!;
-  const b05 = m[2]! * m[7]! - m[3]! * m[6]!;
-  const b06 = m[8]! * m[13]! - m[9]! * m[12]!;
-  const b07 = m[8]! * m[14]! - m[10]! * m[12]!;
-  const b08 = m[8]! * m[15]! - m[11]! * m[12]!;
-  const b09 = m[9]! * m[14]! - m[10]! * m[13]!;
-  const b10 = m[9]! * m[15]! - m[11]! * m[13]!;
-  const b11 = m[10]! * m[15]! - m[11]! * m[14]!;
-  let det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
-  if (!det) return null;
-  det = 1 / det;
-  out[0] = (m[5]! * b11 - m[6]! * b10 + m[7]! * b09) * det;
-  out[1] = (m[2]! * b10 - m[1]! * b11 - m[3]! * b09) * det;
-  out[2] = (m[13]! * b05 - m[14]! * b04 + m[15]! * b03) * det;
-  out[3] = (m[10]! * b04 - m[9]! * b05 - m[11]! * b03) * det;
-  out[4] = (m[6]! * b08 - m[4]! * b11 - m[7]! * b07) * det;
-  out[5] = (m[0]! * b11 - m[2]! * b08 + m[3]! * b07) * det;
-  out[6] = (m[14]! * b02 - m[12]! * b05 - m[15]! * b01) * det;
-  out[7] = (m[8]! * b05 - m[10]! * b02 + m[11]! * b01) * det;
-  out[8] = (m[4]! * b10 - m[5]! * b08 + m[7]! * b06) * det;
-  out[9] = (m[1]! * b08 - m[0]! * b10 - m[3]! * b06) * det;
-  out[10] = (m[12]! * b04 - m[13]! * b02 + m[15]! * b00) * det;
-  out[11] = (m[9]! * b02 - m[8]! * b04 - m[11]! * b00) * det;
-  out[12] = (m[5]! * b07 - m[4]! * b09 - m[6]! * b06) * det;
-  out[13] = (m[8]! * b03 - m[0]! * b07 + m[2]! * b06) * det;
-  out[14] = (m[13]! * b01 - m[12]! * b03 - m[14]! * b00) * det;
-  out[15] = (m[4]! * b03 - m[8]! * b01 + m[10]! * b00) * det;
-  return out;
 }
 function translation(value: Vec3): Float32Array { const matrix = identity(); matrix[12] = value[0]; matrix[13] = value[1]; matrix[14] = value[2]; return matrix; }
 function scaling(value: Vec3): Float32Array { const matrix = identity(); matrix[0] = value[0]; matrix[5] = value[1]; matrix[10] = value[2]; return matrix; }
@@ -146,6 +213,7 @@ export class StudioMegaViewport {
   #plate: StudioBuildPlateVisual;
   #plateMeshes: FlatMesh[] = [];
   #overlayMeshes: FlatMesh[] = [];
+  #paintRegions: readonly PaintRegion[] = [];
   #gizmoPosition: Vec3 | null = null;
   #gizmoMode: MegaGizmoMode = "select";
   #activeAxis: MegaAxis = "x";
@@ -209,6 +277,11 @@ export class StudioMegaViewport {
     this.#rebuildOverlays();
     this.requestRender();
   }
+  setPaintRegions(regions: readonly PaintRegion[]): void {
+    this.#paintRegions = regions;
+    this.#rebuildOverlays();
+    this.requestRender();
+  }
   setGizmo(position: Vec3 | null, mode: MegaGizmoMode, axis: MegaAxis): void {
     this.#gizmoPosition = position;
     this.#gizmoMode = mode;
@@ -227,86 +300,146 @@ export class StudioMegaViewport {
     this.requestRender();
   }
 
-  platePoint(clientX: number, clientY: number): Vec3 | null {
-    const rect = this.canvas.getBoundingClientRect();
-    const x = ((clientX - rect.left) / Math.max(1, rect.width)) * 2 - 1;
-    const y = 1 - ((clientY - rect.top) / Math.max(1, rect.height)) * 2;
-    const inverse = invert(this.#viewProjection());
-    if (!inverse) return null;
-    const unproject = (z: number): Vec3 | null => {
-      const value = transformPoint(inverse, [x, y, z]);
-      const w = value[3] || 1;
-      return [value[0] / w, value[1] / w, value[2] / w];
-    };
-    const near = unproject(-1);
-    const far = unproject(1);
-    if (!near || !far) return null;
-    const direction = sub(far, near);
-    if (Math.abs(direction[2]) < 0.00001) return null;
-    const amount = -near[2] / direction[2];
-    if (!Number.isFinite(amount)) return null;
-    const point = add(near, mul(direction, amount));
-    return [
-      Math.max(0, Math.min(this.#plate.widthMm, point[0])),
-      Math.max(0, Math.min(this.#plate.depthMm, point[1])),
-      0,
-    ];
-  }
-
-  #projectedBounds(instance: MeshInstance): { minX: number; maxX: number; minY: number; maxY: number; depth: number } {
-    const mvp = multiply(this.#viewProjection(), modelMatrix(instance));
-    const projected = corners(instance).map((point) => {
-      const value = transformPoint(mvp, point);
-      const w = value[3] || 1;
-      return {
-        x: (value[0] / w * .5 + .5) * this.canvas.width,
-        y: (1 - (value[1] / w * .5 + .5)) * this.canvas.height,
-        z: value[2] / w,
-      };
-    });
-    return {
-      minX: Math.min(...projected.map((point) => point.x)),
-      maxX: Math.max(...projected.map((point) => point.x)),
-      minY: Math.min(...projected.map((point) => point.y)),
-      maxY: Math.max(...projected.map((point) => point.y)),
-      depth: projected.reduce((sum, point) => sum + point.z, 0) / projected.length,
-    };
-  }
-
   pick(clientX: number, clientY: number): string | null {
     const rect = this.canvas.getBoundingClientRect();
     const px = (clientX - rect.left) * (this.canvas.width / Math.max(1, rect.width));
     const py = (clientY - rect.top) * (this.canvas.height / Math.max(1, rect.height));
+    const vp = this.#viewProjection();
     let best: { id: string; area: number; depth: number } | null = null;
     for (const instance of this.#instances) {
       if (!instance.visible) continue;
-      const bounds = this.#projectedBounds(instance);
-      if (px < bounds.minX - 5 || px > bounds.maxX + 5 || py < bounds.minY - 5 || py > bounds.maxY + 5) continue;
-      const area = Math.max(1, (bounds.maxX - bounds.minX) * (bounds.maxY - bounds.minY));
-      if (!best || bounds.depth < best.depth || (Math.abs(bounds.depth - best.depth) < .02 && area < best.area)) {
-        best = { id: instance.id, area, depth: bounds.depth };
+      const mvp = multiply(vp, modelMatrix(instance));
+      const projected = corners(instance).map((point) => {
+        const value = transformPoint(mvp, point);
+        const w = value[3] || 1;
+        return {
+          x: (value[0] / w * .5 + .5) * this.canvas.width,
+          y: (1 - (value[1] / w * .5 + .5)) * this.canvas.height,
+          z: value[2] / w,
+        };
+      });
+      const minX = Math.min(...projected.map((point) => point.x));
+      const maxX = Math.max(...projected.map((point) => point.x));
+      const minY = Math.min(...projected.map((point) => point.y));
+      const maxY = Math.max(...projected.map((point) => point.y));
+      if (px < minX - 5 || px > maxX + 5 || py < minY - 5 || py > maxY + 5) continue;
+      const area = Math.max(1, (maxX - minX) * (maxY - minY));
+      const depth = projected.reduce((sum, point) => sum + point.z, 0) / projected.length;
+      if (!best || depth < best.depth || (Math.abs(depth - best.depth) < .02 && area < best.area)) {
+        best = { id: instance.id, area, depth };
       }
     }
     return best?.id ?? null;
   }
 
-  pickRect(startClientX: number, startClientY: number, endClientX: number, endClientY: number): string[] {
+  pickPaintPoint(clientX: number, clientY: number): PaintPickResult | null {
     const rect = this.canvas.getBoundingClientRect();
-    const toCanvasX = (value: number): number => (value - rect.left) * (this.canvas.width / Math.max(1, rect.width));
-    const toCanvasY = (value: number): number => (value - rect.top) * (this.canvas.height / Math.max(1, rect.height));
-    const left = Math.min(toCanvasX(startClientX), toCanvasX(endClientX));
-    const right = Math.max(toCanvasX(startClientX), toCanvasX(endClientX));
-    const top = Math.min(toCanvasY(startClientY), toCanvasY(endClientY));
-    const bottom = Math.max(toCanvasY(startClientY), toCanvasY(endClientY));
-    if (right - left < 4 || bottom - top < 4) return [];
-    return this.#instances
-      .filter((instance) => instance.visible)
-      .filter((instance) => {
-        const bounds = this.#projectedBounds(instance);
-        return bounds.maxX >= left && bounds.minX <= right && bounds.maxY >= top && bounds.minY <= bottom;
-      })
-      .sort((a, b) => this.#projectedBounds(a).depth - this.#projectedBounds(b).depth)
-      .map((instance) => instance.id);
+    const px = (clientX - rect.left) * (this.canvas.width / Math.max(1, rect.width));
+    const py = (clientY - rect.top) * (this.canvas.height / Math.max(1, rect.height));
+    const vp = this.#viewProjection();
+    let best: { objectId: string; triangleIndex: number; localPosition: Vec3; depth: number } | null = null;
+    for (const instance of this.#instances) {
+      if (!instance.visible) continue;
+      const mvp = multiply(vp, modelMatrix(instance));
+      const positions = instance.geometry.positions;
+      for (let triangleIndex = 0; triangleIndex < instance.geometry.triangleCount; triangleIndex += 1) {
+        const base = triangleIndex * 9;
+        const projected = [0, 3, 6].map((offset) => {
+          const value = transformPoint(mvp, [positions[base + offset]!, positions[base + offset + 1]!, positions[base + offset + 2]!]);
+          const w = value[3] || 1;
+          return { w, x: (value[0] / w * .5 + .5) * this.canvas.width, y: (1 - (value[1] / w * .5 + .5)) * this.canvas.height, depth: value[2] / w };
+        });
+        const first = projected[0]!, second = projected[1]!, third = projected[2]!;
+        if (first.w <= 0 || second.w <= 0 || third.w <= 0) continue;
+        if (!pointInProjectedTriangle({ x: px, y: py }, first, second, third)) continue;
+        const depth = (first.depth + second.depth + third.depth) / 3;
+        if (!best || depth < best.depth) {
+          best = {
+            objectId: instance.id,
+            triangleIndex,
+            localPosition: [
+              (positions[base]! + positions[base + 3]! + positions[base + 6]!) / 3,
+              (positions[base + 1]! + positions[base + 4]! + positions[base + 7]!) / 3,
+              (positions[base + 2]! + positions[base + 5]! + positions[base + 8]!) / 3,
+            ],
+            depth,
+          };
+        }
+      }
+    }
+    return best ? { objectId: best.objectId, triangleIndex: best.triangleIndex, localPosition: best.localPosition, distancePx: 0 } : null;
+  }
+
+  pickPaintShape(objectId: string, startClientX: number, startClientY: number, endClientX: number, endClientY: number, shape: PaintShapeKind): readonly number[] {
+    const instance = this.#instances.find((item) => item.id === objectId);
+    if (!instance || !instance.visible) return [];
+    const rect = this.canvas.getBoundingClientRect();
+    const scaleX = this.canvas.width / Math.max(1, rect.width);
+    const scaleY = this.canvas.height / Math.max(1, rect.height);
+    const startX = (startClientX - rect.left) * scaleX;
+    const startY = (startClientY - rect.top) * scaleY;
+    const endX = (endClientX - rect.left) * scaleX;
+    const endY = (endClientY - rect.top) * scaleY;
+    const bounds: PaintShapeBounds = {
+      left: Math.min(startX, endX), right: Math.max(startX, endX),
+      top: Math.min(startY, endY), bottom: Math.max(startY, endY),
+    };
+    const mvp = multiply(this.#viewProjection(), modelMatrix(instance));
+    const matches: number[] = [];
+    for (let triangleIndex = 0; triangleIndex < instance.geometry.triangleCount; triangleIndex += 1) {
+      const base = triangleIndex * 9;
+      const projected = [0, 3, 6].map((offset) => {
+        const value = transformPoint(mvp, [instance.geometry.positions[base + offset]!, instance.geometry.positions[base + offset + 1]!, instance.geometry.positions[base + offset + 2]!]);
+        const w = value[3] || 1;
+        return { w, x: (value[0] / w * .5 + .5) * this.canvas.width, y: (1 - (value[1] / w * .5 + .5)) * this.canvas.height };
+      });
+      const first = projected[0]!, second = projected[1]!, third = projected[2]!;
+      if (first.w <= 0 || second.w <= 0 || third.w <= 0) continue;
+      if (projectedTriangleIntersectsPaintShape([first, second, third], shape, bounds)) matches.push(triangleIndex);
+    }
+    return matches;
+  }
+
+  pickPaintText(objectId: string, clientX: number, baselineClientY: number, text: string, fontSizeCssPx: number): readonly number[] {
+    const instance = this.#instances.find((item) => item.id === objectId);
+    const value = String(text || "").trim();
+    if (!instance || !instance.visible || !value) return [];
+    const rect = this.canvas.getBoundingClientRect();
+    const scaleX = this.canvas.width / Math.max(1, rect.width);
+    const scaleY = this.canvas.height / Math.max(1, rect.height);
+    const scale = Math.min(scaleX, scaleY);
+    const fontSize = Math.max(8, Math.min(192, Number(fontSizeCssPx) * scale || 28 * scale));
+    const raster = this.canvas.ownerDocument.createElement("canvas");
+    const context = raster.getContext("2d", { willReadFrequently: true });
+    if (!context) return [];
+    context.font = "700 " + fontSize + "px Inter,Segoe UI,sans-serif";
+    const padding = Math.max(3, Math.ceil(fontSize * .18));
+    const width = Math.max(1, Math.ceil(context.measureText(value).width + padding * 2));
+    const height = Math.max(1, Math.ceil(fontSize * 1.4 + padding * 2));
+    raster.width = width; raster.height = height;
+    context.font = "700 " + fontSize + "px Inter,Segoe UI,sans-serif";
+    context.fillStyle = "#ffffff"; context.textBaseline = "alphabetic";
+    context.fillText(value, padding, padding + fontSize);
+    const alpha = context.getImageData(0, 0, width, height).data;
+    const startX = (clientX - rect.left) * scaleX;
+    const baselineY = (baselineClientY - rect.top) * scaleY;
+    const originX = startX - padding;
+    const originY = baselineY - fontSize - padding;
+    const mvp = multiply(this.#viewProjection(), modelMatrix(instance));
+    const matches: number[] = [];
+    for (let triangleIndex = 0; triangleIndex < instance.geometry.triangleCount; triangleIndex += 1) {
+      const base = triangleIndex * 9;
+      const projected = [0, 3, 6].map((offset) => {
+        const point = transformPoint(mvp, [instance.geometry.positions[base + offset]!, instance.geometry.positions[base + offset + 1]!, instance.geometry.positions[base + offset + 2]!]);
+        const w = point[3] || 1;
+        return { w, x: (point[0] / w * .5 + .5) * this.canvas.width, y: (1 - (point[1] / w * .5 + .5)) * this.canvas.height };
+      });
+      if (projected.some((point) => point.w <= 0)) continue;
+      const x = Math.floor((projected[0]!.x + projected[1]!.x + projected[2]!.x) / 3 - originX);
+      const y = Math.floor((projected[0]!.y + projected[1]!.y + projected[2]!.y) / 3 - originY);
+      if (x >= 0 && x < width && y >= 0 && y < height && alpha[(y * width + x) * 4 + 3]! > 80) matches.push(triangleIndex);
+    }
+    return matches;
   }
 
   resize(): void {
@@ -439,6 +572,20 @@ export class StudioMegaViewport {
       for (const [left, right] of edges) line(points[left]!, points[right]!, values);
       this.#overlayMeshes.push(this.#flatMesh(values, this.gl.LINES, "#ffb347"));
     }
+    for (const region of this.#paintRegions) {
+      const instance = this.#instances.find((item) => item.id === region.objectId);
+      if (!instance) continue;
+      const model = modelMatrix(instance);
+      for (const triangleIndex of region.triangleIndices) {
+        const base = triangleIndex * 9;
+        if (base + 8 >= instance.geometry.positions.length) continue;
+        const a = transformPoint(model, [instance.geometry.positions[base]!, instance.geometry.positions[base + 1]!, instance.geometry.positions[base + 2]!]);
+        const b = transformPoint(model, [instance.geometry.positions[base + 3]!, instance.geometry.positions[base + 4]!, instance.geometry.positions[base + 5]!]);
+        const c = transformPoint(model, [instance.geometry.positions[base + 6]!, instance.geometry.positions[base + 7]!, instance.geometry.positions[base + 8]!]);
+        const values = [a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]];
+        this.#overlayMeshes.push(this.#flatMesh(values, this.gl.TRIANGLES, region.color));
+      }
+    }
     if (!this.#gizmoPosition) return;
     const [x, y, z] = this.#gizmoPosition;
     const size = 34;
@@ -557,7 +704,10 @@ export class StudioMegaViewport {
       gl.uniform3fv(gl.getUniformLocation(this.#meshProgram, "u_color"), rgb(instance.color));
       gl.drawArrays(gl.TRIANGLES, 0, mesh.count);
     }
+    gl.enable(gl.POLYGON_OFFSET_FILL);
+    gl.polygonOffset(-1, -1);
     for (const item of this.#overlayMeshes) this.#drawFlat(item, vp);
+    gl.disable(gl.POLYGON_OFFSET_FILL);
   }
   #bind(): void {
     this.canvas.addEventListener("contextmenu", (event) => event.preventDefault());
@@ -596,3 +746,4 @@ export class StudioMegaViewport {
     this.canvas.addEventListener("pointercancel", finish);
   }
 }
+
