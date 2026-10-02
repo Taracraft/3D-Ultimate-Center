@@ -1,0 +1,4 @@
+studio-v6/frontend/studio-mega-workspace-v2.ts
+size=172531
+sha256=1955d2618f5ceabc33d804099557033b2bc1a35e120c2784138201ea3ccf2b13
+restored=2026-10-02
