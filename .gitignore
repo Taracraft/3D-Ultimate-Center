@@ -1,0 +1,47 @@
+# Runtime / secrets
+.env
+.env.*
+!.env.example
+secrets.yaml
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage/
+
+# Node
+node_modules/
+dist/
+.test-build/
+.test-results/
+
+# Runtime data
+slicing-server/data/
+slicing-server/run/
+*.log
+*.pid
+*.sock
+*.tmp
+
+# Home Assistant runtime/auth state
+.storage/
+.homeassistant/
+config/.storage/
+
+# Backups / generated archives
+backups/
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.bak
+*.backup-*
