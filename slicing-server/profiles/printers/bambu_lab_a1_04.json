@@ -1,0 +1,19 @@
+{
+  "id": "bambu_lab_a1_04",
+  "manufacturer": "Bambu Lab",
+  "model": "A1",
+  "technology": "fff",
+  "preferred_engine": "bambu_studio",
+  "compatible_engines": ["bambu_studio", "prusaslicer"],
+  "nozzle_diameter": 0.4,
+  "build_volume": {"x": 256, "y": 256, "z": 256},
+  "default_process_profile": "bambu_a1_020_standard",
+  "default_filament_profile": "bambu_pla_basic_a1",
+  "engine_profiles": {
+    "bambu_studio": {
+      "machine": "BBL/machine/Bambu Lab A1 0.4 nozzle.json",
+      "process": "BBL/process/0.20mm Standard @BBL A1.json",
+      "filament": "BBL/filament/Bambu PLA Basic @BBL A1.json"
+    }
+  }
+}
