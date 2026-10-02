@@ -15,7 +15,9 @@ import { remainingTimeLabel } from "./print-remaining-time.js";
 import { PrinterStorageApi } from "./printer-storage-api.js";
 import type { Ultimate3DPrinterActions } from "./printer-command-store.js";
 import type { V6ActionDialog } from "./v6-action-dialog.js";
+import { parseRoute } from "./router.js";
 import { v6Api, type V6Job } from "./v6-api.js";
+import { profileApplicationSummary } from "./profile-application-status.js";
 
 type Mode = "tasks" | "history";
 
@@ -63,6 +65,7 @@ abstract class JobsWorkspaceV9 extends HTMLElement {
   #unsubscribe: (() => void) | null = null;
   #busy = "";
   #dialogActive = false;
+  #lastFocusedJobId = "";
   protected abstract readonly mode: Mode;
 
   connectedCallback(): void {
@@ -102,7 +105,7 @@ abstract class JobsWorkspaceV9 extends HTMLElement {
       ? "Aktive, pausierte und wartende Druck- und Sliceraufträge."
       : "Druckhistorie und zugehörige Dateien auf der Drucker-SD-Karte.";
     this.#root.innerHTML = `<style>
-      :host{display:block;height:100%;min-height:0;background:#08101a;color:#eef5ff}*{box-sizing:border-box}.page{display:grid;grid-template-rows:auto auto minmax(0,1fr);height:100%;min-height:620px;padding:16px}.head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;padding-bottom:12px}.head h1{margin:0}.head p{margin:5px 0 0;color:#91a5bb}.head-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.count{min-width:38px;padding:8px;border:1px solid #31506e;border-radius:999px;text-align:center}.notice{display:none;margin-bottom:10px;padding:10px;border:1px solid #27734c;border-radius:9px;background:#102b1d;color:#8ff0b5}.notice.visible{display:block}.notice.error{border-color:#8f3f4b;background:#3a171d;color:#ffd7dc}.list{min-height:0;overflow:auto;scrollbar-gutter:stable;padding-right:3px}.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;margin-bottom:9px;padding:12px;border:1px solid #2a3c53;border-radius:11px;background:#111b29}.row:last-child{margin-bottom:0}.row.slicer{border-color:#31566f}.row strong,.row small{display:block}.row small{margin-top:5px;color:#8fa4bc;overflow-wrap:anywhere}.bar{display:block;height:5px;margin-top:8px;overflow:hidden;border-radius:999px;background:#26394c}.bar i{display:block;height:100%;background:#54d776}.actions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap;max-width:560px}button{min-height:36px;padding:7px 10px;border:1px solid #32658b;border-radius:8px;background:#14324b;color:#eef5ff;font-weight:700;cursor:pointer}button.secondary{border-color:#566d82;background:#162331}button.danger{border-color:#8f3f4b;background:#3a171d;color:#ffd7dc}button:disabled{opacity:.4;cursor:not-allowed}.empty{display:grid;place-items:center;min-height:220px;border:1px dashed #2a3c53;border-radius:11px;color:#8298ae}@media(max-width:900px){.row{grid-template-columns:1fr}.actions{justify-content:flex-start;max-width:none}}@media(max-width:620px){.page{padding:9px}.head{display:block}.head-actions{margin-top:9px}.actions{display:grid;grid-template-columns:1fr 1fr}.actions button{width:100%}}
+      :host{display:block;height:100%;min-height:0;background:#08101a;color:#eef5ff}*{box-sizing:border-box}.page{display:grid;grid-template-rows:auto auto minmax(0,1fr);height:100%;min-height:620px;padding:16px}.head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;padding-bottom:12px}.head h1{margin:0}.head p{margin:5px 0 0;color:#91a5bb}.head-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.count{min-width:38px;padding:8px;border:1px solid #31506e;border-radius:999px;text-align:center}.notice{display:none;margin-bottom:10px;padding:10px;border:1px solid #27734c;border-radius:9px;background:#102b1d;color:#8ff0b5}.notice.visible{display:block}.notice.error{border-color:#8f3f4b;background:#3a171d;color:#ffd7dc}.list{min-height:0;overflow:auto;scrollbar-gutter:stable;padding-right:3px}.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;margin-bottom:9px;padding:12px;border:1px solid #2a3c53;border-radius:11px;background:#111b29}.row:last-child{margin-bottom:0}.row.slicer{border-color:#31566f}.row.selected{border-color:#42c8ff;background:#10283a;box-shadow:0 0 0 1px #42c8ff55,0 10px 28px #0005}.row strong,.row small{display:block}.row small{margin-top:5px;color:#8fa4bc;overflow-wrap:anywhere}.bar{display:block;height:5px;margin-top:8px;overflow:hidden;border-radius:999px;background:#26394c}.bar i{display:block;height:100%;background:#54d776}.actions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap;max-width:560px}button{min-height:36px;padding:7px 10px;border:1px solid #32658b;border-radius:8px;background:#14324b;color:#eef5ff;font-weight:700;cursor:pointer}button.secondary{border-color:#566d82;background:#162331}button.danger{border-color:#8f3f4b;background:#3a171d;color:#ffd7dc}button:disabled{opacity:.4;cursor:not-allowed}.empty{display:grid;place-items:center;min-height:220px;border:1px dashed #2a3c53;border-radius:11px;color:#8298ae}@media(max-width:900px){.row{grid-template-columns:1fr}.actions{justify-content:flex-start;max-width:none}}@media(max-width:620px){.page{padding:9px}.head{display:block}.head-actions{margin-top:9px}.actions{display:grid;grid-template-columns:1fr 1fr}.actions button{width:100%}}
     </style><section class="page"><header class="head"><div><h1>${title}</h1><p>${description}</p></div><div class="head-actions">${this.mode === "history" ? '<button class="danger" id="clear-history">Verlauf vollständig leeren</button>' : ""}<button id="refresh">Aktualisieren</button><strong class="count" id="count">0</strong></div></header><div class="notice" id="notice"></div><main class="list" id="list"></main><v6-action-dialog></v6-action-dialog></section>`;
     this.#root.querySelector<HTMLButtonElement>("#refresh")?.addEventListener(
       "click",
@@ -124,14 +127,21 @@ abstract class JobsWorkspaceV9 extends HTMLElement {
         ];
   }
 
+  #routeJobId(): string {
+    if (this.mode !== "tasks") return "";
+    const route = parseRoute(globalThis.location?.hash || "#/aufgaben");
+    return route.name === "aufgaben" ? String(route.jobId || "") : "";
+  }
+
   #renderData(): void {
     const host = this.#root.querySelector<HTMLElement>("#list");
     const count = this.#root.querySelector<HTMLElement>("#count");
     if (!host || !count) return;
     const jobs = this.#jobs();
     const scrollTop = host.scrollTop;
+    const focusedJobId = this.#routeJobId();
     const slicer = this.mode === "tasks" ? this.#slicerMarkup() : "";
-    host.innerHTML = `${slicer}${jobs.map((job) => this.#rowMarkup(job)).join("")}`;
+    host.innerHTML = `${slicer}${jobs.map((job) => this.#rowMarkup(job, focusedJobId)).join("")}`;
     if (!slicer && !jobs.length) {
       host.innerHTML = '<div class="empty">Keine Einträge vorhanden.</div>';
     }
@@ -141,10 +151,21 @@ abstract class JobsWorkspaceV9 extends HTMLElement {
     );
     this.#bindRows(jobs);
     this.#updateControls();
+    if (focusedJobId && focusedJobId !== this.#lastFocusedJobId) {
+      this.#lastFocusedJobId = focusedJobId;
+      queueMicrotask(() => {
+        const row = [...this.#root.querySelectorAll<HTMLElement>("[data-job-row]")]
+          .find((item) => item.dataset.jobRow === focusedJobId);
+        row?.scrollIntoView({ block: "center", behavior: "smooth" });
+      });
+    } else if (!focusedJobId) {
+      this.#lastFocusedJobId = "";
+    }
   }
 
-  #rowMarkup(job: V6Job): string {
-    const id = esc(jobId(job));
+  #rowMarkup(job: V6Job, focusedJobId = ""): string {
+    const rawId = jobId(job);
+    const id = esc(rawId);
     const progress = Math.max(0, Math.min(100, Number(job.progress) || 0));
     const queued = isQueuedJob(job);
     if (this.mode === "history") {
@@ -156,14 +177,14 @@ abstract class JobsWorkspaceV9 extends HTMLElement {
       ? `<button class="danger" data-remove-queue="${id}">Aus Warteschlange</button>`
       : `<ultimate-3d-printer-actions data-job="${id}"></ultimate-3d-printer-actions>`;
     const timing = queued ? "Start ausstehend" : `Restzeit ${remaining}`;
-    return `<article class="row"><div><strong>${esc(jobFile(job))}</strong><small>${esc(job.printer_name || job.printer_id || "Drucker")} · ${esc(printStatusLabel(job.status))} · ${progress}% · ${esc(timing)}</small><span class="bar"><i style="width:${progress}%"></i></span></div><div class="actions">${actions}</div></article>`;
+    const selected = Boolean(rawId && rawId === focusedJobId);
+    return `<article class="row${selected ? " selected" : ""}" data-job-row="${id}"><div><strong>${esc(jobFile(job))}</strong><small>${esc(job.printer_name || job.printer_id || "Drucker")} · ${esc(printStatusLabel(job.status))} · ${progress}% · ${esc(timing)}</small><span class="bar"><i style="width:${progress}%"></i></span></div><div class="actions">${actions}</div></article>`;
   }
 
   #slicerMarkup(): string {
     const job = this.#state.slicer;
     if (!job) return "";
-    const active = ["queued", "running", "cancelling"].includes(job.status);
-    return `<article class="row slicer"><div><strong>${esc(job.model_file || job.output_file || "Slicer-Auftrag")}</strong><small>Slicer · ${esc(job.status)}</small></div><div class="actions">${active ? `<button class="danger" data-cancel-slicer ${job.status === "cancelling" ? "disabled" : ""}>${job.status === "cancelling" ? "Wird abgebrochen …" : "Slicing abbrechen"}</button>` : ""}</div></article>`;
+    return `<article class="row slicer"><div><strong>${esc(job.model_file || job.output_file || "Slicer-Auftrag")}</strong><small>Slicer · ${esc(job.status)}<br>${esc(profileApplicationSummary(job.profile_application))}</small></div></article>`;
   }
 
   #bindRows(jobs: V6Job[]): void {
@@ -193,10 +214,6 @@ abstract class JobsWorkspaceV9 extends HTMLElement {
     bind("[data-remove-history]", (job) => this.#removeHistory(job), "removeHistory");
     bind("[data-download]", (job) => this.#downloadStorage(job), "download");
     bind("[data-delete-storage]", (job) => this.#deleteStorage(job), "deleteStorage");
-    this.#root.querySelector<HTMLButtonElement>("[data-cancel-slicer]")?.addEventListener(
-      "click",
-      () => void this.#cancelSlicer(),
-    );
   }
 
   async #repeat(job: V6Job): Promise<void> {
@@ -326,22 +343,6 @@ abstract class JobsWorkspaceV9 extends HTMLElement {
     }, false);
   }
 
-  async #cancelSlicer(): Promise<void> {
-    const job = this.#state.slicer;
-    if (!job || this.#busy) return;
-    const confirmed = await this.#confirm({
-      title: "Slicing abbrechen",
-      message: "Den aktiven Slicerauftrag wirklich abbrechen?",
-      detail: job.model_file || job.output_file || job.id,
-      confirmLabel: "Abbrechen",
-      danger: true,
-    });
-    if (!confirmed) return;
-    await this.#run(job.id, async () => {
-      await jobActivityStore.cancelActiveSlicerJob(job.id);
-      return "Slicerabbruch wurde angefordert.";
-    });
-  }
 
   async #refresh(): Promise<void> {
     if (this.#busy) return;
