@@ -1,0 +1,6 @@
+[Unit]
+Description=3D Printer Slicing Server Alpha1 Test
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /var/lib/homeassistant/3d-printer-slicing-server/test-slice.sh
