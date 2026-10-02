@@ -1,76 +1,122 @@
 import type { V6Job, V6Printer } from "./v6-api.js";
+import { resolveTrackedPrintPhaseProgress, type TrackedPrintPhaseProgress } from "./print-phase-progress.js";
 
-export type LivePrintPhase = Readonly<{
-  currentKey: string;
-  currentLabel: string;
-  detail: string;
-  activeIndex: number;
-  seenKeys: readonly string[];
-  phases: readonly Readonly<{ key: string; label: string; state: "done" | "current" | "pending" | "error" }>[];
+export type PrintSpeedLevel = 1 | 2 | 3 | 4;
+
+export const PRINT_SPEED_MODES: readonly Readonly<{
+  level: PrintSpeedLevel;
+  percent: number;
+  label: string;
+}>[] = [
+  { level: 1, percent: 50, label: "50 %" },
+  { level: 2, percent: 100, label: "100 %" },
+  { level: 3, percent: 125, label: "125 %" },
+  { level: 4, percent: 166, label: "166 %" },
+] as const;
+
+type PrintStageHistoryEntry = Readonly<{
+  key: string;
+  at: string;
 }>;
 
-function numberValue(value: unknown): number | null {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : null;
+const finite = (value: unknown): number | null => {
+  const parsed = Number(value);
+  return value === null || value === undefined || value === "" || !Number.isFinite(parsed)
+    ? null
+    : parsed;
+};
+
+export function printSpeedLevel(printer: V6Printer | null | undefined): PrintSpeedLevel | null {
+  const level = finite(printer?.speed_level);
+  return level === 1 || level === 2 || level === 3 || level === 4 ? level : null;
 }
 
-export function hasModelStarted(job: V6Job | null | undefined, printer: V6Printer | null | undefined): boolean {
-  const progress = numberValue(job?.progress) ?? numberValue((printer as unknown as Readonly<Record<string, unknown>> | null | undefined)?.progress) ?? 0;
-  const layer = numberValue((job as unknown as Readonly<Record<string, unknown>> | null | undefined)?.current_layer) ?? numberValue((printer as unknown as Readonly<Record<string, unknown>> | null | undefined)?.current_layer) ?? 0;
-  return progress > 0 || layer > 0;
-}
-
-export function printLayerLabel(job: V6Job | null | undefined, printer: V6Printer | null | undefined): string {
-  const source = { ...(printer as unknown as Record<string, unknown> | null || {}), ...(job as unknown as Record<string, unknown> | null || {}) };
-  const current = numberValue(source.current_layer ?? source.layer_current ?? source.layer);
-  const total = numberValue(source.total_layers ?? source.layer_total ?? source.layers_total);
-  if (current !== null && total !== null && total > 0) return `Layer ${Math.max(0, Math.round(current))} / ${Math.round(total)}`;
-  if (current !== null) return `Layer ${Math.max(0, Math.round(current))}`;
-  return "Layer unbekannt";
+export function printSpeedPercent(printer: V6Printer | null | undefined): number | null {
+  const level = printSpeedLevel(printer);
+  if (level === null) return null;
+  return PRINT_SPEED_MODES.find((item) => item.level === level)?.percent ?? null;
 }
 
 export function printSpeedLabel(printer: V6Printer | null | undefined): string {
-  const raw = printer as unknown as Readonly<Record<string, unknown>> | null | undefined;
-  const speed = numberValue(raw?.speed_percent ?? raw?.speed_percentage ?? raw?.print_speed_percent);
-  if (speed !== null && speed > 0) return `${Math.round(speed)} %`;
-  const profile = String(raw?.speed_profile || raw?.printing_speed || "").trim();
-  return profile || "Standard";
+  const value = printSpeedPercent(printer);
+  return value === null ? "Geschwindigkeit unbekannt" : `${value} %`;
 }
 
-export function resolveLivePrintPhase(job: V6Job, printer: V6Printer | null, localSeen: ReadonlySet<string> = new Set()): LivePrintPhase {
-  const status = String(job.status || (printer as unknown as Readonly<Record<string, unknown>> | null)?.state || "").toLowerCase();
-  const started = hasModelStarted(job, printer);
-  const error = ["failed", "error", "cancelled"].includes(status);
-  const currentKey = error ? "error" : started ? "printing_model" : status.includes("pause") ? "printing_model" : "homing";
-  const order = ["bed_heating", "homing", "filament_loading", "flow_calibration", "mechanical_check", "nozzle_cleaning_after", "bed_leveling", "printing_model", "completed"];
-  const labels: Record<string, string> = {
-    bed_heating: "Bett heizt",
-    homing: "Homing",
-    filament_loading: "Filament wird geladen",
-    flow_calibration: "Flow-Kalibrierung",
-    mechanical_check: "Mechanikprüfung",
-    nozzle_cleaning_after: "Düse reinigen",
-    bed_leveling: "Auto-Leveling",
-    printing_model: "Modell wird gedruckt",
-    completed: "Abgeschlossen",
-    error: "Drucker meldet Fehler",
-  };
-  const activeIndex = Math.max(0, order.indexOf(currentKey));
-  const seen = new Set(localSeen);
-  if (!error) {
-    for (let index = 0; index <= activeIndex; index += 1) seen.add(order[index]!);
-  }
-  const phases = order.map((key, index) => ({
-    key,
-    label: labels[key] || key,
-    state: error ? "error" as const : index === activeIndex ? "current" as const : seen.has(key) || index < activeIndex ? "done" as const : "pending" as const,
-  }));
+export function printLayerValues(
+  job: V6Job | null | undefined,
+  printer: V6Printer | null | undefined,
+): Readonly<{ current: number | null; total: number | null }> {
+  const currentRaw = finite(job?.current_layer ?? printer?.current_layer);
+  const totalRaw = finite(job?.total_layers ?? printer?.total_layers);
   return {
-    currentKey,
-    currentLabel: labels[currentKey] || "Druckstatus",
-    detail: status ? `Status: ${status}` : "Live-Telemetrie wird empfangen",
-    activeIndex,
-    seenKeys: [...seen],
-    phases,
+    current: currentRaw !== null && currentRaw >= 0 ? Math.trunc(currentRaw) : null,
+    total: totalRaw !== null && totalRaw > 0 ? Math.trunc(totalRaw) : null,
   };
+}
+
+export function printLayerLabel(
+  job: V6Job | null | undefined,
+  printer: V6Printer | null | undefined,
+): string {
+  const { current, total } = printLayerValues(job, printer);
+  if (current === null && total === null) return "Layer –";
+  if (total === null) return `Layer ${current ?? "–"}`;
+  return `Layer ${current ?? "–"} / ${total}`;
+}
+
+function printStageHistoryEntries(
+  printer: V6Printer | null | undefined,
+): PrintStageHistoryEntry[] {
+  const history = Array.isArray(printer?.print_stage_history)
+    ? printer.print_stage_history
+    : [];
+  return history
+    .map((item): PrintStageHistoryEntry | null => {
+      if (!item || typeof item !== "object") return null;
+      const record = item as Record<string, unknown>;
+      const key = String(record.key || "").trim();
+      if (!key) return null;
+      return { key, at: String(record.at || "").trim() };
+    })
+    .filter((item): item is PrintStageHistoryEntry => item !== null);
+}
+
+export function printStageHistoryKeys(printer: V6Printer | null | undefined): string[] {
+  return printStageHistoryEntries(printer).map((item) => item.key);
+}
+
+export function hasConfirmedModelPhase(
+  printer: V6Printer | null | undefined,
+): boolean {
+  return printStageHistoryKeys(printer).includes("printing_model");
+}
+
+export function hasModelStarted(
+  job: V6Job | null | undefined,
+  printer: V6Printer | null | undefined,
+): boolean {
+  const jobProgress = finite(job?.progress);
+  const printerProgress = finite(printer?.progress);
+  const layer = printLayerValues(job, printer).current;
+  return (jobProgress !== null && jobProgress > 0)
+    || (printerProgress !== null && printerProgress > 0)
+    || (layer !== null && layer > 0);
+}
+
+export function resolveLivePrintPhase(
+  job: V6Job | null | undefined,
+  printer: V6Printer | null | undefined,
+  additionalSeen: readonly string[] = [],
+): TrackedPrintPhaseProgress {
+  const seen = [...new Set([
+    ...printStageHistoryKeys(printer),
+    ...additionalSeen,
+  ])];
+  return resolveTrackedPrintPhaseProgress(
+    String(printer?.print_stage_key || ""),
+    seen,
+    hasModelStarted(job, printer),
+    String(printer?.print_stage_label || job?.status || "Druckstatus wird ermittelt"),
+    String(printer?.print_stage_detail || "Der nächste Druckerschritt wird erwartet."),
+  );
 }
