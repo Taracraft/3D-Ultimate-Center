@@ -1,0 +1,7 @@
+[Unit]
+Description=Extract Bambu Studio AppImage
+
+[Service]
+Type=oneshot
+WorkingDirectory=/var/lib/homeassistant/3d-printer-slicing-server/engines/bambu-studio
+ExecStart=/var/lib/homeassistant/3d-printer-slicing-server/engines/bambu-studio/BambuStudio.AppImage --appimage-extract
