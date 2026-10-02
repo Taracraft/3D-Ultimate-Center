@@ -1,0 +1,7 @@
+[Unit]
+Description=Install native PrusaSlicer engine
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /var/lib/homeassistant/3d-printer-slicing-server/install-engine.sh
