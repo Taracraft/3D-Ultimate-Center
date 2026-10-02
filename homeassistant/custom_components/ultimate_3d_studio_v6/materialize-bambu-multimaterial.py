@@ -322,6 +322,10 @@ def _as_profile_value(value: Any, reference: Any = None) -> Any:
         if isinstance(value, list):
             return value
         return [str(value)]
+    if isinstance(value, bool):
+        return "1" if value else "0"
+    if isinstance(value, (int, float)):
+        return str(value)
     return value
 
 
@@ -1016,6 +1020,20 @@ def main() -> None:
         encoding="utf-8",
     )
 
+    # Load each resolved user filament, rather than its unmodified native base.
+    # The CLI loads --load-filaments after --load-settings and would otherwise
+    # replace the selected filament G-code with the base profile's empty fields.
+    runtime_filament_paths: list[Path] = []
+    for index, profile in enumerate(resolved, start=1):
+        path = args.process_output.with_name(
+            f"{args.process_output.stem}-filament-{index}.json"
+        )
+        path.write_text(
+            json.dumps(profile, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        runtime_filament_paths.append(path)
+
     objects, triangles, paint_summary = _extract_parts(
         args.input,
         args.parts_dir,
@@ -1103,8 +1121,9 @@ def main() -> None:
             **effective_tower,
         },
         "filament_profile_paths": [
-            str(path) for path in selected_paths
+            str(path) for path in runtime_filament_paths
         ],
+        "native_filament_base_paths": [str(path) for path in selected_paths],
         "filaments": [
             {
                 "channel": index + 1,

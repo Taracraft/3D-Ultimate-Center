@@ -26,6 +26,9 @@ def selected_process_contract() -> dict[str, object]:
         "settings": {
             "layer_height": 0.2,
             "wall_loops": 3,
+            "top_shell_layers": 5,
+            "bottom_shell_layers": 4,
+            "initial_layer_print_height": 0.2,
             "sparse_infill_density": "15%",
             "outer_wall_speed": 70,
             "line_width": 0.3,
@@ -175,6 +178,15 @@ def test_materializes_two_ams_channels_and_assemble_manifest(tmp_path: Path) -> 
                     "filament_id": "GFL99",
                     "material": "PLA",
                     "color": "#F62021",
+                    "selected_profile": {
+                        "name": "Generic PLA @BBL A1",
+                        "payload": {
+                            "inherits": "Generic PLA @BBL A1",
+                            "nozzle_temperature": ["240"],
+                            "filament_start_gcode": ["; custom filament start\nM106 P3 S77"],
+                            "filament_end_gcode": ["; custom filament end\nM106 P3 S0"],
+                        },
+                    },
                 },
                 {
                     "extruder": 2,
@@ -218,7 +230,7 @@ def test_materializes_two_ams_channels_and_assemble_manifest(tmp_path: Path) -> 
     assert process["filament_diameter"] == ["1.75", "1.75"]
     assert process["filament_density"] == ["1.24", "1.25"]
     assert process["filament_flow_ratio"] == ["0.98", "0.97"]
-    assert process["nozzle_temperature"] == ["220", "225"]
+    assert process["nozzle_temperature"] == ["240", "225"]
     assert process["physical_extruder_map"] == ["0"]
     assert process["filament_map"] == ["1", "1"]
     assert process["flush_volumes_matrix"] == ["0", "280", "280", "0"]
@@ -226,9 +238,9 @@ def test_materializes_two_ams_channels_and_assemble_manifest(tmp_path: Path) -> 
     assert process["brim_type"] == "outer_only"
     assert process["brim_width"] == "6"
     assert process["layer_height"] == "0.2"
-    assert process["wall_loops"] == 3
+    assert process["wall_loops"] == "3"
     assert process["sparse_infill_density"] == "15%"
-    assert process["outer_wall_speed"] == 70
+    assert process["outer_wall_speed"] == "70"
 
     manifest = json.loads(manifest_output.read_text(encoding="utf-8"))
     objects = manifest["plates"][0]["objects"]
@@ -259,6 +271,21 @@ def test_materializes_two_ams_channels_and_assemble_manifest(tmp_path: Path) -> 
     assert all(path.stat().st_size == 134 for path in parts_dir.glob("*.stl"))
 
     summary = json.loads(summary_output.read_text(encoding="utf-8"))
+    runtime_paths = [Path(value) for value in summary["filament_profile_paths"]]
+    assert runtime_paths == [
+        tmp_path / "runtime-process-filament-1.json",
+        tmp_path / "runtime-process-filament-2.json",
+    ]
+    runtime_filaments = [json.loads(path.read_text()) for path in runtime_paths]
+    assert runtime_filaments[0]["nozzle_temperature"] == ["240"]
+    assert runtime_filaments[0]["filament_start_gcode"] == ["; custom filament start\nM106 P3 S77"]
+    assert runtime_filaments[0]["filament_end_gcode"] == ["; custom filament end\nM106 P3 S0"]
+    assert runtime_filaments[1]["nozzle_temperature"] == ["225"]
+    assert len(set(summary["native_filament_base_paths"])) == 2
+    assert json.loads((filament_dir / "Generic PLA @base.json").read_text())["nozzle_temperature"] == ["220"]
+    assert "filament_start_gcode" not in json.loads((filament_dir / "Generic PLA @BBL A1.json").read_text())
+    for key in ("wall_loops", "top_shell_layers", "bottom_shell_layers", "initial_layer_print_height"):
+        assert isinstance(process[key], str)
     for key, expected in selected_process_contract()["settings"].items():
         assert summary["process_settings"][key] == process[key]
         value = process[key][0] if isinstance(process[key], list) else process[key]
