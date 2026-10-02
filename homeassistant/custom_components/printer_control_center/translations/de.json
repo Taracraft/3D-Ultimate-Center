@@ -1,0 +1,129 @@
+{
+  "title": "3D-Printer Control Center",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Verbindungsart und Sprache",
+        "description": "Wähle die Verbindung zum Drucker und die Sprache der 3D-Printer Control Center-Dashboard-Karten. Bei Automatisch wird die Sprache der Home-Assistant-Oberfläche übernommen.",
+        "data": {
+          "connection_mode": "Verbindungsart",
+          "ui_language": "Dashboard-Sprache",
+          "auto_create_dashboards": "Standard-Dashboards automatisch erstellen"
+        }
+      },
+      "cloud_login": {
+        "title": "Bambu-Cloud-Anmeldung",
+        "description": "Das Kennwort wird nur für die Anmeldung verwendet und nicht gespeichert. Das zurückgegebene Token landet im Home-Assistant-Konfigurationseintrag. Die Cloud ist optional; der Nur-LAN-Modus funktioniert ohne sie.",
+        "data": {
+          "region": "Region",
+          "email": "E-Mail",
+          "password": "Kennwort"
+        }
+      },
+      "cloud_code": {
+        "title": "E-Mail-Verifizierung",
+        "description": "Gib den von der Bambu Cloud gesendeten Bestätigungscode ein.",
+        "data": {
+          "code": "Bestätigungscode"
+        }
+      },
+      "cloud_device": {
+        "title": "Drucker auswählen",
+        "data": {
+          "serial": "Cloud-Drucker"
+        }
+      },
+      "lan": {
+        "title": "LAN-Verbindung",
+        "description": "Trage die IP-Adresse des Druckers nach Möglichkeit manuell ein. Die automatische Erkennung bleibt als optionaler Fallback verfügbar, ist aber in gerouteten VLAN-, VPN- und Broadcast-eingeschränkten Netzen derzeit ein bekanntes Problem. Wo finde ich meinen Gerätecode? Öffne am Drucker Einstellungen > LAN Only beziehungsweise Nur-LAN-Modus (bei einigen Modellen unter WLAN oder Netzwerk), aktiviere den LAN-Modus und lies auf dieser Seite IP-Adresse und Access Code ab. Die Position des Menüs kann je nach Druckermodell und Firmware abweichen. Verwende den LAN-Access-Code und nicht eine sechsstellige Konto-PIN.\\n\\nWichtiger Hinweis: Der eingegebene Druckername wird im Dashboard angezeigt, falls kein Modellname automatisch erkannt wird.",
+        "data": {
+          "host": "Drucker-IP-Adresse (empfohlen)",
+          "serial": "Seriennummer des Druckers",
+          "access_code": "LAN-Access-Code / Gerätecode",
+          "printer_name": "Anzeigename",
+          "tls_insecure": "Selbstsigniertes TLS-Zertifikat des Druckers akzeptieren",
+          "auto_discover_ip": "Drucker-IP automatisch erkennen, wenn keine manuelle IP eingetragen ist",
+          "discovery_subnets": "Zusätzliche VLAN-Netze, kommagetrennt, z. B. 192.0.2.0/24",
+          "discovery_hosts": "Bekannte IP-Endpunkte, kommagetrennt",
+          "discovery_ports": "Zusätzliche TCP-Ports",
+          "scan_profile": "Scan-Profil",
+          "scan_timeout_ms": "TCP-Timeout in Millisekunden",
+          "scan_workers": "Parallele Scanner-Worker",
+          "scan_max_hosts": "Maximal zu prüfende Hosts",
+          "scan_broadcast": "Lokale Broadcast-Erkennung verwenden",
+          "scan_neighbors": "ARP-Nachbarn verwenden",
+          "scan_connections": "Bereits verbundene TCP-Endpunkte verwenden",
+          "scan_routes": "Kleine sichtbare Routing-Netze verwenden",
+          "rescan_on_disconnect": "Bei LAN-Abbruch automatisch erneut suchen"
+        }
+      },
+      "finish": {
+        "title": "AMS und Firmware-Regel",
+        "description": "Die automatische AMS-Erkennung arbeitet bestmöglich. BMCU-370 kann offizielle AMS-Kennungen nachbilden, deshalb bleibt eine manuelle Auswahl verfügbar. Automatische Firmware-Updates werden niemals aktiviert.",
+        "data": {
+          "ams_type": "AMS-Typ",
+          "show_manual_firmware_update_button": "Sicheren manuellen Firmware-Update-Anforderungsbutton anzeigen"
+        }
+      },
+      "choose_discovered_host": {
+        "title": "Erkannten Drucker auswählen",
+        "description": "Mehrere erreichbare Geräte wurden gefunden. Wähle die IP-Adresse des Druckers aus.",
+        "data": {
+          "host": "IP-Adresse des Druckers"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung nicht möglich.",
+      "invalid_auth": "Anmeldung fehlgeschlagen.",
+      "unknown": "Unbekannter Fehler. Bitte Home-Assistant-Logs prüfen.",
+      "required": "Pflichtfeld",
+      "discovery_failed": "Automatische IP-Erkennung ohne Ergebnis. Trage eine manuelle IP ein oder ergänze VLAN-Netze.",
+      "invalid_subnets": "Ungültige VLAN-Netzliste. Nutze CIDR-Angaben wie 192.0.2.0/24.",
+      "invalid_scan_settings": "Ungültige Scanner-Einstellungen. Prüfe CIDRs, Ports und Grenzwerte."
+    },
+    "abort": {
+      "cannot_connect": "Verbindung zur Bambu Cloud nicht möglich.",
+      "no_printers": "Bambu Cloud hat keine Drucker zurückgegeben.",
+      "missing_serial": "Die Seriennummer fehlt. Starte die Einrichtung bitte erneut."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Drucker-, Dashboard- und Netzwerkoptionen",
+        "description": "Wähle die Dashboard-Sprache, hinterlege eine manuelle IP-Adresse und konfiguriere optionale Fallback-Werte für die Netzwerkerkennung. Eine manuelle IP ist empfohlen, solange die automatische Erkennung in einigen VLAN-, VPN- und Broadcast-eingeschränkten Umgebungen noch ein bekanntes Problem ist.",
+        "data": {
+          "ui_language": "Dashboard-Sprache",
+          "ams_type": "AMS-Typ",
+          "show_manual_firmware_update_button": "Sicheren manuellen Firmware-Anforderungsbutton anzeigen",
+          "host": "Manuelle Drucker-IP-Adresse (empfohlen)",
+          "auto_discover_ip": "Drucker-IP automatisch erkennen, wenn keine manuelle IP eingetragen ist",
+          "discovery_hosts": "Bekannte IP-Endpunkte",
+          "discovery_subnets": "Zusätzliche VLAN-Netze",
+          "scan_profile": "Scan-Profil",
+          "discovery_ports": "Zusätzliche TCP-Ports",
+          "scan_timeout_ms": "TCP-Timeout in Millisekunden",
+          "scan_workers": "Parallele Scanner-Worker",
+          "scan_max_hosts": "Maximal zu prüfende Hosts",
+          "scan_broadcast": "Lokale Broadcast-Erkennung verwenden",
+          "scan_neighbors": "ARP-Nachbarn verwenden",
+          "scan_connections": "Bereits verbundene TCP-Endpunkte verwenden",
+          "scan_routes": "Kleine sichtbare Routing-Netze verwenden",
+          "rescan_on_disconnect": "Bei LAN-Abbruch automatisch erneut suchen",
+          "auto_create_dashboards": "Standard-Dashboards automatisch erstellen"
+        }
+      }
+    }
+  },
+  "services": {
+    "scan_network": {
+      "name": "Drucker-Netzwerkendpunkte scannen",
+      "description": "Konfigurierte Endpunkte, aktive TCP-Gegenstellen, ARP-Nachbarn, lokale Erkennung, explizite Hosts, VLAN-CIDRs und kleine sichtbare Routing-Netze prüfen. Wenn genau ein gültiger MQTT-Endpunkt ausgewählt wird, wird er als aktive Drucker-IP-Adresse gespeichert."
+    },
+    "install_dashboards": {
+      "name": "Standard-Dashboards installieren oder reparieren",
+      "description": "Erstellt oder repariert die zwei verwalteten Standard-Dashboards: 3D-Druck mit integrierter Warteschlange und 3D-Drucker-Dateimanager/Galerie."
+    }
+  }
+}
