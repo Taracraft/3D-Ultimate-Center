@@ -1,0 +1,85 @@
+name: Verify gated V6 source snapshot
+on:
+  push:
+    branches: [sync/v6-preview-20261003]
+    paths: [.github/workflows/v6-verified-sync.yml]
+permissions:
+  contents: write
+concurrency:
+  group: v6-verified-source-sync
+  cancel-in-progress: false
+jobs:
+  synchronize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: sync/v6-preview-20261003
+      - name: Verify snapshot and commit only the reviewed V6 files
+        shell: python
+        run: |
+          from pathlib import Path
+          import hashlib, io, json, subprocess, urllib.request, zipfile
+          url = 'https://homeassist.bad-timing.eu/local/recovery-import/v6-p0-verified-ec821718e6f73106.zip'
+          archive_sha = 'ec821718e6f73106f1637488190fafd9a0a619ba40427ba50e5ed79f0284d1b9'
+          allowed = {
+              'homeassistant/custom_components/ultimate_3d_studio_v6/gcode_artifact_validation.py',
+              'homeassistant/custom_components/ultimate_3d_studio_v6/printer_identity.py',
+              'homeassistant/custom_components/ultimate_3d_studio_v6/provider_bambu_lan.py',
+              'homeassistant/www/3d-studio-v6/ultimate-3d-studio-build.json',
+              'homeassistant/www/3d-studio-v6/ultimate-3d-studio.js',
+              'slicing-server/DEPENDENCY-SHA256SUMS',
+              'slicing-server/gcode_artifact_validation.py',
+              'studio-v6/LIVE_WORKLOG.md',
+              'studio-v6/docs/ROADMAP.md',
+              'studio-v6/docs/V6-Druckvorschau-Abnahme-2026-10-03.md',
+              'studio-v6/frontend-tests/logic.test.ts',
+              'studio-v6/frontend-tests/profile-header.test.ts',
+              'studio-v6/frontend-tests/response-error.test.ts',
+              'studio-v6/frontend/ha-api-transport.ts',
+              'studio-v6/frontend/studio-profile-ui.ts',
+              'studio-v6/tests/test_v6_connected_printer_identity.py',
+              'studio-v6/tests/test_v6_gcode_artifact_validation.py',
+              'studio-v6/tests/test_v6_native_slicer_canonical_sources.py',
+          }
+          def sha(data):
+              return hashlib.sha256(data).hexdigest()
+          def blob(data):
+              return hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+          with urllib.request.urlopen(url, timeout=40) as response:
+              archive = response.read(2_000_001)
+          assert len(archive) < 2_000_000 and sha(archive) == archive_sha, 'Snapshot checksum mismatch'
+          root = Path.cwd().resolve()
+          updates = {}
+          with zipfile.ZipFile(io.BytesIO(archive)) as z:
+              assert len(z.namelist()) == len(allowed) + 1
+              assert set(z.namelist()) == allowed | {'sync-manifest.json'}
+              manifest = json.loads(z.read('sync-manifest.json'))
+              assert manifest['base_commit'] == 'd490faad38a18b64e9c6f6a4548a23a4662b55b3'
+              assert len(manifest['entries']) == len(allowed)
+              assert {e['path'] for e in manifest['entries']} == allowed
+              assert sum(i.file_size for i in z.infolist()) < 3_000_000
+              for entry in manifest['entries']:
+                  name = entry['path']
+                  path = root / name
+                  assert path.resolve().is_relative_to(root) and not path.is_symlink()
+                  before = path.read_bytes() if path.exists() else None
+                  assert (blob(before) if before is not None else None) == entry['before_gitsha'], ('Concurrent source change', name)
+                  data = z.read(name)
+                  assert len(data) == entry['bytes'] and sha(data) == entry['sha256'] and blob(data) == entry['after_gitsha'], name
+                  if name.endswith('.py'):
+                      compile(data, name, 'exec')
+                  updates[name] = data
+          for name, data in updates.items():
+              path = root / name
+              path.parent.mkdir(parents=True, exist_ok=True)
+              path.write_bytes(data)
+          for entry in manifest['entries']:
+              assert blob((root / entry['path']).read_bytes()) == entry['after_gitsha']
+          subprocess.run(['git', 'config', 'user.name', 'github-actions[bot]'], check=True)
+          subprocess.run(['git', 'config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com'], check=True)
+          subprocess.run(['git', 'add', '--', *sorted(allowed)], check=True)
+          subprocess.run(['git', 'commit', '-m', 'fix(v6): sync verified preview, connected-model and profile-header repairs'], check=True)
+          subprocess.run(['git', 'push', 'origin', 'HEAD:refs/heads/sync/v6-preview-20261003'], check=True)
+          print(json.dumps({'verified_files': len(updates), 'archive_sha256': archive_sha, 'main_changed': False, 'printer_access': False}, indent=2))
