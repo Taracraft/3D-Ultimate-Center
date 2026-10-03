@@ -135,7 +135,7 @@ def test_final_worker_rejects_silent_cli_parameter_loss():
     with pytest.raises(validation.GCodeValidationError, match="nicht unverändert übernommen"):
         validation.validate_rendered_bambu_gcode(complete("; nozzle_temperature = 220"),
                                                 runtime_parameters=[{"nozzle_temperature": ["240"]}])
-    report = validation.validate_rendered_bambu_gcode(complete("; nozzle_temperature = 240"),
+    report = validation.validate_rendered_bambu_gcode(complete("T0\nM104 S240\n; nozzle_temperature = 240"),
                                                      runtime_parameters=[{"nozzle_temperature": ["240"]}])
     assert report.filament_parameter_contract_verified
 
@@ -189,3 +189,21 @@ def test_shared_bed_rejects_conflicting_material_targets():
     with pytest.raises(ValueError, match="unterschiedliche Betttemperaturen"):
         filament.validate_shared_bed_temperatures([a, b], "Textured PEI Plate")
     filament.validate_shared_bed_temperatures([a, dict(a)], "Textured PEI Plate")
+
+
+@pytest.mark.parametrize("command", ["M104 S220", "M109 S220 H240", "T1\nM104 S240"])
+def test_parameter_header_cannot_replace_executed_channel_temperature(command):
+    with pytest.raises(validation.GCodeValidationError, match="nicht als Heizbefehl ausgeführt"):
+        validation.validate_rendered_bambu_gcode(complete("T0\n" + command + "\n; nozzle_temperature = 240"), runtime_parameters=[{"nozzle_temperature": ["240"]}])
+
+
+@pytest.mark.parametrize("move", ["G1X270Y100E1", "N100 G1X270Y100E1", "G1 X+270 Y100 E1"])
+def test_compact_numbered_and_signed_moves_obey_printer_area(move):
+    with pytest.raises(validation.GCodeValidationError, match="physische X-Grenze"):
+        validation.validate_rendered_bambu_gcode(complete("M83\nG1 X100 Y100\n; MACHINE_START_GCODE_END\n" + move), hardware_limits=execution.a1_hardware_limits("A1"))
+
+
+def test_non_finite_motion_and_homing_inside_print_fail_closed():
+    for move in ["G1 XNaN Y100 E1", "G1 XInf E1", "G28 X"]:
+        with pytest.raises(validation.GCodeValidationError):
+            validation.validate_rendered_bambu_gcode(complete("; MACHINE_START_GCODE_END\n" + move), hardware_limits=execution.a1_hardware_limits("A1"))

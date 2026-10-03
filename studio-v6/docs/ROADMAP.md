@@ -1466,3 +1466,12 @@ Nachweis: 13.888 Vorprüfungen (6.527 zulässig, 7.361 begründet abgewiesen), 1
 Negativnachweis: veränderte Maschine/Prozess/Filamentpayloads abgewiesen; 350 °C auch bei neu berechneten Hashes durch Hardwareprüfung abgewiesen; zuvor fälschlich akzeptiertes natives 350-°C-Archiv nun vom Direktdruck-Artefaktvalidator abgewiesen. Große Platten werden nicht aus dem Katalog entfernt. Ein 300-mm-Profil darf auf geeigneter größerer Hardware bestehen; native Ausführung anderer Druckermodelle benötigt noch eigene geprüfte Verträge. Kleine physische A1-Platten benötigen ebenfalls einen eigenen Start-/Wisch-/Ursprungsvertrag und werden bis dahin ausdrücklich abgewiesen.
 
 Gesamtgate/gesichertes Deployment und SHA-Synchronisierung laufen noch. Erst danach gilt dieser Kandidat als bereitgestellt. Kein Druckerupload oder Druckstart.
+
+
+## 2026-10-03 Bereitstellung und nächste Vertragsprüfung
+
+A1-Reparaturstand bereitgestellt: GitHub-Commit 2154435151f524cf18e393dd5578eb3072d30923, Bundle e65fb4f9640b64e6ef76fb3d331bf47c9f7861d7e8066d000b1b144cee4904e9. Vollständiges Windows-Gate grün, gesichertes HA-/Worker-Deployment mit 55 geänderten Zielen, HA core check und Neustart bestanden. 580 Quelldateien lokal/HA und 588 öffentliche GitHub-Zuordnungen geprüft. Profil-API nach Neustart: HTTP 200, 165 Profile. Danach 21 weitere echte Slices mit den installierten Workerdateien: PLA, PETG und TPU über alle sieben A1-Düsenprofile; 21 bestanden, keine Parameterabweichung oder native Optionswarnung.
+
+Abgeschlossen für den geprüften A1-Pfad: Parameterübernahme, native Plattentypen/Materialvorprüfung, Payload-/V2-Vertragsbindung, Hardware-Temperaturgrenzen, Cloud-Basis ohne Overlay und nachweisbare Ergebnisbestätigung. Große Druckerprofile sind erhalten; deren eigene native Maschinenverträge und praktische Abnahme bleiben offen. Kleinere physische A1-Platten benötigen weiterhin eigene Start-/Wisch-/Ursprungsverträge.
+
+Nächster Schritt in Arbeit: Erstschichthöhe unabhängig von normaler Schichthöhe gegen die gewählte Düse prüfen, Temperaturfelder in Prozessprofilen früh statt erst im Worker ablehnen, finale Parameterbestätigung zusätzlich an ausgeführte Heizbefehle binden, kompakte/nummerierte Bewegungen denselben Geometriegrenzen unterwerfen. Kein Druckerupload oder Druckstart.

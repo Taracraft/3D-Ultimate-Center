@@ -590,18 +590,18 @@ def _apply_selected_process_profile(
             key,
         ):
             raise ValueError("Der Prozessprofilvertrag enthält einen ungültigen Schlüssel.")
-        if key in {"printable_area", "printable_height", "bed_exclude_area", "extruder_offset", "gcode_flavor", "curr_bed_type"} or key.startswith(("machine_", "filament_", "nozzle_")) or "plate_temp" in key:
+        if key in {"printable_area", "printable_height", "bed_exclude_area", "extruder_offset", "gcode_flavor", "curr_bed_type", "bed_temperature"} or key.startswith(("machine_", "filament_", "nozzle_")) or "plate_temp" in key:
             raise ValueError("Prozessprofile dürfen keine Maschinen- oder Filamentparameter überschreiben.")
         if "gcode" in key.casefold():
             raise ValueError(
                 "Prozessprofile dürfen keine G-Code-Vorlage überschreiben."
             )
-        if key == "layer_height":
+        if key in {"layer_height", "initial_layer_print_height"}:
             value = _clean_number(_required_override_number(
                 {"layer_height": value},
                 "layer_height",
                 _number(overrides.get("min_layer_height_mm"), .04),
-                _number(overrides.get("max_layer_height_mm"), .56),
+                (_number(overrides.get("nozzle_diameter_mm"), .4) if key == "initial_layer_print_height" else _number(overrides.get("max_layer_height_mm"), .56)),
             ) or 0.2)
         applied[key] = _as_profile_value(value, applied.get(key))
     return applied, {
@@ -969,7 +969,7 @@ def main() -> None:
         else {}
     )
     effective_overrides = dict(overrides)
-    for key in ("min_layer_height_mm", "max_layer_height_mm"):
+    for key in ("min_layer_height_mm", "max_layer_height_mm", "nozzle_diameter_mm"):
         if key not in effective_overrides and target.get(key) is not None:
             effective_overrides[key] = target.get(key)
     try:

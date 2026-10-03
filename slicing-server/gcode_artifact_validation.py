@@ -84,6 +84,7 @@ def validate_rendered_bambu_gcode(
     hardware_limits: dict[str, float] | None = None,
     runtime_parameters: list[dict[str, object]] | None = None,
     expected_printer_model: str | None = None,
+    expected_bed_temperature_key: str | None = None,
 ) -> GCodeValidationReport:
     """Verify that a selected Bambu machine template was fully rendered.
 
@@ -127,6 +128,9 @@ def validate_rendered_bambu_gcode(
     wanted_settings = {key for profile in runtime_parameters or [] for key in profile}
     observed_settings: dict[str, list[str]] = {}
     declared_model = ""
+    material_channel = None
+    executed_nozzle: dict[int, set[float]] = {}
+    executed_bed: set[float] = set()
     if limits is not None:
         for key in ("max_nozzle_temperature_c", "max_bed_temperature_c"):
             value = limits.get(key)
@@ -142,6 +146,21 @@ def validate_rendered_bambu_gcode(
             continue
         upper = text.upper()
         command = upper.split(";", 1)[0].strip()
+        # Native G-code normally separates words; compact and numbered words
+        # must receive the same geometry checks as their spaced equivalents.
+        command = re.sub(r"^N\d+\s*", "", command)
+        command = re.sub(r"(?<=[0-9.])(?=[A-Z])", " ", command)
+        tool = re.fullmatch(r"T(\d+)", command)
+        if tool:
+            number = int(tool[1])
+            if number < 64:
+                material_channel = number + 1
+            elif number == 255:
+                material_channel = None
+        if re.match(r"^G[0123]\s", command) and re.search(r"[XYZEIJ]\s*[+-]?(?:NAN|INF(?:INITY)?)", command):
+            raise GCodeValidationError("Der Bewegungsbefehl enthält eine nicht endliche Koordinate.")
+        if print_started and not material_change and re.match(r"^G28(?:\s|$)", command):
+            raise GCodeValidationError("Homing im regulären Druckteil ist nicht durch den Geometrievertrag gedeckt.")
         setting = re.match(r"^;\s*([A-Za-z0-9_]+)\s*=\s*(.*?)\s*$", text)
         if setting and setting[1].casefold() == "printer_model":
             declared_model = setting[2].strip().strip('"')
@@ -174,7 +193,7 @@ def validate_rendered_bambu_gcode(
             relative_extrusion = False
         if command == "M83":
             relative_extrusion = True
-        coords = {key: float(value) for key, value in re.findall(r"(?:^|\s)([XYZE])(-?(?:\d+(?:\.\d*)?|\.\d+))", command)}
+        coords = {key: float(value) for key, value in re.findall(r"(?:^|\s)([XYZE])([+-]?(?:\d+(?:\.\d*)?|\.\d+))", command)}
         if command.startswith("G92 "):
             if print_started and any(key in coords for key in ("X", "Y", "Z")):
                 raise GCodeValidationError("Eine Koordinaten-Neuzuordnung im Druckteil ist nicht durch den Maschinenvertrag gedeckt.")
@@ -210,6 +229,11 @@ def validate_rendered_bambu_gcode(
                 if value < 0 or not math.isfinite(value):
                     raise GCodeValidationError(f"Ungültige Heiztemperatur in Zeile {line_count}.")
                 temperatures[target] = max(temperatures[target], value)
+            setpoints = re.findall(r"[SR]\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+))(?=\s|[A-Z]|$)", heater[2])
+            if target == "bed":
+                executed_bed.update(float(value) for value in setpoints)
+            elif material_channel is not None:
+                executed_nozzle.setdefault(material_channel, set()).update(float(value) for value in setpoints)
 
         load_heater = re.match(r"^M620\.1(?:\s|$)(.*)$", command)
         if load_heater:
@@ -308,6 +332,18 @@ def validate_rendered_bambu_gcode(
                     matches = actual.casefold() == str(expected[0]).strip().strip('"').casefold()
                 if not matches:
                     raise GCodeValidationError(f"Materialkanal {channel + 1}: Der Slicer hat {key} nicht unverändert übernommen.")
+        for channel, profile in enumerate(runtime_parameters, start=1):
+            for key in ("nozzle_temperature", "nozzle_temperature_initial_layer"):
+                if key in profile:
+                    values = profile[key] if isinstance(profile[key], list) else [profile[key]]
+                    expected = float(values[0])
+                    if not any(abs(actual - expected) <= .01 for actual in executed_nozzle.get(channel, set())):
+                        raise GCodeValidationError(f"Materialkanal {channel}: {key} wurde nicht als Heizbefehl ausgeführt.")
+            if expected_bed_temperature_key:
+                for key in (expected_bed_temperature_key, expected_bed_temperature_key + "_initial_layer"):
+                    values = profile.get(key)
+                    if not isinstance(values, list) or len(values) != 1 or not any(abs(actual - float(values[0])) <= .01 for actual in executed_bed):
+                        raise GCodeValidationError(f"Materialkanal {channel}: {key} wurde nicht als gemeinsamer Bettheizbefehl ausgeführt.")
     if line_count < 100:
         raise GCodeValidationError("Die eingebettete G-Code-Datei ist unvollständig.")
     if extrusion_moves < 5 or positive_extrusion_mm <= 0:
@@ -355,6 +391,7 @@ if __name__ == "__main__":
     import json
     from pathlib import Path
     import sys
+    from filament_parameter_contract import BED_TEMPERATURE_KEYS
     from slicer_execution_contract import digest, job_hardware_limits, validate_execution_contract
     if len(sys.argv) not in {3, 4}:
         raise SystemExit("usage: gcode_artifact_validation.py JOB GCODE [MATERIALS]")
@@ -375,5 +412,6 @@ if __name__ == "__main__":
         raise GCodeValidationError("Der finale native Filamentparameter-Nachweis fehlt.")
     with Path(sys.argv[2]).open("rb") as stream:
         report = validate_rendered_bambu_gcode(stream, hardware_limits=job_hardware_limits(job), runtime_parameters=parameters,
-                                             expected_printer_model=(job.get("target_printer") or {}).get("model"))
+                                             expected_printer_model=(job.get("target_printer") or {}).get("model"),
+                                         expected_bed_temperature_key=BED_TEMPERATURE_KEYS.get((job.get("process_overrides") or {}).get("bambu_bed_type")))
     print(json.dumps(report.as_dict()))

@@ -262,6 +262,13 @@ def _local_settings(
             value = f"{percent:g}%"
         settings[native_key] = value
 
+    if "nozzle_temperature" in settings or "bed_temperature" in settings:
+        raise ProcessProfileContractError("Düsen- und Betttemperaturen gehören in Filamentprofile, nicht in Prozessprofile.")
+    first_layer = settings.get("initial_layer_print_height")
+    if first_layer is not None:
+        first_height = _number(first_layer, "Die Erstschichthöhe")
+        if not nozzle_contract.min_layer_height_mm <= first_height <= nozzle_contract.diameter_mm:
+            raise ProcessProfileContractError("Die Erstschichthöhe passt nicht zum gewählten Düsenbereich.")
     layer = settings.get("layer_height")
     if layer is not None:
         value = _number(layer, "Die Schichthöhe")
@@ -306,6 +313,12 @@ def _cloud_settings(
         height = _number(settings["layer_height"], "Die Schichthöhe")
         if not nozzle_contract.min_layer_height_mm <= height <= nozzle_contract.max_layer_height_mm:
             raise ProcessProfileContractError("Das Cloud-Prozessprofil passt nicht zum gewählten Düsenbereich.")
+    if "bed_temperature" in settings:
+        raise ProcessProfileContractError("Betttemperaturen gehören in Filamentprofile, nicht in Prozessprofile.")
+    if "initial_layer_print_height" in settings:
+        height = _number(settings["initial_layer_print_height"], "Die Erstschichthöhe")
+        if not nozzle_contract.min_layer_height_mm <= height <= nozzle_contract.diameter_mm:
+            raise ProcessProfileContractError("Die Cloud-Erstschichthöhe passt nicht zum gewählten Düsenbereich.")
     # A Bambu cloud process profile may be a pure base-profile selection with
     # no overlay values. That must remain sliceable: the validated nozzle base
     # profile is the authority and the empty settings object means "use it as-is".

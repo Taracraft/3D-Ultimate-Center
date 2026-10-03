@@ -422,3 +422,16 @@ def test_empty_legacy_sound_fields_do_not_block_local_process() -> None:
     profile["payload"]["custom_gcode_1"] = "M400"
     with pytest.raises(CONTRACTS.ProcessProfileContractError, match="custom_gcode_1"):
         CONTRACTS.resolve_selected_process_contract(_catalog(profile), NOZZLES.a1_nozzle_contract(.4))
+
+
+@pytest.mark.parametrize("source,payload", [
+    ("local", {"layer_height_mm": .2, "first_layer_height_mm": 100}),
+    ("local", {"layer_height_mm": .2, "nozzle_temperature": 220}),
+    ("local", {"layer_height_mm": .2, "bed_temperature": 60}),
+    ("bambu_cloud", {"inherits": "0.20mm Standard @BBL A1", "initial_layer_print_height": 100}),
+    ("bambu_cloud", {"inherits": "0.20mm Standard @BBL A1", "bed_temperature": 60}),
+])
+def test_process_rejects_invalid_first_layer_and_filament_temperature_fields(source, payload):
+    profile = {"id": "audit", "kind": "process", "name": "Audit", "source": source, "payload": payload}
+    with pytest.raises(CONTRACTS.ProcessProfileContractError):
+        CONTRACTS.resolve_selected_process_contract(_catalog(profile), NOZZLES.a1_nozzle_contract(.4))
