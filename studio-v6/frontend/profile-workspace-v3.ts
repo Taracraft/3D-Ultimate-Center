@@ -148,7 +148,7 @@ function parameterLabel(key: string): string {
     ams_lite_compatible: "AMS-Lite-kompatibel",
     target_printer: "Zieldrucker",
     bambu_a1_compatibility: "Bambu-Lab-A1-Kompatibilität",
-    native_profile_name: "Native A1-Slicerbasis",
+    native_profile_name: "Native Slicerbasis",
     slicing_supported: "Slicing auf A1 freigegeben",
     cloud_sync_protected: "Vor Cloud-Sync geschützt",
     profile_completeness: "Profilvollständigkeit",

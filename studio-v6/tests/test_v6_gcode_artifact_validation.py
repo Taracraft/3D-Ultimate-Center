@@ -89,7 +89,7 @@ def test_h2s_firmware_sequence_with_explicit_hardware_authority() -> None:
     assert all(report.markers.values())
 
 
-@pytest.mark.parametrize("command", ["G150 T351", "M620.10 A0 T351 P220",
+@pytest.mark.parametrize("command", ["G150 T351", "M620.10 A0 T351 P220", "M620.15 C351",
     "M620.10 A1 T240 P351", "M141 S66", "M191 R66", "G150 TNaN",
     "M620.10 A0 TInf P220", "M141 S-1"])
 def test_h2s_firmware_heaters_cannot_bypass_temperature_checks(command: str) -> None:

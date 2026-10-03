@@ -207,3 +207,13 @@ def test_non_finite_motion_and_homing_inside_print_fail_closed():
     for move in ["G1 XNaN Y100 E1", "G1 XInf E1", "G28 X"]:
         with pytest.raises(validation.GCodeValidationError):
             validation.validate_rendered_bambu_gcode(complete("; MACHINE_START_GCODE_END\n" + move), hardware_limits=execution.a1_hardware_limits("A1"))
+
+
+def test_a1_has_no_chamber_heater_and_does_not_claim_a_chamber_proof():
+    payload=selected()['payload']
+    settings=filament.preflight_filament_settings(payload)
+    settings['chamber_temperatures']=['0']
+    assert 'chamber_temperatures' not in filament.parameter_proof(settings,payload)['parameter_settings']
+    settings['chamber_temperatures']=['1']
+    with pytest.raises(ValueError):
+        filament.check_filament_temperatures(settings,execution.a1_hardware_limits('A1'),'Textured PEI Plate')

@@ -57,18 +57,18 @@ function payloadText(payload: Readonly<Record<string, unknown>>, key: string): s
   return String(payload[key] ?? "").trim();
 }
 
-function gcodeSlotProfiles(catalog: V6ProfileCatalog | null, slot: GcodeSlot["key"]): V6Profile[] {
+function gcodeSlotProfiles(catalog: V6ProfileCatalog | null, slot: GcodeSlot["key"], model: string): V6Profile[] {
   const keys = GCODE_SLOT_KEYS[slot];
   return (catalog?.groups.process ?? [])
-    .filter((profile) => profile.kind === "process" && profile.payload.gcode_slot === slot)
+    .filter((profile) => profile.kind === "process" && profile.payload.gcode_slot === slot && String(profile.payload.printer_model || "").toLowerCase() === model)
     .sort((left, right) => left.name.localeCompare(right.name, "de-DE", { numeric: true }));
 }
 
 function gcodeSlotSelect(catalog: V6ProfileCatalog | null, slot: GcodeSlot, selection: StudioPlateProfileSelection): string {
   const printer = catalog?.profiles.find((item) => item.id === selection.printer_profile_id);
-  const isA1 = String(printer?.payload.model || "").toLowerCase() === "a1";
-  const selected = selection.gcode_preset_ids?.[slot.key] ?? (isA1 ? "builtin.a1." + slot.key : "");
-  return `<label><span>${esc(slot.label)}</span><select data-gcode-preset="${esc(slot.key)}" title="${esc(slot.label)}-Baustein aus Profile verwalten."><option value="" ${selected ? "" : "selected"}>${esc(slot.empty)}</option>${gcodeSlotProfiles(catalog, slot.key).map((profile) => `<option value="${esc(profile.id)}" ${profile.id === selected ? "selected" : ""}>${esc(profileDisplayName(profile))}</option>`).join("")}</select></label>`;
+  const model = String(printer?.payload.model || "").toLowerCase();
+  const selected = selection.gcode_preset_ids?.[slot.key] ?? (["a1", "h2s"].includes(model) ? "builtin." + model + "." + slot.key : "");
+  return `<label><span>${esc(slot.label)}</span><select data-gcode-preset="${esc(slot.key)}" title="${esc(slot.label)}-Baustein aus Profile verwalten."><option value="" ${selected ? "" : "selected"}>${esc(slot.empty)}</option>${gcodeSlotProfiles(catalog, slot.key, model).map((profile) => `<option value="${esc(profile.id)}" ${profile.id === selected ? "selected" : ""}>${esc(profileDisplayName(profile))}</option>`).join("")}</select></label>`;
 }
 
 function group(catalog: V6ProfileCatalog | null, kind: ProfileKind): V6Profile[] {

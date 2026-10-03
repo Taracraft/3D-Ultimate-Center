@@ -1487,7 +1487,7 @@ Die angehakten Punkte gelten für den nachgewiesenen A1-Pfad und die aktuell vor
 ## 2026-10-03 – Größere Drucker: H2S-Artefaktvertrag
 
 - [x] Eigenständige H2S-Artefaktprüfung für Kalibrierung, Reinigung, Load-Line und zusätzliche Reinigungs-/Spül-/Kammerheizer. 16 echte native Slices mit 300-mm-Testgeometrie bestanden; alle 16 mit A1-Grenzen abgewiesen. Sieben reale Artefaktmutationen abgewiesen; 322 A1-Regressionsartefakte bestanden.
-- [ ] H2S durchgängig über Modellregister, Düsen, Filamentquellen, AMS-/Kammervertrag und vier passende Maschinenabschnitte anbinden. Die Artefaktprüfung allein erteilt noch keine produktive H2S-Freigabe.
+- [x] H2S durchgängig über Modellregister, Düsen, Filamentquellen, AMS-/Kammervertrag und vier passende Maschinenabschnitte anbinden; vollständige native Softwarekette und installierter Stand geprüft. Physische H2S-Abnahme bleibt separat.
 - [ ] H2D/H2C mit physischer Werkzeugkonfiguration und dafür tatsächlich nutzbarer Druckfläche separat prüfen. Keine pauschale Übernahme des Profilpolygons.
 - [ ] Kleinere physische Platten einschließlich Start-/Wischbewegungen und Ursprung separat absichern.
 
@@ -1495,3 +1495,18 @@ Details: [H2S-Prüfbericht](h2s-native-contract-validation-2026-10-03.md). Die �
 
 
 Abnahme des H2S-Artefaktbausteins: Vollständiges Windows-Gate: 632 Python-Tests plus drei Untertests, Source-Policy, TypeScript, Frontend-Tests, Produktions-/HA-Build und Compile-Prüfung bestanden. Gesichertes Deployment: /var/lib/homeassistant/homeassistant/backups/20261003T082551Z-v6-h2s-artifact-contract. HA-Konfigurationsprüfung und Neustart erfolgreich, Profil-API HTTP 200, acht Worker-Abhängigkeiten per SHA bestätigt. Installierter Stand: 16 H2S-Artefakte und sieben Negativmutationen bestanden sowie 21 neue A1-Slices ohne Parameterverlust oder native Optionenwarnungen. Bundle-SHA256: 80f2440e60fcdb7a0bdfc209487b1b12710768ba02a75f4eb9b60924316b6831.
+
+
+## 2026-10-03 — H2S Studio-/Worker-Vertrag
+
+H2S-Modellregister, vier Düsen und Prozesse, 37 Filamentgrundlagen, zwei Vollformat-Platten und vier Maschinen-/Soundabschnitte implementiert. Die Plattengrößenprüfung und die Reinigungsturm-Analyse verwenden die unabhängige Hardwareautorität des Auftrags; H2S erbt keine A1-Grenzen. Filamentfamilien für größere Drucker bleiben im Katalog. Manuelle AMS-Flags können unbestätigte Engineering-Familien nicht freischalten.
+
+592 Vorprüfungen: 266 zulässig, 326 begründet abgewiesen. 190 native Einzelmaterial-Slices und zwei Mehrmaterial-Slices bestanden; 192/192 vollständige Artefaktprüfungen und tatsächliche G-Code-Profilbestätigungen. Gesamtgate, korrigierte Bereitstellung und Live-Abnahme bestanden. Bericht: [H2S Studio-/Worker-Prüfung](h2s-studio-worker-contract-validation-2026-10-03.md).
+
+Danach offen: H2D/H2C mit physischer Werkzeugkonfiguration; kleinere physische Platten mit eigenem Start-/Wisch-/Ursprungsvertrag; weitere AMS-Hardwarefreigaben; reale Druckqualität und interaktive Studioabnahme.
+
+Abnahme abgeschlossen: Vollständiges Windows-Gate am 03.10.2026 um 12:44 Uhr (CEST): 1239 Python-Tests plus drei Untertests, 149 Frontend-Tests, Source-Policy, TypeScript, Produktions-/HA-Build und Compile-Prüfung bestanden. Korrigierter Stand nach HA-Konfigurationsprüfung und Neustart aktiv; Profil-API HTTP 200 mit 221 Profilen, darunter 52 H2S-Profile (37 Filamente, vier Düsen, ein Drucker, zwei Platten und acht Prozess-/G-Code-Profile). Zehn Worker-Abhängigkeiten und 26 Bereitstellungsziele per SHA bestätigt. Installierter Worker: 190 H2S- und 21 A1-Slices ohne Parameterverlust oder native Optionswarnungen. Mit dem tatsächlich installierten Prüfcode: 192/192 H2S-Archive (einschließlich zweier Mehrmaterialarchive) und 21/21 frische A1-Archive gültig und durch G-Code bestätigt; zusätzlich 322 frühere A1-Archive geprüft. Fünf manipulierte H2S-Archive werden abgewiesen. Puppet auf Port 5000 liefert die verbundene V6-Oberfläche; dies ersetzt keine interaktive oder physische Druckabnahme.
+
+Same-Day-Backup der korrigierten Bereitstellung: `/var/lib/homeassistant/homeassistant/backups/20261003T104732Z-v6-h2s-studio-worker-contract`. Gate-Bundle-SHA256: `f7bfd148790143c0e9fc735339ebcefe3c05855038fc218de1370418fa8cf1b5`. Die erste Aktivierung wurde wegen der älteren A1-Katalogprüfung zurückgerollt; modellabhängige Prüfung und echter HA-Import sind korrigiert und erneut vollständig geprüft. Lokales Repo und HA-Quellen werden vollständig mit 588 Quelldateien und 598 öffentlichen GitHub-Zielen abgeglichen. Kein Druckerupload, Job-Release oder Druckstart.
+
+Weiter offen: tatsächliche H2D/H2C-Werkzeugkonfiguration, kleinere physische Platten mit nativem Ursprungs-/Start-/Reinigungsvertrag, zusätzliche belegte AMS-Hardwarefreigaben sowie interaktive und physische Druckabnahme.

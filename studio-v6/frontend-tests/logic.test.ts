@@ -16,8 +16,8 @@ test("machine presets select defaults and retain per-plate custom and silent sou
   const printer = profile("printer.a1", "printer", { model: "A1" });
   const process = profile("process.normal", "process", { layer_height_mm: .2 });
   const presets = ["start_sound", "end_sound", "gcode_1", "gcode_2"].map((slot) =>
-    profile("builtin.a1." + slot, "process", { gcode_slot: slot }));
-  const custom = profile("local.sound", "process", { gcode_slot: "start_sound" });
+    profile("builtin.a1." + slot, "process", { gcode_slot: slot, printer_model: "A1" }));
+  const custom = profile("local.sound", "process", { gcode_slot: "start_sound", printer_model: "A1" });
   const catalog: any = { profiles: [printer, process, ...presets, custom],
     groups: { printer: [printer], process: [process, ...presets, custom], filament: [], nozzle: [], build_plate: [] } };
   const selection: any = { printer_profile_id: printer.id, process_profile_id: process.id,
@@ -31,6 +31,17 @@ test("machine presets select defaults and retain per-plate custom and silent sou
   const processMenu = html.match(/data-profile-field="process_profile_id"[^>]*>(.*?)<\/select>/s)?.[1] || "";
   assert.doesNotMatch(processMenu, /builtin.a1.gcode/);
   assert.match(processMenu, /process.normal/);
+  const h2s = profile("printer.h2s", "printer", { model: "H2S" });
+  const h2sPresets = ["start_sound", "end_sound", "gcode_1", "gcode_2"].map((slot) =>
+    profile("builtin.h2s." + slot, "process", { gcode_slot: slot, printer_model: "H2S" }));
+  catalog.profiles.push(h2s, ...h2sPresets);
+  catalog.groups.process.push(...h2sPresets);
+  selection.printer_profile_id = h2s.id;
+  selection.gcode_preset_ids = {};
+  const h2sHtml = studioProfileBarHtml(catalog, [], selection);
+  assert.match(h2sHtml, /value="builtin.h2s.start_sound" selected/);
+  assert.doesNotMatch(h2sHtml, /value="builtin.a1.start_sound"/);
+  assert.doesNotMatch(h2sHtml, /value="local.sound"/);
 });
 
 import {

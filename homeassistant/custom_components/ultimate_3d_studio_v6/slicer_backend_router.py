@@ -25,10 +25,10 @@ from .slicer_native_contract import (
     SlicerServerError,
 )
 from .filament_parameter_contract import ALIASES, BED_TEMPERATURE_KEYS
-from .slicer_execution_contract import bind_execution_contract
+from .slicer_execution_contract import bind_execution_contract, job_hardware_limits
 from .slicer_nozzle_profiles import (
     contract_payload,
-    resolve_a1_nozzle_contract,
+    resolve_nozzle_contract,
     validate_process_overrides,
 )
 
@@ -37,6 +37,7 @@ SERVER_ENDPOINT = "http://127.0.0.1:8099"
 SERVER_PREFIX = "server__"
 SERVER_PRINTER_PROFILES = {
     "a1": "bambu_lab_a1_04",
+    "h2s": "bambu_lab_h2s_04",
 }
 _COMPLETED_ARTIFACT_CACHE: OrderedDict[
     str,
@@ -77,6 +78,7 @@ def _canonical_model(value: object) -> str:
         str(value or "").casefold(),
     ).strip()
     for names, key in (
+        (("h2s",), "h2s"),
         (("a1 mini", "a1m"), "a1_mini"),
         (("x1 carbon", "x1c"), "x1c"),
         (("x1e",), "x1e"),
@@ -109,8 +111,10 @@ def _server_printer_profile(
 def _gcode_metadata(
     data: bytes,
     selected_setting_keys: list[str] | None = None,
+    limits: dict[str, float] | None = None,
+    printer_model: str | None = None,
 ) -> dict[str, Any]:
-    analysis = analyze_gcode(data)
+    analysis = analyze_gcode(data, plate_width_mm=limits["width_mm"], plate_depth_mm=limits["depth_mm"]) if limits else analyze_gcode(data)
     assert_prime_tower_inside(analysis)
     totals = (
         analysis.get("totals")
@@ -144,7 +148,7 @@ def _gcode_metadata(
             | {"nozzle_temperature", "nozzle_temperature_initial_layer", "nozzle_temperature_range_low", "nozzle_temperature_range_high", "slow_down_for_layer_cooling"}
             | {key + suffix for key in BED_TEMPERATURE_KEYS.values() for suffix in ("", "_initial_layer")},
         ),
-        "heater_commands": extract_heater_commands(data),
+        "heater_commands": extract_heater_commands(data, printer_model=printer_model),
         "consumption": {
             "physical_extruder_count": analysis.get(
                 "physical_extruder_count",
@@ -204,7 +208,7 @@ def _prepare_server_artifact(
     effective_settings = _effective_numeric_process_settings(
         selected_settings, process_overrides,
     )
-    metadata = _gcode_metadata(gcode, list(effective_settings))
+    metadata = _gcode_metadata(gcode, list(effective_settings), job_hardware_limits(job), (job.get("target_printer") or {}).get("model"))
     project_name = project_name_from_server_payload(
         payload,
         job_id,
@@ -547,9 +551,15 @@ def _profile_application(
                 continue
             expected_value = float(_normalized_setting_values(requested)[0][1])
             if not any(isinstance(command, dict) and command.get("channel") == channel_index
-                       and command.get("command") in {"M104", "M109"}
+                       and command.get("command") in {"M104", "M109", "M620.10", "M620.15"}
                        and abs(float(command.get("temperature_c", -1)) - expected_value) <= .01
                        for command in heater_commands):
+                thermal_commands_confirmed = False
+        chamber = expected_parameters.get("chamber_temperatures")
+        if chamber is not None:
+            chamber_value = float(_normalized_setting_values(chamber)[0][1])
+            if not any(isinstance(command, dict) and command.get("command") in {"M141", "M191"}
+                       and abs(float(command.get("temperature_c", -1)) - chamber_value) <= .01 for command in heater_commands):
                 thermal_commands_confirmed = False
         filament_parameter_proof.append({"channel": channel_index, "profile_id": profile.get("id"),
                                          "confirmed": matches and thermal_commands_confirmed,
@@ -858,7 +868,7 @@ class V6SlicerBackendRouter:
     ) -> dict[str, Any]:
         normalize_backend(backend)
         printer_profile = _server_printer_profile(target_printer)
-        nozzle_contract = resolve_a1_nozzle_contract(_catalog, target_printer)
+        nozzle_contract = resolve_nozzle_contract(_catalog, target_printer)
         validated_overrides = validate_process_overrides(
             process_overrides,
             nozzle_contract,

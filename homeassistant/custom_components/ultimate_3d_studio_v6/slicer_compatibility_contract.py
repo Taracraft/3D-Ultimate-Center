@@ -7,6 +7,7 @@ import json
 import math
 from typing import Any, Iterable
 
+from .printer_model_contract import canonical_model, hardware_limits, h2s_defaults
 from .a1_filament_catalog import A1_FILAMENT_CATALOG
 from .filament_parameter_contract import preflight_filament_settings, check_filament_temperatures, validate_shared_bed_temperatures
 from .slicer_execution_contract import digest, validate_plate_dimensions, validate_physical_a1_plate, a1_hardware_limits
@@ -112,6 +113,16 @@ def printer_profile_with_validated_limits(
     """Attach only A1 hardware maxima from the exact validated local nozzle profile."""
     result = deepcopy(target_profile)
     payload = _payload(result)
+    if canonical_model(payload.get("model")) == "H2S":
+        limits = hardware_limits("H2S")
+        for key in ("max_nozzle_temperature_c", "max_bed_temperature_c", "max_chamber_temperature_c"):
+            if key in payload:
+                value = float(payload[key])
+                if not math.isfinite(value) or not 0 < value <= limits[key]:
+                    raise CompatibilityContractError("Ungültige H2S-Hardwaregrenze.")
+                limits[key] = value
+        result["payload"] = {**payload, **{k:v for k,v in limits.items() if k.startswith("max_")}}
+        return result
     try:
         nozzle_limit = float(payload["max_nozzle_temperature_c"])
         bed_limit = float(payload["max_bed_temperature_c"])
@@ -323,6 +334,8 @@ def _validate_filament(
             "A1-Filamentprofil."
         )
     payload = _payload(selected)
+    if canonical_model(payload.get("printer_model")) == "H2S":
+        raise CompatibilityContractError("Ein H2S-Filamentprofil darf nicht am A1 verwendet werden.")
     manual = _manual_profile(filament)
     if manual is not None:
         targets = manual.get("targets")
@@ -432,6 +445,10 @@ def validate_slicer_compatibility(
     target_profile: dict[str, Any],
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Attach profiles and reject any explicit or unresolved A1 incompatibility."""
+    if canonical_model(_payload(target_profile).get("model")) == "H2S":
+        return _validate_h2s(catalog, nozzle_contract, material_plan, build_plate_options, target_profile)
+    if nozzle_contract.printer_model != "A1":
+        raise CompatibilityContractError("Düse und Druckermodell passen nicht zusammen.")
     source = str(material_plan.get("source") or "")
     if source == "authoritative_ams_runtime":
         source_target = "ams_slot"
@@ -521,3 +538,66 @@ def validate_slicer_compatibility(
     ).encode("utf-8")
     report["contract_sha256"] = hashlib.sha256(canonical).hexdigest()
     return resolved_plan, report
+
+
+def _validate_h2s(catalog, nozzle_contract, material_plan, options, target_profile):
+    if nozzle_contract.printer_model != "H2S":
+        raise CompatibilityContractError("Die ausgewählte Düse gehört nicht zum H2S.")
+    payload = _payload(target_profile)
+    if _numbers(payload.get("build_volume_mm")) != [340., 320., 340.]:
+        raise CompatibilityContractError("Der H2S benötigt den geprüften Bauraum 340 × 320 × 340 mm.")
+    if validate_plate_dimensions(options, (340., 320.)) != (340., 320.):
+        raise CompatibilityContractError("Abweichende physische H2S-Plattengrößen sind noch nicht validiert.")
+    bed = str(options.get("bambu_bed_type") or "")
+    surface = str(options.get("build_plate_surface") or "")
+    if bed not in {"Textured PEI Plate", "High Temp Plate"} or not surface:
+        raise CompatibilityContractError("Für diese H2S-Druckplatte fehlt der native Vertrag.")
+    source = {"authoritative_ams_runtime":"ams_slot", "authoritative_external_spool_runtime":"external_spool"}.get(material_plan.get("source"))
+    if not source:
+        raise CompatibilityContractError("Die Materialquelle wurde nicht autoritativ aufgelöst.")
+    limits = hardware_limits("H2S")
+    for key in ("max_nozzle_temperature_c", "max_bed_temperature_c", "max_chamber_temperature_c"):
+        value = float(payload.get(key, limits[key]))
+        if not math.isfinite(value) or not 0 < value <= limits[key]:
+            raise CompatibilityContractError("Das Profil behauptet ungültige H2S-Hardwaregrenzen.")
+        limits[key] = value
+    plan = deepcopy(material_plan)
+    filaments = plan.get("filaments")
+    if not isinstance(filaments, list) or not filaments or not all(isinstance(f, dict) for f in filaments):
+        raise CompatibilityContractError("Der Materialplan enthält ungültige Kanäle.")
+    attach_selected_profiles(catalog, filaments)
+    material = _nozzle_material(catalog)
+    results = []
+    for index, filament in enumerate(filaments, 1):
+        selected = filament.get("selected_profile")
+        if not isinstance(selected, dict) or not _profile_has_native_authority(selected):
+            raise CompatibilityContractError("Für H2S fehlt ein vollständig materialisierbares Filamentprofil.")
+        settings = _payload(selected)
+        if canonical_model(settings.get("printer_model")) != "H2S":
+            raise CompatibilityContractError("Das Filamentprofil gehört nicht zum H2S.")
+        native_name = str(settings.get("native_profile_name") or settings.get("inherits") or "")
+        authority = h2s_defaults()["filaments"].get(native_name)
+        printer_name = f"Bambu Lab H2S {nozzle_contract.diameter_mm:g} nozzle"
+        if not authority or printer_name not in authority["compatible_printers"]:
+            raise CompatibilityContractError("Die native H2S-Filamentbasis passt nicht zur Düse.")
+        if source == "ams_slot" and (settings.get("ams_compatible") is not True or authority.get("ams_supported") is not True):
+            raise CompatibilityContractError("Dieses H2S-Filamentprofil ist nicht für AMS freigegeben.")
+        if settings.get("hardened_nozzle_required") is True and material != "hardened_steel":
+            raise CompatibilityContractError("Dieses Filament benötigt eine gehärtete Düse.")
+        _explicit_nozzle_compatibility(settings, nozzle_contract)
+        _explicit_plate_compatibility(settings, surface, bed)
+        temperatures = check_filament_temperatures(preflight_filament_settings(settings), limits, bed)
+        results.append({"channel":index, "profile_id":selected.get("id"), "profile_name":selected.get("name"),
+            "profile_source":selected.get("source"), "selected_profile_sha256":digest(selected),
+            "effective_temperatures":temperatures, "native_profile_name":native_name})
+    validate_shared_bed_temperatures([r["effective_temperatures"] for r in results], bed)
+    chambers = {tuple(_numbers(r["effective_temperatures"].get("chamber_temperatures"))) for r in results}
+    if len(chambers) > 1:
+        raise CompatibilityContractError("Materialkanäle benötigen unterschiedliche gemeinsame Kammertemperaturen.")
+    report = {"status":"compatible", "contract_version":CONTRACT_VERSION, "printer_model":"Bambu Lab H2S",
+        "slicer_engine":"native_linux", "material_source":source,
+        "nozzle":{"diameter_mm":nozzle_contract.diameter_mm, "material":material},
+        "build_plate":{"surface":surface, "bambu_bed_type":bed, "width_mm":340, "depth_mm":320},
+        "limits":{k:v for k,v in limits.items() if k.startswith("max_")}, "filaments":results}
+    report["contract_sha256"] = digest(report)
+    return plan, report

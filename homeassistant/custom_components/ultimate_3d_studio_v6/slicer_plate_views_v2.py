@@ -26,7 +26,7 @@ from .slicer_compatibility_contract import (
 )
 from .slicer_nozzle_profiles import (
     contract_payload,
-    resolve_a1_nozzle_contract,
+    resolve_nozzle_contract,
     validate_process_overrides,
 )
 from .three_mf_inspector import inspect_model
@@ -525,7 +525,7 @@ async def _prepare_plate_job_contract(
         studio_plate,
         catalog,
     )
-    nozzle_contract = resolve_a1_nozzle_contract(catalog, {
+    nozzle_contract = resolve_nozzle_contract(catalog, {
         "name": target_printer.name,
         "model": target_printer.model,
     })

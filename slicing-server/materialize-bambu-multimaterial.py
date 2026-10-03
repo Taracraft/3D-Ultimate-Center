@@ -49,6 +49,7 @@ _METADATA_KEYS = {
     "model_id", "dev_model_name",
 }
 _MODEL_SUFFIXES = {
+    "h2s": ("@BBL H2S",),
     "a1": ("@BBL A1",),
     "a1_mini": ("@BBL A1M", "@BBL A1 mini"),
     "p1s": ("@BBL P1S", "@BBL P1P"),
@@ -133,6 +134,7 @@ def _canonical_model(value: object) -> str:
         (("x1e",), "x1e"),
         (("p1s",), "p1s"),
         (("p1p",), "p1p"),
+        (("h2s",), "h2s"),
         (("a1",), "a1"),
         (("x1",), "x1"),
     ):
@@ -405,6 +407,7 @@ def _apply_process_overrides(process: dict[str, Any], overrides: dict[str, Any])
 
 def _validated_layer_height_ranges(
     overrides: dict[str, Any],
+    max_build_height_mm: float = 256.,
 ) -> list[dict[str, float]]:
     ranges = overrides.get("layer_height_ranges")
     if ranges is None:
@@ -424,13 +427,13 @@ def _validated_layer_height_ranges(
             item,
             "min_z_mm" if item.get("min_z_mm") is not None else "min_z",
             0.0,
-            256.0,
+            max_build_height_mm,
         )
         max_z = _required_override_number(
             item,
             "max_z_mm" if item.get("max_z_mm") is not None else "max_z",
             0.0,
-            256.0,
+            max_build_height_mm,
         )
         height = _required_override_number(
             item,
@@ -635,6 +638,14 @@ def _materialize_process(
     dict[str, Any],
 ]:
     process = _resolve_profile(process_directory, process_source)
+    if model == "h2s":
+        try:
+            from .printer_model_contract import h2s_defaults
+        except ImportError:
+            from printer_model_contract import h2s_defaults
+        expected = h2s_defaults()["processes"][str(overrides.get("h2s_nozzle_diameter_mm"))]
+        if digest(process) != expected["resolved_sha256"]:
+            raise ValueError("Die native H2S-Prozessquelle wurde verändert.")
     process, process_profile_proof = _apply_selected_process_profile(
         process,
         process_source,
@@ -650,6 +661,15 @@ def _materialize_process(
         authority = native_filament_authorities().get(str(base.get("name") or path.stem))
         if overrides.get("require_execution_contract") is True and authority is not None and digest(base) != authority["resolved_sha256"]:
             raise ValueError("Die native Filamentbasis weicht von der geprüften Parameterautorität ab.")
+        if model == "h2s":
+            if authority is None or "H2S" not in str(base.get("name")):
+                raise ValueError("Für die H2S-Filamentbasis fehlt eine geprüfte native Autorität.")
+            if "Bambu Lab H2S " + str(overrides.get("h2s_nozzle_diameter_mm")) + " nozzle" not in authority["compatible_printers"]:
+                raise ValueError("Die H2S-Filamentbasis passt nicht zum Düsendurchmesser.")
+        if model == "h2s":
+            base = {k: [v[0]] if isinstance(v, list) and v and k not in _METADATA_KEYS else v for k,v in base.items()}
+        if model == "h2s" and filament.get("source") == "ams_slot" and authority.get("ams_supported") is not True:
+            raise ValueError("Für diese native H2S-Filamentbasis fehlt die AMS-Freigabe.")
         resolved_profiles.append(_apply_selected_profile_payload(base, filament))
 
     option_keys: set[str] = set()
@@ -969,6 +989,8 @@ def main() -> None:
         else {}
     )
     effective_overrides = dict(overrides)
+    if model == "h2s":
+        effective_overrides["h2s_nozzle_diameter_mm"] = str(float(target["nozzle_diameter_mm"]))
     for key in ("min_layer_height_mm", "max_layer_height_mm", "nozzle_diameter_mm"):
         if key not in effective_overrides and target.get(key) is not None:
             effective_overrides[key] = target.get(key)
@@ -1027,7 +1049,7 @@ def main() -> None:
         plate_width_mm=float(effective_overrides.get("build_plate_width_mm") or 256.0),
         plate_depth_mm=float(effective_overrides.get("build_plate_depth_mm") or 256.0),
     )
-    layer_height_ranges = _validated_layer_height_ranges(effective_overrides)
+    layer_height_ranges = _validated_layer_height_ranges(effective_overrides, hardware_limits["height_mm"] if hardware_limits else 256.)
     assembled_params = []
     if layer_height_ranges:
         assembled_params.append({

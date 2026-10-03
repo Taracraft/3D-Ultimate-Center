@@ -149,8 +149,10 @@ def validate_rendered_bambu_gcode(
     observed_settings: dict[str, list[str]] = {}
     declared_model = ""
     material_channel = None
+    pending_material_channel = None
     executed_nozzle: dict[int, set[float]] = {}
     executed_bed: set[float] = set()
+    executed_chamber: set[float] = set()
     if limits is not None:
         for key in ("max_nozzle_temperature_c", "max_bed_temperature_c"):
             value = limits.get(key)
@@ -170,6 +172,9 @@ def validate_rendered_bambu_gcode(
         # must receive the same geometry checks as their spaced equivalents.
         command = re.sub(r"^N\d+\s*", "", command)
         command = re.sub(r"(?<=[0-9.])(?=[A-Z])", " ", command)
+        next_material = re.fullmatch(r"M620\s+S(\d+)\s*A", command)
+        if next_material:
+            pending_material_channel = int(next_material[1]) + 1 if int(next_material[1]) < 64 else None
         tool = re.fullmatch(r"T(\d+)", command)
         if tool:
             number = int(tool[1])
@@ -258,9 +263,9 @@ def validate_rendered_bambu_gcode(
         if h2s:
             # These firmware commands also request heat; standard M104/M109
             # checks alone miss purge, nozzle cleaning and chamber targets.
-            heater = re.match(r"^(G150|M620\.10|M141|M191)(?:\s|$)(.*)$", command)
+            heater = re.match(r"^(G150|M620\.10|M620\.15|M141|M191)(?:\s|$)(.*)$", command)
             if heater:
-                keys = "TP" if heater[1] == "M620.10" else "T" if heater[1] == "G150" else "SR"
+                keys = "TP" if heater[1] == "M620.10" else "C" if heater[1] == "M620.15" else "T" if heater[1] == "G150" else "SR"
                 for key in keys:
                     raw_targets = re.findall(r"(?:^|\s)" + key + r"\s*([^\s]+)", heater[2])
                     for raw in raw_targets:
@@ -271,10 +276,13 @@ def validate_rendered_bambu_gcode(
                         if not math.isfinite(value) or value < 0:
                             raise GCodeValidationError("Ungültige H2S-Heiztemperatur.")
                         if heater[1] in {"M141", "M191"}:
+                            executed_chamber.add(value)
                             if value > float(hardware_limits["max_chamber_temperature_c"]) + .01:
                                 raise GCodeValidationError("Der G-Code überschreitet die H2S-Kammertemperaturgrenze.")
                         else:
                             temperatures["nozzle"] = max(temperatures["nozzle"], value)
+                            if pending_material_channel is not None and (heater[1] == "M620.15" or heater[1] == "M620.10" and key == "P" and re.search(r"(?:^|\s)A1(?:\s|$)", heater[2])):
+                                executed_nozzle.setdefault(pending_material_channel, set()).add(value)
             if upper.startswith(";===== NOZZLE LOAD LINE"):
                 h2s_load_line = True
             if upper.startswith(";===== NOOZLE LOAD LINE END"):
@@ -394,6 +402,10 @@ def validate_rendered_bambu_gcode(
                     expected = float(values[0])
                     if not any(abs(actual - expected) <= .01 for actual in executed_nozzle.get(channel, set())):
                         raise GCodeValidationError(f"Materialkanal {channel}: {key} wurde nicht als Heizbefehl ausgeführt.")
+            if h2s and "chamber_temperatures" in profile:
+                values = profile["chamber_temperatures"]
+                if not isinstance(values, list) or len(values) != 1 or not any(abs(actual - float(values[0])) <= .01 for actual in executed_chamber):
+                    raise GCodeValidationError(f"Materialkanal {channel}: Die Kammertemperatur wurde nicht als Heizbefehl ausgeführt.")
             if expected_bed_temperature_key:
                 for key in (expected_bed_temperature_key, expected_bed_temperature_key + "_initial_layer"):
                     values = profile.get(key)

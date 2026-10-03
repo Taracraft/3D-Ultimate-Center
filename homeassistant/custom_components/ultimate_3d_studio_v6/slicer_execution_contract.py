@@ -7,6 +7,17 @@ import json
 import math
 import re
 from typing import Any
+try:
+    from .printer_model_contract import canonical_model, hardware_limits, h2s_defaults
+except ImportError:
+    import importlib.util as _model_import
+    from pathlib import Path as _ModelPath
+    _spec = _model_import.spec_from_file_location("v6_printer_model_authority", _ModelPath(__file__).with_name("printer_model_contract.py"))
+    _authority = _model_import.module_from_spec(_spec)
+    _spec.loader.exec_module(_authority)
+    canonical_model = _authority.canonical_model
+    hardware_limits = _authority.hardware_limits
+    h2s_defaults = _authority.h2s_defaults
 
 
 def digest(value: object) -> str:
@@ -97,13 +108,31 @@ def validate_physical_a1_plate(options: dict[str, Any]) -> tuple[float, float]:
 
 def job_hardware_limits(job: dict[str, Any]) -> dict[str, float] | None:
     target = job.get("target_printer") or {}
-    limits = a1_hardware_limits(target.get("model") or target.get("name"))
+    model = canonical_model(target.get("model") or target.get("name"))
+    limits = hardware_limits(model)
     if limits is None and (job.get("process_overrides") or {}).get("require_execution_contract") is True:
         raise ValueError("Für diesen Drucker fehlt ein geprüfter nativer Hardware-/G-Code-Vertrag.")
     if limits:
-        validate_physical_a1_plate(job.get("process_overrides") or {})
+        options = job.get("process_overrides") or {}
+        if model == "A1":
+            validate_physical_a1_plate(options)
+        else:
+            size = validate_plate_dimensions(options, (340., 320.))
+            if size != (340., 320.):
+                raise ValueError("Physische H2S-Platten benötigen den geprüften 340 × 320 mm Maschinenvertrag.")
+            diameter = str(float(target.get("nozzle_diameter_mm")))
+            machine = h2s_defaults()["machines"].get(diameter)
+            process = h2s_defaults()["processes"].get(diameter)
+            if not machine or target.get("native_machine_profile") != machine["native_path"] or target.get("native_process_profile") != process["native_path"]:
+                raise ValueError("H2S-Maschine, Prozess und Düse passen nicht zusammen.")
+            if options.get("require_execution_contract") is True:
+                contract = target.get("machine_gcode_contract") or {}
+                if contract.get("printer_model") != "H2S":
+                    raise ValueError("Der H2S-Auftrag benötigt seine vier Maschinen-/Soundabschnitte.")
         selected_limits = (target.get("compatibility_contract") or {}).get("limits") or {}
-        for key in ("max_nozzle_temperature_c", "max_bed_temperature_c"):
+        for key in ("max_nozzle_temperature_c", "max_bed_temperature_c", "max_chamber_temperature_c"):
+            if key not in limits:
+                continue
             if key in selected_limits:
                 value = float(selected_limits[key])
                 if not math.isfinite(value) or value <= 0 or value > limits[key]:

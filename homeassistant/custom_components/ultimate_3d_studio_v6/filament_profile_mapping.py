@@ -5,7 +5,7 @@ from copy import deepcopy
 import re
 from typing import Any
 
-_MATERIALS = ("PETG", "PLA", "ABS", "ASA", "TPU", "PA", "PC")
+_MATERIALS = ("PCTG", "PETG", "PPA", "PPS", "BVOH", "HIPS", "EVA", "PHA", "PLA", "ABS", "ASA", "TPU", "PVA", "PA", "PC", "PE", "PP")
 _IGNORED_TOKENS = {
     "bbl", "bambu", "lab", "filament", "profile", "standard", "cloud",
     "tara", "a1", "a1m", "x1", "x1c", "p1", "p1s", "hs", "plus",

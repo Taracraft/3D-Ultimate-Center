@@ -17,6 +17,7 @@ BED_TEMPERATURE_KEYS = {
 }
 
 ALIASES = {
+    "chamber_temperature_c": "chamber_temperatures",
     "flow_ratio": "filament_flow_ratio",
     "max_volumetric_speed_mm3_s": "filament_max_volumetric_speed",
     "density_g_cm3": "filament_density",
@@ -75,7 +76,7 @@ def apply_filament_parameters(base: dict[str, Any], payload: dict[str, Any]) -> 
     """Use native user keys first, then curated aliases, then native defaults."""
     result = deepcopy(base)
     prefixes = ("filament_", "nozzle_", "hot_plate_", "textured_plate_",
-                "cool_plate_", "eng_plate_", "supertack_plate_")
+                "cool_plate_", "eng_plate_", "supertack_plate_", "chamber_")
     for key, value in payload.items():
         if key in CURATED_KEYS or key.startswith("_") or key in {
             "name", "type", "from", "instantiation", "inherits", "include",
@@ -146,7 +147,7 @@ def validate_filament_parameters(profile: dict[str, Any]) -> None:
     for key in ("filament_retraction_length", "filament_retraction_speed", "filament_deretraction_speed",
                 "filament_wipe_distance", "filament_z_hop", "full_fan_speed_layer", "slow_down_layer_time"):
         value = profile.get(key)
-        if value in ("nil", ["nil"]):
+        if value == "nil" or isinstance(value, list) and value and all(v == "nil" for v in value):
             continue  # Native nullable filament overrides inherit the machine.
         if key in profile and min(numbers(value, key)) < 0:
             raise ValueError(f"{key} darf nicht negativ sein.")
@@ -157,7 +158,12 @@ def native_filament_authorities() -> dict[str, Any]:
     data = json.loads(Path(__file__).with_name("native_filament_defaults.json").read_text(encoding="utf-8"))
     if data.get("schema") != 1 or not isinstance(data.get("profiles"), dict):
         raise ValueError("Die native Filamentautorität ist ungültig.")
-    return data["profiles"]
+    try:
+        from .printer_model_contract import h2s_defaults
+    except ImportError:
+        def h2s_defaults():
+            return json.loads(Path(__file__).with_name("h2s_native_defaults.json").read_text())
+    return {**data["profiles"], **h2s_defaults()["filaments"]}
 
 
 def preflight_filament_settings(payload: dict[str, Any]) -> dict[str, Any]:
@@ -165,7 +171,10 @@ def preflight_filament_settings(payload: dict[str, Any]) -> dict[str, Any]:
     authority = native_filament_authorities().get(name)
     if not isinstance(authority, dict):
         raise ValueError("Für das Filamentprofil fehlt eine geprüfte native Parameterautorität.")
-    return apply_filament_parameters(authority["settings"], payload)
+    settings = authority["settings"]
+    if "H2S" in name:
+        settings = {k: [v[0]] if isinstance(v, list) and v else v for k,v in settings.items()}
+    return apply_filament_parameters(settings, payload)
 
 
 def check_filament_temperatures(profile: dict[str, Any], limits: dict[str, Any], bed_type: str) -> dict[str, list[float]]:
@@ -185,6 +194,15 @@ def check_filament_temperatures(profile: dict[str, Any], limits: dict[str, Any],
         for key in (prefix, prefix + "_initial_layer"):
             if key in profile and max(numbers(profile[key], key)) > float(limits["max_bed_temperature_c"]):
                 raise ValueError(f"{key} überschreitet die zulässige Betttemperatur des gewählten Druckers.")
+    if "max_chamber_temperature_c" not in limits and "chamber_temperatures" in profile:
+        values = numbers(profile["chamber_temperatures"], "chamber_temperatures")
+        if any(v != 0 for v in values):
+            raise ValueError("Dieser Drucker besitzt keinen geprüften Kammerheizer.")
+    if "max_chamber_temperature_c" in limits:
+        values = numbers(profile.get("chamber_temperatures", ["0"]), "chamber_temperatures")
+        if min(values) < 0 or max(values) > float(limits["max_chamber_temperature_c"]):
+            raise ValueError("Die Kammertemperatur überschreitet die Druckergrenze.")
+        result["chamber_temperatures"] = values
     if bed_key:
         for key in (bed_key, bed_key + "_initial_layer"):
             values = numbers(profile.get(key), key)
@@ -198,6 +216,8 @@ def parameter_proof(profile: dict[str, Any], payload: dict[str, Any]) -> dict[st
     keys = set(ALIASES.values()) | {"filament_type", "nozzle_temperature", "nozzle_temperature_initial_layer",
                                   "nozzle_temperature_range_low", "nozzle_temperature_range_high"}
     keys |= {k + suffix for k in BED_TEMPERATURE_KEYS.values() for suffix in ("", "_initial_layer")}
+    if str(payload.get("printer_model") or "").casefold() != "h2s":
+        keys.discard("chamber_temperatures")
     keys |= {key for key in payload if key in profile and key not in CURATED_KEYS
              and (key.startswith(("filament_", "nozzle_")) or key in {"slow_down_for_layer_cooling"})
              and "gcode" not in key}

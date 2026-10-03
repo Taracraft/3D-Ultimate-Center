@@ -18,7 +18,7 @@ from .bambu_direct_print import (
 from .commands import PrinterCommandResult
 from .const import MQTT_PORT, MQTT_USERNAME
 from .models import PrinterSnapshot
-from .slicer_execution_contract import a1_hardware_limits
+from .printer_model_contract import hardware_limits
 from .network_plugin import (
     BambuNetworkPlugin,
     NetworkCommand,
@@ -263,7 +263,7 @@ class BambuLanProvider:
                 data=data,
                 tls_insecure=self.tls_insecure,
                 on_progress=on_progress,
-                hardware_limits=a1_hardware_limits(self.telemetry.model),
+                hardware_limits=hardware_limits(self.telemetry.model),
                 printer_model=self.telemetry.model,
             )
         )

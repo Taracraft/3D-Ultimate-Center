@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -59,6 +59,13 @@ A1_NOZZLE_CONTRACTS = {
         "max_layer": .56,
     },
 }
+
+H2S_NOZZLE_CONTRACTS = {0.2: {'machine': 'BBL/machine/Bambu Lab H2S 0.2 nozzle.json', 'process': 'BBL/process/0.10mm Standard @BBL H2S 0.2 nozzle.json', 'min_layer': 0.04, 'max_layer': 0.14}, 0.4: {'machine': 'BBL/machine/Bambu Lab H2S 0.4 nozzle.json', 'process': 'BBL/process/0.20mm Standard @BBL H2S.json', 'min_layer': 0.08, 'max_layer': 0.28}, 0.6: {'machine': 'BBL/machine/Bambu Lab H2S 0.6 nozzle.json', 'process': 'BBL/process/0.30mm Standard @BBL H2S 0.6 nozzle.json', 'min_layer': 0.12, 'max_layer': 0.42}, 0.8: {'machine': 'BBL/machine/Bambu Lab H2S 0.8 nozzle.json', 'process': 'BBL/process/0.40mm Standard @BBL H2S 0.8 nozzle.json', 'min_layer': 0.16, 'max_layer': 0.56}}
+
+def printer_profile_path(identifier):
+    if identifier == "bambu_lab_h2s_04":
+        return BASE / "bambu_lab_h2s_04.json"
+    return PROFILES / f"{identifier}.json"
 
 for directory in (DATA, API, WEB, UPLOADS, JOBS, OUTPUT, RUN, PROFILES):
     directory.mkdir(parents=True, exist_ok=True)
@@ -127,13 +134,17 @@ def _a1_nozzle_job_contract(target_printer: dict, process_overrides: dict):
         "",
         str(target_printer.get("model") or target_printer.get("name") or "").casefold(),
     )
-    if "a1mini" in model or "a1m" in model or "a1" not in model:
+    if model in {"h2s", "bambulabh2s", "bambuh2s"}:
+        contracts = H2S_NOZZLE_CONTRACTS
+    elif model in {"a1", "bambulaba1", "bambua1"}:
+        contracts = A1_NOZZLE_CONTRACTS
+    else:
         return None, "invalid_a1_nozzle_target"
     diameter = _number(target_printer.get("nozzle_diameter_mm"))
     contract = next(
         (
             value
-            for key, value in A1_NOZZLE_CONTRACTS.items()
+            for key, value in contracts.items()
             if diameter is not None and abs(key - diameter) < 1e-6
         ),
         None,
@@ -494,7 +505,7 @@ def list_files() -> list[dict]:
 
 def list_printers() -> list[dict]:
     printers = []
-    for path in sorted(PROFILES.glob("*.json")):
+    for path in sorted([*PROFILES.glob("*.json"), *([BASE / "bambu_lab_h2s_04.json"] if (BASE / "bambu_lab_h2s_04.json").is_file() else [])]):
         profile = read_json(path, {})
         printers.append({
             "id": path.stem,
@@ -749,7 +760,12 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             nozzle_contract = None
-            if printer_profile == "bambu_lab_a1_04":
+            if printer_profile in {"bambu_lab_a1_04", "bambu_lab_h2s_04"}:
+                expected_model = "h2s" if printer_profile == "bambu_lab_h2s_04" else "a1"
+                actual_model = re.sub(r"[^a-z0-9]+", "", str(target_printer.get("model") or target_printer.get("name") or "").casefold())
+                if actual_model not in {expected_model, "bambu" + expected_model, "bambulab" + expected_model}:
+                    self.send_json(400, {"error": "printer_profile_model_mismatch"})
+                    return
                 nozzle_contract, nozzle_error = _a1_nozzle_job_contract(
                     target_printer,
                     process_overrides,
@@ -780,7 +796,7 @@ class Handler(BaseHTTPRequestHandler):
             if not SAFE_NAME.fullmatch(printer_profile):
                 self.send_json(400, {"error": "invalid_printer_profile"})
                 return
-            if not (PROFILES / f"{printer_profile}.json").is_file():
+            if not printer_profile_path(printer_profile).is_file():
                 self.send_json(404, {"error": "printer_profile_not_found", "printer_profile": printer_profile})
                 return
             if engine not in {"auto", "bambu_studio", "prusaslicer", "curaengine"}:

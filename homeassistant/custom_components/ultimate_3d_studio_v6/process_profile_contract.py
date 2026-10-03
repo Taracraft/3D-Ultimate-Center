@@ -196,7 +196,8 @@ def _local_settings(
             "Das ausgewählte Prozessprofil ist nicht für Bambu Lab freigegeben."
         )
     model = str(payload.get("printer_model") or "").strip().casefold()
-    if model and model != "a1":
+    expected_model = getattr(nozzle_contract, "printer_model", "A1").casefold()
+    if model and model != expected_model:
         raise ProcessProfileContractError(
             "Das ausgewählte Prozessprofil ist nicht für den Bambu Lab A1 freigegeben."
         )
@@ -205,11 +206,11 @@ def _local_settings(
         for character in str(payload.get("target_printer") or "").casefold()
         if character.isalnum()
     )
-    if target and target not in {"a1", "bambulaba1"}:
+    if target and target not in {expected_model, "bambulab" + expected_model}:
         raise ProcessProfileContractError(
             "Das ausgewählte Prozessprofil besitzt ein anderes Zieldruckermodell."
         )
-    if payload.get("a1_specific") not in {None, True}:
+    if payload.get("a1_specific") not in {None, expected_model == "a1"}:
         raise ProcessProfileContractError(
             "Das ausgewählte Prozessprofil ist nicht als A1-spezifisch freigegeben."
         )

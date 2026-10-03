@@ -18,6 +18,7 @@ SERVER_RESTART_NEEDED=0
 UNITS_CHANGED=0
 
 RUNTIME_FILES=(
+  bambu_lab_h2s_04.json
   server.py
   dispatch-job.sh
   progress-pipe-reader.py

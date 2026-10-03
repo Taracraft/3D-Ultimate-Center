@@ -98,6 +98,8 @@ def enrich_filament_profile(profile: dict[str, Any]) -> dict[str, Any]:
     if result.get("kind") != "filament" or result.get("source") != "local":
         return result
     payload = result.setdefault("payload", {})
+    if str(payload.get("printer_model") or "").casefold() == "h2s":
+        return result
     material = _material_family(payload)
     nozzle = payload.get("nozzle_temperature_c", [200, 220])
     if not isinstance(nozzle, list) or len(nozzle) != 2:
@@ -179,6 +181,29 @@ def validate_complete_profiles(profiles: Iterable[dict[str, Any]]) -> None:
         payload = profile.get("payload")
         if not isinstance(payload, dict):
             failures.append(f"{profile_id}: payload missing")
+            continue
+        if str(payload.get("printer_model") or "").casefold() == "h2s":
+            from .printer_model_contract import h2s_defaults, hardware_limits
+            from .filament_parameter_contract import preflight_filament_settings, check_filament_temperatures
+            try:
+                required = {"vendor", "material", "native_profile_name", "inherits", "printer_model",
+                            "slicing_supported", "ams_compatible", "compatible_nozzle_diameters_mm",
+                            "hardened_nozzle_required"}
+                if required - set(payload):
+                    raise ValueError("missing native H2S metadata")
+                name = payload["native_profile_name"]
+                authority = h2s_defaults()["filaments"].get(name)
+                if not authority or payload["inherits"] != name:
+                    raise ValueError("invalid native H2S basis")
+                if payload["ams_compatible"] and not authority["ams_supported"]:
+                    raise ValueError("unverified H2S AMS family")
+                if payload["material"] != authority["settings"]["filament_type"][0]:
+                    raise ValueError("native H2S material family mismatch")
+                effective = preflight_filament_settings(payload)
+                for bed in ("Textured PEI Plate", "High Temp Plate"):
+                    check_filament_temperatures(effective, hardware_limits("H2S"), bed)
+            except (ValueError, TypeError, KeyError) as exc:
+                failures.append(f"{profile_id}: {exc}")
             continue
         missing = sorted(REQUIRED_FILAMENT_FIELDS - set(payload))
         if missing:

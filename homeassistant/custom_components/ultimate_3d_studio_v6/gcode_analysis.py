@@ -119,12 +119,19 @@ def extract_gcode_settings(
     return result
 
 
-def extract_heater_commands(data: bytes) -> list[dict[str, Any]]:
+def extract_heater_commands(data: bytes, *, printer_model: str | None = None) -> list[dict[str, Any]]:
     """Record executable thermal setpoints with their logical material channel."""
     channel = None
+    next_channel = None
+    h2s = str(printer_model or "").casefold() in {"h2s", "bambu lab h2s", "bambu h2s"}
     result = []
     for raw in extract_gcode(data).decode("utf-8", errors="replace").splitlines():
         command = raw.split(";", 1)[0].strip().upper()
+        command = re.sub(r"^N\d+\s*", "", command)
+        command = re.sub(r"(?<=[0-9.])(?=[A-Z])", " ", command)
+        selected = re.fullmatch(r"M620\s+S(\d+)\s*A", command)
+        if selected:
+            next_channel = int(selected[1])+1 if int(selected[1]) < _MAX_MATERIAL_CHANNELS else None
         tool = re.fullmatch(r"T(\d+)", command)
         if tool:
             value = int(tool[1])
@@ -136,6 +143,16 @@ def extract_heater_commands(data: bytes) -> list[dict[str, Any]]:
         if heater:
             result.append({"command": heater[1], "temperature_c": float(heater[2]),
                            "channel": channel if heater[1] in {"M104", "M109"} else None})
+        if h2s:
+            firmware = re.match(r"^(M620\.10|M620\.15|M141|M191)(?:\s|$)(.*)$", command)
+            if firmware:
+                key = "P" if firmware[1] == "M620.10" else "C" if firmware[1] == "M620.15" else "[SR]"
+                targets = re.findall(r"(?:^|\s)"+key+r"([+-]?(?:\d+(?:\.\d*)?|\.\d+))(?:\s|$)", firmware[2])
+                next_material = firmware[1] != "M620.10" or re.search(r"(?:^|\s)A1(?:\s|$)", firmware[2])
+                if next_material:
+                    for target in targets:
+                        result.append({"command":firmware[1], "temperature_c":float(target),
+                            "channel":next_channel if firmware[1] in {"M620.10","M620.15"} else None})
     return result
 
 

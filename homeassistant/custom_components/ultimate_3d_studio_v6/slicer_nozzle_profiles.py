@@ -9,6 +9,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 import math
 from typing import Any
+try:
+    from .printer_model_contract import canonical_model, h2s_defaults
+except ImportError:
+    import importlib.util as _model_import
+    from pathlib import Path as _ModelPath
+    _spec = _model_import.spec_from_file_location("v6_printer_model_authority", _ModelPath(__file__).with_name("printer_model_contract.py"))
+    _authority = _model_import.module_from_spec(_spec)
+    _spec.loader.exec_module(_authority)
+    canonical_model = _authority.canonical_model
+    h2s_defaults = _authority.h2s_defaults
 
 
 class NozzleProfileError(ValueError):
@@ -26,6 +36,8 @@ class A1NozzleContract:
     default_outer_wall_speed_mm_s: float
     default_inner_wall_speed_mm_s: float
     max_wall_speed_mm_s: float = 500.0
+    printer_model: str = "A1"
+    max_build_height_mm: float = 256.0
 
 
 A1_NOZZLE_CONTRACTS: tuple[A1NozzleContract, ...] = (
@@ -250,10 +262,10 @@ def validate_process_overrides(
                 item.get("layer_height_mm", item.get("layer_height")),
                 f"Schichthöhe von Bereich {index}",
             )
-            if min_z < 0 or max_z <= min_z or max_z > MAX_LAYER_HEIGHT_RANGE_Z_MM:
+            if min_z < 0 or max_z <= min_z or max_z > contract.max_build_height_mm:
                 raise NozzleProfileError(
                     f"Z-Bereich {index} muss innerhalb 0 bis "
-                    f"{MAX_LAYER_HEIGHT_RANGE_Z_MM:g} mm liegen und aufsteigend sein."
+                    f"{contract.max_build_height_mm:g} mm liegen und aufsteigend sein."
                 )
             if min_z < previous_max:
                 raise NozzleProfileError(
@@ -292,3 +304,32 @@ def contract_payload(contract: A1NozzleContract) -> dict[str, Any]:
         "default_inner_wall_speed_mm_s": contract.default_inner_wall_speed_mm_s,
         "max_wall_speed_mm_s": contract.max_wall_speed_mm_s,
     }
+
+
+H2S_NOZZLE_CONTRACTS = tuple(A1NozzleContract(
+    float(diameter), machine["native_path"], h2s_defaults()["processes"][diameter]["native_path"],
+    machine["min_layer"], machine["max_layer"], h2s_defaults()["processes"][diameter]["layer_height"],
+    h2s_defaults()["processes"][diameter]["outer_wall_speed"],
+    h2s_defaults()["processes"][diameter]["inner_wall_speed"], 500., "H2S", 340.)
+    for diameter, machine in h2s_defaults()["machines"].items())
+
+
+def resolve_nozzle_contract(catalog: dict, target_printer: dict | None) -> A1NozzleContract:
+    target = target_printer or {}
+    model = canonical_model(target.get("model") or target.get("name"))
+    if model == "A1":
+        return resolve_a1_nozzle_contract(catalog, target_printer)
+    if model != "H2S":
+        raise NozzleProfileError("Für diesen Drucker fehlt ein geprüfter Düsenvertrag.")
+    nozzle = _selected_profile(catalog, "nozzle_profile_id", "nozzle")
+    payload = nozzle.get("payload") or {}
+    if canonical_model(payload.get("printer") or payload.get("printer_model")) != "H2S":
+        raise NozzleProfileError("Das ausgewählte Düsenprofil passt nicht zum H2S.")
+    diameter = _number(payload.get("diameter_mm"), "Düsendurchmesser")
+    contract = next((c for c in H2S_NOZZLE_CONTRACTS if abs(c.diameter_mm - diameter) < 1e-6), None)
+    if contract is None or payload.get("material") != "hardened_steel":
+        raise NozzleProfileError("Für diese H2S-Düse fehlt ein geprüfter Hardwarevertrag.")
+    printer = _selected_profile(catalog, "printer_profile_id", "printer")
+    if canonical_model((printer.get("payload") or {}).get("model")) != "H2S":
+        raise NozzleProfileError("Druckerprofil und H2S-Düse passen nicht zusammen.")
+    return contract

@@ -2972,6 +2972,16 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       this.#applyBuildPlateProfile(plate);
       this.#status = `${plate.name}: Druckplattenprofil geändert. Modellpositionen bleiben unverändert.`;
     } else if (field === "printer_profile_id") {
+      const model = String(profileById(this.#catalog, value)?.payload.model || "").toLowerCase();
+      if (["a1", "h2s"].includes(model)) {
+        const presets = { ...plate.selection.gcode_preset_ids };
+        for (const slot of ["start_sound", "end_sound", "gcode_1", "gcode_2"] as const) {
+          if (presets[slot] === undefined || /^builtin\.(a1|h2s)\./.test(presets[slot] || "")) {
+            presets[slot] = `builtin.${model}.${slot}`;
+          }
+        }
+        plate.selection = { ...plate.selection, gcode_preset_ids: presets };
+      }
       const volume = printerBuildVolume(profileById(this.#catalog, value));
       this.#status = `${plate.name}: Druckerprofil aktiv · Bauraum ${volume[0]}×${volume[1]}×${volume[2]} mm.`;
       this.#invalidatePlate(plate);
