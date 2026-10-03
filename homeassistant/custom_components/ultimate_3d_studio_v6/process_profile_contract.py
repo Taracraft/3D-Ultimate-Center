@@ -298,6 +298,14 @@ def _cloud_settings(
         for key, value in payload.items()
         if key not in _CLOUD_METADATA and key != "inherits"
     }
+    forbidden = {"printable_area", "printable_height", "bed_exclude_area", "extruder_offset", "gcode_flavor", "curr_bed_type"}
+    for key in settings:
+        if key in forbidden or key.startswith(("machine_", "filament_", "nozzle_")) or "plate_temp" in key or "gcode" in key.casefold():
+            raise ProcessProfileContractError(f"{key}: Maschinen-, Filament- und G-Code-Werte gehören nicht in ein Prozessprofil.")
+    if "layer_height" in settings:
+        height = _number(settings["layer_height"], "Die Schichthöhe")
+        if not nozzle_contract.min_layer_height_mm <= height <= nozzle_contract.max_layer_height_mm:
+            raise ProcessProfileContractError("Das Cloud-Prozessprofil passt nicht zum gewählten Düsenbereich.")
     # A Bambu cloud process profile may be a pure base-profile selection with
     # no overlay values. That must remain sliceable: the validated nozzle base
     # profile is the authority and the empty settings object means "use it as-is".

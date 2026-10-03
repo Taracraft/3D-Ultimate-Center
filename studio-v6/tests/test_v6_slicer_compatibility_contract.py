@@ -69,7 +69,7 @@ def _filament_profile(
             "ams_lite_compatible": ams,
             "profile_completeness": "validated_complete",
             "slicing_supported": True,
-            "native_profile_name": f"Generic {material} @BBL A1",
+            "native_profile_name": f"Generic {'PLA' if material == 'PLA-CF' else 'PETG HF' if material == 'PETG' else material} @BBL A1",
         },
     }
 

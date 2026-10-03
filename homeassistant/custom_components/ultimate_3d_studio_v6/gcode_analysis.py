@@ -119,6 +119,26 @@ def extract_gcode_settings(
     return result
 
 
+def extract_heater_commands(data: bytes) -> list[dict[str, Any]]:
+    """Record executable thermal setpoints with their logical material channel."""
+    channel = None
+    result = []
+    for raw in extract_gcode(data).decode("utf-8", errors="replace").splitlines():
+        command = raw.split(";", 1)[0].strip().upper()
+        tool = re.fullmatch(r"T(\d+)", command)
+        if tool:
+            value = int(tool[1])
+            if value < _MAX_MATERIAL_CHANNELS:
+                channel = value + 1
+            elif value == 255:
+                channel = None  # Unload; T1000 preserves the selected filament.
+        heater = re.match(r"^(M104|M109|M140|M190)\s+.*?[SR](-?(?:\d+(?:\.\d*)?|\.\d+))(?:\s|$)", command)
+        if heater:
+            result.append({"command": heater[1], "temperature_c": float(heater[2]),
+                           "channel": channel if heater[1] in {"M104", "M109"} else None})
+    return result
+
+
 def _float_values(values: list[str]) -> list[float]:
     result: list[float] = []
     for value in values:

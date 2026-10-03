@@ -8,11 +8,13 @@ import math
 from typing import Any, Iterable
 
 from .a1_filament_catalog import A1_FILAMENT_CATALOG
+from .filament_parameter_contract import preflight_filament_settings, check_filament_temperatures, validate_shared_bed_temperatures
+from .slicer_execution_contract import digest, validate_plate_dimensions, validate_physical_a1_plate, a1_hardware_limits
 from .filament_profile_mapping import attach_selected_profiles
 from .slicer_nozzle_profiles import A1NozzleContract
 
 
-CONTRACT_VERSION = "1"
+CONTRACT_VERSION = "2"
 _MANUAL_BY_ID = {
     str(item.get("id") or ""): item
     for item in A1_FILAMENT_CATALOG
@@ -23,9 +25,7 @@ _SUPPORTED_PLATE_TYPES = {
     "High Temp Plate",
     "Cool Plate",
     "Engineering Plate",
-    "Cool Plate SuperTack",
-    "Smooth Cool Plate",
-    "Textured Cool Plate",
+    "Supertack Plate",
 }
 
 
@@ -221,6 +221,10 @@ def _printer_limits(target_profile: dict[str, Any]) -> tuple[float, float]:
         raise CompatibilityContractError(
             "Die Temperaturgrenzen des A1-Druckerprofils sind ungültig."
         )
+    hardware = a1_hardware_limits(payload.get("model") or target_profile.get("name"))
+    if hardware:
+        if nozzle > hardware["max_nozzle_temperature_c"] or bed > hardware["max_bed_temperature_c"]:
+            raise CompatibilityContractError("Das Druckerprofil behauptet Temperaturgrenzen oberhalb der tatsächlichen A1-Hardware.")
     return nozzle, bed
 
 
@@ -395,7 +399,18 @@ def _validate_filament(
             f"von {max_bed_temperature_c:g} °C."
         )
 
+    try:
+        effective = preflight_filament_settings(payload)
+        native_temperatures = check_filament_temperatures(effective, {
+            "max_nozzle_temperature_c": max_nozzle_temperature_c,
+            "max_bed_temperature_c": max_bed_temperature_c,
+        }, bambu_bed_type)
+    except ValueError as exc:
+        raise CompatibilityContractError(f"{selected.get('name')}: {exc}") from exc
+
     return {
+        "selected_profile_sha256": digest(selected),
+        "effective_temperatures": native_temperatures,
         "channel": channel_index,
         "profile_id": str(selected.get("id") or ""),
         "profile_name": str(selected.get("name") or ""),
@@ -434,6 +449,20 @@ def validate_slicer_compatibility(
             "Die ausgewählte Druckplatte besitzt keinen validierten Bambu-A1-Vertrag."
         )
 
+    printer_payload = _payload(target_profile)
+    dimensions = printer_payload.get("build_volume_mm") or [256, 256, 256]
+    if not isinstance(dimensions, (list, tuple)) or len(dimensions) != 3:
+        raise CompatibilityContractError("Der ausgewählte Drucker besitzt keine geprüften Bauraumabmessungen.")
+    try:
+        hardware = a1_hardware_limits(printer_payload.get("model") or target_profile.get("name"))
+        width_limit = min(float(dimensions[0]), hardware["width_mm"]) if hardware else float(dimensions[0])
+        depth_limit = min(float(dimensions[1]), hardware["depth_mm"]) if hardware else float(dimensions[1])
+        validate_plate_dimensions(build_plate_options, (width_limit, depth_limit))
+        if hardware:
+            validate_physical_a1_plate(build_plate_options)
+    except ValueError as exc:
+        raise CompatibilityContractError(str(exc)) from exc
+
     resolved_plan = deepcopy(material_plan)
     filaments = resolved_plan.get("filaments")
     if not isinstance(filaments, list) or not filaments:
@@ -460,6 +489,8 @@ def validate_slicer_compatibility(
     if len(filament_results) != len(filaments):
         raise CompatibilityContractError("Der Materialplan enthält einen ungültigen Kanal.")
 
+    validate_shared_bed_temperatures([item["effective_temperatures"] for item in filament_results], bed_type)
+
     report: dict[str, Any] = {
         "status": "compatible",
         "contract_version": CONTRACT_VERSION,
@@ -473,6 +504,8 @@ def validate_slicer_compatibility(
         "build_plate": {
             "surface": surface,
             "bambu_bed_type": bed_type,
+            "width_mm": build_plate_options.get("build_plate_width_mm", dimensions[0]),
+            "depth_mm": build_plate_options.get("build_plate_depth_mm", dimensions[1]),
         },
         "limits": {
             "max_nozzle_temperature_c": max_nozzle,

@@ -229,6 +229,9 @@ def _project_display_name(filename: str) -> str:
 def validate_gcode_3mf(
     filename: str,
     data: bytes,
+    *,
+    hardware_limits: dict[str, float] | None = None,
+    expected_printer_model: str | None = None,
 ) -> ValidatedPrintArtifact:
     """Validate archive shape and the complete rendered Bambu machine flow."""
     if not data:
@@ -288,7 +291,7 @@ def validate_gcode_3mf(
             )
         try:
             with archive.open(gcode) as handle:
-                report = validate_rendered_bambu_gcode(handle)
+                report = validate_rendered_bambu_gcode(handle, hardware_limits=hardware_limits, expected_printer_model=expected_printer_model)
         except GCodeValidationError as exc:
             raise DirectPrintError(
                 f"Druckjob nicht freigegeben: {exc}"
@@ -385,9 +388,13 @@ def upload_gcode_3mf(
     data: bytes,
     tls_insecure: bool,
     on_progress: TransferProgressCallback | None = None,
+    hardware_limits: dict[str, float] | None = None,
+    printer_model: str,
 ) -> UploadedPrintArtifact:
     """Validate, upload and independently verify one G-code 3MF."""
-    artifact = validate_gcode_3mf(filename, data)
+    if hardware_limits is None:
+        raise DirectPrintError("Für das gewählte Druckermodell fehlen geprüfte Hardwaregrenzen.")
+    artifact = validate_gcode_3mf(filename, data, hardware_limits=hardware_limits, expected_printer_model=printer_model)
     if not host or not access_code or not printer_id:
         raise DirectPrintError(
             "Drucker-Host, Seriennummer oder Zugangscode fehlt."

@@ -422,6 +422,23 @@ if mkdir "$RUN/dispatcher.lock" 2>/dev/null; then
         fi
       fi
 
+      # Always validate effective heater commands after any exit-code recovery.
+      # Network-isolated slicing must never publish a thermally unsafe artifact.
+      if [ "$CODE" -eq 0 ] && [ "$ENGINE" = "bambu_studio" ]; then
+        SAFETY_GCODE=$(find "$JOB_OUTPUT" -maxdepth 4 -type f -name '*.gcode' | sort | head -n 1)
+        if [ -n "$SAFETY_GCODE" ]; then
+          if [ "$NATIVE_MULTIMATERIAL" = "true" ]; then
+            python3 "$BASE/gcode_artifact_validation.py" "$SLICING" "$SAFETY_GCODE" "$MATERIAL_SUMMARY" >> "$LOG" 2>&1
+          else
+            python3 "$BASE/gcode_artifact_validation.py" "$SLICING" "$SAFETY_GCODE" >> "$LOG" 2>&1
+          fi
+          CODE=$?
+        else
+          printf '%s\n' 'No G-code was available for the final hardware safety check.' >> "$LOG"
+          CODE=1
+        fi
+      fi
+
       FILE_COUNT=$(find "$JOB_OUTPUT" -maxdepth 1 -type f -name '*.gcode' -size +0c | wc -l)
       if [ "$CODE" -eq 0 ] && [ "$FILE_COUNT" -gt 0 ]; then
         mv "$SLICING" "$JOBS/$JOB_ID.completed.json"

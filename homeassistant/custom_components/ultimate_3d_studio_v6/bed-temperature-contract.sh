@@ -19,7 +19,7 @@ bed_temperature_key() {
     'High Temp Plate') echo hot_plate_temp_initial_layer ;;
     'Cool Plate') echo cool_plate_temp_initial_layer ;;
     'Engineering Plate') echo eng_plate_temp_initial_layer ;;
-    'Cool Plate SuperTack') echo supertack_plate_temp_initial_layer ;;
+    'Supertack Plate') echo supertack_plate_temp_initial_layer ;;
     'Smooth Cool Plate'|'Textured Cool Plate') echo cool_plate_temp_initial_layer ;;
     *) return 1 ;;
   esac

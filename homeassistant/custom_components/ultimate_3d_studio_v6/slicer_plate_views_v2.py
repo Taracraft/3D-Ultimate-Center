@@ -563,6 +563,7 @@ async def _prepare_plate_job_contract(
             else "external_spool_single_nozzle"
         ),
         "machine_gcode_contract": resolve_gcode_presets(catalog, target_printer.model),
+        "compatibility_contract": compatibility_contract,
         **contract_payload(nozzle_contract),
     }
     return {

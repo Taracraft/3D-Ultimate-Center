@@ -37,7 +37,7 @@ def catalog(surface: str) -> dict[str, object]:
         ("engineering_plate", "Engineering Plate"),
         ("smooth_pei", "High Temp Plate"),
         ("textured_pei", "Textured PEI Plate"),
-        ("cool_plate_super_tack", "Cool Plate SuperTack"),
+        ("cool_plate_super_tack", "Supertack Plate"),
     ],
 )
 def test_all_bambu_studio_plate_choices_map_to_native_bed_types(
@@ -63,7 +63,7 @@ def test_every_native_bed_type_uses_the_correct_filament_temperature_field() -> 
         "High Temp Plate": "hot_plate_temp_initial_layer",
         "Cool Plate": "cool_plate_temp_initial_layer",
         "Engineering Plate": "eng_plate_temp_initial_layer",
-        "Cool Plate SuperTack": "supertack_plate_temp_initial_layer",
+        "Supertack Plate": "supertack_plate_temp_initial_layer",
     }
     for bed_type, temperature_key in expected.items():
         assert f"'{bed_type}') echo {temperature_key}" in helper_source

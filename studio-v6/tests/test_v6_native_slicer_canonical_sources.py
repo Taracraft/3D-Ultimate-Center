@@ -11,7 +11,7 @@ V6_COMPONENT = DEPLOY / "custom_components" / "ultimate_3d_studio_v6"
 
 HOST_HASHES = {
     "server.py": "22634e914916103918ac2495c0a88ede4f438fc7254551dba7557c3d0d6330dc",
-    "dispatch-job.sh": "035962bfb6fae97f0146faf56cd278e9d39580cd80c854911151bbaa577cf1a5",
+    "dispatch-job.sh": "a683be8cbf4679d41f410e434824c0b97d03100dc4068765ccb92f94c1972e75",
     "progress-pipe-reader.py": "f5e46d2ffb866d8864b153045eb251982340e502c32ef9339eee1f0a5cee3bad",
     "refresh-state.sh": "7af4bc256bf1d1f4861ecb7740c5f5861cbb8eab8c54e80d8f9503e049fc301d",
     "append-slicing-journal.sh": "9798d21528828c901be4e0f3726908d027c8af60580af88981656c88496d5239",
@@ -39,10 +39,14 @@ BRIDGE_HASHES = {
 }
 
 DEPENDENCY_HASHES = {
-    "bed-temperature-contract.sh": "796a0814caa5185acaf7cd3feae3026c01079a3cc926dc97a6fb135a99dca11b",
+    "bed-temperature-contract.sh": "f753aac8c0223c6bd69a51107d5b5300d00e11e9f0a90c7d9904cf37dcc69b7d",
     "materialize-bambu-machine.py": "d14dfba152a2b9afc830c5b7eacedb1a653d8a59d1c50431a47624d6e4711c02",
-    "materialize-bambu-multimaterial.py": "1d3723f9abfdcbe077057dd937d1b2f952080f45f3e6b52f266591837cefdb1b",
+    "materialize-bambu-multimaterial.py": "a66a39c7d98665852f749717b9561857961dbacdb9ac16b6277f0b1a530e76c9",
     "three_mf_mesh_graph.py": "5169c8b0dcc95e0b3f200d4b0b394caa15d16e7cebacda6a7fcb029416d7c969",
+    "filament_parameter_contract.py": "39eed60f40638ef04eeeb15bf26397a45938e1aef00b0531b4936b36e77c7563",
+    "native_filament_defaults.json": "cbf628b9724e232bb17c31728e8b1cc390f9f9c920def036cc8ca1254a0109a1",
+    "slicer_execution_contract.py": "4e454fe926f1b9be887538bd59ad8dd4bf34accf67eabb770cd754f87882f033",
+    "gcode_artifact_validation.py": "f1fa6405a55f0daedd50a9c644ebb87310fb821ff28788477e9daa7026329ba0"
 }
 
 

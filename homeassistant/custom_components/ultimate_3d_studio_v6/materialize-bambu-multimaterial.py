@@ -28,6 +28,20 @@ else:
     _GRAPH_SPEC.loader.exec_module(_GRAPH_MODULE)
     mesh_instances = _GRAPH_MODULE.mesh_instances
 
+if __package__:
+    from .filament_parameter_contract import apply_filament_parameters, check_filament_temperatures, parameter_proof, native_filament_authorities, validate_shared_bed_temperatures
+    from .slicer_execution_contract import validate_execution_contract, job_hardware_limits, digest
+else:
+    for _name in ("filament_parameter_contract", "slicer_execution_contract"):
+        _spec = importlib.util.spec_from_file_location(_name, Path(__file__).with_name(_name + ".py"))
+        if _spec is None or _spec.loader is None:
+            raise ImportError(_name)
+        _module = importlib.util.module_from_spec(_spec)
+        sys.modules[_name] = _module
+        _spec.loader.exec_module(_module)
+    from filament_parameter_contract import apply_filament_parameters, check_filament_temperatures, parameter_proof, native_filament_authorities, validate_shared_bed_temperatures
+    from slicer_execution_contract import validate_execution_contract, job_hardware_limits, digest
+
 _METADATA_KEYS = {
     "name", "type", "from", "instantiation", "inherits", "include",
     "setting_id", "filament_id", "compatible_printers", "compatible_prints",
@@ -337,47 +351,8 @@ def _apply_selected_profile_payload(
     if not isinstance(selected, dict):
         return profile
     payload = selected.get("payload") if isinstance(selected.get("payload"), dict) else {}
-    result = dict(profile)
+    result = apply_filament_parameters(profile, payload)
     result["name"] = str(selected.get("name") or result.get("name") or "")
-    direct_prefixes = (
-        "filament_",
-        "nozzle_",
-        "hot_plate_",
-        "textured_plate_",
-        "cool_plate_",
-        "eng_plate_",
-        "smooth_plate_",
-        "supertack_plate_",
-    )
-    for key, value in payload.items():
-        if key in _METADATA_KEYS or key.startswith("_"):
-            continue
-        if key in result or key.startswith(direct_prefixes):
-            result[key] = _as_profile_value(value, result.get(key))
-    mappings = {
-        "flow_ratio": "filament_flow_ratio",
-        "max_volumetric_speed_mm3_s": "filament_max_volumetric_speed",
-        "density_g_cm3": "filament_density",
-        "diameter_mm": "filament_diameter",
-    }
-    for source, target in mappings.items():
-        if source in payload:
-            result[target] = [str(payload[source])]
-    nozzle = payload.get("nozzle_temperature_c")
-    if isinstance(nozzle, (int, float, str)):
-        result["nozzle_temperature"] = [str(nozzle)]
-        result["nozzle_temperature_initial_layer"] = [str(nozzle)]
-    bed = payload.get("bed_temperature_c")
-    if isinstance(bed, (int, float, str)):
-        for key in (
-            "hot_plate_temp",
-            "hot_plate_temp_initial_layer",
-            "textured_plate_temp",
-            "textured_plate_temp_initial_layer",
-            "eng_plate_temp",
-            "eng_plate_temp_initial_layer",
-        ):
-            result[key] = [str(bed)]
     return result
 
 
@@ -604,7 +579,8 @@ def _apply_selected_process_profile(
     profile_id = str(body.get("profile_id") or "")
     name = str(body.get("name") or "")
     settings = body.get("settings")
-    if not profile_id or not name or not isinstance(settings, dict) or not settings:
+    empty_cloud_base = (body.get("source") == "bambu_cloud" and body.get("materialization_policy") == "exact_bambu_cloud_overlay")
+    if not profile_id or not name or not isinstance(settings, dict) or (not settings and not empty_cloud_base):
         raise ValueError("Der Prozessprofilvertrag ist unvollständig.")
 
     applied = dict(process)
@@ -614,6 +590,8 @@ def _apply_selected_process_profile(
             key,
         ):
             raise ValueError("Der Prozessprofilvertrag enthält einen ungültigen Schlüssel.")
+        if key in {"printable_area", "printable_height", "bed_exclude_area", "extruder_offset", "gcode_flavor", "curr_bed_type"} or key.startswith(("machine_", "filament_", "nozzle_")) or "plate_temp" in key:
+            raise ValueError("Prozessprofile dürfen keine Maschinen- oder Filamentparameter überschreiben.")
         if "gcode" in key.casefold():
             raise ValueError(
                 "Prozessprofile dürfen keine G-Code-Vorlage überschreiben."
@@ -622,8 +600,8 @@ def _apply_selected_process_profile(
             value = _clean_number(_required_override_number(
                 {"layer_height": value},
                 "layer_height",
-                .04,
-                .56,
+                _number(overrides.get("min_layer_height_mm"), .04),
+                _number(overrides.get("max_layer_height_mm"), .56),
             ) or 0.2)
         applied[key] = _as_profile_value(value, applied.get(key))
     return applied, {
@@ -668,12 +646,11 @@ def _materialize_process(
     for filament in filaments:
         path = _select_filament_profile(filament_directory, filament, model)
         selected_paths.append(path)
-        resolved_profiles.append(
-            _apply_selected_profile_payload(
-                _resolve_profile(filament_directory, path),
-                filament,
-            )
-        )
+        base = _resolve_profile(filament_directory, path)
+        authority = native_filament_authorities().get(str(base.get("name") or path.stem))
+        if overrides.get("require_execution_contract") is True and authority is not None and digest(base) != authority["resolved_sha256"]:
+            raise ValueError("Die native Filamentbasis weicht von der geprüften Parameterautorität ab.")
+        resolved_profiles.append(_apply_selected_profile_payload(base, filament))
 
     option_keys: set[str] = set()
     for profile in resolved_profiles:
@@ -953,6 +930,8 @@ def main() -> None:
     args = parser.parse_args()
 
     job = _json(args.job)
+    validate_execution_contract(job)
+    hardware_limits = job_hardware_limits(job)
     plan = job.get("material_plan")
     if not isinstance(plan, dict):
         raise ValueError("material_plan fehlt")
@@ -1014,6 +993,11 @@ def main() -> None:
             plate_index,
         )
     )
+    if hardware_limits:
+        for profile in resolved:
+            check_filament_temperatures(profile, hardware_limits, str(overrides.get("bambu_bed_type") or ""))
+    if hardware_limits:
+        validate_shared_bed_temperatures(resolved, str(overrides.get("bambu_bed_type") or ""))
     args.process_output.parent.mkdir(parents=True, exist_ok=True)
     args.process_output.write_text(
         json.dumps(process, ensure_ascii=False, indent=2) + "\n",
@@ -1126,6 +1110,8 @@ def main() -> None:
         "native_filament_base_paths": [str(path) for path in selected_paths],
         "filaments": [
             {
+                "selected_profile_sha256": digest(filaments[index].get("selected_profile")),
+                **parameter_proof(profile, (filaments[index].get("selected_profile") or {}).get("payload") or {}),
                 "channel": index + 1,
                 "name": str(
                     profile.get("name") or selected_paths[index].stem

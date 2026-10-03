@@ -19,11 +19,13 @@ from .bambu_project_archive import (
     safe_project_name,
 )
 from .filament_profile_mapping import attach_selected_profiles
-from .gcode_analysis import analyze_gcode, assert_prime_tower_inside, extract_gcode_settings
+from .gcode_analysis import analyze_gcode, assert_prime_tower_inside, extract_gcode_settings, extract_heater_commands
 from .slicer_native_contract import (
     SlicerServerConfigurationError,
     SlicerServerError,
 )
+from .filament_parameter_contract import ALIASES, BED_TEMPERATURE_KEYS
+from .slicer_execution_contract import bind_execution_contract
 from .slicer_nozzle_profiles import (
     contract_payload,
     resolve_a1_nozzle_contract,
@@ -138,8 +140,11 @@ def _gcode_metadata(
         "analysis": analysis,
         "gcode_profile_settings": extract_gcode_settings(
             data,
-            selected_setting_keys or [],
+            set(selected_setting_keys or []) | set(ALIASES.values())
+            | {"nozzle_temperature", "nozzle_temperature_initial_layer", "nozzle_temperature_range_low", "nozzle_temperature_range_high", "slow_down_for_layer_cooling"}
+            | {key + suffix for key in BED_TEMPERATURE_KEYS.values() for suffix in ("", "_initial_layer")},
         ),
+        "heater_commands": extract_heater_commands(data),
         "consumption": {
             "physical_extruder_count": analysis.get(
                 "physical_extruder_count",
@@ -408,7 +413,9 @@ def _materials_confirmed(
     for expected, observed in zip(applied_filaments, actual, strict=True):
         if not isinstance(observed, dict):
             return False
-        if _normalized_material(expected.get("material")) != _normalized_material(
+        native_type = (expected.get("parameter_settings") or {}).get("filament_type")
+        expected_material = native_type[0] if isinstance(native_type, list) and len(native_type) == 1 else expected.get("material")
+        if _normalized_material(expected_material) != _normalized_material(
             observed.get("material")
         ):
             return False
@@ -457,7 +464,7 @@ def _profile_application(
     selected = bool(
         selected_process.get("profile_id")
         and selected_process.get("contract_sha256")
-        and settings
+        and isinstance(settings, dict)
         and raw_selected_filaments
         and len(selected_filaments) == len(raw_selected_filaments)
     )
@@ -499,6 +506,8 @@ def _profile_application(
     )
     effective_settings = _effective_numeric_process_settings(settings, process_overrides)
     settings_ok, confirmed_settings = _settings_confirmed(effective_settings, actual_settings)
+    if not effective_settings:
+        settings_ok = True
     runtime_settings = (
         runtime.get("process_settings")
         if isinstance(runtime.get("process_settings"), dict)
@@ -509,8 +518,48 @@ def _profile_application(
         numeric_overrides, runtime_settings,
     )[0]
     analysis = meta.get("analysis") if isinstance(meta.get("analysis"), dict) else {}
+    # IDs alone cannot prove that selected temperatures, fans or retraction
+    # parameters survived native materialization and CLI profile loading.
+    import hashlib
+    import json
+    filament_parameter_proof = []
+    heater_commands = meta.get("heater_commands") or []
+    for channel_index, (selected_item, applied_item) in enumerate(zip(selected_filaments, applied_filaments), 1):
+        profile = selected_item["selected_profile"]
+        profile_hash = hashlib.sha256(json.dumps(profile, sort_keys=True, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+        expected_parameters = applied_item.get("parameter_settings") or {}
+        matches = bool(expected_parameters and applied_item.get("selected_profile_sha256") == profile_hash)
+        confirmed_keys = []
+        mismatched_keys = []
+        for key, expected in expected_parameters.items():
+            actual = actual_settings.get(key)
+            values = _normalized_setting_values(actual) if actual is not None else []
+            expected_values = _normalized_setting_values(expected)
+            matched = len(expected_values) == 1 and bool(values) and ((len(values) == 1 and values[0] == expected_values[0]) or (len(values) >= channel_index and values[channel_index - 1] == expected_values[0]))
+            if matched: confirmed_keys.append(key)
+            else: mismatched_keys.append(key)
+        matches = matches and not mismatched_keys
+        thermal_commands_confirmed = True
+        for key in ("nozzle_temperature", "nozzle_temperature_initial_layer"):
+            requested = expected_parameters.get(key)
+            if requested is None:
+                thermal_commands_confirmed = False
+                continue
+            expected_value = float(_normalized_setting_values(requested)[0][1])
+            if not any(isinstance(command, dict) and command.get("channel") == channel_index
+                       and command.get("command") in {"M104", "M109"}
+                       and abs(float(command.get("temperature_c", -1)) - expected_value) <= .01
+                       for command in heater_commands):
+                thermal_commands_confirmed = False
+        filament_parameter_proof.append({"channel": channel_index, "profile_id": profile.get("id"),
+                                         "confirmed": matches and thermal_commands_confirmed,
+                                         "confirmed_keys": confirmed_keys, "mismatched_keys": mismatched_keys,
+                                         "thermal_commands_confirmed": thermal_commands_confirmed,
+                                         "advisory_parameters": applied_item.get("advisory_parameters") or []})
+    filament_parameters_confirmed = bool(filament_parameter_proof) and len(filament_parameter_proof) == len(selected_filaments) and all(item["confirmed"] for item in filament_parameter_proof)
     gcode_confirmed = bool(
         applied
+        and filament_parameters_confirmed
         and settings_ok
         and overrides_applied
         and analysis.get("layer_count")
@@ -589,6 +638,8 @@ def _profile_application(
             "numeric_value_proof": numeric_value_proof,
             "gcode_confirmed_setting_count": confirmed_settings,
         },
+        "filament_parameter_proof": filament_parameter_proof,
+        "filament_parameters_confirmed": filament_parameters_confirmed,
         "filament_profile_count": len(selected_filaments),
         "material_channel_count": len(applied_filaments),
         "confirmation_source": (
@@ -827,6 +878,10 @@ class V6SlicerBackendRouter:
         effective_material_plan = _effective_material_plan(
             _catalog,
             material_plan,
+        )
+        validated_overrides["require_execution_contract"] = True
+        validated_overrides["execution_contract"] = bind_execution_contract(
+            target_context, validated_overrides, effective_material_plan,
         )
         if str(source_project_name or "").strip():
             project_name = safe_project_name(

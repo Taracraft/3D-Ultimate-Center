@@ -203,6 +203,17 @@ export class V6ProfileEditorDialog extends HTMLElement {
   #field(key: string, value: unknown, gcode: boolean): string {
     const type = fieldType(value);
     const error = this.#fieldErrors.get(key) || "";
+    const a1Notes: Readonly<Record<string, string>> = {
+      pressure_advance: "Notizwert: Der A1 bestimmt den K-Wert durch die Firmwarekalibrierung.",
+      bridge_fan_percent: "Separater Notizwert. Brücken und Überhänge werden beim A1 gemeinsam über Overhang Fan Percent gesteuert.",
+      first_layer_speed_mm_s: "Die Geschwindigkeit der ersten Schicht wird im Druckprofil festgelegt.",
+      drying_temperature_c: "Angabe zur Materialtrocknung vor dem Druck.",
+      drying_time_hours: "Angabe zur Materialtrocknung vor dem Druck.",
+      bed_temperature_c: "Allgemeine Empfehlung für unterstützte PEI-, High-Temp- und Engineering-Platten. Cool und SuperTack verwenden ihre eigenen nativen Temperaturen.",
+      first_layer_bed_temperature_c: "Temperatur der ersten Schicht für unterstützte PEI-, High-Temp- und Engineering-Platten. Cool und SuperTack verwenden ihre eigenen nativen Temperaturen.",
+      nozzle_temperature_c: "Eine Liste aus zwei Werten legt den Temperaturbereich fest. Empfohlene und erste Schichttemperatur sind separate Parameter.",
+    };
+    const note = this.#source?.kind === "filament" && this.#source.payload.a1_specific === true ? a1Notes[key] : undefined;
     let editor = "";
     if (type === "boolean") {
       editor = `<label class="boolean"><input type="checkbox" data-field="${escapeHtml(key)}" data-type="boolean" ${value ? "checked" : ""}><span>${value ? "Aktiviert" : "Deaktiviert"}</span></label>`;
@@ -218,7 +229,7 @@ export class V6ProfileEditorDialog extends HTMLElement {
     } else {
       editor = `<textarea data-field="${escapeHtml(key)}" data-type="json">${escapeHtml(JSON.stringify(value, null, 2))}</textarea>`;
     }
-    return `<div class="field ${gcode ? "gcode" : ""}"><span class="field-label"><strong>${escapeHtml(fieldLabel(key))}</strong><small>${escapeHtml(key)}</small></span>${editor}<button class="remove" type="button" data-remove="${escapeHtml(key)}" title="Parameter entfernen">×</button>${error ? `<div class="field-error">${escapeHtml(error)}</div>` : ""}</div>`;
+    return `<div class="field ${gcode ? "gcode" : ""}"><span class="field-label"><strong>${escapeHtml(fieldLabel(key))}</strong><small>${escapeHtml(key)}</small>${note ? `<small>${escapeHtml(note)}</small>` : ""}</span>${editor}<button class="remove" type="button" data-remove="${escapeHtml(key)}" title="Parameter entfernen">×</button>${error ? `<div class="field-error">${escapeHtml(error)}</div>` : ""}</div>`;
   }
 
   #addParameter(): string {
@@ -377,4 +388,3 @@ function sourceLabel(profile: V6Profile): string {
 if (!customElements.get("v6-profile-editor-dialog")) {
   customElements.define("v6-profile-editor-dialog", V6ProfileEditorDialog);
 }
-

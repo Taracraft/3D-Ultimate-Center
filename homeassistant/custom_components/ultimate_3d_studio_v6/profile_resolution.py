@@ -106,10 +106,13 @@ def build_plate_reference(profile: dict[str, Any]) -> str:
     surface = str(payload.get("surface", "")).casefold()
     references = {
         "textured_pei": "Textured PEI Plate",
-        "smooth_pei": "Smooth PEI Plate / High Temp Plate",
-        "cool_plate_super_tack": "Cool Plate SuperTack",
+        "smooth_pei": "High Temp Plate",
+        "cool_plate_super_tack": "Supertack Plate",
         "cool_plate": "Cool Plate",
         "engineering_plate": "Engineering Plate",
+        "high_temp_plate": "High Temp Plate",
+        "smooth_cool_plate": "Cool Plate",
+        "textured_cool_plate": "Cool Plate",
     }
     reference = references.get(surface)
     if reference:
