@@ -905,15 +905,18 @@ class V6SlicerBackendRouter:
                 filename,
             )
         requested_plate_index = max(0, int(_plate_index))
+        # The native worker accepts ASCII basenames of at most 200 characters.
+        # Keep the original project title in metadata, not in the transport name.
         safe_name = re.sub(
-            r"[^A-Za-z0-9ÄÖÜäöüß._+-]",
+            r"[^A-Za-z0-9._-]",
             "_",
             project_name,
         ).strip("._-") or "Druckauftrag"
-        upload_name = (
+        upload_prefix = (
             f"v6-{uuid4().hex[:10]}-plate-"
-            f"{requested_plate_index + 1}-{safe_name}.3mf"
+            f"{requested_plate_index + 1}-"
         )
+        upload_name = f"{upload_prefix}{safe_name[:200 - len(upload_prefix) - 4]}.3mf"
         try:
             async with self.session.post(
                 f"{SERVER_ENDPOINT}/api/v1/files/{upload_name}",
