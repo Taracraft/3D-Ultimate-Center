@@ -199,3 +199,10 @@ A1-Reparaturstand bereitgestellt: GitHub-Commit 2154435151f524cf18e393dd5578eb30
 Abgeschlossen für den geprüften A1-Pfad: Parameterübernahme, native Plattentypen/Materialvorprüfung, Payload-/V2-Vertragsbindung, Hardware-Temperaturgrenzen, Cloud-Basis ohne Overlay und nachweisbare Ergebnisbestätigung. Große Druckerprofile sind erhalten; deren eigene native Maschinenverträge und praktische Abnahme bleiben offen. Kleinere physische A1-Platten benötigen weiterhin eigene Start-/Wisch-/Ursprungsverträge.
 
 Nächster Schritt in Arbeit: Erstschichthöhe unabhängig von normaler Schichthöhe gegen die gewählte Düse prüfen, Temperaturfelder in Prozessprofilen früh statt erst im Worker ablehnen, finale Parameterbestätigung zusätzlich an ausgeführte Heizbefehle binden, kompakte/nummerierte Bewegungen denselben Geometriegrenzen unterwerfen. Kein Druckerupload oder Druckstart.
+
+
+### 2026-10-03 Finale Abnahme des A1-Vertrags
+
+Auch der zweite Vertragsblock ist bereitgestellt (Codecommit 7c968d7acf697ad285495ff0bc24a58f9466dff4, Bundle 7a5296fa97000d60f123cc20d87c3b2c8c3d95a86f658aa01eda510edbccac97). Gesamtgate: 614 Python-Tests und 3 Untertests bestanden; Frontendtests, TypeScript, beide Builds, Source-Policy und Compile-Prüfung grün. Alle 322 nativen Archive sowie beide passenden Mehrmaterialfälle bestehen die verschärfte Heizbefehls-/Geometrieprüfung. Nach gesichertem zweiten Deployment, HA core check und Neustart nochmals 21/21 Slices auf den installierten Workerdateien bestanden. Puppet-Port 5000: HTTP 200, image/png, geprüfte PNG-Signatur, verbundenes Studio ohne aktiven Druckauftrag. Abschlussbericht: docs/profile-gcode-contract-validation-2026-10-03.md.
+
+Die angehakten Punkte gelten für den nachgewiesenen A1-Pfad und die aktuell vorgeprüften Profile. Andere Drucker bleiben erhalten, erhalten aber keine fiktive A1-Hardwarefreigabe. Nächste offene strukturelle Arbeit: eigene native Verträge und Abnahme für weitere/größere Druckermodelle; eigene Maschinen-/Ursprungsverträge für kleinere physische Platten. Reale Druckqualität sowie interaktive Touch-/Maus-Abnahme bleiben separate Prüfungen. Kein Upload zum Drucker und kein Druckstart ausgeführt.
