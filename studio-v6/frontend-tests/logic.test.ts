@@ -2314,3 +2314,7 @@ test("MakerWorld text image links remain visible unless actually rendered inline
 test("MakerWorld additional images are normalized deduplicated and validated", () => {
   assert.deepEqual(missingDescriptionImages(["https://example.com/a.png", "https://example.com/a.png", "javascript:x", "https://example.com/b.png"], ["https://example.com/a.png"]), ["https://example.com/b.png"]);
 });
+
+import "./response-error.test.js";
+
+import "./profile-header.test.js";

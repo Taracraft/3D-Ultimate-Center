@@ -99,6 +99,25 @@ function germanNumber(value: number): string {
   return value.toLocaleString("de-DE", { maximumFractionDigits: 3 });
 }
 
+type ProfileSummaryField = "layer_height_mm" | "outer_wall_speed_mm_s" | "inner_wall_speed_mm_s";
+const NATIVE_SUMMARY_KEYS: Readonly<Record<ProfileSummaryField, string>> = {
+  layer_height_mm: "layer_height",
+  outer_wall_speed_mm_s: "outer_wall_speed",
+  inner_wall_speed_mm_s: "inner_wall_speed",
+};
+
+function selectedProcessPlaceholder(profile: V6Profile | undefined, key: ProfileSummaryField, unit: string): string {
+  if (!profile || profile.kind !== "process" || profile.payload.gcode_slot || profile.payload.slicing_supported === false) return "Standardprofil";
+  // These source/key rules match the existing native process contract.
+  const sourceKey = profile.source === "bambu_cloud" ? NATIVE_SUMMARY_KEYS[key] : key;
+  if (!["builtin", "local", "bambu_cloud"].includes(profile.source)) return "Standardprofil";
+  const raw = profile.payload[sourceKey];
+  if (typeof raw !== "number" && !(typeof raw === "string" && raw.trim())) return "Standardprofil";
+  const value = Number(raw);
+  // Missing, inherited, relative or invalid values must not invent nozzle defaults.
+  return Number.isFinite(value) && value > 0 ? `Standard · ${germanNumber(value)} ${unit}` : "Standardprofil";
+}
+
 function printerConnectionLabel(printer: DetailedDirectPrintPrinter): string {
   return String(printer.connection_state || "").toLowerCase() === "connected" ? "LAN verbunden" : "LAN getrennt";
 }
@@ -161,6 +180,7 @@ export function studioProfileBarHtml(
   const filamentSummary = selectedNames.join(" · ") || "Filamentprofile wählen";
   const processOverrides = loadNozzleProcessValues();
   const nozzle = nozzleProcessContract(nozzleDiameter(catalog, selection.nozzle_profile_id));
+  const selectedProcess = catalog?.profiles.find((profile) => profile.id === selection.process_profile_id && profile.kind === "process");
   const summary = [
     selectedProfileName(catalog, selection.printer_profile_id),
     selectedProfileName(catalog, selection.process_profile_id),
@@ -178,9 +198,9 @@ export function studioProfileBarHtml(
       <label><span>Düse</span><select data-profile-field="nozzle_profile_id">${options(group(catalog, "nozzle"), selection.nozzle_profile_id, "Kein Düsenprofil")}</select></label>
       <label><span>Druckprofil</span><select data-profile-field="process_profile_id">${options(group(catalog, "process"), selection.process_profile_id, "Kein Prozessprofil")}</select></label>
       <label><span>Druckplatte</span><select data-profile-field="build_plate_profile_id">${options(group(catalog, "build_plate"), selection.build_plate_profile_id, "Kein Druckplattenprofil")}</select></label>
-      <label><span>Schichthöhe</span><input data-process-override="layer_height_mm" type="number" inputmode="decimal" min="${nozzle?.min_layer_height_mm ?? .04}" max="${nozzle?.max_layer_height_mm ?? .56}" step="0.01" value="${esc(inputValue(processOverrides.layer_height_mm))}" placeholder="${nozzle ? `Standard · ${germanNumber(nozzle.default_layer_height_mm)} mm` : "Standard"}" title="${esc(nozzle ? `Leer = Standardprofil · Zulässig: ${germanNumber(nozzle.min_layer_height_mm)}–${germanNumber(nozzle.max_layer_height_mm)} mm` : "Validierte A1-Düse wählen")}"></label>
-      <label><span>Außenwand</span><input data-process-override="outer_wall_speed_mm_s" type="number" inputmode="numeric" min="1" max="${nozzle?.max_wall_speed_mm_s ?? 500}" step="1" value="${esc(inputValue(processOverrides.outer_wall_speed_mm_s))}" placeholder="${nozzle ? `Standard · ${germanNumber(nozzle.default_outer_wall_speed_mm_s)} mm/s` : "Standard"}" title="Leer = Standardprofil · Zulässig: 1–${nozzle?.max_wall_speed_mm_s ?? 500} mm/s"></label>
-      <label><span>Innenwand</span><input data-process-override="inner_wall_speed_mm_s" type="number" inputmode="numeric" min="1" max="${nozzle?.max_wall_speed_mm_s ?? 500}" step="1" value="${esc(inputValue(processOverrides.inner_wall_speed_mm_s))}" placeholder="${nozzle ? `Standard · ${germanNumber(nozzle.default_inner_wall_speed_mm_s)} mm/s` : "Standard"}" title="Leer = Standardprofil · Zulässig: 1–${nozzle?.max_wall_speed_mm_s ?? 500} mm/s"></label>
+      <label><span>Schichthöhe</span><input data-process-override="layer_height_mm" type="number" inputmode="decimal" min="${nozzle?.min_layer_height_mm ?? .04}" max="${nozzle?.max_layer_height_mm ?? .56}" step="0.01" value="${esc(inputValue(processOverrides.layer_height_mm))}" placeholder="${esc(selectedProcessPlaceholder(selectedProcess, "layer_height_mm", "mm"))}" title="${esc(nozzle ? `Leer = Standardprofil · Zulässig: ${germanNumber(nozzle.min_layer_height_mm)}–${germanNumber(nozzle.max_layer_height_mm)} mm` : "Validierte A1-Düse wählen")}"></label>
+      <label><span>Außenwand</span><input data-process-override="outer_wall_speed_mm_s" type="number" inputmode="numeric" min="1" max="${nozzle?.max_wall_speed_mm_s ?? 500}" step="1" value="${esc(inputValue(processOverrides.outer_wall_speed_mm_s))}" placeholder="${esc(selectedProcessPlaceholder(selectedProcess, "outer_wall_speed_mm_s", "mm/s"))}" title="Leer = Standardprofil · Zulässig: 1–${nozzle?.max_wall_speed_mm_s ?? 500} mm/s"></label>
+      <label><span>Innenwand</span><input data-process-override="inner_wall_speed_mm_s" type="number" inputmode="numeric" min="1" max="${nozzle?.max_wall_speed_mm_s ?? 500}" step="1" value="${esc(inputValue(processOverrides.inner_wall_speed_mm_s))}" placeholder="${esc(selectedProcessPlaceholder(selectedProcess, "inner_wall_speed_mm_s", "mm/s"))}" title="Leer = Standardprofil · Zulässig: 1–${nozzle?.max_wall_speed_mm_s ?? 500} mm/s"></label>
       ${GCODE_SLOTS.map((slot) => gcodeSlotSelect(catalog, slot, selection)).join("")}
     </section>
   </details>`;

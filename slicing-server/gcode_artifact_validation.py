@@ -151,6 +151,13 @@ def validate_rendered_bambu_gcode(
     material_channel = None
     pending_material_channel = None
     executed_nozzle: dict[int, set[float]] = {}
+    # A real single-layer first-layer test never enters the subsequent-layer
+    # bed-temperature phase. Prove it from both native layer markers and the
+    # actual positive XY extrusion plane, not from a mutable header alone.
+    declared_layer_counts: set[int] = set()
+    layer_change_count = 0
+    printed_z_min = float("inf")
+    printed_z_max = float("-inf")
     executed_bed: set[float] = set()
     executed_chamber: set[float] = set()
     if limits is not None:
@@ -167,6 +174,11 @@ def validate_rendered_bambu_gcode(
         if not text:
             continue
         upper = text.upper()
+        total_layers = re.fullmatch(r";\s*TOTAL LAYER NUMBER:\s*(\d+)", upper)
+        if total_layers:
+            declared_layer_counts.add(int(total_layers[1]))
+        if upper in {"; CHANGE_LAYER", ";LAYER_CHANGE", "; LAYER_CHANGE"}:
+            layer_change_count += 1
         command = upper.split(";", 1)[0].strip()
         # Native G-code normally separates words; compact and numbered words
         # must receive the same geometry checks as their spaced equivalents.
@@ -231,6 +243,9 @@ def validate_rendered_bambu_gcode(
             extrusion = position["E"] - previous["E"] if "E" in coords else 0.0
             if print_started and not material_change and extrusion > 0:
                 checked_print_moves += 1
+                if abs(position["X"] - previous["X"]) > 1e-9 or abs(position["Y"] - previous["Y"]) > 1e-9 or re.match(r"^G[23]\s", command):
+                    printed_z_min = min(printed_z_min, previous["Z"], position["Z"])
+                    printed_z_max = max(printed_z_max, previous["Z"], position["Z"])
                 for axis in ("X", "Y", "Z"):
                     print_bounds[axis][0] = min(print_bounds[axis][0], previous[axis], position[axis])
                     print_bounds[axis][1] = max(print_bounds[axis][1], previous[axis], position[axis])
@@ -395,6 +410,13 @@ def validate_rendered_bambu_gcode(
                     matches = actual.casefold() == str(expected[0]).strip().strip('"').casefold()
                 if not matches:
                     raise GCodeValidationError(f"Materialkanal {channel + 1}: Der Slicer hat {key} nicht unverändert übernommen.")
+        single_print_layer = (
+            declared_layer_counts == {1}
+            and layer_change_count == 1
+            and math.isfinite(printed_z_min)
+            and printed_z_min > 0
+            and printed_z_max - printed_z_min <= 1e-6
+        )
         for channel, profile in enumerate(runtime_parameters, start=1):
             for key in ("nozzle_temperature", "nozzle_temperature_initial_layer"):
                 if key in profile:
@@ -407,7 +429,9 @@ def validate_rendered_bambu_gcode(
                 if not isinstance(values, list) or len(values) != 1 or not any(abs(actual - float(values[0])) <= .01 for actual in executed_chamber):
                     raise GCodeValidationError(f"Materialkanal {channel}: Die Kammertemperatur wurde nicht als Heizbefehl ausgeführt.")
             if expected_bed_temperature_key:
-                for key in (expected_bed_temperature_key, expected_bed_temperature_key + "_initial_layer"):
+                required_bed_keys = (expected_bed_temperature_key + "_initial_layer",) if single_print_layer else (
+                    expected_bed_temperature_key, expected_bed_temperature_key + "_initial_layer")
+                for key in required_bed_keys:
                     values = profile.get(key)
                     if not isinstance(values, list) or len(values) != 1 or not any(abs(actual - float(values[0])) <= .01 for actual in executed_bed):
                         raise GCodeValidationError(f"Materialkanal {channel}: {key} wurde nicht als gemeinsamer Bettheizbefehl ausgeführt.")
