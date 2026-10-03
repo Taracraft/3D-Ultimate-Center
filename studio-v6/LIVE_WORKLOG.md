@@ -174,3 +174,8 @@ Der ausdrücklich autorisierte echte Slice (geschlossener Würfel 10×10×2 mm; 
 
 
 Finale Abnahme: Das vollständige native Projektgate besteht (Frontendtests/TypeScript, beide Builds, Python-Tests und Compileall). Bundle-SHA 741596648161b0e2ee9b14d90b3124607ed66c33cffa3a8894779be558dc64ec. Nach gesicherter Laufzeitübernahme und HA-Konfigurationsprüfung bestehen drei echte native Slice-Varianten auf dem installierten Worker: unveränderte A1/SUNLU/AMS4-Auswahl, modifizierte Filament-Gcodes mit 225/230 °C und ausgeschaltete Soundbefehle. Alle erzeugen Gcode-3MF mit Exit 0, zehn 0,20-mm-Schichten und ohne invalid-json-type-Meldungen. Der Default enthält alle sechs Abschnitte; Filamentmakros werden ausgeführt und eigene Filamentcodes übernommen, M1006 fehlt bei stummen Sounds. Verifiziert sind 576 Quelldateien lokal/HA sowie 580 GitHub-Zuordnungen. Kein Druckerupload oder Druckstart.
+
+
+## 2026-10-03 Profil-Audit: Reparaturauftrag und größere Drucker
+
+Alle nachgewiesenen Auditfehler sind als offene Reparaturen an docs/ROADMAP.md angehängt. Ergänzung des Benutzers: Größere Platten und bestimmte Profilkombinationen sind auf entsprechend größeren Druckern gültig; Katalogprofile erhalten und Zulässigkeit je ausgewähltem Drucker bestimmen. Der aktuelle native A1-Pfad darf keine Unterstützung anderer Drucker vortäuschen. Audit: 13.888 Vorprüfungen, 363 native Versuche, 335 Archive, 28 CLI-Ablehnungen und 17 Temperatur-Abschlussfehler; 180 falsche Profilbestätigungen. Sicherheits-, Parameter-, Platten-, Größen-, Cloud- und Vertragsreparaturen sind offen. Kein Druckerupload oder Druckstart.
