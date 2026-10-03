@@ -67,3 +67,55 @@ def test_executable_unresolved_temperature_template_is_rejected() -> None:
         validation.validate_rendered_bambu_gcode(
             complete_gcode("M104 S{nozzle_temperature[0]}")
         )
+
+
+H2S_LIMITS = {"max_nozzle_temperature_c": 350., "max_bed_temperature_c": 120.,
+              "max_chamber_temperature_c": 65., "width_mm": 340.,
+              "depth_mm": 320., "height_mm": 340.}
+
+
+def h2s_gcode(extra: str = "") -> BytesIO:
+    source = complete_gcode("; printer_model = Bambu Lab H2S").getvalue().decode()
+    source = source.replace("M983 A0", "M983.3 F5 A0.4")
+    source = source.replace("; WIPE NOZZLE", "G150 T220")
+    source = source.replace("M900 C", ";===== nozzle load line =====\nG1 X290 E20 F600\n;===== noozle load line end =====")
+    return BytesIO((source + extra).encode())
+
+
+def test_h2s_firmware_sequence_with_explicit_hardware_authority() -> None:
+    report = validation.validate_rendered_bambu_gcode(
+        h2s_gcode(), hardware_limits=H2S_LIMITS, expected_printer_model="H2S")
+    assert report.declared_printer_model == "Bambu Lab H2S"
+    assert all(report.markers.values())
+
+
+@pytest.mark.parametrize("command", ["G150 T351", "M620.10 A0 T351 P220",
+    "M620.10 A1 T240 P351", "M141 S66", "M191 R66", "G150 TNaN",
+    "M620.10 A0 TInf P220", "M141 S-1"])
+def test_h2s_firmware_heaters_cannot_bypass_temperature_checks(command: str) -> None:
+    with pytest.raises(validation.GCodeValidationError):
+        validation.validate_rendered_bambu_gcode(
+            h2s_gcode(command + "\n"), hardware_limits=H2S_LIMITS, expected_printer_model="H2S")
+
+
+@pytest.mark.parametrize("key,value", [("max_nozzle_temperature_c",351),
+    ("max_chamber_temperature_c",66), ("width_mm",350), ("height_mm",float("nan")),
+    ("depth_mm",True)])
+def test_h2s_claimed_hardware_cannot_raise_physical_limits(key: str, value: object) -> None:
+    limits = {**H2S_LIMITS, key: value}
+    with pytest.raises(validation.GCodeValidationError, match="H2S-Hardwaregrenze"):
+        validation.validate_rendered_bambu_gcode(
+            h2s_gcode(), hardware_limits=limits, expected_printer_model="H2S")
+
+
+@pytest.mark.parametrize("removed", ["M983.3 F5 A0.4", "G150 T220", "G1 X290 E20 F600"])
+def test_h2s_descriptive_metadata_does_not_replace_executed_sequence(removed: str) -> None:
+    altered = h2s_gcode().getvalue().replace(removed.encode(), ("; " + removed).encode())
+    with pytest.raises(validation.GCodeValidationError, match="Maschinenablauf ist unvollständig"):
+        validation.validate_rendered_bambu_gcode(
+            BytesIO(altered), hardware_limits=H2S_LIMITS, expected_printer_model="H2S")
+
+
+def test_h2s_declaration_does_not_grant_hardware_authority() -> None:
+    with pytest.raises(validation.GCodeValidationError, match="explizite Hardware"):
+        validation.validate_rendered_bambu_gcode(h2s_gcode(), expected_printer_model="H2S")

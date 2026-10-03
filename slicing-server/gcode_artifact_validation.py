@@ -92,6 +92,26 @@ def validate_rendered_bambu_gcode(
     Comment-only configuration metadata such as ``filename_format`` may retain
     slicer placeholders by design and must not block a safe print artifact.
     """
+    # H2S firmware uses dedicated calibration and cleaning opcodes. A file
+    # declaration alone must never grant that machine's hardware authority.
+    model_key = re.sub(r"[^a-z0-9]+", " ", str(expected_printer_model or "").casefold()).strip()
+    h2s = model_key in {"h2s", "bambu h2s", "bambu lab h2s"}
+    if h2s and (hardware_limits is None or "max_chamber_temperature_c" not in hardware_limits):
+        raise GCodeValidationError("Für den H2S fehlt die explizite Hardware-/Kammertemperaturprüfung.")
+    if h2s:
+        maxima = {"max_nozzle_temperature_c": 350., "max_bed_temperature_c": 120.,
+                  "max_chamber_temperature_c": 65., "width_mm": 340.,
+                  "depth_mm": 320., "height_mm": 340.}
+        for key, maximum in maxima.items():
+            raw = hardware_limits.get(key)
+            try:
+                value = float(raw)
+            except (ValueError, TypeError) as exc:
+                raise GCodeValidationError("Ungültige H2S-Hardwaregrenze.") from exc
+            if isinstance(raw, bool) or not math.isfinite(value) or value <= 0 or value > maximum:
+                raise GCodeValidationError("Ungültige H2S-Hardwaregrenze.")
+    h2s_load_line = False
+    h2s_prime_move = False
     markers = {
         "bambu_action_protocol": False,
         "machine_initialization": False,
@@ -235,6 +255,41 @@ def validate_rendered_bambu_gcode(
             elif material_channel is not None:
                 executed_nozzle.setdefault(material_channel, set()).update(float(value) for value in setpoints)
 
+        if h2s:
+            # These firmware commands also request heat; standard M104/M109
+            # checks alone miss purge, nozzle cleaning and chamber targets.
+            heater = re.match(r"^(G150|M620\.10|M141|M191)(?:\s|$)(.*)$", command)
+            if heater:
+                keys = "TP" if heater[1] == "M620.10" else "T" if heater[1] == "G150" else "SR"
+                for key in keys:
+                    raw_targets = re.findall(r"(?:^|\s)" + key + r"\s*([^\s]+)", heater[2])
+                    for raw in raw_targets:
+                        try:
+                            value = float(raw)
+                        except ValueError as exc:
+                            raise GCodeValidationError("Ungültige H2S-Heiztemperatur.") from exc
+                        if not math.isfinite(value) or value < 0:
+                            raise GCodeValidationError("Ungültige H2S-Heiztemperatur.")
+                        if heater[1] in {"M141", "M191"}:
+                            if value > float(hardware_limits["max_chamber_temperature_c"]) + .01:
+                                raise GCodeValidationError("Der G-Code überschreitet die H2S-Kammertemperaturgrenze.")
+                        else:
+                            temperatures["nozzle"] = max(temperatures["nozzle"], value)
+            if upper.startswith(";===== NOZZLE LOAD LINE"):
+                h2s_load_line = True
+            if upper.startswith(";===== NOOZLE LOAD LINE END"):
+                h2s_load_line = False
+            if h2s_load_line and re.match(r"^G1(?:\s|$)", command):
+                move = _EXTRUSION.search(command)
+                if move and float(move[1]) > 0 and re.search(r"(?:^|\s)[XY][+-]?[0-9.]", command):
+                    h2s_prime_move = True
+            if re.match(r"^M983\.3(?:\s|$)", command):
+                markers["flow_calibration_command"] = True
+            if re.match(r"^G150(?:\s|$)", command) and re.search(r"(?:^|\s)T[0-9.]", command):
+                markers["nozzle_wipe"] = True
+            if h2s_prime_move:
+                markers["prime_or_calibration_line"] = True
+
         load_heater = re.match(r"^M620\.1(?:\s|$)(.*)$", command)
         if load_heater:
             targets = re.findall(r"(?:^|\s)T\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+))(?=\s|$)", load_heater[1])
@@ -274,11 +329,11 @@ def validate_rendered_bambu_gcode(
             markers["bed_level_command"] = True
         if "JUDGE_FLAG EXTRUDE_CALI_FLAG" in upper:
             markers["flow_calibration_flag"] = True
-        if command.startswith("M983 ") or command.startswith("M984 "):
+        if not h2s and (command.startswith("M983 ") or command.startswith("M984 ")):
             markers["flow_calibration_command"] = True
-        if "WIPE NOZZLE" in upper or "BRUSH MATERIAL WIPE" in upper:
+        if not h2s and ("WIPE NOZZLE" in upper or "BRUSH MATERIAL WIPE" in upper):
             markers["nozzle_wipe"] = True
-        if "EXTRUDE CALI TEST" in upper or command.startswith("M900 C"):
+        if not h2s and ("EXTRUDE CALI TEST" in upper or command.startswith("M900 C")):
             markers["prime_or_calibration_line"] = True
 
         if command.startswith(("G0 ", "G1 ")):

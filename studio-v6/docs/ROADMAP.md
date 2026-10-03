@@ -1482,3 +1482,16 @@ Nächster Schritt in Arbeit: Erstschichthöhe unabhängig von normaler Schichth�
 Auch der zweite Vertragsblock ist bereitgestellt (Codecommit 7c968d7acf697ad285495ff0bc24a58f9466dff4, Bundle 7a5296fa97000d60f123cc20d87c3b2c8c3d95a86f658aa01eda510edbccac97). Gesamtgate: 614 Python-Tests und 3 Untertests bestanden; Frontendtests, TypeScript, beide Builds, Source-Policy und Compile-Prüfung grün. Alle 322 nativen Archive sowie beide passenden Mehrmaterialfälle bestehen die verschärfte Heizbefehls-/Geometrieprüfung. Nach gesichertem zweiten Deployment, HA core check und Neustart nochmals 21/21 Slices auf den installierten Workerdateien bestanden. Puppet-Port 5000: HTTP 200, image/png, geprüfte PNG-Signatur, verbundenes Studio ohne aktiven Druckauftrag. Abschlussbericht: docs/profile-gcode-contract-validation-2026-10-03.md.
 
 Die angehakten Punkte gelten für den nachgewiesenen A1-Pfad und die aktuell vorgeprüften Profile. Andere Drucker bleiben erhalten, erhalten aber keine fiktive A1-Hardwarefreigabe. Nächste offene strukturelle Arbeit: eigene native Verträge und Abnahme für weitere/größere Druckermodelle; eigene Maschinen-/Ursprungsverträge für kleinere physische Platten. Reale Druckqualität sowie interaktive Touch-/Maus-Abnahme bleiben separate Prüfungen. Kein Upload zum Drucker und kein Druckstart ausgeführt.
+
+
+## 2026-10-03 – Größere Drucker: H2S-Artefaktvertrag
+
+- [x] Eigenständige H2S-Artefaktprüfung für Kalibrierung, Reinigung, Load-Line und zusätzliche Reinigungs-/Spül-/Kammerheizer. 16 echte native Slices mit 300-mm-Testgeometrie bestanden; alle 16 mit A1-Grenzen abgewiesen. Sieben reale Artefaktmutationen abgewiesen; 322 A1-Regressionsartefakte bestanden.
+- [ ] H2S durchgängig über Modellregister, Düsen, Filamentquellen, AMS-/Kammervertrag und vier passende Maschinenabschnitte anbinden. Die Artefaktprüfung allein erteilt noch keine produktive H2S-Freigabe.
+- [ ] H2D/H2C mit physischer Werkzeugkonfiguration und dafür tatsächlich nutzbarer Druckfläche separat prüfen. Keine pauschale Übernahme des Profilpolygons.
+- [ ] Kleinere physische Platten einschließlich Start-/Wischbewegungen und Ursprung separat absichern.
+
+Details: [H2S-Prüfbericht](h2s-native-contract-validation-2026-10-03.md). Die übergeordneten Punkte für größere Drucker bleiben bis zum vollständigen Studio-/Worker-Vertrag offen.
+
+
+Abnahme des H2S-Artefaktbausteins: Vollständiges Windows-Gate: 632 Python-Tests plus drei Untertests, Source-Policy, TypeScript, Frontend-Tests, Produktions-/HA-Build und Compile-Prüfung bestanden. Gesichertes Deployment: /var/lib/homeassistant/homeassistant/backups/20261003T082551Z-v6-h2s-artifact-contract. HA-Konfigurationsprüfung und Neustart erfolgreich, Profil-API HTTP 200, acht Worker-Abhängigkeiten per SHA bestätigt. Installierter Stand: 16 H2S-Artefakte und sieben Negativmutationen bestanden sowie 21 neue A1-Slices ohne Parameterverlust oder native Optionenwarnungen. Bundle-SHA256: 80f2440e60fcdb7a0bdfc209487b1b12710768ba02a75f4eb9b60924316b6831.
