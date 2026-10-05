@@ -29,7 +29,7 @@ jobs:
           from pathlib import Path
           root = Path.cwd()
           count = 0
-          for name in ('publication-stage-20261005.json', 'publication-palette-stage-20261005.json'):
+          for name in ('publication-stage-20261005.json', 'publication-palette-stage-20261005.json', 'publication-viewer-modal-stage-20261005.json'):
               record = json.loads((root / 'studio-v6/docs' / name).read_text())
               assert record['full_repository_sync_complete'] is False
               assert record['live_deployed'] is False
@@ -84,6 +84,26 @@ jobs:
           });
           JS
           cat .test-results/palette-node.log
+      - name: Typecheck the combined public frontend candidate
+        working-directory: studio-v6
+        run: npm run typecheck
+      - name: Test popup, attribution, cache return and standalone material viewer
+        working-directory: studio-v6
+        run: |
+          node node_modules/esbuild/bin/esbuild frontend-tests/makerworld-attribution.test.ts --bundle --platform=node --format=esm --packages=external --outfile=.test-results/viewer-modal-public.test.mjs
+          node --test --test-reporter=tap .test-results/viewer-modal-public.test.mjs > .test-results/viewer-modal-public.tap
+          cat .test-results/viewer-modal-public.tap
+          python - <<'PYTEST'
+          import re
+          from pathlib import Path
+          output = Path('.test-results/viewer-modal-public.tap').read_text()
+          counts = {key: int(value) for key, value in re.findall(r'^# (tests|pass|fail|skipped) (\d+)$', output, re.MULTILINE)}
+          assert counts == {'tests': 41, 'pass': 41, 'fail': 0, 'skipped': 0}, counts
+          print('Verified 41 controller/attribution tests; not browser acceptance')
+          PYTEST
+      - name: Retain standalone source-bound controller wrapper evidence
+        working-directory: studio-v6
+        run: python -m pytest -q tests/test_viewer_modal_node_contract.py --junitxml=.test-results/viewer-wrapper-junit.xml
       - name: Preserve the exact tracked public source revision
         run: |
           git archive --format=tar.gz --output=studio-v6/.test-results/public-candidate-source.tar.gz HEAD
@@ -97,6 +117,9 @@ jobs:
           path: |
             studio-v6/.test-results/publication-junit.xml
             studio-v6/.test-results/palette-node.log
+            studio-v6/.test-results/viewer-modal-public.tap
+            studio-v6/.test-results/viewer-wrapper-junit.xml
+            studio-v6/.test-results/viewer-modal-node-contract.json
             studio-v6/.test-results/public-source-fingerprints.json
             studio-v6/.test-results/public-transfer-fingerprints.json
             studio-v6/.test-results/public-candidate-source.tar.gz

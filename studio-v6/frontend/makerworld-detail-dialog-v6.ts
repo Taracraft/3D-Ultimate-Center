@@ -1,10 +1,11 @@
+import { makerWorldLicenseHtml } from "./makerworld-attribution.js";
 import { safeMediaUrl, descriptionImageUrls, missingDescriptionImages } from "./makerworld-description-media.js";
 import { errorMessage } from "./ha-api-transport.js";
 import { GalleryApi } from "./gallery-api.js";
-import type { MakerWorldComment, MakerWorldDetail, MakerWorldInstance, MakerWorldRecommendation } from "./makerworld-api.js";
+import type { MakerWorldComment, MakerWorldDetail, MakerWorldInstance, MakerWorldRecommendation, MakerWorldSavedItem } from "./makerworld-api.js";
 import { MakerWorldV6Adapter2 } from "./makerworld-v6-adapter2.js";
 import { ProfileApi, type V6Profile, type V6ProfileCatalog } from "./profile-api.js";
-import { queueWorkspaceFile, type WorkspaceFileTarget } from "./workspace-file-handoff.js";
+import type { WorkspaceFileTarget } from "./workspace-file-handoff.js";
 
 function esc(value: unknown): string {
   return String(value ?? "").replace(/[&<>"']/g, (character) => ({
@@ -146,7 +147,7 @@ function descriptionPanel(detail: MakerWorldDetail): string {
     ? `<div class="mw-description-media">${inlineImages.map((image) => `<figure><img src="${esc(image)}" alt="Beschreibung" loading="lazy"></figure>`).join("")}</div>`
     : "";
   const tags = detail.tags.map((tag) => `<button type="button" data-tag="${esc(tag)}">#${esc(tag)}</button>`).join("");
-  return `<section class="mw-tab-panel"><div class="mw-description">${description}</div>${media}${tags ? `<div class="mw-tags">${tags}</div>` : ""}${detail.license ? `<div class="mw-license">Lizenz: ${esc(detail.license)}</div>` : ""}</section>`;
+  return `<section class="mw-tab-panel"><div class="mw-description">${description}</div>${media}${tags ? `<div class="mw-tags">${tags}</div>` : ""}</section>`;
 }
 
 function commentHtml(comment: MakerWorldComment, depth = 0): string {
@@ -178,10 +179,101 @@ function reviewsPanel(detail: MakerWorldDetail): string {
 
 function recommendationsHtml(items: readonly MakerWorldRecommendation[]): string {
   if (!items.length) return '<div class="mw-empty">Noch keine MakerWorld-Empfehlungen geladen.</div>';
-  return items.slice(0, 8).map((item) => `<article class="mw-recommendation" data-recommendation="${esc(item.id)}">
+  return items.slice(0, 8).map((item) => `<article class="mw-recommendation" data-recommendation="${esc(item.id)}" role="button" tabindex="0">
     <div class="mw-rec-image">${item.thumbnail_url ? `<img src="${esc(item.thumbnail_url)}" alt="${esc(item.title)}">` : ""}</div>
     <div><strong>${esc(item.title)}</strong><span>${esc(item.creator || "MakerWorld")}</span><small>↓ ${compactNumber(item.stats.downloads)} · ♡ ${compactNumber(item.stats.likes)}</small></div>
   </article>`).join("");
+}
+
+type MakerWorldDialogState = { busy: boolean; closed: boolean; cleanupViewport?: () => void };
+const dialogStates = new WeakMap<HTMLElement, MakerWorldDialogState>();
+
+function closeMakerWorldDialog(overlay: HTMLElement): void {
+  const state = dialogStates.get(overlay);
+  if (state) { state.closed = true; state.cleanupViewport?.(); }
+  const modal = overlay as HTMLDialogElement;
+  if (modal.open) modal.close();
+  overlay.remove();
+}
+
+async function runMakerWorldAction(overlay: HTMLElement, action: (active: () => boolean) => Promise<void>): Promise<void> {
+  const state = dialogStates.get(overlay);
+  if (!state || state.busy || state.closed || !overlay.isConnected) return;
+  state.busy = true;
+  const controls = [...overlay.querySelectorAll<HTMLButtonElement | HTMLSelectElement>("button:not(.mw-close),select")];
+  const previouslyDisabled = controls.map((control) => control.disabled);
+  controls.forEach((control) => { control.disabled = true; });
+  overlay.setAttribute("aria-busy", "true");
+  const active = (): boolean => !state.closed && overlay.isConnected;
+  try { await action(active); }
+  catch (error) { if (active()) show(dialogOf(overlay), error); }
+  finally {
+    state.busy = false;
+    overlay.removeAttribute("aria-busy");
+    controls.forEach((control, index) => { control.disabled = previouslyDisabled[index]!; });
+  }
+}
+
+function bindCardActivation(node: HTMLElement, action: () => void): void {
+  node.addEventListener("click", action);
+  node.addEventListener("keydown", (event) => {
+    if ((event.key === "Enter" || event.key === " ") && !event.repeat) {
+      event.preventDefault();
+      action();
+    }
+  });
+}
+
+/** Keep the native modal inside the visible viewport, including keyboard resize.
+ * No timers, DOM observers or network calls; disposal belongs to dialog lifetime.
+ */
+function bindMakerWorldViewport(overlay: HTMLElement): () => void {
+  const owner = overlay.ownerDocument?.defaultView;
+  const viewport = owner?.visualViewport;
+  if (!owner || !viewport) return () => {};
+  let disposed = false;
+  let listening = false;
+  const update = (): void => {
+    if (disposed || !listening) return;
+    if (!overlay.isConnected) { cleanup(); return; }
+    const { width, height, offsetLeft, offsetTop } = viewport;
+    if (![width, height, offsetLeft, offsetTop].every(Number.isFinite) || width <= 0 || height <= 0) return;
+    overlay.style.setProperty("--mw-viewport-width", `${width}px`);
+    overlay.style.setProperty("--mw-viewport-height", `${height}px`);
+    overlay.style.setProperty("--mw-viewport-left", `${Math.max(0, offsetLeft)}px`);
+    overlay.style.setProperty("--mw-viewport-top", `${Math.max(0, offsetTop)}px`);
+  };
+  const suspend = (): void => {
+    if (!listening) return;
+    listening = false;
+    viewport.removeEventListener("resize", update);
+    viewport.removeEventListener("scroll", update);
+  };
+  const resume = (): void => {
+    if (disposed) return;
+    if (!overlay.isConnected) { cleanup(); return; }
+    if (!listening) {
+      viewport.addEventListener("resize", update, { passive: true });
+      viewport.addEventListener("scroll", update, { passive: true });
+      listening = true;
+    }
+    update();
+  };
+  const hide = (event: PageTransitionEvent): void => {
+    // A frozen page may return with the same open dialog and changed keyboard size.
+    if (event.persisted) suspend(); else cleanup();
+  };
+  const cleanup = (): void => {
+    if (disposed) return;
+    disposed = true;
+    suspend();
+    owner.removeEventListener("pagehide", hide);
+    owner.removeEventListener("pageshow", resume);
+  };
+  owner.addEventListener("pagehide", hide);
+  owner.addEventListener("pageshow", resume);
+  resume();
+  return cleanup;
 }
 
 export async function openMakerWorldDetailV6(
@@ -192,24 +284,36 @@ export async function openMakerWorldDetailV6(
 ): Promise<void> {
   const root = host.shadowRoot;
   if (!root) return;
-  const overlay = document.createElement("div");
+  const overlay = document.createElement("dialog");
   overlay.className = "mw-overlay";
+  overlay.setAttribute("aria-label", "MakerWorld-Modelldetails");
+  dialogStates.set(overlay, { busy: false, closed: false });
+  overlay.addEventListener("cancel", (event) => { event.preventDefault(); closeMakerWorldDialog(overlay); });
+  overlay.addEventListener("close", () => closeMakerWorldDialog(overlay));
   overlay.innerHTML = `<style>
-    .mw-overlay{position:fixed;inset:0;z-index:2147481000;display:grid;place-items:center;padding:18px;background:#000d;color:#f5f5f5;font:13px/1.4 Inter,Segoe UI,sans-serif}
-    .mw-dialog{width:min(1220px,calc(100vw - 36px));max-height:calc(100vh - 36px);overflow:hidden;border:1px solid #454545;border-radius:12px;background:#202020;box-shadow:0 30px 90px #000c}
-    .mw-loading{display:grid;place-items:center;min-height:420px;color:#bdbdbd}
-  </style><section class="mw-dialog"><div class="mw-loading">Lade MakerWorld-Druckprofile …</div></section>`;
+    .mw-overlay{box-sizing:border-box;position:fixed;inset:auto;left:var(--mw-viewport-left,0px);top:var(--mw-viewport-top,0px);width:var(--mw-viewport-width,100%);height:100vh;height:var(--mw-viewport-height,100dvh);max-width:none;max-height:none;margin:0;border:0;display:grid;place-items:center;overflow:hidden;padding:max(calc(var(--mw-viewport-height,100dvh) * .025),env(safe-area-inset-top,0px)) max(calc(var(--mw-viewport-width,100vw) * .025),env(safe-area-inset-right,0px)) max(calc(var(--mw-viewport-height,100dvh) * .025),env(safe-area-inset-bottom,0px)) max(calc(var(--mw-viewport-width,100vw) * .025),env(safe-area-inset-left,0px));background:transparent;color:#f5f5f5;font:13px/1.4 Inter,Segoe UI,sans-serif}.mw-overlay:not([open]){display:none}.mw-overlay::backdrop{background:#000d}
+    .mw-dialog{box-sizing:border-box;width:100%;height:100%;min-width:0;min-height:0;max-width:none;max-height:none;display:flex;flex-direction:column;overflow:hidden;border:1px solid #454545;border-radius:12px;background:#202020;box-shadow:0 30px 90px #000c;container-type:inline-size;container-name:makerworld-details}
+    .mw-loading{display:grid;place-items:center;flex:1;min-height:0;padding:12px;color:#bdbdbd;overflow:auto}
+    .mw-dialog>.mw-close{align-self:flex-end;flex:none;margin:10px;width:38px;height:38px;border:1px solid #494949;border-radius:50%;background:#2a2a2a;color:#fff;font-size:22px;cursor:pointer}
+    .mw-error{flex:0 1 auto;min-height:0;max-height:25%;overflow:auto;overflow-wrap:anywhere;margin:8px 12px;padding:10px;border:1px solid #7a3f49;border-radius:7px;background:#431d24;color:#ffd5da}
+  </style><section class="mw-dialog"><button type="button" class="mw-close" aria-label="Schließen">×</button><div class="mw-loading" role="status">Lade MakerWorld-Druckprofile …</div></section>`;
   root.append(overlay);
+  overlay.querySelector<HTMLButtonElement>(".mw-close")?.addEventListener("click", () => closeMakerWorldDialog(overlay));
   try {
+    overlay.showModal();
+    dialogStates.get(overlay)!.cleanupViewport = bindMakerWorldViewport(overlay);
     const [detail, library, catalog] = await Promise.all([
       api.detail(designId),
       new GalleryApi().list("", "", false),
       new ProfileApi().getCatalog(),
     ]);
+    if (dialogStates.get(overlay)?.closed || !overlay.isConnected) return;
     render(host, overlay, detail, api, library.tree.map((item) => item.path), catalog, onTag);
   } catch (error) {
-    overlay.querySelector<HTMLElement>(".mw-dialog")!.innerHTML = `<button class="mw-close">×</button><div class="mw-error">${esc(errorMessage(error))}</div>`;
-    overlay.querySelector<HTMLButtonElement>(".mw-close")?.addEventListener("click", () => overlay.remove());
+    if (dialogStates.get(overlay)?.closed || !overlay.isConnected) return;
+    if (!overlay.open) { closeMakerWorldDialog(overlay); throw error; }
+    overlay.querySelector<HTMLElement>(".mw-dialog")!.innerHTML = `<button type="button" class="mw-close" aria-label="Schließen">×</button><div class="mw-error">${esc(errorMessage(error))}</div>`;
+    overlay.querySelector<HTMLButtonElement>(".mw-close")?.addEventListener("click", () => closeMakerWorldDialog(overlay));
   }
 }
 
@@ -226,6 +330,7 @@ function render(
   activeTab: DetailTab = "description",
   activeImage = "",
 ): void {
+  if (dialogStates.get(overlay)?.busy || dialogStates.get(overlay)?.closed) return;
   const visibleInstances = selectedPrinter === "ALL"
     ? detail.instances
     : detail.instances.filter((item) => printerKey(item.printer_model || item.profile_name) === selectedPrinter);
@@ -241,16 +346,28 @@ function render(
   const selectedImage = images.includes(activeImage) ? activeImage : images[0] || "";
   const tabPanel = activeTab === "reviews" ? reviewsPanel(detail) : descriptionPanel(detail);
   const dialog = overlay.querySelector<HTMLElement>(".mw-dialog")!;
+  const printerProfileId = dialog.querySelector<HTMLSelectElement>("#target-printer")?.value ?? catalog.selection.printer_profile_id;
+  const focused = (dialog.getRootNode() as ShadowRoot).activeElement;
+  const focusAttribute = ["data-profile", "data-printer", "data-image", "data-tab"].find((name) => focused?.hasAttribute(name));
+  const focusValue = focusAttribute ? focused?.getAttribute(focusAttribute) : null;
+  const focusId = focused?.id || "";
+  const focusClose = focused?.classList.contains("mw-close");
+  const scrollPositions = [".mw-shell", ".mw-content", ".mw-left", ".mw-right", ".mw-profiles", ".mw-info", ".mw-recommendations", ".mw-target", ".mw-thumbs", ".mw-filters"].map((selector) => ({
+    selector, top: dialog.querySelector<HTMLElement>(selector)?.scrollTop ?? 0,
+    left: dialog.querySelector<HTMLElement>(selector)?.scrollLeft ?? 0,
+  }));
 
   dialog.innerHTML = `<style>
-    *{box-sizing:border-box}.mw-shell{display:grid;grid-template-rows:auto minmax(0,1fr);height:min(900px,calc(100vh - 36px));background:#202020}.mw-top{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid #353535}.mw-avatar{width:44px;height:44px;display:grid;place-items:center;border-radius:50%;background:#ebebeb;color:#111;font-weight:900}.mw-title{min-width:0}.mw-title h2{margin:0;font-size:20px}.mw-creator{display:flex;align-items:center;gap:7px;margin-top:3px;color:#d1d1d1}.mw-verified{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;background:#00c853;color:#071}.mw-close{margin-left:auto;width:38px;height:38px;border:1px solid #494949;border-radius:50%;background:#2a2a2a;color:#fff;font-size:22px;cursor:pointer}.mw-content{display:grid;grid-template-columns:minmax(0,1fr) minmax(500px,.96fr);min-height:0}.mw-left{display:grid;grid-template-rows:minmax(260px,1fr) auto minmax(220px,.72fr);gap:12px;min-width:0;min-height:0;padding:18px;border-right:1px solid #3a3a3a}.mw-hero{display:grid;place-items:center;min-height:0;overflow:hidden;border-radius:8px;background:#171717}.mw-hero img{display:block;width:100%;height:100%;object-fit:contain}.mw-hero-empty{color:#777}.mw-thumbs{display:grid;grid-auto-flow:column;grid-auto-columns:132px;gap:12px;overflow-x:auto;padding-bottom:2px}.mw-thumb{height:92px;padding:0;overflow:hidden;border:2px solid transparent;border-radius:7px;background:#2b2b2b;cursor:pointer}.mw-thumb.active{border-color:#00d618}.mw-thumb img{width:100%;height:100%;object-fit:cover}.mw-info{min-height:0;overflow:auto;border-top:1px solid #343434;padding-top:10px}.mw-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.mw-tab{padding:8px 12px;border:1px solid #444;border-radius:7px;background:#2b2b2b;color:#ddd;cursor:pointer;font-weight:800}.mw-tab.active{border-color:#00c916;color:#fff;background:#263a28}.mw-description table{border-collapse:collapse;max-width:100%}.mw-description td,.mw-description th{border:1px solid #555;padding:6px}.mw-description pre{white-space:pre-wrap;overflow-wrap:anywhere}.mw-description blockquote{border-left:3px solid #666;margin-left:0;padding-left:12px}.mw-description{color:#e4e4e4}.mw-description p{margin:0 0 10px}.mw-description a{color:#9adfff}.mw-desc-media,.mw-description-media{display:grid;gap:10px;margin:10px 0}.mw-desc-media,.mw-description-media figure{margin:0}.mw-desc-media img,.mw-description-media img{display:block;max-width:100%;border-radius:7px;background:#151515}.mw-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.mw-tags button{border:1px solid #4d4d4d;border-radius:999px;background:#303030;color:#cde;padding:5px 9px;cursor:pointer}.mw-license,.mw-empty{margin-top:9px;color:#aaa}.mw-review-composer{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;margin-bottom:10px}.mw-review-composer input{min-width:0;padding:9px;border:1px solid #494949;border-radius:7px;background:#171717;color:#fff}.mw-review-composer button,.mw-review-filters button,.mw-comment-actions button,.mw-more-replies{border:1px solid #444;border-radius:6px;background:#303030;color:#eee;padding:7px 9px;cursor:pointer}.mw-review-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;color:#ddd}.mw-review-filters span{font-weight:900}.mw-review-filters .active{border-color:#00cf14;background:#263a28}.mw-comments{display:grid;gap:12px}.mw-comment{display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px}.mw-comment.reply{margin-top:10px}.mw-comment-avatar{width:36px;height:36px;display:grid;place-items:center;overflow:hidden;border-radius:50%;background:#444;color:#fff;font-weight:900}.mw-comment-avatar img{width:100%;height:100%;object-fit:cover}.mw-comment-body{min-width:0;padding:10px;border:1px solid #393939;border-radius:8px;background:#282828}.mw-comment-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:#aaa}.mw-comment-head strong{color:#fff}.mw-boosted{padding:2px 5px;border-radius:4px;background:#4a3200;color:#ffc75a;font-weight:800}.mw-stars{color:#ffd34d;margin-top:4px}.mw-comment-body p{margin:7px 0;color:#eee}.mw-comment-actions{display:flex;gap:7px;flex-wrap:wrap}.mw-replies{display:grid;gap:8px;margin-top:10px}.mw-more-replies{margin-top:8px}.mw-social{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;color:#ccc}.mw-social button{border:1px solid #444;border-radius:999px;background:#303030;color:#eee;padding:6px 10px;cursor:pointer}.mw-social span{padding:6px 3px}.mw-right{display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;min-width:0;min-height:0}.mw-profile-head{padding:16px 16px 12px;border-bottom:1px solid #373737}.mw-profile-head h3{margin:0 0 12px;font-size:15px}.mw-filters{display:flex;gap:8px;overflow-x:auto}.mw-filter{min-width:max-content;padding:7px 12px;border:1px solid #444;border-radius:6px;background:#303030;color:#c9c9c9;cursor:pointer;font-weight:700}.mw-filter.active{background:#555;color:#fff}.mw-profiles{display:grid;align-content:start;gap:10px;overflow:auto;padding:14px 16px}.mw-profile{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;min-height:86px;padding:7px;border:1px solid transparent;border-radius:8px;background:#2b2b2b;cursor:pointer}.mw-profile:hover{background:#313131}.mw-profile.active{border-color:#00d318;background:#303830}.mw-profile-image{overflow:hidden;border-radius:5px;background:#171717}.mw-profile-image img{width:100%;height:100%;object-fit:cover}.mw-profile-copy{display:grid;align-content:center;gap:7px;min-width:0}.mw-profile-copy strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px}.mw-profile-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:#ddd;font-size:12px}.mw-badge{padding:2px 6px;border-radius:3px;background:#075f0c;color:#19ef2b}.mw-recommendations{border-top:1px solid #383838;padding:12px 16px;max-height:240px;overflow:auto}.mw-recommendations h3{margin:0 0 10px;font-size:14px}.mw-rec-grid{display:grid;gap:9px}.mw-recommendation{display:grid;grid-template-columns:66px minmax(0,1fr);gap:9px;align-items:center;padding:6px;border-radius:7px;background:#292929;cursor:pointer}.mw-recommendation:hover{background:#333}.mw-rec-image{height:54px;overflow:hidden;border-radius:5px;background:#171717}.mw-rec-image img{width:100%;height:100%;object-fit:cover}.mw-recommendation strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mw-recommendation span,.mw-recommendation small{display:block;color:#bbb}.mw-target{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end;padding:12px 16px;border-top:1px solid #383838;background:#242424}.mw-field{display:grid;gap:5px}.mw-field span{color:#aaa;font-size:11px}.mw-field select,.mw-field input{width:100%;min-height:42px;padding:9px 10px;border:1px solid #494949;border-radius:7px;background:#171717;color:#fff}.mw-actions{display:flex;gap:8px;flex-wrap:wrap}.mw-button{min-height:44px;padding:10px 14px;border:1px solid #4d4d4d;border-radius:7px;background:#303030;color:#fff;cursor:pointer;font-weight:700}.mw-primary{min-width:250px;border-color:#00d20f;background:#00c90e;color:#071b08;font-size:15px}.mw-primary:hover{background:#12e120}.mw-secondary-row{display:flex;gap:8px;margin-top:8px}.mw-error{margin:10px 16px;padding:10px;border:1px solid #7a3f49;border-radius:7px;background:#431d24;color:#ffd5da}.mw-result{margin-top:8px;color:#9deaa7}.mw-hint{margin-top:6px;color:#8f8f8f;font-size:11px}
-    @media(max-width:900px){.mw-shell{height:auto;max-height:calc(100vh - 24px);overflow:auto}.mw-content{grid-template-columns:1fr}.mw-left{min-height:600px;border-right:0;border-bottom:1px solid #3a3a3a}.mw-right{min-height:720px}.mw-target{grid-template-columns:1fr}.mw-actions{display:grid;grid-template-columns:1fr}.mw-primary{min-width:0}.mw-secondary-row{display:grid;grid-template-columns:1fr 1fr}.mw-thumbs{grid-auto-columns:104px}.mw-thumb{height:72px}.mw-review-composer{grid-template-columns:1fr}}
+    *{box-sizing:border-box}.mw-shell{display:grid;grid-template-rows:auto minmax(0,1fr) auto;flex:1;min-height:0;height:100%;overflow:hidden;background:#202020}.mw-top{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #353535;min-height:0;max-height:calc(var(--mw-viewport-height,100dvh) * .25);overflow:auto}.mw-avatar{flex-shrink:0;width:44px;height:44px;display:grid;place-items:center;border-radius:50%;background:#ebebeb;color:#111;font-weight:900}.mw-title{min-width:0}.mw-title h2{margin:0;font-size:20px;overflow-wrap:anywhere}.mw-creator{display:flex;align-items:center;gap:7px;margin-top:3px;color:#d1d1d1}.mw-close{flex-shrink:0;align-self:flex-start;margin-left:auto;width:38px;height:38px;border:1px solid #494949;border-radius:50%;background:#2a2a2a;color:#fff;font-size:22px;cursor:pointer}.mw-content{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.96fr);min-width:0;min-height:0;overflow:hidden}.mw-left{display:grid;grid-template-rows:minmax(0,1fr) auto minmax(0,.85fr);gap:12px;min-width:0;min-height:0;padding:18px;border-right:1px solid #3a3a3a}.mw-hero{display:grid;place-items:center;min-height:0;overflow:hidden;border-radius:8px;background:#171717}.mw-hero img{display:block;width:100%;height:100%;object-fit:contain}.mw-hero-empty{color:#777}.mw-thumbs{display:grid;grid-auto-flow:column;grid-auto-columns:132px;gap:12px;overflow-x:auto;padding-bottom:2px}.mw-thumb{height:92px;padding:0;overflow:hidden;border:2px solid transparent;border-radius:7px;background:#2b2b2b;cursor:pointer}.mw-thumb.active{border-color:#00d618}.mw-thumb img{width:100%;height:100%;object-fit:cover}.mw-info{min-height:0;overflow:auto;border-top:1px solid #343434;padding-top:10px}.mw-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.mw-tab{padding:8px 12px;border:1px solid #444;border-radius:7px;background:#2b2b2b;color:#ddd;cursor:pointer;font-weight:800}.mw-tab.active{border-color:#00c916;color:#fff;background:#263a28}.mw-description table{border-collapse:collapse;max-width:100%}.mw-description td,.mw-description th{border:1px solid #555;padding:6px}.mw-description pre{white-space:pre-wrap;overflow-wrap:anywhere}.mw-description blockquote{border-left:3px solid #666;margin-left:0;padding-left:12px}.mw-description{color:#e4e4e4}.mw-description p{margin:0 0 10px}.mw-description a{color:#9adfff}.mw-desc-media,.mw-description-media{display:grid;gap:10px;margin:10px 0}.mw-desc-media,.mw-description-media figure{margin:0}.mw-desc-media img,.mw-description-media img{display:block;max-width:100%;border-radius:7px;background:#151515}.mw-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.mw-tags button{border:1px solid #4d4d4d;border-radius:999px;background:#303030;color:#cde;padding:5px 9px;cursor:pointer}.mw-empty{margin-top:9px;color:#aaa}.mw-license{display:grid;gap:4px;padding:10px 0;color:#ddd;font-size:14px;overflow-wrap:anywhere}.mw-license strong{color:#fff}.mw-review-composer{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;margin-bottom:10px}.mw-review-composer input{min-width:0;padding:9px;border:1px solid #494949;border-radius:7px;background:#171717;color:#fff}.mw-review-composer button,.mw-review-filters button,.mw-comment-actions button,.mw-more-replies{border:1px solid #444;border-radius:6px;background:#303030;color:#eee;padding:7px 9px;cursor:pointer}.mw-review-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;color:#ddd}.mw-review-filters span{font-weight:900}.mw-review-filters .active{border-color:#00cf14;background:#263a28}.mw-comments{display:grid;gap:12px}.mw-comment{display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px}.mw-comment.reply{margin-top:10px}.mw-comment-avatar{width:36px;height:36px;display:grid;place-items:center;overflow:hidden;border-radius:50%;background:#444;color:#fff;font-weight:900}.mw-comment-avatar img{width:100%;height:100%;object-fit:cover}.mw-comment-body{min-width:0;padding:10px;border:1px solid #393939;border-radius:8px;background:#282828}.mw-comment-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:#aaa}.mw-comment-head strong{color:#fff}.mw-boosted{padding:2px 5px;border-radius:4px;background:#4a3200;color:#ffc75a;font-weight:800}.mw-stars{color:#ffd34d;margin-top:4px}.mw-comment-body p{margin:7px 0;color:#eee}.mw-comment-actions{display:flex;gap:7px;flex-wrap:wrap}.mw-replies{display:grid;gap:8px;margin-top:10px}.mw-more-replies{margin-top:8px}.mw-social{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;color:#ccc}.mw-social button{border:1px solid #444;border-radius:999px;background:#303030;color:#eee;padding:6px 10px;cursor:pointer}.mw-social span{padding:6px 3px}.mw-right{display:grid;grid-template-rows:auto minmax(0,1fr) minmax(0,.4fr);min-width:0;min-height:0;overflow:hidden}.mw-profile-head{padding:16px 16px 12px;border-bottom:1px solid #373737}.mw-profile-head h3{margin:0 0 12px;font-size:15px}.mw-filters{display:flex;gap:8px;overflow-x:auto}.mw-filter{min-width:max-content;padding:7px 12px;border:1px solid #444;border-radius:6px;background:#303030;color:#c9c9c9;cursor:pointer;font-weight:700}.mw-filter.active{background:#555;color:#fff}.mw-profiles{display:grid;min-height:0;align-content:start;gap:10px;overflow:auto;padding:14px 16px}.mw-profile{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;min-height:86px;padding:7px;border:1px solid transparent;border-radius:8px;background:#2b2b2b;cursor:pointer}.mw-profile:hover{background:#313131}.mw-profile.active{border-color:#00d318;background:#303830}.mw-profile-image{overflow:hidden;border-radius:5px;background:#171717}.mw-profile-image img{width:100%;height:100%;object-fit:cover}.mw-profile-copy{display:grid;align-content:center;gap:7px;min-width:0}.mw-profile-copy strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px}.mw-profile-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:#ddd;font-size:12px}.mw-badge{padding:2px 6px;border-radius:3px;background:#075f0c;color:#19ef2b}.mw-recommendations{border-top:1px solid #383838;padding:12px 16px;min-height:0;overflow:auto}.mw-recommendations h3{margin:0 0 10px;font-size:14px}.mw-rec-grid{display:grid;gap:9px}.mw-recommendation{display:grid;grid-template-columns:66px minmax(0,1fr);gap:9px;align-items:center;padding:6px;border-radius:7px;background:#292929;cursor:pointer}.mw-recommendation:hover{background:#333}.mw-rec-image{height:54px;overflow:hidden;border-radius:5px;background:#171717}.mw-rec-image img{width:100%;height:100%;object-fit:cover}.mw-recommendation strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mw-recommendation span,.mw-recommendation small{display:block;color:#bbb}.mw-target{display:grid;grid-template-columns:minmax(0,.65fr) minmax(0,1fr) auto;gap:8px 16px;align-items:center;min-width:0;min-height:0;max-height:calc(var(--mw-viewport-height,100dvh) * .35);overflow:auto;padding:10px 16px;border-top:1px solid #383838;background:#242424}.mw-target>div{min-width:0}.mw-target .mw-license{padding:0}.mw-result{grid-column:1/-1}.mw-result:empty{display:none}.mw-field{display:grid;gap:5px}.mw-field span{color:#aaa;font-size:11px}.mw-field select,.mw-field input{width:100%;min-height:42px;padding:9px 10px;border:1px solid #494949;border-radius:7px;background:#171717;color:#fff}.mw-actions{display:flex;gap:8px;flex-wrap:wrap}.mw-button{min-height:44px;padding:10px 14px;border:1px solid #4d4d4d;border-radius:7px;background:#303030;color:#fff;cursor:pointer;font-weight:700}.mw-primary{min-width:0;border-color:#00d20f;background:#00c90e;color:#071b08;font-size:15px}.mw-primary:hover{background:#12e120}.mw-secondary-row{display:flex;gap:8px;margin-top:8px}.mw-result{margin-top:8px;color:#9deaa7}.mw-hint{margin-top:6px;color:#8f8f8f;font-size:11px}
+    .mw-info,.mw-profiles,.mw-recommendations,.mw-target,.mw-thumbs,.mw-filters{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+    @container makerworld-details (max-width:900px){.mw-content{display:block;overflow-y:auto;overscroll-behavior:contain}.mw-left{grid-template-rows:minmax(120px,30dvh) auto minmax(100px,32dvh);padding:12px;border-right:0;border-bottom:1px solid #3a3a3a}.mw-right{height:65dvh;min-height:320px}.mw-target{grid-template-columns:minmax(0,.7fr) minmax(0,1fr);gap:6px 10px;padding:8px 12px}.mw-actions{grid-column:1/-1;display:flex;align-items:center;flex-wrap:wrap}.mw-primary{flex:1}.mw-secondary-row{margin-top:0;flex-wrap:wrap}.mw-thumbs{grid-auto-columns:104px}.mw-thumb{height:72px}.mw-review-composer{grid-template-columns:1fr}.mw-top{padding:10px;gap:8px}.mw-title h2{font-size:16px}.mw-social{gap:5px;margin-top:5px}.mw-social button{padding:4px 7px}.mw-field select,.mw-field input{font-size:16px}}
+    @media(max-height:500px){.mw-top{padding:6px 10px}.mw-title h2{font-size:15px}.mw-avatar{width:32px;height:32px}.mw-social{margin-top:3px;gap:4px}.mw-thumb{height:48px}.mw-target{padding:6px 10px}.mw-profile-head{padding:8px 10px}.mw-left{padding:8px;gap:6px}}
   </style>
   <section class="mw-shell">
     <header class="mw-top">
       <div class="mw-avatar">${esc((detail.creator || "M").slice(0,1).toUpperCase())}</div>
-      <div class="mw-title"><h2>${esc(detail.title)}</h2><div class="mw-creator">${esc(detail.creator || "MakerWorld")} <span class="mw-verified">✓</span></div>${statButtons(detail)}</div>
-      <button class="mw-close" type="button">×</button>
+      <div class="mw-title"><h2>${esc(detail.title)}</h2><div class="mw-creator">${esc(detail.creator || "MakerWorld")}</div>${statButtons(detail)}</div>
+      <button class="mw-close" type="button" aria-label="Schließen">×</button>
     </header>
     <div class="mw-content">
       <section class="mw-left">
@@ -260,27 +377,37 @@ function render(
       </section>
       <section class="mw-right">
         <div class="mw-profile-head"><h3>Druckdateien (${profileHeadingCount(detail)})</h3><div class="mw-filters"><button class="mw-filter ${selectedPrinter === "ALL" ? "active" : ""}" data-printer="ALL" type="button">Alle</button>${printers.map((printer) => `<button class="mw-filter ${selectedPrinter === printer ? "active" : ""}" data-printer="${esc(printer)}" type="button">${esc(printer)}</button>`).join("")}</div></div>
-        <div class="mw-profiles">${visibleInstances.map((item) => `<article class="mw-profile ${item.id === selected?.id ? "active" : ""}" data-profile="${esc(item.id)}"><div class="mw-profile-image">${item.thumbnail_url ? `<img src="${esc(item.thumbnail_url)}" alt="${esc(item.title)}">` : ""}</div><div class="mw-profile-copy"><strong>${esc(item.title)}</strong><div class="mw-profile-meta"><span class="mw-badge">Designer</span><span>◷ ${esc(profileDuration(item))}</span><span>▣ ${item.plate_count} Platten</span><span>⚖ ${esc(profileWeight(item))}</span><span>${esc(item.printer_model || item.profile_name || "")}</span></div></div></article>`).join("") || '<div class="mw-hint">Für diesen Drucker sind keine MakerWorld-Druckprofile vorhanden.</div>'}</div>
+        <div class="mw-profiles">${visibleInstances.map((item) => `<article class="mw-profile ${item.id === selected?.id ? "active" : ""}" data-profile="${esc(item.id)}" role="button" tabindex="0" aria-pressed="${item.id === selected?.id}"><div class="mw-profile-image">${item.thumbnail_url ? `<img src="${esc(item.thumbnail_url)}" alt="${esc(item.title)}">` : ""}</div><div class="mw-profile-copy"><strong>${esc(item.title)}</strong><div class="mw-profile-meta"><span class="mw-badge">Designer</span><span>◷ ${esc(profileDuration(item))}</span><span>▣ ${item.plate_count} Platten</span><span>⚖ ${esc(profileWeight(item))}</span><span>${esc(item.printer_model || item.profile_name || "")}</span></div></div></article>`).join("") || '<div class="mw-hint">Für diesen Drucker sind keine MakerWorld-Druckprofile vorhanden.</div>'}</div>
         <div class="mw-recommendations"><h3>Ideen für Sie</h3><div class="mw-rec-grid">${recommendationsHtml(detail.recommendations)}</div></div>
-        <div class="mw-target">
-          <div><label class="mw-field"><span>Ziel-Druckerprofil</span><select id="target-printer">${optionRows(catalog.groups.printer, catalog.selection.printer_profile_id)}</select></label><div class="mw-hint">Nur der Ziel-Drucker wird ersetzt. Alle übrigen MakerWorld-Slicerwerte bleiben erhalten.</div></div>
-          <div class="mw-actions"><button class="mw-button mw-primary" data-action="studio" type="button">Im Studio öffnen</button><div class="mw-secondary-row"><button class="mw-button" data-action="save" type="button">Galerie</button><button class="mw-button" data-action="download" type="button">3MF</button></div></div>
-          <div id="result" class="mw-result"></div>
-        </div>
       </section>
     </div>
+    <footer class="mw-target">
+          ${makerWorldLicenseHtml(detail.license)}
+          <div><label class="mw-field"><span>Ziel-Druckerprofil</span><select id="target-printer">${optionRows(catalog.groups.printer, printerProfileId)}</select></label><div class="mw-hint">Die gewählte 3MF-Variante wird mit ihren Platten ins Studio geladen. Druckprofil, Düse und Materialzuordnung vor dem Slicen prüfen.</div></div>
+          <div class="mw-actions"><button class="mw-button mw-primary" data-action="studio" type="button">Im Studio öffnen</button><div class="mw-secondary-row"><button class="mw-button" data-action="save" type="button">Galerie</button><button class="mw-button" data-action="download" type="button">3MF</button></div></div>
+          <div id="result" class="mw-result" role="status"></div>
+    </footer>
   </section>`;
 
-  dialog.querySelector<HTMLButtonElement>(".mw-close")?.addEventListener("click", () => overlay.remove());
+  for (const saved of scrollPositions) {
+    const node = dialog.querySelector<HTMLElement>(saved.selector);
+    if (node) { node.scrollTop = saved.top; node.scrollLeft = saved.left; }
+  }
+  const focusTarget = focusAttribute
+    ? [...dialog.querySelectorAll<HTMLElement>(`[${focusAttribute}]`)].find((node) => node.getAttribute(focusAttribute) === focusValue)
+    : focusId === "target-printer" ? dialog.querySelector<HTMLElement>("#target-printer")
+    : focusClose ? dialog.querySelector<HTMLElement>(".mw-close") : null;
+  focusTarget?.focus({ preventScroll: true });
+  dialog.querySelector<HTMLButtonElement>(".mw-close")?.addEventListener("click", () => closeMakerWorldDialog(overlay));
   dialog.querySelectorAll<HTMLButtonElement>("[data-printer]").forEach((button) => button.addEventListener("click", () => render(host, overlay, detail, api, folders, catalog, onTag, "", button.dataset.printer || "ALL", activeTab, selectedImage)));
-  dialog.querySelectorAll<HTMLElement>("[data-profile]").forEach((node) => node.addEventListener("click", () => render(host, overlay, detail, api, folders, catalog, onTag, node.dataset.profile || "", selectedPrinter, activeTab, "")));
+  dialog.querySelectorAll<HTMLElement>("[data-profile]").forEach((node) => bindCardActivation(node, () => render(host, overlay, detail, api, folders, catalog, onTag, node.dataset.profile || "", selectedPrinter, activeTab, "")));
   dialog.querySelectorAll<HTMLButtonElement>("[data-image]").forEach((button) => button.addEventListener("click", () => render(host, overlay, detail, api, folders, catalog, onTag, selected?.id || "", selectedPrinter, activeTab, button.dataset.image || "")));
   dialog.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach((button) => button.addEventListener("click", () => render(host, overlay, detail, api, folders, catalog, onTag, selected?.id || "", selectedPrinter, (button.dataset.tab as DetailTab) || "description", selectedImage)));
-  dialog.querySelectorAll<HTMLButtonElement>("[data-tag]").forEach((button) => button.addEventListener("click", () => { onTag(button.dataset.tag || ""); overlay.remove(); }));
-  dialog.querySelectorAll<HTMLElement>("[data-recommendation]").forEach((node) => node.addEventListener("click", () => {
+  dialog.querySelectorAll<HTMLButtonElement>("[data-tag]").forEach((button) => button.addEventListener("click", () => { onTag(button.dataset.tag || ""); closeMakerWorldDialog(overlay); }));
+  dialog.querySelectorAll<HTMLElement>("[data-recommendation]").forEach((node) => bindCardActivation(node, () => {
     const nextId = node.dataset.recommendation || "";
     if (nextId) {
-      overlay.remove();
+      closeMakerWorldDialog(overlay);
       void openMakerWorldDetailV6(host, nextId, api, onTag);
     }
   }));
@@ -289,8 +416,8 @@ function render(
     if (result) result.textContent = "Diese MakerWorld-Aktion ist sichtbar vorbereitet; Schreibaktionen werden erst verbunden, wenn die offizielle Aktion im Backend verfügbar ist.";
   }));
   dialog.querySelector<HTMLButtonElement>('[data-action="studio"]')?.addEventListener("click", () => void transfer(host, overlay, detail, selected, api, "studio", folders));
-  dialog.querySelector<HTMLButtonElement>('[data-action="save"]')?.addEventListener("click", () => void save(dialog, selected, api, folders));
-  dialog.querySelector<HTMLButtonElement>('[data-action="download"]')?.addEventListener("click", () => void download(detail, selected, api, dialog));
+  dialog.querySelector<HTMLButtonElement>('[data-action="save"]')?.addEventListener("click", () => void save(overlay, selected, api, folders));
+  dialog.querySelector<HTMLButtonElement>('[data-action="download"]')?.addEventListener("click", () => void download(detail, selected, api, overlay));
 }
 
 async function transfer(
@@ -309,45 +436,59 @@ async function transfer(
     show(dialog, new Error("Bitte ein Ziel-Druckerprofil auswählen."));
     return;
   }
-  try {
-    await new ProfileApi().saveSelection({ printer_profile_id: printerProfileId });
+  await runMakerWorldAction(overlay, async (active) => {
+    let saved: MakerWorldSavedItem | null = null;
     if (target === "studio") {
       try {
-        await api.save(instance, folders[0] || "", `${instance.title}.3mf`, false);
+        saved = await api.save(instance, folders[0] || "", `${instance.title}.3mf`, false);
       } catch (error) {
         if (!galleryAlreadyContains(error)) throw error;
       }
+      if (!active()) return;
     }
-    const file = await api.download(instance, target === "studio" ? "stl" : "3mf", `${detail.title} - ${instance.title}`);
-    queueWorkspaceFile(target, file);
-    overlay.remove();
-    host.dispatchEvent(new CustomEvent(target === "studio" ? "gallery-open-studio" : "gallery-open-slicer", { bubbles: true, composed: true }));
-  } catch (error) {
-    show(dialog, error);
-  }
+    // The newly saved asset is the selected 3MF: reuse the server project path,
+    // avoiding a browser download/re-upload for large archives. A name collision
+    // must never open the pre-existing file, which may be a different variant.
+    const storedProject = saved?.kind === "model" && String(saved.asset_id || "").trim() && /\.3mf$/i.test(saved.name)
+      ? { assetId: saved.asset_id, fileName: saved.name, replaceWorkspace: true }
+      : null;
+    const handoff = storedProject ?? {
+      file: await api.download(instance, "3mf", `${detail.title} - ${instance.title}`),
+      replaceWorkspace: true,
+    };
+    if (!active()) return;
+    await new ProfileApi().saveSelection({ printer_profile_id: printerProfileId });
+    if (!active()) return;
+    closeMakerWorldDialog(overlay);
+    host.dispatchEvent(new CustomEvent(target === "studio" ? "gallery-open-studio" : "gallery-open-slicer", {
+      bubbles: true, composed: true, detail: handoff,
+    }));
+  });
 }
 
-async function save(dialog: HTMLElement, instance: MakerWorldInstance | null, api: MakerWorldV6Adapter2, folders: readonly string[]): Promise<void> {
+async function save(overlay: HTMLElement, instance: MakerWorldInstance | null, api: MakerWorldV6Adapter2, folders: readonly string[]): Promise<void> {
   if (!instance) return;
-  try {
+  await runMakerWorldAction(overlay, async (active) => {
     const folder = folders[0] || "";
     const saved = await api.save(instance, folder, `${instance.title}.3mf`, false);
-    const result = dialog.querySelector<HTMLElement>("#result");
+    if (!active()) return;
+    const result = dialogOf(overlay).querySelector<HTMLElement>("#result");
     if (result) result.textContent = `${saved.name} wurde gespeichert.`;
-  } catch (error) { show(dialog, error); }
+  });
 }
 
-async function download(detail: MakerWorldDetail, instance: MakerWorldInstance | null, api: MakerWorldV6Adapter2, dialog: HTMLElement): Promise<void> {
+async function download(detail: MakerWorldDetail, instance: MakerWorldInstance | null, api: MakerWorldV6Adapter2, overlay: HTMLElement): Promise<void> {
   if (!instance) return;
-  try {
+  await runMakerWorldAction(overlay, async (active) => {
     const file = await api.download(instance, "3mf", `${detail.title} - ${instance.title}`);
+    if (!active()) return;
     const url = URL.createObjectURL(file);
     const anchor = document.createElement("a");
     anchor.href = url;
     anchor.download = file.name;
     anchor.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-  } catch (error) { show(dialog, error); }
+  });
 }
 
 function dialogOf(overlay: HTMLElement): HTMLElement {
@@ -359,6 +500,9 @@ function show(host: HTMLElement, error: unknown): void {
   if (existing) existing.remove();
   const message = document.createElement("div");
   message.className = "mw-error";
+  message.setAttribute("role", "alert");
+  message.tabIndex = 0;
   message.textContent = errorMessage(error);
   host.append(message);
 }
+
