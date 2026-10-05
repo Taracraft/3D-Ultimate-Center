@@ -1,0 +1,57 @@
+name: Studio Sync Candidate
+
+on:
+  push:
+    branches: [sync/studio-release-20261005]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  makerworld-source-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Verify exact reviewed source identities
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          root = Path.cwd()
+          record = json.loads((root / 'studio-v6/docs/publication-stage-20261005.json').read_text())
+          assert record['full_repository_sync_complete'] is False
+          assert record['live_deployed'] is False
+          for row in record['files']:
+              path = root / row['public_path']
+              assert path.is_file() and not path.is_symlink(), row['public_path']
+              data = path.read_bytes()
+              assert hashlib.sha256(data).hexdigest() == row['sha256'], row['public_path']
+              assert hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data, usedforsecurity=False).hexdigest() == row['git_blob_sha'], row['public_path']
+          print('Verified', len(record['files']), 'reviewed files; no live deployment')
+          PY
+      - name: Assemble the existing repository layout for isolated source tests
+        run: |
+          mkdir -p studio-v6/deploy/homeassistant/custom_components
+          test ! -e studio-v6/deploy/homeassistant/custom_components/ultimate_3d_studio_v6
+          cp -a homeassistant/custom_components/ultimate_3d_studio_v6 studio-v6/deploy/homeassistant/custom_components/
+      - name: Install isolated test dependencies
+        run: python -m pip install --disable-pip-version-check 'pytest>=8,<10' 'aiohttp>=3.9,<4' 'yarl>=1,<2'
+      - name: Test the actual MakerWorld download path and source identity tool
+        working-directory: studio-v6
+        run: python -m pytest -q tests/test_makerworld_transfer_contract.py tests/test_source_fingerprint.py --junitxml=.test-results/publication-junit.xml
+      - name: Retain source-bound test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: studio-source-sync-evidence
+          path: |
+            studio-v6/.test-results/publication-junit.xml
+            studio-v6/.test-results/public-source-fingerprints.json
+            studio-v6/.test-results/public-transfer-fingerprints.json
+          if-no-files-found: error
+          retention-days: 7

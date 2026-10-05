@@ -161,35 +161,15 @@ async def _async_fetch_3mf(runtime: MakerWorldRuntime, signed_url: str) -> bytes
 
 
 async def async_download_instance(runtime: MakerWorldRuntime, instance_id: str) -> bytes:
-    """Resolve and download one MakerWorld print profile."""
-    normalized = _text(instance_id, 90)
-    if not _INSTANCE_ID.fullmatch(normalized):
+    """Use the same signed transfer contract for cached legacy view callers."""
+    if not isinstance(instance_id, str) or not _INSTANCE_ID.fullmatch(instance_id):
         raise ValueError("Ungültige MakerWorld-Druckprofil-ID")
-    model_id = _INSTANCE_MODEL_IDS.get(normalized, "")
-    resolution_error = ""
-    if model_id:
-        try:
-            payload = await runtime._json(
-                f"iot-service/api/user/profile/{normalized}",
-                {"model_id": model_id},
-            )
-            signed_url = _download_url_from_payload(payload)
-            if not signed_url:
-                raise MakerWorldError(
-                    "Bambu-Profilauflösung enthält keine freigegebene Download-URL"
-                )
-            return await _async_fetch_3mf(runtime, signed_url)
-        except Exception as exc:
-            resolution_error = str(exc)
-    try:
-        return await runtime.async_download_instance(normalized)
-    except Exception as legacy_exc:
-        if not model_id:
-            raise MakerWorldError(
-                "MakerWorld-Druckprofil wurde nicht aus den Modelldetails aufgelöst. "
-                "Modelldetails erneut öffnen und den Download wiederholen."
-            ) from legacy_exc
+    model_id = _INSTANCE_MODEL_IDS.get(instance_id, "")
+    if not model_id:
         raise MakerWorldError(
-            "MakerWorld-Profil konnte weder über Bambu iot-service noch über den "
-            f"Legacy-Pfad geladen werden: {resolution_error} | {legacy_exc}"
-        ) from legacy_exc
+            "MakerWorld-Druckprofil wurde nicht aus den Modelldetails aufgelöst. "
+            "Modelldetails erneut öffnen und das gewünschte Profil auswählen."
+        )
+    return await runtime.async_download_instance(
+        instance_id, profile_id=instance_id, model_id=model_id,
+    )
