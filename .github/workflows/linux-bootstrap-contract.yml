@@ -1,0 +1,81 @@
+name: Linux Bootstrap Contract
+
+on:
+  push:
+    branches: [sync/studio-release-20261005]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-package-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Verify reviewed source identities
+        shell: bash
+        run: |
+          echo '0cb4e28b8132ae988cfb4a21944c186b3e32bc4565eb12628864d8ef5a0818e3  studio-v6/tools/studio_linux_preflight.py' | sha256sum -c -
+          echo '7d04ab0bc937d2065adaf7b519ce9e81542bfea608439bce95b8489652bdd095  studio-v6/tests/test_studio_linux_preflight.py' | sha256sum -c -
+          echo '932b41f251646f5434fcae010f7b7059d3d58b3be8265f77ff09257b867e3921  scripts/rebuild-homeassist.sh' | sha256sum -c -
+          cmp scripts/rebuild-homeassist.sh studio-v6/scripts/rebuild-homeassist.sh
+          bash -n scripts/rebuild-homeassist.sh
+      - name: Test exact source files in an isolated layout
+        shell: bash
+        run: |
+          mkdir -p .bootstrap-tests/{tools,tests,scripts} .bootstrap-evidence
+          cp studio-v6/tools/studio_linux_preflight.py .bootstrap-tests/tools/
+          cp studio-v6/tests/test_studio_linux_preflight.py .bootstrap-tests/tests/
+          cp scripts/rebuild-homeassist.sh .bootstrap-tests/scripts/
+          python -m pip install --disable-pip-version-check 'pytest>=8,<10'
+          python -m pytest --noconftest -q .bootstrap-tests/tests/test_studio_linux_preflight.py --junitxml=.bootstrap-evidence/contract.xml
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          suites = ET.parse('.bootstrap-evidence/contract.xml').getroot().findall('.//testsuite')
+          assert sum(int(s.get('tests', 0)) for s in suites) == 57
+          assert all(int(s.get(key, 0)) == 0 for s in suites for key in ('failures', 'errors', 'skipped'))
+          PY
+          git rev-parse HEAD > .bootstrap-evidence/commit.txt
+          sha256sum studio-v6/tools/studio_linux_preflight.py studio-v6/tests/test_studio_linux_preflight.py scripts/rebuild-homeassist.sh > .bootstrap-evidence/source.sha256
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: linux-bootstrap-contract-evidence
+          path: .bootstrap-evidence/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  actual-native-package-completeness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Validate real published sources, without fixtures or live fallback
+        shell: bash
+        run: |
+          mkdir -p .bootstrap-evidence
+          git rev-parse HEAD > .bootstrap-evidence/commit.txt
+          python studio-v6/tools/studio_linux_preflight.py --source-root "$GITHUB_WORKSPACE" --layout public --check | tee .bootstrap-evidence/actual-package.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: linux-bootstrap-actual-package
+          path: .bootstrap-evidence/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
