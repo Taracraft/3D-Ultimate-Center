@@ -51,21 +51,26 @@ def _setting_values(value: str) -> list[str]:
 def _metadata(text: str) -> tuple[list[str], list[str]]:
     colors: list[str] = []
     names: list[str] = []
-    fallback_color = ""
     for raw in text.splitlines():
         match = _SETTING.match(raw)
         if not match:
             continue
         key = match.group(1).casefold()
         values = _setting_values(match.group(2))
-        if key == "filament_colour" and values:
-            colors = values
+        if key == "filament_colour":
+            raw = match.group(2).strip()
+            try:
+                decoded = json.loads(raw)
+            except json.JSONDecodeError:
+                decoded = raw
+            if isinstance(decoded, list):
+                colors = [item.strip() if isinstance(item, str) else "" for item in decoded]
+            elif isinstance(decoded, str):
+                colors = [item.strip().strip('"') for item in re.split(r"[;,]", decoded)] if decoded else []
+            else:
+                colors = []
         elif key == "filament_settings_id" and values:
             names = values
-        elif key == "extruder_colour" and values:
-            fallback_color = values[0]
-    if not colors and fallback_color:
-        colors = [fallback_color]
     normalized = []
     for value in colors:
         color = value.strip().upper()
@@ -73,7 +78,7 @@ def _metadata(text: str) -> tuple[list[str], list[str]]:
             color = f"#{color}"
         if re.fullmatch(r"#[0-9A-F]{8}", color):
             color = color[:7]
-        normalized.append(color if re.fullmatch(r"#[0-9A-F]{6}", color) else "#50DB6C")
+        normalized.append(color if re.fullmatch(r"#[0-9A-F]{6}", color) else "")
     return normalized, names
 
 
