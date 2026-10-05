@@ -82,12 +82,25 @@ def test_3mf_parser(tmp_path) -> None:
     assert metadata.bounds.maximum.x == 10.0
 
 
-def test_large_stl_from_file() -> None:
+def _write_large_stl(path: Path, triangle_count: int = 50_000) -> None:
+    """Create deterministic parser input inside the test's isolated directory."""
+    header = b"Large STL test model for performance testing".ljust(80, b"\0")
+    triangle = struct.Struct("<12fH")
+    with path.open("xb") as stream:
+        stream.write(header)
+        stream.write(struct.pack("<I", triangle_count))
+        for index in range(triangle_count):
+            z = (index / 500) * 0.2
+            stream.write(triangle.pack(0, 0, 1, 0, 0, z, 0.5, 0, z, 0, 0.5, z, 0))
+
+
+def test_large_stl_from_file(tmp_path: Path) -> None:
     """Test parsing of a large STL file with 50000 triangles."""
     from core.mesh_parsers import parse_stl
     
-    stl_path = Path(__file__).parent / "large_model.stl"
-    assert stl_path.exists(), f"STL file not found: {stl_path}"
+    stl_path = tmp_path / "large_model.stl"
+    _write_large_stl(stl_path)
+    assert stl_path.stat().st_size == 84 + 50_000 * 50
     
     metadata = parse_stl(stl_path)
     
@@ -109,34 +122,15 @@ def test_large_stl_from_file() -> None:
     assert sum(face.area for face in metadata.candidate_faces) > 0
 
 
-def test_large_stl_performance() -> None:
-    """Test parsing of a large STL file with 50000 triangles (1000+ layers)."""
+def test_large_stl_performance(tmp_path: Path) -> None:
+    """Test parsing of 50000 triangles spanning approximately 20 millimeters."""
     import struct
     from core.mesh_parsers import parse_stl
     
-    # Create binary STL with 50000 triangles (should create ~1000 layers at 0.2mm)
-    stl_path = Path(__file__).parent / "large_model_test.stl"
-    num_triangles = 50000
-    
-    with stl_path.open("wb") as f:
-        # Header (80 bytes) - must be exactly 80 bytes
-        header = b"Large STL test model for performance testing"
-        f.write(header + b"\x00" * (80 - len(header)))
-        # Triangle count (4 bytes)
-        f.write(struct.pack("<I", num_triangles))
-        
-        # 50000 triangles, each 50 bytes
-        for i in range(num_triangles):
-            # Normal vector (12 bytes)
-            f.write(struct.pack("<3f", 0.0, 0.0, 1.0))
-            # Three vertices (36 bytes)
-            z = (i / 500) * 0.2  # 0.2mm per layer, 500 triangles per layer
-            f.write(struct.pack("<3f", 0.0, 0.0, z))
-            f.write(struct.pack("<3f", 0.5, 0.0, z))
-            f.write(struct.pack("<3f", 0.0, 0.5, z))
-            # Attribute byte count (2 bytes)
-            f.write(struct.pack("<H", 0))
-    
+    stl_path = tmp_path / "large_model_test.stl"
+    _write_large_stl(stl_path)
+    assert stl_path.stat().st_size == 84 + 50_000 * 50
+
     metadata = parse_stl(stl_path)
     
     # Should have all triangles
@@ -156,3 +150,13 @@ def test_large_stl_performance() -> None:
     assert len(metadata.candidate_faces) > 0
     total_area = sum(face.area for face in metadata.candidate_faces)
     assert total_area > 0
+
+
+def test_large_stl_fixture_is_deterministic_and_exactly_sized(tmp_path: Path) -> None:
+    first, second = tmp_path / "first.stl", tmp_path / "second.stl"
+    _write_large_stl(first, triangle_count=10)
+    _write_large_stl(second, triangle_count=10)
+    assert first.read_bytes() == second.read_bytes()
+    assert first.stat().st_size == 84 + 10 * 50
+    assert struct.unpack_from("<I", first.read_bytes(), 80)[0] == 10
+    assert parse_stl(first).triangle_count == 10
