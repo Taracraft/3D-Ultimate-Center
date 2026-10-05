@@ -14,6 +14,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -82,6 +84,11 @@ jobs:
           });
           JS
           cat .test-results/palette-node.log
+      - name: Preserve the exact tracked public source revision
+        run: |
+          git archive --format=tar.gz --output=studio-v6/.test-results/public-candidate-source.tar.gz HEAD
+          git rev-parse HEAD > studio-v6/.test-results/public-candidate-source.commit
+          sha256sum studio-v6/.test-results/public-candidate-source.tar.gz > studio-v6/.test-results/public-candidate-source.sha256
       - name: Retain source-bound test evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -92,5 +99,8 @@ jobs:
             studio-v6/.test-results/palette-node.log
             studio-v6/.test-results/public-source-fingerprints.json
             studio-v6/.test-results/public-transfer-fingerprints.json
+            studio-v6/.test-results/public-candidate-source.tar.gz
+            studio-v6/.test-results/public-candidate-source.commit
+            studio-v6/.test-results/public-candidate-source.sha256
           if-no-files-found: error
           retention-days: 7
