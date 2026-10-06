@@ -14,6 +14,9 @@ import secrets
 import shutil
 import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from job_control import JobControl, atomic_json
+
 VERSION = "0.1.0-alpha5"
 API_VERSION = 2
 CONFIG_PATH = Path(sys.argv[1] if len(sys.argv) > 1 else "/var/lib/homeassistant/3d-printer-slicing-server/config.json")
@@ -32,6 +35,7 @@ TOKEN = str(CONFIG.get("token", ""))
 MAX_UPLOAD_BYTES = int(CONFIG.get("max_upload_bytes", 512 * 1024 * 1024))
 ALLOWED_EXTENSIONS = {".stl", ".3mf", ".obj", ".amf"}
 SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,199}$")
+JOB_CONTROL = JobControl(BASE)
 STARTED = datetime.now(timezone.utc)
 A1_NOZZLE_CONTRACTS = {
     .2: {
@@ -60,6 +64,13 @@ A1_NOZZLE_CONTRACTS = {
     },
 }
 
+H2S_NOZZLE_CONTRACTS = {0.2: {'machine': 'BBL/machine/Bambu Lab H2S 0.2 nozzle.json', 'process': 'BBL/process/0.10mm Standard @BBL H2S 0.2 nozzle.json', 'min_layer': 0.04, 'max_layer': 0.14}, 0.4: {'machine': 'BBL/machine/Bambu Lab H2S 0.4 nozzle.json', 'process': 'BBL/process/0.20mm Standard @BBL H2S.json', 'min_layer': 0.08, 'max_layer': 0.28}, 0.6: {'machine': 'BBL/machine/Bambu Lab H2S 0.6 nozzle.json', 'process': 'BBL/process/0.30mm Standard @BBL H2S 0.6 nozzle.json', 'min_layer': 0.12, 'max_layer': 0.42}, 0.8: {'machine': 'BBL/machine/Bambu Lab H2S 0.8 nozzle.json', 'process': 'BBL/process/0.40mm Standard @BBL H2S 0.8 nozzle.json', 'min_layer': 0.16, 'max_layer': 0.56}}
+
+def printer_profile_path(identifier):
+    if identifier == "bambu_lab_h2s_04":
+        return BASE / "bambu_lab_h2s_04.json"
+    return PROFILES / f"{identifier}.json"
+
 for directory in (DATA, API, WEB, UPLOADS, JOBS, OUTPUT, RUN, PROFILES):
     directory.mkdir(parents=True, exist_ok=True)
 
@@ -69,12 +80,6 @@ def read_json(path: Path, default):
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return default
-
-
-def atomic_json(path: Path, payload: dict) -> None:
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    os.replace(temporary, path)
 
 
 def safe_filename(value: str) -> str | None:
@@ -94,6 +99,11 @@ def safe_job_id(value: str | None) -> str:
 
 
 def result_file(job_id: str) -> Path | None:
+    status, _, _ = JOB_CONTROL.state(job_id)
+    if status == "not_found":
+        status = read_json(OUTPUT / f"{job_id}.result.json", {}).get("status")
+    if status != "completed" or JOB_CONTROL.cancellation(job_id):
+        return None
     directory = OUTPUT / job_id
     if not directory.is_dir():
         return None
@@ -127,13 +137,17 @@ def _a1_nozzle_job_contract(target_printer: dict, process_overrides: dict):
         "",
         str(target_printer.get("model") or target_printer.get("name") or "").casefold(),
     )
-    if "a1mini" in model or "a1m" in model or "a1" not in model:
+    if model in {"h2s", "bambulabh2s", "bambuh2s"}:
+        contracts = H2S_NOZZLE_CONTRACTS
+    elif model in {"a1", "bambulaba1", "bambua1"}:
+        contracts = A1_NOZZLE_CONTRACTS
+    else:
         return None, "invalid_a1_nozzle_target"
     diameter = _number(target_printer.get("nozzle_diameter_mm"))
     contract = next(
         (
             value
-            for key, value in A1_NOZZLE_CONTRACTS.items()
+            for key, value in contracts.items()
             if diameter is not None and abs(key - diameter) < 1e-6
         ),
         None,
@@ -152,6 +166,17 @@ def _a1_nozzle_job_contract(target_printer: dict, process_overrides: dict):
             return None, f"invalid_native_{key}_profile"
         if not path.is_file():
             return None, f"native_{key}_profile_not_found"
+    support_mode = str(process_overrides.get("support_mode") or "off").strip().casefold()
+    if support_mode not in {"off", "normal", "tree"}:
+        return None, "invalid_support_mode"
+    support_style = str(process_overrides.get("support_style") or "standard").strip().casefold()
+    if support_style not in {"standard", "tree_slim", "tree_strong", "tree_hybrid", "tree_organic"}:
+        return None, "invalid_support_style"
+    support_angle = process_overrides.get("support_threshold_angle")
+    if support_angle is not None:
+        value = _number(support_angle)
+        if value is None or not 0 <= value <= 89:
+            return None, "invalid_support_threshold_angle"
     layer = process_overrides.get("layer_height_mm")
     if layer is not None:
         value = _number(layer)
@@ -280,16 +305,24 @@ def _engine_result(job_id: str) -> dict:
 
 
 def job_state(job_id: str) -> dict:
+    with JOB_CONTROL.lock(job_id):
+        return _job_state_locked(job_id)
+
+
+def _job_state_locked(job_id: str) -> dict:
     payload = {}
     state = "not_found"
     state_path = None
-    for current in ("queued", "slicing", "completed", "failed", "cancelled"):
+    for current in ("cancelled", "interrupted", "slicing", "queued", "completed", "failed"):
         path = JOBS / f"{job_id}.{current}.json"
         if path.is_file():
             payload = read_json(path, {})
             state = current
             state_path = path
             break
+    cancellation = JOB_CONTROL.cancellation(job_id)
+    if state == "slicing" and cancellation:
+        state = "cancelling"
     result_path = OUTPUT / f"{job_id}.result.json"
     progress_path = OUTPUT / f"{job_id}.progress.json"
     result = read_json(result_path, {})
@@ -315,6 +348,8 @@ def job_state(job_id: str) -> dict:
     return {
         "job_id": job_id,
         "status": state,
+        "cancel_requested": bool(cancellation) or state == "cancelled",
+        "cancellation_available": state == "queued" or (state == "slicing" and JOB_CONTROL.owner_alive(job_id)),
         "status_updated_at": state_updated_at,
         "job": payload,
         "result": result,
@@ -332,19 +367,29 @@ def list_jobs() -> list[dict]:
     for item in JOBS.glob("*.json"):
         parts = item.name.rsplit(".", 2)
         if len(parts) == 3:
-            ids[parts[0]] = max(ids.get(parts[0], 0), item.stat().st_mtime)
+            try:
+                ids[parts[0]] = max(ids.get(parts[0], 0), item.stat().st_mtime)
+            except FileNotFoundError:
+                continue
     for item in OUTPUT.glob("*.result.json"):
         job_id = item.name.removesuffix(".result.json")
-        ids[job_id] = max(ids.get(job_id, 0), item.stat().st_mtime)
+        try:
+            ids[job_id] = max(ids.get(job_id, 0), item.stat().st_mtime)
+        except FileNotFoundError:
+            continue
     jobs = []
     for job_id, modified in sorted(ids.items(), key=lambda pair: pair[1], reverse=True)[:100]:
         current = job_state(job_id)
+        if current["status"] == "not_found":
+            continue
         job = current.get("job", {})
         result = current.get("result", {})
         progress = current.get("progress", {}) if isinstance(current.get("progress"), dict) else {}
         jobs.append({
             "job_id": job_id,
             "status": current["status"],
+            "cancel_requested": current["cancel_requested"],
+            "cancellation_available": current["cancellation_available"],
             "modified": modified,
             "printer_profile": job.get("printer_profile"),
             "input_file": job.get("input_file"),
@@ -373,6 +418,9 @@ def list_jobs() -> list[dict]:
 
 
 def _remove_path(path: Path) -> bool:
+    if path.is_symlink():
+        path.unlink()
+        return True
     if path.is_dir():
         shutil.rmtree(path)
         return True
@@ -394,7 +442,12 @@ def _upload_is_referenced(filename: str) -> bool:
 
 
 def delete_job(job_id: str) -> dict:
-    current = job_state(job_id)
+    with JOB_CONTROL.lock(job_id):
+        return _delete_job_locked(job_id)
+
+
+def _delete_job_locked(job_id: str) -> dict:
+    current = _job_state_locked(job_id)
     status = str(current.get("status") or "not_found")
     if status == "not_found":
         return {"error": "job_not_found", "status": 404}
@@ -417,8 +470,7 @@ def delete_job(job_id: str) -> dict:
         OUTPUT / job_id,
     ):
         removed_paths += int(_remove_path(output_file))
-    for runtime_file in RUN.glob(f"{job_id}-*"):
-        removed_paths += int(_remove_path(runtime_file))
+    removed_paths += JOB_CONTROL.cleanup_runtime(job_id)
 
     input_file_deleted = False
     if input_file and not _upload_is_referenced(input_file):
@@ -433,6 +485,50 @@ def delete_job(job_id: str) -> dict:
     }
 
 
+def release_job(job_id: str) -> dict:
+    with JOB_CONTROL.lock(job_id):
+        return _release_job_locked(job_id)
+
+
+def _release_job_locked(job_id: str) -> dict:
+    """Mark one manually held queued job for the dispatcher to process."""
+    current = _job_state_locked(job_id)
+    status = str(current.get("status") or "not_found")
+    if status == "not_found":
+        return {"error": "job_not_found", "status": 404}
+    if status != "queued":
+        return {
+            "error": "job_not_queued",
+            "job_status": status,
+            "status": 409,
+        }
+
+    queued_path = JOBS / f"{job_id}.queued.json"
+    payload = read_json(queued_path, None)
+    if not isinstance(payload, dict):
+        return {"error": "invalid_job_json", "status": 500}
+    if payload.get("manual_release") is False:
+        return {
+            "error": "job_not_manually_held",
+            "status": 409,
+        }
+    if str(payload.get("released_at") or "").strip():
+        return {
+            "released": True,
+            "job_id": job_id,
+            "status": "queued",
+            "already_released": True,
+        }
+
+    payload["released_at"] = datetime.now(timezone.utc).isoformat()
+    atomic_json(queued_path, payload)
+    return {
+        "released": True,
+        "job_id": job_id,
+        "status": "queued",
+    }
+
+
 def list_files() -> list[dict]:
     files = []
     for item in sorted(UPLOADS.iterdir(), key=lambda value: value.stat().st_mtime, reverse=True):
@@ -444,7 +540,7 @@ def list_files() -> list[dict]:
 
 def list_printers() -> list[dict]:
     printers = []
-    for path in sorted(PROFILES.glob("*.json")):
+    for path in sorted([*PROFILES.glob("*.json"), *([BASE / "bambu_lab_h2s_04.json"] if (BASE / "bambu_lab_h2s_04.json").is_file() else [])]):
         profile = read_json(path, {})
         printers.append({
             "id": path.stem,
@@ -556,6 +652,7 @@ class Handler(BaseHTTPRequestHandler):
             if path in {"/api/v1/info", "/info.json"}:
                 payload["version"] = VERSION
                 payload["api_version"] = API_VERSION
+                payload["capabilities"] = {**payload.get("capabilities", {}), "job_cancellation": True, "cancellation_contract": 1}
             self.send_json(200, payload)
             return
 
@@ -618,6 +715,33 @@ class Handler(BaseHTTPRequestHandler):
         if not self.require_authorization():
             return
 
+        if path.startswith("/api/v1/jobs/") and path.endswith("/cancel"):
+            job_id = unquote(path.removeprefix("/api/v1/jobs/").removesuffix("/cancel").rstrip("/"))
+            if not SAFE_NAME.fullmatch(job_id) or "." in job_id:
+                self.send_json(400, {"error": "invalid_job_id"})
+                return
+            result = JOB_CONTROL.cancel(job_id)
+            status = result.pop("http_status", 200)
+            self.send_json(status, result)
+            return
+
+        if path.startswith("/api/v1/jobs/") and path.endswith("/release"):
+            job_id = unquote(
+                path.removeprefix("/api/v1/jobs/").removesuffix("/release").rstrip("/")
+            )
+            if not SAFE_NAME.fullmatch(job_id) or "." in job_id:
+                self.send_json(400, {"error": "invalid_job_id"})
+                return
+            result = release_job(job_id)
+            # Job state ("queued") and numeric HTTP error status are separate contracts.
+            status = result.get("status", 200)
+            if isinstance(status, int):
+                result.pop("status", None)
+            else:
+                status = 200
+            self.send_json(status, result)
+            return
+
         if path.startswith("/api/v1/files/"):
             filename = safe_filename(unquote(path.removeprefix("/api/v1/files/")))
             if filename is None:
@@ -652,12 +776,16 @@ class Handler(BaseHTTPRequestHandler):
             output_format = str(payload.get("output_format", "gcode")).strip() or "gcode"
 
             native_multimaterial = payload.get("native_multimaterial", False)
+            manual_release = payload.get("manual_release", False)
             material_plan = payload.get("material_plan", {})
             target_printer = payload.get("target_printer", {})
             process_overrides = payload.get("process_overrides", {})
 
             if not isinstance(native_multimaterial, bool):
                 self.send_json(400, {"error": "invalid_native_multimaterial"})
+                return
+            if not isinstance(manual_release, bool):
+                self.send_json(400, {"error": "invalid_manual_release"})
                 return
 
             if material_plan is None:
@@ -678,7 +806,12 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             nozzle_contract = None
-            if printer_profile == "bambu_lab_a1_04":
+            if printer_profile in {"bambu_lab_a1_04", "bambu_lab_h2s_04"}:
+                expected_model = "h2s" if printer_profile == "bambu_lab_h2s_04" else "a1"
+                actual_model = re.sub(r"[^a-z0-9]+", "", str(target_printer.get("model") or target_printer.get("name") or "").casefold())
+                if actual_model not in {expected_model, "bambu" + expected_model, "bambulab" + expected_model}:
+                    self.send_json(400, {"error": "printer_profile_model_mismatch"})
+                    return
                 nozzle_contract, nozzle_error = _a1_nozzle_job_contract(
                     target_printer,
                     process_overrides,
@@ -709,7 +842,7 @@ class Handler(BaseHTTPRequestHandler):
             if not SAFE_NAME.fullmatch(printer_profile):
                 self.send_json(400, {"error": "invalid_printer_profile"})
                 return
-            if not (PROFILES / f"{printer_profile}.json").is_file():
+            if not printer_profile_path(printer_profile).is_file():
                 self.send_json(404, {"error": "printer_profile_not_found", "printer_profile": printer_profile})
                 return
             if engine not in {"auto", "bambu_studio", "prusaslicer", "curaengine"}:
@@ -720,10 +853,6 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             job_id = safe_job_id(payload.get("job_id"))
-            if any(JOBS.glob(f"{job_id}.*.json")) or (OUTPUT / f"{job_id}.result.json").exists():
-                self.send_json(409, {"error": "job_id_exists", "job_id": job_id})
-                return
-
             job = {
                 "job_id": job_id,
                 "created_at": datetime.now(timezone.utc).isoformat(),
@@ -734,17 +863,24 @@ class Handler(BaseHTTPRequestHandler):
                 "filament_profile": str(payload.get("filament_profile", "default")),
                 "output_format": output_format,
                 "native_multimaterial": native_multimaterial,
+                "manual_release": manual_release,
                 "material_plan": material_plan,
                 "target_printer": target_printer,
                 "process_overrides": process_overrides,
             }
+            if not manual_release:
+                job["released_at"] = job["created_at"]
             if nozzle_contract is not None:
                 job.update({
                     "nozzle_diameter_mm": target_printer["nozzle_diameter_mm"],
                     "native_machine_profile": nozzle_contract["machine"],
                     "native_process_profile": nozzle_contract["process"],
                 })
-            atomic_json(JOBS / f"{job_id}.queued.json", job)
+            with JOB_CONTROL.lock(job_id):
+                if any(JOBS.glob(f"{job_id}.*.json")) or (OUTPUT / f"{job_id}.result.json").exists():
+                    self.send_json(409, {"error": "job_id_exists", "job_id": job_id})
+                    return
+                atomic_json(JOBS / f"{job_id}.queued.json", job)
             self.send_json(202, {"job_id": job_id, "status": "queued"})
             return
 
