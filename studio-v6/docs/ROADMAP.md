@@ -1612,3 +1612,21 @@ Dieser Abschnitt ist neuer als die oben erhaltenen historischen Zwischenstände 
 - [ ] H2D/H2C, kleinere physische Platten und weitere physische Drucker-/Qualitätsabnahmen bleiben eigene spätere Hardwareverträge.
 
 Stable 6.0.0 ist damit im autorisierten Release-Scope abgeschlossen; kein Druckerupload oder Druckstart war Bestandteil dieser Freigabe.
+
+
+## 2026-10-07 · P0 Navigation abgeschlossen
+
+- [x] Reguläre linke Studio-Navigation nach Fehländerung exakt aus Stable-Vorherstand wiederhergestellt.
+- [x] Live-Frontend auf den bestätigten Stable-JS-Stand `a003082a45d2d658c2bc1daa2fc49bbea9a374b40fc8c04c68c00930d923caa0` zurückgesetzt.
+- [x] Öffentlichen falschen Navigationscommit gezielt revertiert: `26c043ca323b02c7f03fcf46c7b52c6ccc49d6b0`.
+- [x] Unerwünschte obere Lovelace-Tab-Leiste strukturell entfernt: eine normale Haupt-View (Steuerung), acht bestehende Views als Subviews; Inhalte und Deep-Links bleiben erhalten.
+- [x] Echten Dashboardzustand als `deploy/homeassistant/lovelace/studio-dashboard.json` deklarativ erfasst.
+- [x] Puppet visuell verifiziert: obere Icon-Leiste weg, linke Studio-Navigation vorhanden.
+- [x] Kein HA-Neustart und keine Druckeraktion während des laufenden Drucks.
+
+### Als Nächstes: P1 Namensmigration
+
+- [ ] Frischen PC-Istzustand gegen HA-Quelle, Live-Konfiguration und öffentliches GitHub inventarisieren.
+- [ ] Versionsbezug in sichtbaren Produktnamen, Dashboard-URL, Custom-Elementen, API-/Storage-Namensräumen und Connector-Werkzeugen auf einen konsistenten versionsfreien Vertrag migrieren.
+- [ ] Nutzer-/Projekt-/Profil-/Job-/Galerie-Daten sowie Registry-Identitäten mit vorheriger Kandidatenmigration und frischer Gegenprüfung erhalten.
+- [ ] Keine Aktivierung aus historischen Kandidaten ohne aktuellen Hash-/Datenvergleich.

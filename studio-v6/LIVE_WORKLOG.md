@@ -427,3 +427,15 @@ Produktive Aktivierung und vollständiger öffentlicher Abgleich bleiben offen. 
 - Stable-Release-Nachweis in docs/Studio-Release-6.0.0-2026-10-06.md finalisiert.
 - Release 6.0.0 ist damit im autorisierten Scope abgeschlossen. MakerWorld-Liveanmeldung/-Import bleibt Post-Release-Arbeit; nicht ausgeführte interaktive oder physische Abnahmen werden nicht als bestanden behauptet.
 - Keine Druckerbefehle, realen Test-Slices, Job-Releases, Uploads, Bewegungen, Heiz-/Filamentaktionen oder Druckstarts.
+
+
+## 2026-10-07 · P0 Navigation korrigiert und verifiziert
+
+- Fehländerung vom 06.10. vollständig zurückgenommen: die reguläre linke Studio-Navigation wurde aus dem letzten bestätigten Stable-Vorherstand wiederhergestellt. Live-JS steht wieder auf SHA256 `a003082a45d2d658c2bc1daa2fc49bbea9a374b40fc8c04c68c00930d923caa0`; Buildmanifest wieder auf `69f6dc49acee777d8dfcbfd77f7bca54f873615952be70d085f3e982cd3b77e0`.
+- Der falsche öffentliche Commit wurde gezielt auf Stable zurückgesetzt; GitHub-Revert: `26c043ca323b02c7f03fcf46c7b52c6ccc49d6b0`. Nur die acht von der Fehländerung betroffenen Dateien wurden restauriert.
+- Die tatsächlich unerwünschte schwarze HA-Icon-Leiste wurde eindeutig als Lovelace-View-Navigation des Dashboards `3d-studio-v6-test` identifiziert. Über Home Assistants eigenen WebSocket wurden ausschließlich die Views Studio, Galerie, AMS, Profile, Aufgaben, Verlauf, System und Slicing-Server auf `subview=true` gesetzt; Steuerung bleibt normale Haupt-View. Karten, Titel, Pfade und Icons blieben unverändert.
+- Vorher-Backup der HA-Storage-Dateien: `/var/lib/homeassistant/homeassistant/backups/20261007-p0-remove-redundant-lovelace-tabs-before`.
+- Kanonische sekretfreie Dashboard-Konfiguration neu angelegt: `deploy/homeassistant/lovelace/studio-dashboard.json`; PC und HA-Quellkopie führen denselben Zustand.
+- Puppet-Abnahme ohne HA-Neustart: HTTP 200, `image/png`, gültige PNG-Signatur. Vollbildnachweis SHA256 `6934e4322b4ba890c4d8663f8aed878fcf031fa0550f7a6d9a021110e6101b13`. Visuell bestätigt: keine obere HA-Tab-Leiste; linke Studio-Navigation mit allen Arbeitsbereichen vorhanden.
+- Während der gesamten Korrektur kein HA-Core-Neustart, kein Druckerbefehl, kein Slice, kein Upload, keine Bewegung, keine Heiz-/Filamentaktion und kein Druckstart. Der laufende Druck wurde nicht beeinflusst.
+- Nächster Roadmap-Block: P1 versionsneutraler Produktnamensraum. Die vorbereiteten alten Migrationsartefakte dienen nur als Referenz; Aktivierung erfolgt erst nach frischem Ist-Abgleich, vollständigem Gate und Daten-/Rollbackprüfung.
