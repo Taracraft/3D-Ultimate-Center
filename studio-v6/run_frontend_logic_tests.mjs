@@ -288,12 +288,11 @@ function runSourcePolicyGate() {
   const shellSource = readSource(join(frontendDirectory, "app-shell-v4.ts"));
   if (!shellSource.includes('"slicing-server": "ultimate-3d-slicing-server-workspace"')) violations.push("Slicing-Server route is not mounted as its own workspace");
 
-  for (const marker of ["<nav", 'id="nav-buttons"', 'id="nav-live"', ".nav-buttons{", "touch-action:pan-x"]) {
-    if (navigationSource.includes(marker)) violations.push("duplicate internal Studio navigation must remain removed: " + marker);
+  if (!navigationSource.includes(".nav-buttons{display:flex;width:100%;min-width:0")) violations.push("mobile navigation does not own a stable horizontal scroller");
+  for (const marker of ["touch-action:pan-x", "overscroll-behavior-x:contain", "-webkit-overflow-scrolling:touch", "scrollbar-width:none"]) {
+    if (!navigationSource.includes(marker)) violations.push("mobile navigation iOS scrolling marker missing: " + marker);
   }
-  if (shellSource.includes("#mountNavigation") || shellSource.includes("#updateNavLive")) {
-    violations.push("app shell still owns duplicate navigation behavior");
-  }
+  if (!navigationSource.includes("nav{display:grid;grid-template-columns:minmax(0,1fr);padding:0;overflow:hidden")) violations.push("mobile nav container still competes with the horizontal tab scroller");
 
   for (const marker of ['"pageshow"', '"focus"', '"online"', "IntersectionObserver", "FRAME_REQUEST_TIMEOUT_MS", "controller.abort()", "signal: controller.signal"]) {
     if (!cameraSource.includes(marker)) violations.push("camera mobile lifecycle marker missing: " + marker);
