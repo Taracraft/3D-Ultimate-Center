@@ -96,35 +96,66 @@ function torus(majorRadius: number, tubeRadius: number, majorSegments = 64, tube
   return finish(b);
 }
 
-function firstLayer(width: number, depth: number, height: number): MeshGeometry {
-  const margin = Math.max(5, Math.min(width, depth) * 0.025);
-  const line = Math.max(0.42, Math.min(width, depth) / 500);
-  const usableWidth = Math.max(10, width - margin * 2);
-  const usableDepth = Math.max(10, depth - margin * 2);
-  const b: Builder = { positions: [], normals: [] };
-  const addBar = (centerX: number, centerY: number, barWidth: number, barDepth: number): void => {
-    const geometry = box(barWidth, barDepth, height);
-    for (let index = 0; index < geometry.positions.length; index += 3) {
-      b.positions.push(geometry.positions[index]! + centerX, geometry.positions[index + 1]! + centerY, geometry.positions[index + 2]!);
-      b.normals.push(geometry.normals[index]!, geometry.normals[index + 1]!, geometry.normals[index + 2]!);
-    }
+export function firstLayerParameters(nozzleDiameter: number): { height: number; lineWidth: number } {
+  if (![0.2, 0.4, 0.6, 0.8].some((diameter) => Math.abs(diameter - nozzleDiameter) < 1e-6)) {
+    throw new Error("Für den First-Layer-Test zuerst eine unterstützte Düse auswählen.");
+  }
+  return { height: Math.round(nozzleDiameter * 70) / 100, lineWidth: Math.round(nozzleDiameter * 150) / 100 };
+}
+
+function firstLayer(width: number, depth: number, nozzleDiameter: number): MeshGeometry {
+  const { height, lineWidth } = firstLayerParameters(nozzleDiameter);
+  if (![width, depth].every((value) => Number.isFinite(value) && value >= 120 && value <= 1000)) {
+    throw new Error("Ungültige Druckbettgröße für den First-Layer-Test.");
+  }
+  // Keep the physical edge and the native purge/wipe area clear. The selected
+  // printer/plate contract remains authoritative during slicing.
+  const margin = 5;
+  const halfX = width / 2 - margin, halfY = depth / 2 - margin;
+  const logoHalf = Math.min(width, depth) * 0.28;
+  const stemHalf = logoHalf * 0.4;
+  const shoulder = logoHalf * 0.48;
+  const band = Math.max(0.8, lineWidth * 2);
+  const offsets = Array.from({ length: 8 }, (_, index) => index * band);
+  if (offsets[7]! >= stemHalf || shoulder + 2 * offsets[7]! >= logoHalf) throw new Error("Druckbett zu klein für drei druckbare T-Konturen mit dieser Düse.");
+  const insideT = (x: number, y: number, inset: number): boolean =>
+    y > -logoHalf + inset && y < logoHalf - inset
+    && (Math.abs(x) < stemHalf - inset || (Math.abs(x) < logoHalf - inset && y > shoulder + inset));
+  // Four empty T-shaped grooves isolate exactly three solid contour bands.
+  // The central T and the surrounding sheet remain filled calibration areas.
+  const filled = (x: number, y: number): boolean => {
+    if (!insideT(x, y, 0) || insideT(x, y, offsets[7]!)) return true;
+    return [1, 3, 5].some((index) => insideT(x, y, offsets[index]!) && !insideT(x, y, offsets[index + 1]!));
   };
-  addBar(0, -usableDepth / 2, usableWidth, line);
-  addBar(0, usableDepth / 2, usableWidth, line);
-  addBar(-usableWidth / 2, 0, line, usableDepth);
-  addBar(usableWidth / 2, 0, line, usableDepth);
-  const spacing = Math.max(8, Math.min(width, depth) / 18);
-  for (let y = -usableDepth / 2 + spacing; y < usableDepth / 2; y += spacing) addBar(0, y, usableWidth, line);
-  addBar(0, 0, line * 2, usableDepth);
+  const sorted = (values: number[]): number[] => [...new Set(values.map((value) => Math.round(value * 1e6) / 1e6))].sort((a, b) => a - b);
+  const xs = sorted([-halfX, halfX, ...offsets.flatMap((d) => [-logoHalf + d, logoHalf - d, -stemHalf + d, stemHalf - d])]);
+  const ys = sorted([-halfY, halfY, ...offsets.flatMap((d) => [-logoHalf + d, logoHalf - d, shoulder + d])]);
+  const cells = ys.slice(0, -1).map((y, j) => xs.slice(0, -1).map((x, i) => filled((x + xs[i + 1]!) / 2, (y + ys[j + 1]!) / 2)));
+  const b: Builder = { positions: [], normals: [] };
+  for (let j = 0; j < ys.length - 1; j += 1) {
+    for (let i = 0; i < xs.length - 1; i += 1) {
+      if (!cells[j]![i]) continue;
+      const x0 = xs[i]!, x1 = xs[i + 1]!, y0 = ys[j]!, y1 = ys[j + 1]!;
+      const p: Vec3[] = [[x0,y0,0],[x1,y0,0],[x1,y1,0],[x0,y1,0],[x0,y0,height],[x1,y0,height],[x1,y1,height],[x0,y1,height]];
+      quad(b,p[0]!,p[3]!,p[2]!,p[1]!);
+      quad(b,p[4]!,p[5]!,p[6]!,p[7]!);
+      // Only exposed edges get side faces: no intersecting boxes or internal
+      // walls, and shared grid edges have matching vertices on both sides.
+      if (!cells[j - 1]?.[i]) quad(b,p[0]!,p[1]!,p[5]!,p[4]!);
+      if (!cells[j]?.[i + 1]) quad(b,p[1]!,p[2]!,p[6]!,p[5]!);
+      if (!cells[j + 1]?.[i]) quad(b,p[2]!,p[3]!,p[7]!,p[6]!);
+      if (!cells[j]?.[i - 1]) quad(b,p[3]!,p[0]!,p[4]!,p[7]!);
+    }
+  }
   return finish(b);
 }
 
-export function createPrimitiveGeometry(kind: PrimitiveKind, plateWidth = 256, plateDepth = 256): MeshGeometry {
+export function createPrimitiveGeometry(kind: PrimitiveKind, plateWidth = 256, plateDepth = 256, nozzleDiameter = 0.4): MeshGeometry {
   if (kind === "cube") return box(20, 20, 20);
   if (kind === "cylinder") return cylinder(10, 20);
   if (kind === "sphere") return sphere(10);
   if (kind === "cone") return cylinder(12, 24, 64, 0);
   if (kind === "torus") return torus(12, 4);
   if (kind === "plate") return box(50, 50, 1);
-  return firstLayer(plateWidth, plateDepth, 0.2);
+  return firstLayer(plateWidth, plateDepth, nozzleDiameter);
 }

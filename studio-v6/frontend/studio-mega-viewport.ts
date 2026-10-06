@@ -17,6 +17,50 @@ export type PaintShapeKind = "rectangle" | "circle";
 export type PaintScreenPoint = Readonly<{ x: number; y: number }>;
 export type PaintShapeBounds = Readonly<{ left: number; right: number; top: number; bottom: number }>;
 
+export function projectedPaintHit(
+  point: PaintScreenPoint,
+  projected: readonly Readonly<{ x: number; y: number; w: number; depth: number }>[],
+  positions: ArrayLike<number>,
+  base = 0,
+): Readonly<{ localPosition: Vec3; depth: number }> | null {
+  const [a, b, c] = projected;
+  if (!a || !b || !c || projected.some((vertex) => !Number.isFinite(vertex.w) || vertex.w <= 0)) return null;
+  const denominator = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
+  if (!Number.isFinite(denominator) || Math.abs(denominator) < 1e-10) return null;
+  const first = ((b.y - c.y) * (point.x - c.x) + (c.x - b.x) * (point.y - c.y)) / denominator;
+  const second = ((c.y - a.y) * (point.x - c.x) + (a.x - c.x) * (point.y - c.y)) / denominator;
+  const weights = [first, second, 1 - first - second];
+  if (weights.some((weight) => !Number.isFinite(weight) || weight < -1e-7)) return null;
+  const depth = weights.reduce((sum, weight, index) => sum + weight * projected[index]!.depth, 0);
+  if (!Number.isFinite(depth) || depth < -1 || depth > 1) return null;
+  const corrected = weights.map((weight, index) => weight / projected[index]!.w);
+  const total = corrected.reduce((sum, weight) => sum + weight, 0);
+  const localPosition = [0, 1, 2].map((axis) => corrected.reduce((sum, weight, index) => sum + weight * positions[base + index * 3 + axis]!, 0) / total) as Vec3;
+  return localPosition.every(Number.isFinite) ? { localPosition, depth } : null;
+}
+
+/** Clip before perspective division; behind-camera triangles must never enter selection. */
+export function clipPaintPolygon(vertices: readonly (readonly number[])[]): number[][] {
+  if (vertices.some((vertex) => vertex.length !== 4 || vertex.some((value) => !Number.isFinite(value)))) return [];
+  let polygon = vertices.map((vertex) => [...vertex]);
+  const planes = [(v: number[]) => v[3]! + v[0]!, (v: number[]) => v[3]! - v[0]!, (v: number[]) => v[3]! + v[1]!, (v: number[]) => v[3]! - v[1]!, (v: number[]) => v[3]! + v[2]!, (v: number[]) => v[3]! - v[2]!, (v: number[]) => v[3]! - 1e-8];
+  for (const distance of planes) {
+    const input = polygon; polygon = [];
+    if (!input.length) break;
+    let previous = input[input.length - 1]!, previousDistance = distance(previous);
+    for (const current of input) {
+      const currentDistance = distance(current);
+      if ((currentDistance >= 0) !== (previousDistance >= 0)) {
+        const ratio = previousDistance / (previousDistance - currentDistance);
+        polygon.push(previous.map((value, axis) => value + (current[axis]! - value) * ratio));
+      }
+      if (currentDistance >= 0) polygon.push(current);
+      previous = current; previousDistance = currentDistance;
+    }
+  }
+  return polygon;
+}
+
 function pointInProjectedTriangle(point: PaintScreenPoint, a: PaintScreenPoint, b: PaintScreenPoint, c: PaintScreenPoint): boolean {
   const cross = (left: PaintScreenPoint, right: PaintScreenPoint, target: PaintScreenPoint): number =>
     (right.x - left.x) * (target.y - left.y) - (right.y - left.y) * (target.x - left.x);
@@ -332,6 +376,22 @@ export class StudioMegaViewport {
     return best?.id ?? null;
   }
 
+  getPaintProjection(objectId: string): readonly number[] | null {
+    const instance = this.#instances.find((item) => item.id === objectId && item.visible);
+    return instance ? [...multiply(this.#viewProjection(), modelMatrix(instance))] : null;
+  }
+
+  pickSelectionRectangle(startX: number, startY: number, endX: number, endY: number): ReadonlyMap<string, readonly number[]> {
+    const visible = this.#instances.filter((instance) => instance.visible && !instance.id.startsWith("purge-tower-"));
+    if (visible.reduce((sum, instance) => sum + instance.geometry.triangleCount, 0) > 2_000_000) throw new Error("Die Rahmenauswahl überschreitet das interaktive Modellbudget. Bitte Modelle einzeln auswählen.");
+    const result = new Map<string, readonly number[]>();
+    for (const instance of visible) {
+      const triangles = this.pickPaintShape(instance.id, startX, startY, endX, endY, "rectangle");
+      if (triangles.length) result.set(instance.id, triangles);
+    }
+    return result;
+  }
+
   pickPaintPoint(clientX: number, clientY: number): PaintPickResult | null {
     const rect = this.canvas.getBoundingClientRect();
     const px = (clientX - rect.left) * (this.canvas.width / Math.max(1, rect.width));
@@ -349,21 +409,9 @@ export class StudioMegaViewport {
           const w = value[3] || 1;
           return { w, x: (value[0] / w * .5 + .5) * this.canvas.width, y: (1 - (value[1] / w * .5 + .5)) * this.canvas.height, depth: value[2] / w };
         });
-        const first = projected[0]!, second = projected[1]!, third = projected[2]!;
-        if (first.w <= 0 || second.w <= 0 || third.w <= 0) continue;
-        if (!pointInProjectedTriangle({ x: px, y: py }, first, second, third)) continue;
-        const depth = (first.depth + second.depth + third.depth) / 3;
-        if (!best || depth < best.depth) {
-          best = {
-            objectId: instance.id,
-            triangleIndex,
-            localPosition: [
-              (positions[base]! + positions[base + 3]! + positions[base + 6]!) / 3,
-              (positions[base + 1]! + positions[base + 4]! + positions[base + 7]!) / 3,
-              (positions[base + 2]! + positions[base + 5]! + positions[base + 8]!) / 3,
-            ],
-            depth,
-          };
+        const hit = projectedPaintHit({ x: px, y: py }, projected, positions, base);
+        if (hit && (!best || hit.depth < best.depth)) {
+          best = { objectId: instance.id, triangleIndex, localPosition: hit.localPosition, depth: hit.depth };
         }
       }
     }
@@ -388,14 +436,11 @@ export class StudioMegaViewport {
     const matches: number[] = [];
     for (let triangleIndex = 0; triangleIndex < instance.geometry.triangleCount; triangleIndex += 1) {
       const base = triangleIndex * 9;
-      const projected = [0, 3, 6].map((offset) => {
-        const value = transformPoint(mvp, [instance.geometry.positions[base + offset]!, instance.geometry.positions[base + offset + 1]!, instance.geometry.positions[base + offset + 2]!]);
-        const w = value[3] || 1;
-        return { w, x: (value[0] / w * .5 + .5) * this.canvas.width, y: (1 - (value[1] / w * .5 + .5)) * this.canvas.height };
-      });
-      const first = projected[0]!, second = projected[1]!, third = projected[2]!;
-      if (first.w <= 0 || second.w <= 0 || third.w <= 0) continue;
-      if (projectedTriangleIntersectsPaintShape([first, second, third], shape, bounds)) matches.push(triangleIndex);
+      const clipped = clipPaintPolygon([0, 3, 6].map((offset) => transformPoint(mvp, [instance.geometry.positions[base + offset]!, instance.geometry.positions[base + offset + 1]!, instance.geometry.positions[base + offset + 2]!])));
+      const projected = clipped.map((value) => ({ x: (value[0]! / value[3]! * .5 + .5) * this.canvas.width, y: (1 - (value[1]! / value[3]! * .5 + .5)) * this.canvas.height }));
+      for (let vertex = 1; vertex + 1 < projected.length; vertex += 1) {
+        if (projectedTriangleIntersectsPaintShape([projected[0]!, projected[vertex]!, projected[vertex + 1]!], shape, bounds)) { matches.push(triangleIndex); break; }
+      }
     }
     return matches;
   }
@@ -746,4 +791,3 @@ export class StudioMegaViewport {
     this.canvas.addEventListener("pointercancel", finish);
   }
 }
-

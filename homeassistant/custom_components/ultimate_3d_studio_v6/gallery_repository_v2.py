@@ -24,11 +24,13 @@ class V6GalleryRepositoryV2(V6GalleryRepository):
         directory = _real_path(self.root, _safe_relative(target_folder))
         if not directory.is_dir():
             raise NotADirectoryError(target_folder)
-        if source.is_dir() and source in directory.parents:
+        if source.is_dir() and (source == directory or source in directory.parents):
             raise ValueError("Ordner kann nicht in sich selbst kopiert werden")
         target = directory / source.name
         if source == target:
             raise ValueError("Quelle und Ziel sind identisch")
+        if target in source.parents:
+            raise ValueError("Das Ziel enthält die Quelle und darf nicht überschrieben werden")
         if target.exists():
             if not overwrite:
                 raise FileExistsError(target.name)

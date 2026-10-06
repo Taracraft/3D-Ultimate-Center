@@ -41,6 +41,7 @@ class JobActivityStore {
   #authenticationBlocked = false;
   #slicerJobId = "";
   #restoredSlicerJobId = "";
+  #slicerRevision = 0;
   #lastAuditFingerprint = "";
   #snapshot: JobActivitySnapshot = {
     health: null,
@@ -80,10 +81,11 @@ class JobActivityStore {
   }
 
   registerSlicerJob(job: SliceJob | null): void {
+    this.#slicerRevision += 1;
     this.#restoredSlicerJobId = "";
     this.#slicerJobId = job?.id || "";
     this.#persistActiveSlicerJob(job && ACTIVE_SLICE_STATES.has(job.status) ? job.id : "");
-    this.#snapshot = { ...this.#snapshot, slicer: job, updatedAt: Date.now(), error: "" };
+    this.#snapshot = { ...this.#snapshot, slicer: job };
     this.#emit();
     if (job && ACTIVE_SLICE_STATES.has(job.status)) {
       this.start();
@@ -94,10 +96,11 @@ class JobActivityStore {
   dismissSlicerJob(jobId?: string): void {
     const currentId = this.#snapshot.slicer?.id || this.#slicerJobId;
     if (jobId && currentId && jobId !== currentId) return;
+    this.#slicerRevision += 1;
     this.#slicerJobId = "";
     this.#restoredSlicerJobId = "";
     this.#persistActiveSlicerJob("");
-    this.#snapshot = { ...this.#snapshot, slicer: null, updatedAt: Date.now() };
+    this.#snapshot = { ...this.#snapshot, slicer: null };
     this.#emit();
   }
 
@@ -115,6 +118,7 @@ class JobActivityStore {
   async refresh(): Promise<void> {
     if (this.#refreshing || this.#authenticationBlocked || !hasHomeAssistantApi()) return;
     this.#refreshing = true;
+    const slicerRevision = this.#slicerRevision;
     try {
       const [health, jobs, printers, capabilities, slicer] = await Promise.all([
         v6Api.getHealth(),
@@ -125,7 +129,7 @@ class JobActivityStore {
       ]);
       this.#snapshot = {
         health,
-        slicer,
+        slicer: slicerRevision === this.#slicerRevision ? slicer : this.#snapshot.slicer,
         jobs,
         printJobs: this.#activePrintJobs(jobs),
         printers,
@@ -139,7 +143,7 @@ class JobActivityStore {
         this.#authenticationBlocked = true;
         this.stop();
       }
-      this.#snapshot = { ...this.#snapshot, updatedAt: Date.now(), error: message };
+      this.#snapshot = { ...this.#snapshot, error: message };
     } finally {
       this.#refreshing = false;
     }
@@ -180,9 +184,11 @@ class JobActivityStore {
       this.#restoredSlicerJobId = "";
       this.#persistActiveSlicerJob("");
       return null;
-    } catch {
+    } catch (error) {
       if (this.#slicerJobId !== requestedJobId) return null;
-      return this.#snapshot.slicer?.id === requestedJobId ? this.#snapshot.slicer : null;
+      // Preserve the complete last successful snapshot and its timestamp in
+      // refresh(). An unavailable slicer must not turn cached progress fresh.
+      throw error;
     }
   }
 

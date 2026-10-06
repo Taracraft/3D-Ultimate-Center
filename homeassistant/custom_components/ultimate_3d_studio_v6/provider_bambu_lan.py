@@ -19,6 +19,7 @@ from .commands import PrinterCommandResult
 from .const import MQTT_PORT, MQTT_USERNAME
 from .models import PrinterSnapshot
 from .printer_model_contract import hardware_limits
+from .printer_identity import resolve_connected_printer_model
 from .network_plugin import (
     BambuNetworkPlugin,
     NetworkCommand,
@@ -89,6 +90,10 @@ class BambuLanProvider:
         if network is not None:
             await self.hass.async_add_executor_job(network.stop)
 
+    @property
+    def resolved_model(self) -> str | None:
+        return resolve_connected_printer_model(self.telemetry.model, self.serial)
+
     async def async_printers(self) -> tuple[PrinterSnapshot, ...]:
         issues = self.telemetry.issues
         return (
@@ -96,7 +101,7 @@ class BambuLanProvider:
                 printer_id=self.serial,
                 name=self.printer_name,
                 provider=self.provider_id,
-                model=self.telemetry.model,
+                model=self.resolved_model,
                 serial=self.serial,
                 host=self.host,
                 connection_state="connected" if self.connected else "disconnected",
@@ -253,6 +258,12 @@ class BambuLanProvider:
         if not self.connected:
             raise RuntimeError("Printer is not connected")
 
+        model = self.resolved_model
+        if model is None:
+            raise RuntimeError(
+                "Druckermodell nicht eindeutig bestätigt: Serienfamilie unbekannt "
+                "oder widersprüchliche Modelltelemetrie. Kein Upload freigegeben."
+            )
         return await self.hass.async_add_executor_job(
             partial(
                 upload_gcode_3mf,
@@ -263,8 +274,8 @@ class BambuLanProvider:
                 data=data,
                 tls_insecure=self.tls_insecure,
                 on_progress=on_progress,
-                hardware_limits=hardware_limits(self.telemetry.model),
-                printer_model=self.telemetry.model,
+                hardware_limits=hardware_limits(model),
+                printer_model=model,
             )
         )
 

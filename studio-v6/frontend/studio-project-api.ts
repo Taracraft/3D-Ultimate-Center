@@ -1,3 +1,4 @@
+import { clonePaintLayer } from "./studio-paint-state.js";
 import { authenticatedFetch, errorMessage } from "./ha-api-transport.js";
 import type { PersistedStudioWorkspace } from "./studio-persistence.js";
 
@@ -30,6 +31,7 @@ function plainSnapshot(snapshot: PersistedStudioWorkspace): unknown {
     ...snapshot,
     assignments: snapshot.assignments.map(([id, material]) => [id, material]),
     modelMaterials: snapshot.modelMaterials.map((item) => ({ ...item })),
+    paintLayers: (snapshot.paintLayers || []).map(([plateId, layers]) => [plateId, layers.map(clonePaintLayer)] as const),
     paintRegions: snapshot.paintRegions.map((region) => ({ ...region, triangleIndices: [...region.triangleIndices] })),
     plates: snapshot.plates.map((plate) => ({
       ...plate,
@@ -58,8 +60,10 @@ function workspaceSnapshot(value: unknown): PersistedStudioWorkspace {
     ...source,
     assignments: source.assignments.map(([id, material]) => [String(id), String(material)] as const),
     modelMaterials: source.modelMaterials.map((item) => ({ ...item })),
+    paintLayers: (source.paintLayers || []).map(([plateId, layers]) => [Number(plateId), layers.map(clonePaintLayer)] as const),
     paintRegions: Array.isArray(source.paintRegions) ? source.paintRegions.map((region) => ({
       plateId: Number(region.plateId), objectId: String(region.objectId || ""), color: String(region.color || "#6b7785"),
+      ...(region.label ? { label: String(region.label) } : {}),
       materialKey: String(region.materialKey || ""), triangleIndices: [...(region.triangleIndices || [])].filter((item) => Number.isInteger(item) && item >= 0),
     })).filter((region) => Number.isInteger(region.plateId) && region.objectId) : [],
     plates: source.plates.map((plate) => ({

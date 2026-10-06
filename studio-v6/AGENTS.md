@@ -57,3 +57,8 @@ Alle Antworten an den Nutzer sind ausschliesslich auf Deutsch zu verfassen.
 
 - Jede Projektänderung muss in F:\OneDrive - Bad-Timing\Dokumente\GitHub\3D-Ultimate Studio, der HA-Quellkopie und Taracraft/3D-Ultimate-Center im öffentlichen GitHub nachgezogen und per Hash geprüft werden.
 - Produktive HA-Ziele werden erst nach grünem Gesamtgate mit Backup und Live-SHA-Prüfung aktualisiert. Kein abgeschlossener Schritt ohne bestätigten lokalen und öffentlichen Stand.
+
+
+## 2026-10-05 · Verbindlicher Materialfarben-Standard
+
+Die Benutzeranforderung PREVIEW-COLORS-20261004 ersetzt Drucktyp/feature als Standard: Die Druckvorschau startet mit auftragsgebundenen echten Filamentfarben. Eine manuell gewählte Diagnoseansicht bleibt optional. Kein automatischer Rücksprung beim erneuten Laden eines Auftrags, keine Farbe aus später geänderter AMS-Bestückung und keine zyklische Ersatzzuteilung unbekannter Kanäle. Fehlende Farben sichtbar kennzeichnen. Die Hauptvorschau ist im PC-Quellstand umgesetzt und getestet; alternative Viewer und Live-Bereitstellung bleiben gesondert offen. Siehe docs/Studio-Materialvorschau-Pruefpass-2026-10-05.md und docs/Studio-Roadmap-MakerWorld-und-Materialvorschau-2026-10-04.md.

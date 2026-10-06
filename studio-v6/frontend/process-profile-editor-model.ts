@@ -3,6 +3,9 @@ import { nozzleProcessContract } from "./nozzle-process-contract.js";
 export const PROCESS_EDITOR_FIELDS = [
   { key: "layer_height_mm", label: "Schichthöhe", unit: "mm", min: 0.04, step: "any" },
   { key: "first_layer_height_mm", label: "Erste Schicht", unit: "mm", min: 0.04, step: "any" },
+  { key: "initial_layer_line_width_mm", label: "Linienbreite erste Schicht", unit: "mm", min: 0.01, step: "any" },
+  { key: "infill_direction_deg", label: "Füllrichtung", unit: "°", min: 0, step: "any" },
+  { key: "initial_layer_infill_speed_mm_s", label: "Füllgeschwindigkeit erste Schicht", unit: "mm/s", min: 1, step: "any" },
   { key: "walls", label: "Wandlinien", unit: "Linien", min: 0, step: "1" },
   { key: "top_shell_layers", label: "Deckschichten", unit: "Schichten", min: 0, step: "1" },
   { key: "bottom_shell_layers", label: "Bodenschichten", unit: "Schichten", min: 0, step: "1" },
@@ -41,6 +44,9 @@ export function processFieldBounds(key: string, diameter: unknown): { min: numbe
     return { min: nozzle?.min_layer_height_mm ?? .04, max: nozzle?.max_layer_height_mm ?? .56 };
   }
   if (key === "infill_percent") return { min: 0, max: 100 };
+  if (key === "infill_direction_deg") return { min: 0, max: 180 };
+  if (key === "initial_layer_line_width_mm") return { min: 0.01, max: nozzle ? nozzle.diameter_mm * 2 : 1.6 };
+  if (key === "initial_layer_infill_speed_mm_s") return { min: 1, max: 500 };
   if (key === "outer_wall_speed_mm_s" || key === "inner_wall_speed_mm_s") return { min: 1, max: nozzle?.max_wall_speed_mm_s ?? 500 };
   return { min: field?.min ?? 0 };
 }

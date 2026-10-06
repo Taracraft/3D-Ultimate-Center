@@ -15,6 +15,7 @@ from .const import DATA_RUNTIMES, DOMAIN, PLATFORMS
 from .direct_print_slot_views import async_register_direct_print_slot_views
 from .direct_print_views import async_register_direct_print_views
 from .filament_color_views import async_register_filament_color_views
+from .gallery_duplicate_views import async_register_gallery_duplicate_views
 from .gallery_management_views_v2 import async_register_gallery_management_views
 from .job_history_maintenance_views import async_register_job_history_maintenance_views
 from .makerworld_views import async_register_makerworld_views
@@ -42,6 +43,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     async_register_http_views(hass)
     async_register_audit_views(hass)
     async_register_gallery_management_views(hass)
+    async_register_gallery_duplicate_views(hass)
     async_register_makerworld_views(hass)
     async_register_profile_views(hass)
     async_register_slicer_views(hass)

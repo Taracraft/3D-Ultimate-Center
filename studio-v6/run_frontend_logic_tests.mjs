@@ -116,7 +116,7 @@ function runSourcePolicyGate() {
   const cameraSource = readSource(join(frontendDirectory, "printer-camera-panel.ts"));
   if (!cameraSource.includes("const FRAME_INTERVAL_MS = 2_000")) violations.push("printer-camera-panel.ts: automatic two-second frame interval missing");
   if (!cameraSource.includes("#frameTimer: number | null = null")) violations.push("printer-camera-panel.ts: managed frame timer missing");
-  if (!cameraSource.includes("this.getClientRects().length > 0")) violations.push("printer-camera-panel.ts: hidden camera visibility guard missing");
+  if (!cameraSource.includes("#viewportVisible = true")) violations.push("printer-camera-panel.ts: viewport visibility state missing");
   if (!cameraSource.includes("this.#stopFrameTimer()")) violations.push("printer-camera-panel.ts: frame timer cleanup missing");
   const noReloadSources = [
     "printer-camera-panel.ts",
@@ -149,8 +149,9 @@ function runSourcePolicyGate() {
   if (studioSource.includes("export3mf(")) violations.push("studio still uses the synchronous uncompressed 3MF exporter");
   if (studioSource.includes("this.#schedulePersist(0)")) violations.push("studio still schedules immediate full geometry persistence after every render");
 
-  if (!studioSource.includes('#previewColorMode: PreviewColorMode = "feature"')) violations.push("studio preview does not default to Drucktyp/feature coloring");
-  if ((studioSource.match(/this\.#previewColorMode = "feature"/g) ?? []).length < 2) violations.push("studio preview feature coloring is not restored after project/slice transitions");
+  if (!studioSource.includes('#previewColorMode: PreviewColorMode = "material"')) violations.push("studio preview must default to real job filament colors");
+  if ((studioSource.match(/this\.#previewColorMode = "feature"/g) ?? []).length !== 1) violations.push("Drucktyp may only be selected by its explicit diagnostic control");
+  if (studioSource.includes("toolColors[tool %") || studioSource.includes("plate.toolColors.length ? plate.toolColors :")) violations.push("preview must not invent or remap job colors from live material choices");
   if (!studioSource.includes('return buildContinuousToolpathMeshes(')) violations.push("studio continuous toolpath renderer missing");
   if (studioSource.includes('toolpathPreviewSampling(')) violations.push("studio preview still samples away extrusion paths");
   const ribbonSource = readSource(join(frontendDirectory, "toolpath-ribbon-geometry.ts"));
@@ -286,6 +287,17 @@ function runSourcePolicyGate() {
   if (!routerSource.includes('| { name: "slicing-server" }')) violations.push("Slicing-Server route type missing");
   const shellSource = readSource(join(frontendDirectory, "app-shell-v4.ts"));
   if (!shellSource.includes('"slicing-server": "ultimate-3d-slicing-server-workspace"')) violations.push("Slicing-Server route is not mounted as its own workspace");
+
+  if (!navigationSource.includes(".nav-buttons{display:flex;width:100%;min-width:0")) violations.push("mobile navigation does not own a stable horizontal scroller");
+  for (const marker of ["touch-action:pan-x", "overscroll-behavior-x:contain", "-webkit-overflow-scrolling:touch", "scrollbar-width:none"]) {
+    if (!navigationSource.includes(marker)) violations.push("mobile navigation iOS scrolling marker missing: " + marker);
+  }
+  if (!navigationSource.includes("nav{display:grid;grid-template-columns:minmax(0,1fr);padding:0;overflow:hidden")) violations.push("mobile nav container still competes with the horizontal tab scroller");
+
+  for (const marker of ['"pageshow"', '"focus"', '"online"', "IntersectionObserver", "FRAME_REQUEST_TIMEOUT_MS", "controller.abort()", "signal: controller.signal"]) {
+    if (!cameraSource.includes(marker)) violations.push("camera mobile lifecycle marker missing: " + marker);
+  }
+  if (cameraSource.includes("this.getClientRects().length > 0")) violations.push("camera refresh still depends on unreliable iOS getClientRects visibility");
 
   const systemSource = readSource(join(frontendDirectory, "system-workspace-v5.ts"));
   if (systemSource.includes('data-tab="slicing"')) violations.push("Slicing-Server is still embedded as a System tab");

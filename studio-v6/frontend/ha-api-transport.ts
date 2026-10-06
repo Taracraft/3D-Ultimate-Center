@@ -47,6 +47,13 @@ function record(value: unknown): Readonly<Record<string, unknown>> | null {
 }
 
 export function errorMessage(error: unknown, fallback = "API-Anfrage fehlgeschlagen."): string {
+  // Home Assistant wraps non-2xx responses in a generic transport error.
+  // Keep the server's structured explanation without repeating the request.
+  const wrapped = record(error);
+  const body = record(wrapped?.body);
+  const serverError = record(body?.error);
+  const serverMessage = serverError?.message;
+  if (typeof serverMessage === "string" && serverMessage.trim()) return serverMessage;
   if (error instanceof Error && error.message.trim()) return error.message;
   if (typeof error === "string" && error.trim()) return error;
   const top = record(error);

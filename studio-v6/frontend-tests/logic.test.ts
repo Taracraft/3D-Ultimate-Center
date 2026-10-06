@@ -1,3 +1,5 @@
+import "./material-preview-colors.test.js";
+import "./makerworld-attribution.test.js";
 import { safeMediaUrl, descriptionImageUrls, missingDescriptionImages } from "../frontend/makerworld-description-media.js";
 import { buildContinuousToolpathMeshes, extrusionRibbonWidth, type RibbonSegment } from "../frontend/toolpath-ribbon-geometry.js";
 import { transferMatchesAttempt } from "../frontend/transfer-attempt.js";
@@ -1344,7 +1346,7 @@ test("ribbons reject invalid coordinates and travel without altering source path
 
 
 test("expanded process editor validates widths, speeds and support values without fabricated defaults", () => {
-  assert.equal(PROCESS_EDITOR_FIELDS.length, 31);
+  assert.equal(PROCESS_EDITOR_FIELDS.length, 34);
   const payload = { outer_wall_line_width_mm: .42, bridge_speed_mm_s: 25, support_top_z_distance_mm: 0, support_interface_top_layers: 3 };
   assert.equal(validateProcessEditor(payload, .4).size, 0);
   assert.deepEqual(payload, { outer_wall_line_width_mm: .42, bridge_speed_mm_s: 25, support_top_z_distance_mm: 0, support_interface_top_layers: 3 });
@@ -1454,12 +1456,12 @@ test("ribbon reversals close each open run while flat support remains two-dimens
   }
 });
 
-test("current layer toolpaths keep highlight while history stays dimmed", () => {
+test("current layer highlights remain while material history keeps its job color", () => {
   const source = readFileSync(join(process.cwd(), "frontend", "studio-mega-workspace-v2.ts"), "utf8");
   assert.ok(source.includes("const highlight = !supportOnly && current"));
   assert.ok(source.includes("colorMode === \"material\" ? materialHighlightColor(materialColor) : mixColor(base, \"#ffffff\", .28)"));
   assert.ok(source.includes("...(highlight ? { highlight } : {})"));
-  assert.ok(source.includes("current ? base : mixColor(base"));
+  assert.ok(source.includes('current || (!supportOnly && colorMode === "material") ? base : mixColor(base'));
   assert.ok(!source.includes("MutationObserver"));
   assert.ok(!source.includes("location.reload"));
 });
@@ -2010,7 +2012,7 @@ test("process options panel renders and submits all process editor fields", () =
   assert.ok(api.includes('from "./process-profile-editor-model.js"'));
   assert.ok(api.includes("for (const field of PROCESS_EDITOR_FIELDS)"));
   assert.ok(api.includes("query.set(field.key, String(value))"));
-  assert.equal(PROCESS_EDITOR_FIELDS.length, 31);
+  assert.equal(PROCESS_EDITOR_FIELDS.length, 34);
   for (const field of PROCESS_EDITOR_FIELDS) {
     assert.ok(field.key);
   }
@@ -2026,7 +2028,7 @@ test("paint button is wired to viewport paint regions", () => {
   assert.ok(workspace.includes("type StudioPaintButtonElement"));
   assert.ok(workspace.includes("#paintRegions(): readonly PaintRegion[]"));
   assert.ok(workspace.includes("paintButton?.isActive?.()"));
-  assert.ok(workspace.includes("pickPaintPoint(event.clientX, event.clientY)"));
+  assert.ok(workspace.includes("pickPaintPoint(clientX, clientY)"));
   assert.ok(workspace.includes("this.#paintSession.paintTriangles("));
   assert.ok(workspace.includes("refinePaintResolution"));
   assert.ok(workspace.includes("this.#viewport?.setPaintRegions(this.#paintRegions())"));
@@ -2128,7 +2130,9 @@ test("paint export carries the exact selected material through the 3MF and nativ
   assert.ok(exporter.includes('p1="${faceMaterial}"'));
   assert.ok(exporter.includes("triangleMaterialIndices"));
   assert.ok(workspace.includes("paintMaterialKeys"));
-  assert.ok(workspace.includes("triangleMaterialIndices"));
+  assert.ok(workspace.includes("buildPaintedExportMeshes("));
+  const materialExport = readFileSync(join(process.cwd(), "frontend", "studio-painted-export.ts"), "utf8");
+  assert.ok(materialExport.includes("triangleMaterialIndices"));
   assert.ok(workspace.includes("Bemalte Flächen benötigen mehrere Materialkanäle"));
 });
 
@@ -2197,14 +2201,15 @@ test("paint refinement subdivides only touched triangles and preserves material 
   assert.equal(remapped[0]?.materialKey, "ams:1");
 });
 
-test("paint workspace stores free paint layers and materializes them only for slicing", () => {
+test("paint workspace stores editable layers and derives viewport and export from fine material geometry", () => {
   const workspace = readFileSync(join(process.cwd(), "frontend", "studio-mega-workspace-v2.ts"), "utf8");
   assert.ok(workspace.includes("type StudioPaintLayer"));
   assert.ok(workspace.includes("#paintLayers = new Map<number, StudioPaintLayer[]>"));
   assert.ok(workspace.includes("#materializePaintLayersForSlicing(plate)"));
   assert.ok(workspace.includes("this.#materializePaintLayersForSlicing(plate);"));
-  assert.ok(workspace.includes("this.#paintSession.paint(layer.objectId"));
-  assert.ok(workspace.includes("freie Malpunkte"));
+  assert.ok(workspace.includes("refinePaintLayers(instance.id"));
+  assert.ok(workspace.includes("composePaintLayers(normal, base, layers)"));
+  assert.ok(workspace.includes("noch nicht gespeichert"));
 });
 
 
@@ -2314,3 +2319,86 @@ test("MakerWorld text image links remain visible unless actually rendered inline
 test("MakerWorld additional images are normalized deduplicated and validated", () => {
   assert.deepEqual(missingDescriptionImages(["https://example.com/a.png", "https://example.com/a.png", "javascript:x", "https://example.com/b.png"], ["https://example.com/a.png"]), ["https://example.com/b.png"]);
 });
+
+import "./response-error.test.js";
+
+import "./profile-header.test.js";
+import "./first-layer.test.js";
+
+
+
+import { waitForCameraImage } from "../frontend/camera-frame-loader.js";
+
+class CameraTestImage extends EventTarget {
+  complete = false;
+  naturalWidth = 0;
+  assigned = "";
+  onAssign: (() => void) | null = null;
+  get src(): string { return this.assigned; }
+  set src(value: string) { this.assigned = value; this.onAssign?.(); }
+}
+
+test("camera image listeners observe a synchronous load before src assignment returns", async () => {
+  const image = new CameraTestImage();
+  image.onAssign = () => { image.complete = true; image.naturalWidth = 640; image.dispatchEvent(new Event("load")); };
+  await waitForCameraImage(image, "blob:camera", new AbortController().signal);
+  assert.equal(image.src, "blob:camera");
+});
+
+test("camera image rejects an immediate error instead of leaving refresh locked", async () => {
+  const image = new CameraTestImage();
+  image.onAssign = () => image.dispatchEvent(new Event("error"));
+  await assert.rejects(waitForCameraImage(image, "blob:broken", new AbortController().signal), /Kamerabild/);
+});
+
+test("camera image accepts an already complete valid cached frame", async () => {
+  const image = new CameraTestImage();
+  image.complete = true; image.naturalWidth = 640;
+  await waitForCameraImage(image, "blob:cached", new AbortController().signal);
+});
+
+test("camera image abort covers a stalled image after the network request", async () => {
+  const image = new CameraTestImage();
+  const controller = new AbortController();
+  const pending = waitForCameraImage(image, "blob:stalled", controller.signal);
+  controller.abort();
+  await assert.rejects(pending, { name: "AbortError" });
+  image.naturalWidth = 640;
+  image.dispatchEvent(new Event("load"));
+  image.dispatchEvent(new Event("error"));
+  const next = new CameraTestImage(); next.complete = true; next.naturalWidth = 640;
+  await waitForCameraImage(next, "blob:next", new AbortController().signal);
+});
+
+test("camera image never starts loading when its request has already been cancelled", async () => {
+  const image = new CameraTestImage();
+  const controller = new AbortController(); controller.abort();
+  await assert.rejects(waitForCameraImage(image, "blob:cancelled", controller.signal), { name: "AbortError" });
+  assert.equal(image.assigned, "");
+});
+
+import "./paint-regression.test.js";
+
+import "./navigation-lifecycle.test.js";
+
+import "./camera-panel-lifecycle.test.js";
+
+import "./filament-view-state.test.js";
+
+import "./support-warning-lifecycle.test.js";
+
+import "./profile-analysis-status.test.js";
+
+import "./gallery-concurrency.test.js";
+
+import "./system-runtime.test.js";
+
+import "./cad-data-integrity.test.js";
+import "./paint-tools-materialization.test.js";
+import "./slicer-cancel.test.js";
+
+import "./mobile-dialog-lifecycle.test.js";
+
+import "./makerworld-transfer-lifecycle.test.js";
+
+import "./gallery-detail-request.test.js";

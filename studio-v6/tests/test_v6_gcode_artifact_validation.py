@@ -119,3 +119,83 @@ def test_h2s_descriptive_metadata_does_not_replace_executed_sequence(removed: st
 def test_h2s_declaration_does_not_grant_hardware_authority() -> None:
     with pytest.raises(validation.GCodeValidationError, match="explizite Hardware"):
         validation.validate_rendered_bambu_gcode(h2s_gcode(), expected_printer_model="H2S")
+
+
+# Regression: an actual one-layer test has no subsequent-layer bed phase.
+ONE_LAYER_BED_PARAMETERS = [{"textured_plate_temp": ["55"], "textured_plate_temp_initial_layer": ["60"]}]
+
+
+def one_layer_bed_gcode(*, total: int = 1, second_layer: bool = False, second_z: bool = False) -> BytesIO:
+    source = complete_gcode("; printer_model = Bambu Lab A1").getvalue().decode()
+    source = source.replace("G1 X1 Y1 E0.10", (
+        f"; total layer number: {total}\n"
+        "; textured_plate_temp = 55\n; textured_plate_temp_initial_layer = 60\n"
+        "G90\nM83\nG1 Z0.2\n; MACHINE_START_GCODE_END\n"
+        "; CHANGE_LAYER\nG1 X1 Y1 E0.10"))
+    if second_layer:
+        source = source.replace("G1 X50 Y1 E0.10", "; CHANGE_LAYER\nG1 Z0.4\nG1 X50 Y1 E0.10")
+    elif second_z:
+        source = source.replace("G1 X50 Y1 E0.10", "G1 Z0.4\nG1 X50 Y1 E0.10")
+    return BytesIO(source.encode())
+
+
+def check_layer_bed(source: BytesIO):
+    return validation.validate_rendered_bambu_gcode(
+        source, runtime_parameters=ONE_LAYER_BED_PARAMETERS,
+        expected_bed_temperature_key="textured_plate_temp")
+
+
+def test_single_layer_bed_does_not_require_nonexistent_following_layer_phase() -> None:
+    report = check_layer_bed(one_layer_bed_gcode())
+    assert report.filament_parameter_contract_verified
+    assert report.checked_print_extrusion_moves == 95
+
+
+@pytest.mark.parametrize("total,second_layer,second_z", [(2,True,False),(1,True,False),(1,False,True),(2,False,False)])
+def test_multilayer_or_forged_single_layer_still_requires_regular_bed_heat(total, second_layer, second_z) -> None:
+    with pytest.raises(validation.GCodeValidationError, match="textured_plate_temp wurde nicht"):
+        check_layer_bed(one_layer_bed_gcode(total=total,second_layer=second_layer,second_z=second_z))
+
+
+def test_single_layer_still_requires_initial_bed_heat() -> None:
+    source = one_layer_bed_gcode().getvalue().replace(b"M140 S60", b"M140 S55").replace(b"M190 S60", b"M190 S55")
+    with pytest.raises(validation.GCodeValidationError, match="textured_plate_temp_initial_layer wurde nicht"):
+        check_layer_bed(BytesIO(source))
+
+
+def test_single_layer_still_rejects_changed_native_parameters() -> None:
+    source = one_layer_bed_gcode().getvalue().replace(b"; textured_plate_temp = 55", b"; textured_plate_temp = 54")
+    with pytest.raises(validation.GCodeValidationError, match="nicht unverändert übernommen"):
+        check_layer_bed(BytesIO(source))
+
+
+def test_single_layer_still_enforces_hardware_temperature_limit() -> None:
+    source = one_layer_bed_gcode().getvalue() + b"M140 S101\n"
+    with pytest.raises(validation.GCodeValidationError, match="Druckbett"):
+        check_layer_bed(BytesIO(source))
+
+
+def test_multilayer_with_both_bed_setpoints_remains_valid() -> None:
+    source = one_layer_bed_gcode(total=2,second_layer=True).getvalue().replace(b"G1 Z0.4", b"M140 S55\nG1 Z0.4")
+    assert check_layer_bed(BytesIO(source)).filament_parameter_contract_verified
+
+
+def test_original_unified_preview_progress_and_renderer_remain_wired() -> None:
+    root = COMPONENT.parents[3]
+    entry = (root / "frontend/v6-entry.ts").read_text()
+    assert entry.count("<ultimate-3d-global-job-popup></ultimate-3d-global-job-popup>") == 1
+    assert "<studio-preview-progress-popup" not in entry
+    popup = (root / "frontend/global-job-popup-v3.ts").read_text()
+    assert "const previewCard = visiblePreview" in popup
+    assert "(loadedLayers / layerCount) * 100" in popup
+    assert "#previewWorkflowKey(): string" in popup
+    workspace = (root / "frontend/studio-mega-workspace-v2.ts").read_text()
+    assert '"toolpath_parse_started"' in workspace
+    assert "buildContinuousToolpathMeshes" in workspace
+
+
+def test_forged_single_layer_with_closed_arc_on_second_plane_is_rejected() -> None:
+    source = one_layer_bed_gcode().getvalue().replace(
+        b"G1 X50 Y1 E0.10", b"G1 Z0.4\nG2 X49 Y1 I1 J0 E1\nG1 Z0.2\nG1 X50 Y1 E0.10")
+    with pytest.raises(validation.GCodeValidationError, match="textured_plate_temp wurde nicht"):
+        check_layer_bed(BytesIO(source))

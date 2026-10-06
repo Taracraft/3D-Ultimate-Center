@@ -1,8 +1,11 @@
 import "./v6-action-dialog.js";
 import "./v6-context-menu.js";
 import "./gallery-model-detail-dialog.js";
+import "./gallery-duplicates-dialog.js";
+import type { GalleryDuplicatesDialog } from "./gallery-duplicates-dialog.js";
 import { GalleryApi, type GalleryImportSummary, type GalleryItem, type GalleryLibrary } from "./gallery-api.js";
 import { sortGalleryItems, type GallerySortMode, type GalleryViewMode } from "./gallery-library-state.js";
+import { GalleryOperationState } from "./gallery-operation-state.js";
 import { errorMessage } from "./ha-api-transport.js";
 import { STORAGE_WORKSPACE_STYLE } from "./storage-workspace-style.js";
 import type { V6ActionDialog } from "./v6-action-dialog.js";
@@ -103,7 +106,8 @@ export class Ultimate3DGalleryLibraryPane extends HTMLElement {
   #query = "";
   #timer: number | null = null;
   #signature = "";
-  #busy = false;
+  #detailRequest = 0;
+  readonly #operations = new GalleryOperationState();
   readonly #previewItems = new WeakMap<Element, GalleryItem>();
   #previewObserver: IntersectionObserver | null = null;
 
@@ -116,6 +120,8 @@ export class Ultimate3DGalleryLibraryPane extends HTMLElement {
   }
 
   disconnectedCallback(): void {
+    this.#detailRequest += 1;
+    this.#operations.invalidate();
     if (this.#timer !== null) window.clearInterval(this.#timer);
     this.#timer = null;
     this.#previewObserver?.disconnect();
@@ -150,8 +156,19 @@ export class Ultimate3DGalleryLibraryPane extends HTMLElement {
   }
 
   #mount(): void {
-    this.#root.innerHTML = `<style>${STORAGE_WORKSPACE_STYLE}.search{flex:1;min-width:190px;padding:9px;border:1px solid #31506e;border-radius:8px;background:#09131f;color:#fff}.live{color:#8ff0b5;font-size:11px}.recent{display:none;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;margin:0 0 12px;padding:11px 13px;border:1px solid #31506e;border-radius:9px;background:linear-gradient(180deg,#102334,#0a1723)}.recent.visible{display:grid}.recent strong,.recent small{display:block}.recent small{margin-top:3px;color:#849bb0}.recent button{white-space:nowrap}.preview.clickable{cursor:pointer}.preview.clickable:hover{outline:1px solid #45caff;box-shadow:0 0 0 2px #45caff22}.upload-status{display:none;margin:0 0 12px;padding:12px 13px;border:1px solid #31506e;border-radius:9px;background:#091722}.upload-status.visible{display:block}.upload-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}.upload-head strong{color:#e8f4ff}.upload-head span{color:#8ff0b5;font-weight:800}.upload-track{height:10px;overflow:hidden;border:1px solid #284765;border-radius:999px;background:#06101a}.upload-bar{height:100%;width:0;background:linear-gradient(90deg,#1595d3,#39d884);transition:width .2s ease}.upload-current{display:block;margin-top:7px;color:#a8bfd2}.upload-success{margin:8px 0 0;padding-left:20px;color:#79ef9f}.upload-success li{margin:3px 0}.upload-status.error{border-color:#9a3f4a}.upload-status.error .upload-head span,.upload-status.error .upload-current{color:#ff9ca7}.toolbar select{min-width:145px}.bulk{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0;padding:8px;border:1px solid #26384f;border-radius:9px;background:#0d1723}.bulk strong{margin-right:auto}.card{position:relative}.card.selected{border-color:#45c5ff;box-shadow:inset 3px 0 #45c5ff}.select-item{position:absolute;top:8px;left:8px;z-index:3;width:23px;height:23px}.items.list{display:grid;grid-template-columns:1fr}.items.list .card{display:grid;grid-template-columns:110px minmax(0,1fr) auto;align-items:center;min-height:94px}.items.list .preview{height:92px}.items.list .card-actions{display:flex;flex-wrap:wrap;padding:9px}@media(max-width:650px){.bulk{display:grid}.items.list .card{grid-template-columns:80px minmax(0,1fr)}.items.list .card-actions{grid-column:1/-1}}</style><section class="page"><header class="head"><div><h1>Galerie</h1><p>Lokale V6-Modellbibliothek mit automatischer Aktualisierung.</p></div><div class="actions"><button id="refresh">Aktualisieren</button><span class="live" id="live">Live alle 10 s</span></div></header><div id="notice"></div><section class="upload-status" id="upload-status" aria-live="polite"><div class="upload-head"><strong id="upload-title">Dateien werden hochgeladen</strong><span id="upload-percent">0 %</span></div><div class="upload-track"><div class="upload-bar" id="upload-bar"></div></div><small class="upload-current" id="upload-current"></small><ul class="upload-success" id="upload-success"></ul></section><div class="layout"><aside class="sidebar"><strong>Ordner</strong><div class="tree" id="tree"></div></aside><main><div class="toolbar"><input class="search" id="search" type="search" placeholder="Galerie durchsuchen"><button id="search-button">Suchen</button><select id="sort" aria-label="Sortierung"><option value="name">Name A–Z</option><option value="newest">Neueste zuerst</option><option value="size">Größte zuerst</option></select><button class="primary" id="upload">Hochladen</button><button id="new-folder">Neuer Ordner</button><button id="up">Eine Ebene hoch</button><button id="export">ZIP-Export</button><button id="import">ZIP-Import</button><button id="grid-view">Raster</button><button id="list-view">Liste</button></div><div class="path" id="path">Hauptordner</div><div class="bulk"><strong id="selected-count">0 ausgewählt</strong><button id="select-all">Alle auswählen</button><button id="clear-selection" disabled>Auswahl aufheben</button><button id="copy-selected" disabled>Kopieren</button><button id="move-selected" disabled>Verschieben</button><button class="danger" id="delete-selected" disabled>Löschen</button></div><section class="recent" id="recent"></section><section class="items" id="items"></section></main></div><input id="upload-input" type="file" accept=".3mf,.stl,.obj" multiple hidden><input id="import-input" type="file" accept=".zip,application/zip" hidden><v6-action-dialog></v6-action-dialog><v6-context-menu></v6-context-menu><gallery-model-detail-dialog></gallery-model-detail-dialog></section>`;
+    this.#root.innerHTML = `<style>${STORAGE_WORKSPACE_STYLE}.search{flex:1;min-width:190px;padding:9px;border:1px solid #31506e;border-radius:8px;background:#09131f;color:#fff}.live{color:#8ff0b5;font-size:11px}.recent{display:none;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;margin:0 0 12px;padding:11px 13px;border:1px solid #31506e;border-radius:9px;background:linear-gradient(180deg,#102334,#0a1723)}.recent.visible{display:grid}.recent strong,.recent small{display:block}.recent small{margin-top:3px;color:#849bb0}.recent button{white-space:nowrap}.preview.clickable{cursor:pointer}.preview.clickable:hover{outline:1px solid #45caff;box-shadow:0 0 0 2px #45caff22}.upload-status{display:none;margin:0 0 12px;padding:12px 13px;border:1px solid #31506e;border-radius:9px;background:#091722}.upload-status.visible{display:block}.upload-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}.upload-head strong{color:#e8f4ff}.upload-head span{color:#8ff0b5;font-weight:800}.upload-track{height:10px;overflow:hidden;border:1px solid #284765;border-radius:999px;background:#06101a}.upload-bar{height:100%;width:0;background:linear-gradient(90deg,#1595d3,#39d884);transition:width .2s ease}.upload-current{display:block;margin-top:7px;color:#a8bfd2}.upload-success{margin:8px 0 0;padding-left:20px;color:#79ef9f}.upload-success li{margin:3px 0}.upload-status.error{border-color:#9a3f4a}.upload-status.error .upload-head span,.upload-status.error .upload-current{color:#ff9ca7}.toolbar select{min-width:145px}.bulk{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0;padding:8px;border:1px solid #26384f;border-radius:9px;background:#0d1723}.bulk strong{margin-right:auto}.card{position:relative}.card.selected{border-color:#45c5ff;box-shadow:inset 3px 0 #45c5ff}.select-item{position:absolute;top:8px;left:8px;z-index:3;width:23px;height:23px}.items.list{display:grid;grid-template-columns:1fr}.items.list .card{display:grid;grid-template-columns:110px minmax(0,1fr) auto;align-items:center;min-height:94px}.items.list .preview{height:92px}.items.list .card-actions{display:flex;flex-wrap:wrap;padding:9px}@media(max-width:650px){.bulk{display:grid}.items.list .card{grid-template-columns:80px minmax(0,1fr)}.items.list .card-actions{grid-column:1/-1}}</style><section class="page"><header class="head"><div><h1>Galerie</h1><p>Lokale Modellbibliothek mit automatischer Aktualisierung.</p></div><div class="actions"><button id="refresh">Aktualisieren</button><span class="live" id="live">Live alle 10 s</span></div></header><div id="notice"></div><section class="upload-status" id="upload-status" aria-live="polite"><div class="upload-head"><strong id="upload-title">Dateien werden hochgeladen</strong><span id="upload-percent">0 %</span></div><div class="upload-track"><div class="upload-bar" id="upload-bar"></div></div><small class="upload-current" id="upload-current"></small><ul class="upload-success" id="upload-success"></ul></section><div class="layout"><aside class="sidebar"><strong>Ordner</strong><div class="tree" id="tree"></div></aside><main><div class="toolbar"><input class="search" id="search" type="search" aria-label="Galerie durchsuchen" placeholder="Galerie durchsuchen"><button id="search-button">Suchen</button><select id="sort" aria-label="Sortierung"><option value="name">Name A–Z</option><option value="newest">Neueste zuerst</option><option value="size">Größte zuerst</option></select><button class="primary" id="upload">Hochladen</button><button id="new-folder">Neuer Ordner</button><button id="up">Eine Ebene hoch</button><button id="export">ZIP-Export</button><button id="import">ZIP-Import</button><button id="grid-view">Raster</button><button id="list-view">Liste</button><button id="duplicates" type="button" aria-haspopup="dialog">Duplikate prüfen</button></div><div class="path" id="path">Hauptordner</div><div class="bulk"><strong id="selected-count">0 ausgewählt</strong><button id="select-all">Alle auswählen</button><button id="clear-selection" disabled>Auswahl aufheben</button><button id="copy-selected" disabled>Kopieren</button><button id="move-selected" disabled>Verschieben</button><button class="danger" id="delete-selected" disabled>Löschen</button></div><section class="recent" id="recent"></section><section class="items" id="items"></section></main></div><input id="upload-input" type="file" accept=".3mf,.stl,.obj" multiple hidden><input id="import-input" type="file" accept=".zip,application/zip" hidden><v6-action-dialog></v6-action-dialog><v6-context-menu></v6-context-menu><gallery-model-detail-dialog></gallery-model-detail-dialog><gallery-duplicates-dialog></gallery-duplicates-dialog></section>`;
     this.#root.querySelector<HTMLButtonElement>("#refresh")?.addEventListener("click", () => void this.#refresh(false));
+    this.#root.querySelector<HTMLButtonElement>("#duplicates")?.addEventListener("click", () => {
+      if (this.#operations.busy) {
+        this.#showError("Die laufende Galerieänderung muss zuerst abgeschlossen werden.");
+        return;
+      }
+      const dialog = this.#root.querySelector<GalleryDuplicatesDialog>("gallery-duplicates-dialog");
+      const opened = dialog?.open(this.#folder,
+        (folder, signal) => this.#api.duplicates(folder, signal),
+        (folder) => void this.#openFolder(folder));
+      if (!opened) this.#showError("Die Duplikatansicht konnte nicht als Dialog geöffnet werden.");
+    });
     this.#root.querySelector<HTMLButtonElement>("#upload")?.addEventListener("click", () => this.#root.querySelector<HTMLInputElement>("#upload-input")?.click());
     this.#root.querySelector<HTMLInputElement>("#upload-input")?.addEventListener("change", (event) => void this.#upload((event.currentTarget as HTMLInputElement).files));
     this.#root.querySelector<HTMLButtonElement>("#new-folder")?.addEventListener("click", () => void this.#createFolder());
@@ -173,31 +190,38 @@ export class Ultimate3DGalleryLibraryPane extends HTMLElement {
   }
 
   #search(): void {
+    this.#detailRequest += 1;
     this.#query = this.#root.querySelector<HTMLInputElement>("#search")?.value.trim() || "";
     void this.#refresh(false);
   }
 
   async #refresh(silent: boolean): Promise<void> {
-    if (this.#busy) return;
+    const folder = this.#folder;
+    const query = this.#query;
     try {
-      const library = await this.#api.list(this.#folder, this.#query, Boolean(this.#query));
-      const signature = JSON.stringify(library);
-      this.#library = library;
-      this.#folder = library.folder;
-      if (!this.#query && !library.folder) saveCachedLibrary(library);
-      if (signature !== this.#signature) {
-        this.#signature = signature;
-        this.#renderData();
-      }
-      this.#renderRecent();
-      this.#setLive(`Aktualisiert ${new Date().toLocaleTimeString("de-DE")}`);
-      if (!silent) this.#showMessage("Galerie wurde aktualisiert.");
+      const updated = await this.#operations.refresh(
+        () => this.#api.list(folder, query, Boolean(query)),
+        (library) => {
+          const signature = JSON.stringify(library);
+          this.#library = library;
+          this.#folder = library.folder;
+          if (!query && !library.folder) saveCachedLibrary(library);
+          if (signature !== this.#signature) {
+            this.#signature = signature;
+            this.#renderData();
+          }
+          this.#renderRecent();
+          this.#setLive(`Aktualisiert ${new Date().toLocaleTimeString("de-DE")}`);
+        },
+      );
+      if (updated && !silent) this.#showMessage("Galerie wurde aktualisiert.");
     } catch (error) {
       this.#showError(errorMessage(error));
     }
   }
 
   async #openFolder(folder: string): Promise<void> {
+    this.#detailRequest += 1;
     this.#selected.clear();
     this.#folder = folder;
     this.#query = "";
@@ -344,13 +368,16 @@ export class Ultimate3DGalleryLibraryPane extends HTMLElement {
 
   async #showDetails(item: GalleryItem): Promise<void> {
     if (item.kind !== "model") return;
+    const request = ++this.#detailRequest;
     try {
       const preview = await this.#api.preview(item);
+      if (!this.isConnected || request !== this.#detailRequest) return;
       this.#detailDialog()?.open(item, preview, {
         download: () => void this.#download(item),
         openStudio: () => void this.#openIn3DStudio(item),
       });
     } catch (error) {
+      if (!this.isConnected || request !== this.#detailRequest) return;
       this.#showError(errorMessage(error));
     }
   }
@@ -459,7 +486,7 @@ export class Ultimate3DGalleryLibraryPane extends HTMLElement {
 
   async #import(file: File | null): Promise<void> {
     const input = this.#root.querySelector<HTMLInputElement>("#import-input");
-    if (!file || this.#busy) return;
+    if (!file || this.#operations.busy) return;
     try {
       const summary: GalleryImportSummary = await this.#api.inspectImport(file);
       const confirmed = await this.#dialog()?.confirm({ title: "Galerie-ZIP importieren", message: `${summary.files} Dateien und ${summary.folders} Ordner importieren?`, detail: summary.conflicts.length ? `${summary.conflicts.length} vorhandene Dateien werden ersetzt.` : sizeLabel(summary.bytes), confirmLabel: "Importieren", danger: summary.conflicts.length > 0 });
@@ -541,74 +568,68 @@ export class Ultimate3DGalleryLibraryPane extends HTMLElement {
 
   async #upload(files: FileList | null): Promise<void> {
     const queue = files ? Array.from(files) : [];
-    if (!queue.length || this.#busy) return;
-    this.#busy = true;
+    if (!queue.length || this.#operations.busy) return;
+    const folder = this.#folder;
     const input = this.#root.querySelector<HTMLInputElement>("#upload-input");
     const totalBytes = queue.reduce((sum, file) => sum + Math.max(0, file.size), 0);
     let completedBytes = 0;
     const successful: string[] = [];
     this.#renderUploadProgress("Upload wird vorbereitet …", `${queue.length} Datei(en)`, 0, totalBytes, successful);
     try {
-      for (let index = 0; index < queue.length; index += 1) {
-        const file = queue[index]!;
-        this.#renderUploadProgress(
-          `Datei ${index + 1} von ${queue.length} wird hochgeladen`,
-          `${file.name} · ${sizeLabel(file.size)}`,
-          completedBytes,
-          totalBytes,
-          successful,
-        );
-        const uploadWithProgress = (overwrite: boolean) => this.#api.upload(file, this.#folder, overwrite, (progress) => {
+      const uploaded = await this.#operations.mutate(async () => {
+        for (let index = 0; index < queue.length; index += 1) {
+          const file = queue[index]!;
           this.#renderUploadProgress(
             `Datei ${index + 1} von ${queue.length} wird hochgeladen`,
-            `${file.name} · ${sizeLabel(progress.uploadedBytes)} / ${sizeLabel(progress.totalBytes)}`,
-            completedBytes + progress.uploadedBytes,
+            `${file.name} · ${sizeLabel(file.size)}`,
+            completedBytes,
             totalBytes,
             successful,
           );
-        });
-        try {
-          await uploadWithProgress(false);
-        } catch (error) {
-          if (!errorMessage(error).toLowerCase().includes("exist")) throw error;
-          const overwrite = await this.#dialog()?.confirm({ title: "Galeriedatei ersetzen", message: `„${file.name}“ existiert bereits.`, confirmLabel: "Ersetzen", danger: true });
-          if (!overwrite) throw new Error(`Upload von „${file.name}“ wurde abgebrochen.`);
-          await uploadWithProgress(true);
+          const uploadWithProgress = (overwrite: boolean) => this.#api.upload(file, folder, overwrite, (progress) => {
+            this.#renderUploadProgress(
+              `Datei ${index + 1} von ${queue.length} wird hochgeladen`,
+              `${file.name} · ${sizeLabel(progress.uploadedBytes)} / ${sizeLabel(progress.totalBytes)}`,
+              completedBytes + progress.uploadedBytes,
+              totalBytes,
+              successful,
+            );
+          });
+          try {
+            await uploadWithProgress(false);
+          } catch (error) {
+            if (!errorMessage(error).toLowerCase().includes("exist")) throw error;
+            const overwrite = await this.#dialog()?.confirm({ title: "Galeriedatei ersetzen", message: `„${file.name}“ existiert bereits.`, confirmLabel: "Ersetzen", danger: true });
+            if (!overwrite) throw new Error(`Upload von „${file.name}“ wurde abgebrochen.`);
+            await uploadWithProgress(true);
+          }
+          completedBytes += Math.max(0, file.size);
+          successful.push(file.name);
+          this.#renderUploadProgress(
+            index + 1 === queue.length ? "Upload abgeschlossen" : "Datei erfolgreich hochgeladen",
+            `${file.name} wurde in die Galerie übernommen.`,
+            completedBytes,
+            totalBytes,
+            successful,
+          );
         }
-        completedBytes += Math.max(0, file.size);
-        successful.push(file.name);
-        this.#renderUploadProgress(
-          index + 1 === queue.length ? "Upload abgeschlossen" : "Datei erfolgreich hochgeladen",
-          `${file.name} wurde in die Galerie übernommen.`,
-          completedBytes,
-          totalBytes,
-          successful,
-        );
-      }
-      await this.#refresh(true);
-      this.#showMessage(`${successful.length} Datei(en) erfolgreich hochgeladen.`);
+      }, () => this.#refresh(true));
+      if (uploaded) this.#showMessage(`${successful.length} Datei(en) erfolgreich hochgeladen.`);
     } catch (error) {
       const message = errorMessage(error);
       this.#renderUploadProgress("Upload fehlgeschlagen", message, completedBytes, totalBytes, successful, true);
       this.#showError(message);
     } finally {
-      this.#busy = false;
       if (input) input.value = "";
     }
   }
 
   async #run(operation: () => Promise<void>): Promise<void> {
-    if (this.#busy) return;
-    this.#busy = true;
     try {
-      await operation();
-      this.#busy = false;
-      await this.#refresh(true);
-      this.#showMessage("Änderung wurde übernommen.");
+      const changed = await this.#operations.mutate(operation, () => this.#refresh(true));
+      if (changed) this.#showMessage("Änderung wurde übernommen.");
     } catch (error) {
       this.#showError(errorMessage(error));
-    } finally {
-      this.#busy = false;
     }
   }
 
@@ -620,3 +641,4 @@ export class Ultimate3DGalleryLibraryPane extends HTMLElement {
 if (!customElements.get("ultimate-3d-gallery-library-pane")) {
   customElements.define("ultimate-3d-gallery-library-pane", Ultimate3DGalleryLibraryPane);
 }
+

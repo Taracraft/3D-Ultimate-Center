@@ -16,6 +16,7 @@ export type MeshRepairResult = Readonly<{
   geometry: MeshGeometry;
   report: MeshRepairReport;
   changed: boolean;
+  triangleIndexMap: ReadonlyMap<number, readonly number[]>;
 }>;
 
 function vertexKey(x: number, y: number, z: number): string {
@@ -46,14 +47,17 @@ function triangleIsZeroArea(values: readonly number[]): boolean {
 function inspectAndCollect(geometry: MeshGeometry): {
   report: MeshRepairReport;
   kept: number[];
+  triangleIndexMap: Map<number, readonly number[]>;
 } {
   const kept: number[] = [];
-  const triangles = new Set<string>();
+  const triangles = new Map<string, number>();
+  const triangleIndexMap = new Map<number, readonly number[]>();
   const edges = new Map<string, number>();
   let nonFiniteTriangleCount = 0;
   let zeroAreaTriangleCount = 0;
   let duplicateTriangleCount = 0;
   for (let index = 0; index < geometry.positions.length; index += 9) {
+    triangleIndexMap.set(index / 9, []);
     const values = Array.from(geometry.positions.slice(index, index + 9));
     if (values.length !== 9 || values.some((value) => !Number.isFinite(value))) {
       nonFiniteTriangleCount += 1;
@@ -71,9 +75,11 @@ function inspectAndCollect(geometry: MeshGeometry): {
     const key = triangleKey(vertices);
     if (triangles.has(key)) {
       duplicateTriangleCount += 1;
+      triangleIndexMap.set(index / 9, [triangles.get(key)!]);
       continue;
     }
-    triangles.add(key);
+    triangles.set(key, kept.length / 9);
+    triangleIndexMap.set(index / 9, [kept.length / 9]);
     kept.push(...values);
     for (const [left, right] of [[0, 1], [1, 2], [2, 0]] as const) {
       const edge = edgeKey(vertices[left]!, vertices[right]!);
@@ -89,6 +95,7 @@ function inspectAndCollect(geometry: MeshGeometry): {
   const repairableTriangleCount = nonFiniteTriangleCount + zeroAreaTriangleCount + duplicateTriangleCount;
   return {
     kept,
+    triangleIndexMap,
     report: {
       triangleCount: geometry.triangleCount,
       validTriangleCount: kept.length / 9,
@@ -107,12 +114,13 @@ export function analyzeMeshGeometry(geometry: MeshGeometry): MeshRepairReport {
 }
 
 export function repairMeshGeometry(geometry: MeshGeometry): MeshRepairResult {
-  const { kept, report } = inspectAndCollect(geometry);
-  if (!report.repairableTriangleCount) return { geometry, report, changed: false };
-  if (!kept.length) return { geometry, report, changed: false };
+  const { kept, report, triangleIndexMap } = inspectAndCollect(geometry);
+  if (!report.repairableTriangleCount) return { geometry, report, changed: false, triangleIndexMap: new Map(Array.from({ length: geometry.triangleCount }, (_, index) => [index, [index]])) };
+  if (!kept.length) return { geometry, report, changed: false, triangleIndexMap: new Map(Array.from({ length: geometry.triangleCount }, (_, index) => [index, [index]])) };
   return {
     geometry: geometryFromPositions(new Float32Array(kept)),
     report,
     changed: true,
+    triangleIndexMap,
   };
 }

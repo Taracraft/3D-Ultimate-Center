@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,12 +37,17 @@ def test_active_sources_have_no_remote_computer_slicing_path() -> None:
         '"pc"',
         "PC-Worker",
         "PC-Slicer",
-        "cancelSliceJob",
         "cancelActiveSlicerJob",
         "data-cancel-slicer",
         'data-backend="pc"',
-        "Worker",
-        "worker",
+        # Generic native-worker text and native cancellation are valid. Keep the
+        # retired computer backend, client and host-selection paths forbidden.
+        "SlicerWorkerClient",
+        "slicer_worker_client",
+        "BACKEND_PC",
+        "pc__",
+        "127.0.0.1:5000",
+        "localhost:5000",
     ]
     forbidden_backend = [
         "BACKEND_PC",
@@ -69,7 +75,17 @@ def test_router_is_fail_closed_to_fixed_native_server() -> None:
     assert 'SERVER_ENDPOINT = "http://127.0.0.1:8099"' in router
     assert "Nur der native Linux-Slicing-Server ist zulässig." in router
     assert "server__-Präfix erforderlich" in router
-    assert "async_cancel_job" not in router
+    cancel = next(node for node in ast.walk(ast.parse(router)) if isinstance(node, ast.AsyncFunctionDef) and node.name == "async_cancel_job")
+    cancel_source = ast.get_source_segment(router, cancel)
+    assert "raw_id = native_job_id(job_id)" in cancel_source
+    assert 'f"{SERVER_ENDPOINT}/api/v1/jobs/{raw_id}/cancel"' in cancel_source
+    assert "self.session.post(" in cancel_source
+    queue_views = (COMPONENT / "slicer_queue_views.py").read_text(encoding="utf-8-sig")
+    cancel_view = next(node for node in ast.parse(queue_views).body if isinstance(node, ast.ClassDef) and node.name == "SlicerCancelJobView")
+    cancel_view_source = ast.get_source_segment(queue_views, cancel_view)
+    assert "requires_auth = True" in cancel_view_source
+    assert '.async_cancel_job(job_id)' in cancel_view_source
+    # The retired, separately routed PC cancel view remains absent.
     assert "SlicerJobCancelView" not in views
     assert '/jobs/{job_id}/cancel' not in views
 
@@ -82,7 +98,14 @@ def test_native_server_deletes_only_terminal_jobs() -> None:
     assert "status = 409" not in server
     assert '"status": 409' in server
     assert "_upload_is_referenced(input_file)" in server
-    assert 'RUN.glob(f"{job_id}-*")' in server
+    assert "with JOB_CONTROL.lock(job_id):" in server
+    assert "return _delete_job_locked(job_id)" in server
+    assert "JOB_CONTROL.cleanup_runtime(job_id)" in server
+    # Prefix globbing could delete another job's runtime files (job / job-child).
+    assert 'RUN.glob(f"{job_id}-*")' not in server
+    control = HOST_SERVER.with_name("job_control.py").read_text(encoding="utf-8-sig")
+    cleanup = next(node for node in ast.walk(ast.parse(control)) if isinstance(node, ast.FunctionDef) and node.name == "cleanup_runtime")
+    assert ".glob(" not in ast.get_source_segment(control, cleanup)
 
 
 def test_retired_remote_clients_are_inert() -> None:
