@@ -4,7 +4,7 @@
   "model": "A1",
   "technology": "fff",
   "preferred_engine": "bambu_studio",
-  "compatible_engines": ["bambu_studio", "prusaslicer"],
+  "compatible_engines": ["bambu_studio"],
   "nozzle_diameter": 0.4,
   "build_volume": {"x": 256, "y": 256, "z": 256},
   "default_process_profile": "bambu_a1_020_standard",
