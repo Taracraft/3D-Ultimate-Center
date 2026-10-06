@@ -3,8 +3,6 @@ import assert from "node:assert/strict";
 import { ContractElement, loadElementContract } from "./element-contract-harness.js";
 
 function setup(savedRoute?: string) {
-  const subscribers = new Set<(snapshot: unknown) => void>();
-  const snapshot = { printers: [], jobs: { current: [] } };
   let workspaceClears = 0;
   const host = loadElementContract("app-shell-v4.ts", {}, {
     "./control-workspace.js": {}, "./gallery-workspace.js": {},
@@ -13,12 +11,6 @@ function setup(savedRoute?: string) {
     "./ha-api-transport.js": { writeFrontendAudit: () => {} },
     "./workspace-file-handoff.js": { consumeWorkspaceFiles: () => [] },
     "./studio-persistence.js": { clearStudioWorkspace: async () => { workspaceClears += 1; } },
-    "./job-activity-store.js": { jobActivityStore: {
-      snapshot,
-      subscribe(callback: (value: unknown) => void) { subscribers.add(callback); callback(snapshot); return () => subscribers.delete(callback); },
-    } },
-    "./print-live-telemetry.js": { printLayerLabel: () => "", printSpeedLabel: () => "" },
-    "./print-remaining-time.js": { remainingTimeLabel: () => "" },
   });
   if (savedRoute) host.storage.setItem("ultimate-3d-studio-v6:last-route", savedRoute);
   const Constructor = host.exported.Ultimate3DStudioShellV4 as new () => ContractElement & {
@@ -30,23 +22,27 @@ function setup(savedRoute?: string) {
   shell.isConnected = true;
   shell.connectedCallback();
   const content = shell.shadowRoot!.querySelector("#host")!;
-  const navigation = shell.shadowRoot!.querySelector("#nav-buttons")!;
   const disconnect = (): void => { shell.isConnected = false; shell.disconnectedCallback(); };
   const connect = (): void => { shell.isConnected = true; shell.connectedCallback(); };
-  return { ...host, shell, content, navigation, subscribers, workspaceClears: () => workspaceClears, connect, disconnect };
+  return { ...host, shell, content, workspaceClears: () => workspaceClears, connect, disconnect };
 }
 
-test("navigation commits a clicked route once and keeps its workspace through its own hash event", () => {
+test("Studio renders no duplicate internal navigation", () => {
   const app = setup();
-  app.navigation.scrollLeft = 360;
-  const profileButton = app.navigation.children.find((node) => node.dataset.route === "profile")!;
-  profileButton.dispatchEvent(new Event("click"));
+  assert.equal(app.shell.shadowRoot!.querySelector("nav"), null);
+  assert.equal(app.shell.shadowRoot!.querySelector("#nav-buttons"), null);
+  assert.equal(app.shell.shadowRoot!.querySelector("#nav-live"), null);
+  app.disconnect();
+});
+
+test("programmatic workspace navigation remains available without the duplicate navigation bar", () => {
+  const app = setup();
+  app.shell.navigate({ name: "profile" });
   const profile = app.content.children[0];
   profile.scrollTop = 280;
   app.flushHashes();
   assert.equal(app.content.children[0], profile, "own hash event must not recreate the workspace");
   assert.equal(profile.scrollTop, 280);
-  assert.equal(app.navigation.scrollLeft, 360);
   app.disconnect();
 });
 
@@ -68,11 +64,9 @@ test("external hashes including Back/Forward switch once while equivalent hashes
 test("reconnected persistent shell restores hash and gallery listeners exactly once", async () => {
   const app = setup();
   app.disconnect();
-  assert.equal(app.subscribers.size, 0);
   app.connect();
   app.disconnect();
   app.connect();
-  assert.equal(app.subscribers.size, 1);
   app.location.hash = "#/profile";
   app.flushHashes();
   assert.equal(app.content.children[0].tagName, "ultimate-3d-profile-workspace");
@@ -144,15 +138,5 @@ test("external job-specific routes retain their distinction while duplicate noti
   assert.notEqual(second, first);
   app.events.dispatchEvent(new Event("hashchange"));
   assert.equal(app.content.children[0], second);
-  app.disconnect();
-});
-
-test("navigation announces exactly the current workspace without changing scroll position", () => {
-  const app = setup(); app.navigation.scrollLeft = 380;
-  app.shell.navigate({ name: "profile" }); app.flushHashes();
-  const current = app.navigation.children.filter((node) => node.getAttribute("aria-current") === "page");
-  assert.equal(current.length, 1); assert.equal(current[0].dataset.route, "profile"); assert.equal(app.navigation.scrollLeft, 380);
-  app.shell.navigate({ name: "system" }); app.flushHashes();
-  assert.equal(current[0].getAttribute("aria-current"), null);
   app.disconnect();
 });

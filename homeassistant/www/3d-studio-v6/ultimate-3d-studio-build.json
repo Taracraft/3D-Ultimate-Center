@@ -4,8 +4,8 @@
   "version": "6.0.0",
   "entry": "frontend/v6-entry.ts",
   "output": "deploy/homeassistant/www/3d-studio-v6/ultimate-3d-studio.js",
-  "size_bytes": 663123,
-  "sha256": "a003082a45d2d658c2bc1daa2fc49bbea9a374b40fc8c04c68c00930d923caa0",
+  "size_bytes": 659935,
+  "sha256": "a23477670e68f371ba436f41ff419f4c9a48f3fe448d04d05f46cf8a3fd1c6ec",
   "css": {
     "output": "deploy/homeassistant/www/3d-studio-v6/ultimate-3d-studio.css",
     "size_bytes": 801,
@@ -174,5 +174,5 @@
       "__transformMountPatched"
     ]
   },
-  "built_at": "2026-10-06T12:03:18.090Z"
+  "built_at": "2026-10-06T14:51:54.677Z"
 }

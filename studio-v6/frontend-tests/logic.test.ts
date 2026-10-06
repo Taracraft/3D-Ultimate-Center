@@ -788,7 +788,7 @@ test("speed control uses only the fixed V6 command contract", () => {
 });
 
 
-test("print live information is shared across popup control system and navigation", () => {
+test("print live information remains in popup, control and system after duplicate navigation removal", () => {
   const popup = readFileSync(join(process.cwd(), "frontend", "global-job-popup-v3.ts"), "utf8");
   const control = readFileSync(join(process.cwd(), "frontend", "control-workspace-v2.ts"), "utf8");
   const system = readFileSync(join(process.cwd(), "frontend", "system-workspace-v5.ts"), "utf8");
@@ -805,10 +805,10 @@ test("print live information is shared across popup control system and navigatio
   assert.ok(system.includes("printLayerLabel(job, printer)"));
   assert.ok(system.includes("printSpeedLabel(printer)"));
   assert.ok(system.includes('id="system-speed"'));
-  assert.ok(view.includes('id="nav-live"'));
-  assert.ok(shell.includes("#updateNavLive(): void"));
-  assert.ok(shell.includes("printLayerLabel(job, printer)"));
-  assert.ok(shell.includes("printSpeedLabel(printer)"));
+  assert.ok(!view.includes('id="nav-live"'));
+  assert.ok(!view.includes('id="nav-buttons"'));
+  assert.ok(!shell.includes("#updateNavLive(): void"));
+  assert.ok(!shell.includes("jobActivityStore.subscribe"));
 });
 
 test("speed controls exist in popup control and system without duplicating existing temperature cards", () => {
@@ -849,14 +849,13 @@ test("unreported preparation stages are neutral as soon as a later observed phas
 });
 
 
-test("navigation live print status resubscribes before an existing shell returns", () => {
+test("app shell contains no internal navigation status subscription", () => {
   const source = readFileSync(join(process.cwd(), "frontend", "app-shell-v4.ts"), "utf8");
-  const start = source.indexOf("  connectedCallback(): void {");
-  const end = source.indexOf("\n  disconnectedCallback(): void {", start);
-  const block = source.slice(start, end);
-  assert.ok(block.indexOf("jobActivityStore.subscribe") >= 0);
-  assert.ok(block.indexOf("jobActivityStore.subscribe") < block.indexOf("this.#root.childElementCount"));
-  assert.ok(block.includes("this.#updateNavLive();"));
+  const view = readFileSync(join(process.cwd(), "frontend", "app-shell-view.ts"), "utf8");
+  assert.ok(!source.includes("jobActivityStore.subscribe"));
+  assert.ok(!source.includes("#updateNavLive"));
+  assert.ok(!view.includes("nav-live"));
+  assert.ok(!view.includes("nav-buttons"));
 });
 
 test("completed slice refreshes real material analysis after toolpath loading", () => {
