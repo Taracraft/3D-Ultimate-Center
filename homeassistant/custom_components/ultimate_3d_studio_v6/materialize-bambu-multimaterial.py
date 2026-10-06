@@ -62,6 +62,9 @@ _MODEL_SUFFIXES = {
 _PROCESS_OVERRIDE_MAP = {
     "layer_height_mm": "layer_height",
     "first_layer_height_mm": "initial_layer_print_height",
+    "initial_layer_line_width_mm": "initial_layer_line_width",
+    "infill_direction_deg": "infill_direction",
+    "initial_layer_infill_speed_mm_s": "initial_layer_infill_speed",
     "walls": "wall_loops",
     "top_shell_layers": "top_shell_layers",
     "bottom_shell_layers": "bottom_shell_layers",
@@ -95,6 +98,9 @@ _PROCESS_OVERRIDE_MAP = {
 _PROCESS_OVERRIDE_RULES = {
     "layer_height_mm": (.04, .56, False),
     "first_layer_height_mm": (.04, .56, False),
+    "initial_layer_line_width_mm": (.01, 1.6, False),
+    "infill_direction_deg": (0, 180, False),
+    "initial_layer_infill_speed_mm_s": (1, 500, False),
     "walls": (0, None, True),
     "top_shell_layers": (0, None, True),
     "bottom_shell_layers": (0, None, True),
@@ -391,6 +397,8 @@ def _required_override_number(
 def _apply_process_overrides(process: dict[str, Any], overrides: dict[str, Any]) -> None:
     for override_key, process_key in _PROCESS_OVERRIDE_MAP.items():
         minimum, maximum, integer = _PROCESS_OVERRIDE_RULES[override_key]
+        if override_key == "initial_layer_line_width_mm" and overrides.get("nozzle_diameter_mm") is not None:
+            maximum = min(1.6, 2 * _number(overrides["nozzle_diameter_mm"], 0))
         value = _required_override_number(overrides, override_key, minimum, maximum)
         if value is None:
             continue
