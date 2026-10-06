@@ -24,8 +24,8 @@ jobs:
       - name: Verify reviewed source identities
         shell: bash
         run: |
-          echo '0cb4e28b8132ae988cfb4a21944c186b3e32bc4565eb12628864d8ef5a0818e3  studio-v6/tools/studio_linux_preflight.py' | sha256sum -c -
-          echo '7d04ab0bc937d2065adaf7b519ce9e81542bfea608439bce95b8489652bdd095  studio-v6/tests/test_studio_linux_preflight.py' | sha256sum -c -
+          echo '86dc2190913a9e050a42c6078f907b621a5d2eb8e7c1cc1c51cef10b93a9a649  studio-v6/tools/studio_linux_preflight.py' | sha256sum -c -
+          echo '3361721b73aff91fe161318ad1612d2cedf7c006195974c5178e1cc46bfb9e98  studio-v6/tests/test_studio_linux_preflight.py' | sha256sum -c -
           echo '932b41f251646f5434fcae010f7b7059d3d58b3be8265f77ff09257b867e3921  scripts/rebuild-homeassist.sh' | sha256sum -c -
           cmp scripts/rebuild-homeassist.sh studio-v6/scripts/rebuild-homeassist.sh
           bash -n scripts/rebuild-homeassist.sh
@@ -41,7 +41,7 @@ jobs:
           python - <<'PY'
           import xml.etree.ElementTree as ET
           suites = ET.parse('.bootstrap-evidence/contract.xml').getroot().findall('.//testsuite')
-          assert sum(int(s.get('tests', 0)) for s in suites) == 57
+          assert sum(int(s.get('tests', 0)) for s in suites) == 63
           assert all(int(s.get(key, 0)) == 0 for s in suites for key in ('failures', 'errors', 'skipped'))
           PY
           git rev-parse HEAD > .bootstrap-evidence/commit.txt

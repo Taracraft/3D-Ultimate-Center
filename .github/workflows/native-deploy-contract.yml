@@ -23,8 +23,8 @@ jobs:
           python-version: "3.13"
       - name: Verify reviewed source hashes
         run: |
-          echo '5fcb1f8eba35faf5897e21630aa23f42c9fe09ab1dcaa55ffe4905c7835e1697  slicing-server/deploy-native-slicer.sh' | sha256sum -c -
-          echo '3c743c46d9e8d795912eca8f0a4d9ebd9f3ba7abb3124c3a3af1ba5642b9cbad  studio-v6/tests/test_native_deploy_supervisor.py' | sha256sum -c -
+          echo '34395dfe41d156bcc1ca843ead50e648a6cd7338934571df03d93a79db0fc117  slicing-server/deploy-native-slicer.sh' | sha256sum -c -
+          echo 'e988b7b4a1b3f638c0f03ff56b259f89dea8695fbb1bf3a1bf12ec2f065354e1  studio-v6/tests/test_native_deploy_supervisor.py' | sha256sum -c -
           bash -n slicing-server/deploy-native-slicer.sh
       - name: Install isolated test dependency
         run: python -m pip install --disable-pip-version-check 'pytest>=8,<10'
@@ -38,10 +38,10 @@ jobs:
           python - <<'PY'
           import xml.etree.ElementTree as ET
           suites = list(ET.parse('.native-deploy-evidence/junit.xml').getroot().iter('testsuite'))
-          assert sum(int(s.get('tests', 0)) for s in suites) == 26
+          assert sum(int(s.get('tests', 0)) for s in suites) == 30
           for key in ('failures', 'errors', 'skipped'):
               assert sum(int(s.get(key, 0)) for s in suites) == 0, key
-          print('26 isolated deployment tests passed; no production deployment performed')
+          print('30 isolated deployment tests passed; no production deployment performed')
           PY
           git rev-parse HEAD > .native-deploy-evidence/commit.txt
           sha256sum slicing-server/deploy-native-slicer.sh studio-v6/tests/test_native_deploy_supervisor.py > .native-deploy-evidence/source.sha256
