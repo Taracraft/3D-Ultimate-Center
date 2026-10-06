@@ -1,7 +1,7 @@
 import { authenticatedFetch, errorMessage } from "./ha-api-transport.js";
+import { normalizeToolpathPalette, toolpathMaterialColor, toolpathPaletteWarning, UNKNOWN_TOOLPATH_COLOR } from "./toolpath-material-colors.js";
 
 const API_PREFIX = "/api/ultimate_3d_studio_v6/v1/slicer";
-const FALLBACK_COLORS = ["#50DB6C", "#F15B5B", "#58A6FF", "#FFB84D", "#B67CFF", "#28D7C0", "#F472B6", "#E6E65C", "#B0BEC5", "#FFFFFF", "#FF7A18", "#79FF7A"];
 const FEATURE_COLORS: Readonly<Record<string, string>> = {
   support: "#45E087",
   brim: "#FFD24D",
@@ -34,13 +34,14 @@ type ToolpathSummary = Readonly<{
 type Vec3 = [number, number, number];
 type ColorMode = "material" | "feature";
 
-async function fetchToolpath(jobId: string, start?: number, end?: number): Promise<ToolpathSummary> {
+async function fetchToolpath(jobId: string, start?: number, end?: number, signal?: AbortSignal): Promise<ToolpathSummary> {
   const query = new URLSearchParams();
   if (start !== undefined) query.set("start", String(start));
   if (end !== undefined) query.set("end", String(end));
   const suffix = query.size ? `?${query}` : "";
   const response = await authenticatedFetch(`${API_PREFIX}/jobs/${encodeURIComponent(jobId)}/toolpath${suffix}`, {
     headers: { Accept: "application/json" },
+    ...(signal ? { signal } : {}),
   });
   if (!response.ok) {
     let message = `Toolpath HTTP ${response.status}`;
@@ -111,7 +112,7 @@ function featureLabel(key: string): string {
 }
 
 function materialColor(summary: ToolpathSummary | null, tool: number): string {
-  return validColor(summary?.filament_colors?.[tool], FALLBACK_COLORS[tool % FALLBACK_COLORS.length] || "#50DB6C");
+  return toolpathMaterialColor(summary?.filament_colors ?? [], tool) ?? UNKNOWN_TOOLPATH_COLOR;
 }
 
 function identity(): Float32Array { return new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]); }
@@ -342,7 +343,7 @@ function pathMesh(
   const positions: number[] = [], colors: number[] = [];
   for (const layer of layers) {
     if (cumulative ? layer.index > selectedLayer : layer.index !== selectedLayer) continue;
-    const olderFactor = cumulative && layer.index < selectedLayer ? 0.48 : 1;
+    const olderFactor = colorMode === "feature" && cumulative && layer.index < selectedLayer ? 0.48 : 1;
     for (const segment of layer.segments) {
       const [x1, y1, x2, y2, z, tool, extrusion] = segment;
       const dx = x2 - x1, dy = y2 - y1, length = Math.hypot(dx, dy);
@@ -386,15 +387,21 @@ export class Ultimate3DToolpathViewer extends HTMLElement {
   #error = "";
   #renderer: ToolpathWebGlRenderer | null = null;
   #generation = 0;
+  #request: AbortController | null = null;
   #mounted = false;
 
   set jobId(value: string) {
     if (value === this.#jobId) return;
+    this.#generation += 1;
+    this.#request?.abort();
+    this.#request = null;
+    this.#loading = false;
     this.#jobId = value;
     this.#summary = null;
     this.#layers = [];
     this.#visibleLayer = 0;
     this.#error = "";
+    this.#update();
     if (this.isConnected && value) void this.#load();
   }
   get jobId(): string { return this.#jobId; }
@@ -406,6 +413,9 @@ export class Ultimate3DToolpathViewer extends HTMLElement {
 
   disconnectedCallback(): void {
     this.#generation += 1;
+    this.#request?.abort();
+    this.#request = null;
+    this.#loading = false;
     this.#renderer?.dispose();
     this.#renderer = null;
     this.#mounted = false;
@@ -414,7 +424,7 @@ export class Ultimate3DToolpathViewer extends HTMLElement {
   #mount(): void {
     if (this.#mounted) return;
     this.innerHTML = `<style>
-      :host{display:block;width:100%;height:100%;min-height:650px;color:#edf5fc;font:12px/1.4 Inter,Segoe UI,sans-serif}*{box-sizing:border-box}.viewer{display:grid;grid-template-rows:auto auto minmax(0,1fr);height:100%;min-height:650px;background:#071018}.toolbar{display:grid;grid-template-columns:minmax(300px,1fr) repeat(3,auto);gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid #26394c;background:#0d1823}.slider{display:grid;gap:4px}.slider>div{display:flex;justify-content:space-between;gap:12px}.slider input{width:100%;accent-color:#59df76}.metric,.control{min-height:48px;padding:7px 10px;border:1px solid #2c455c;border-radius:8px;background:#11202d;color:#edf5fc}.metric b,.metric span{display:block}.metric span{font-size:10px;color:#8297ab}.control{display:grid;gap:3px}.control span{font-size:10px;color:#8297ab}.control select,.control button{border:0;background:transparent;color:#edf5fc;font:inherit;font-weight:700;outline:none}.control option{background:#11202d}.legend{display:flex;align-items:center;gap:8px;min-height:42px;padding:7px 12px;border-bottom:1px solid #26394c;background:#0a141e;overflow-x:auto}.legend .hint{color:#8297ab;white-space:nowrap}.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border:1px solid #2c455c;border-radius:999px;background:#101d29;white-space:nowrap}.chip i{width:11px;height:11px;border-radius:3px;background:var(--chip)}.chip.start{border-color:#8c7730;color:#ffe98c}.stage{position:relative;min-height:560px;background:#071018}.stage canvas{display:block;width:100%;height:100%;min-height:560px}.overlay{position:absolute;left:12px;bottom:12px;max-width:calc(100% - 24px);padding:8px 10px;border:1px solid #31485d;border-radius:8px;background:#08131de8;color:#9db0c1}.error{position:absolute;inset:20px;display:grid;place-items:center;color:#ffc0c6;text-align:center}.loading{position:absolute;right:12px;bottom:12px;padding:7px 10px;border-radius:8px;background:#0b1824e8;color:#8fdca0}.first{color:#8ff0b5}.features{color:#b8cad9}@media(max-width:1000px){.toolbar{grid-template-columns:1fr 1fr}.slider{grid-column:1/-1}}@media(max-width:800px){.stage,.stage canvas{min-height:420px}}
+      :host{display:block;width:100%;height:100%;min-height:650px;color:#edf5fc;font:12px/1.4 Inter,Segoe UI,sans-serif}*{box-sizing:border-box}.viewer{display:grid;grid-template-rows:auto auto minmax(0,1fr);height:100%;min-height:650px;background:#071018}.toolbar{display:grid;grid-template-columns:minmax(300px,1fr) repeat(3,auto);gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid #26394c;background:#0d1823}.slider{display:grid;gap:4px}.slider>div{display:flex;justify-content:space-between;gap:12px}.slider input{width:100%;accent-color:#59df76}.metric,.control{min-height:48px;padding:7px 10px;border:1px solid #2c455c;border-radius:8px;background:#11202d;color:#edf5fc}.metric b,.metric span{display:block}.metric span{font-size:10px;color:#8297ab}.control{display:grid;gap:3px}.control span{font-size:10px;color:#8297ab}.control select,.control button{border:0;background:transparent;color:#edf5fc;font:inherit;font-weight:700;outline:none}.control option{background:#11202d}.legend{display:flex;align-items:center;gap:8px;min-height:42px;padding:7px 12px;border-bottom:1px solid #26394c;background:#0a141e;overflow-x:auto}.legend .hint{color:#8297ab;white-space:nowrap}.legend .palette-warning{white-space:normal;color:#ffd5a3;min-width:160px;max-width:40rem;overflow-wrap:anywhere}.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border:1px solid #2c455c;border-radius:999px;background:#101d29;white-space:nowrap}.chip i{width:11px;height:11px;border-radius:3px;background:var(--chip)}.chip.start{border-color:#8c7730;color:#ffe98c}.stage{position:relative;min-height:560px;background:#071018}.stage canvas{display:block;width:100%;height:100%;min-height:560px}.overlay{position:absolute;left:12px;bottom:12px;max-width:calc(100% - 24px);padding:8px 10px;border:1px solid #31485d;border-radius:8px;background:#08131de8;color:#9db0c1}.error{position:absolute;inset:20px;display:grid;place-items:center;color:#ffc0c6;text-align:center}.loading{position:absolute;right:12px;bottom:12px;padding:7px 10px;border-radius:8px;background:#0b1824e8;color:#8fdca0}.first{color:#8ff0b5}.features{color:#b8cad9}@media(max-width:1000px){.toolbar{grid-template-columns:1fr 1fr}.slider{grid-column:1/-1}}@media(max-width:800px){.stage,.stage canvas{min-height:420px}}
     </style><div class="viewer"><div class="toolbar"><label class="slider"><div><b id="layer-label">Layer 0 / 0</b><span id="z-label">Z – mm</span></div><input id="layer-slider" type="range" min="0" max="0" value="0" disabled></label><div class="metric"><span>Layerpfade</span><b id="segment-count">0</b></div><label class="control"><span>Ansicht</span><select id="layer-mode"><option value="single">Nur aktueller Layer</option><option value="cumulative">Bis aktueller Layer</option></select></label><label class="control"><span>Färbung</span><select id="color-mode"><option value="material">Materialfarben</option><option value="feature">Pfadarten</option></select></label></div><div class="legend" id="legend"><span class="hint">Echte G-Code-Extrusionsbahnen werden geladen …</span></div><div class="stage"><canvas></canvas><div class="error" id="error" hidden></div><div class="overlay"><span id="layer-detail">Der erste echte Drucklayer wird nach dem Laden angezeigt.</span> · Linke Maustaste: drehen · Mausrad: zoomen · <button id="reset-view" type="button">Ansicht zentrieren</button></div><div class="loading" id="loading" hidden>Echte G-Code-Bahnen werden geladen …</div></div></div>`;
     const canvas = this.querySelector<HTMLCanvasElement>("canvas");
     if (!canvas) return;
@@ -442,22 +452,29 @@ export class Ultimate3DToolpathViewer extends HTMLElement {
 
   async #load(): Promise<void> {
     const generation = ++this.#generation;
+    const jobId = this.#jobId;
+    this.#request?.abort();
+    const controller = new AbortController();
+    this.#request = controller;
+    // Never pair a fresh palette with the previous job's cached layers.
+    this.#summary = null;
+    this.#layers = [];
     this.#loading = true;
     this.#error = "";
     this.#visibleLayer = 0;
     this.#update();
     try {
-      const summary = await fetchToolpath(this.#jobId);
+      const summary = await fetchToolpath(jobId, undefined, undefined, controller.signal);
       if (generation !== this.#generation) return;
-      this.#summary = summary;
+      this.#summary = { ...summary, filament_colors: normalizeToolpathPalette(summary.filament_colors) };
       this.#renderer?.setFrame(safeBounds(summary));
       const layers: ToolpathLayer[] = [];
       const chunkSize = 40;
       for (let start = 0; start < summary.layer_count; start += chunkSize) {
-        const chunk = await fetchToolpath(this.#jobId, start, Math.min(summary.layer_count, start + chunkSize));
+        const chunk = await fetchToolpath(jobId, start, Math.min(summary.layer_count, start + chunkSize), controller.signal);
         if (generation !== this.#generation) return;
         layers.push(...(chunk.chunk?.layers ?? []));
-        this.#layers = layers;
+        this.#layers = [...layers];
         this.#update();
       }
     } catch (error) {
@@ -465,6 +482,7 @@ export class Ultimate3DToolpathViewer extends HTMLElement {
       this.#error = error instanceof Error ? error.message : String(error);
     } finally {
       if (generation === this.#generation) {
+        if (this.#request === controller) this.#request = null;
         this.#loading = false;
         this.#update();
       }
@@ -477,14 +495,18 @@ export class Ultimate3DToolpathViewer extends HTMLElement {
     if (this.#colorMode === "material") {
       for (const tool of this.#summary.tools) {
         const color = materialColor(this.#summary, tool);
-        const name = this.#summary.filament_names?.[tool] || `Filament ${tool + 1}`;
-        chips.push(`<span class="chip"><i style="--chip:${esc(color)}"></i>${esc(name)} · T${tool}</span>`);
+        const known = toolpathMaterialColor(this.#summary.filament_colors ?? [], tool) !== null;
+        const validTool = Number.isSafeInteger(tool) && tool >= 0;
+        const name = (validTool ? this.#summary.filament_names?.[tool] : "") || (validTool ? `Filament ${tool + 1}` : "Ungültiger Kanal");
+        chips.push(`<span class="chip"><i style="--chip:${esc(color)}"></i>${esc(name)} · ${validTool ? `T${tool}` : "?"}${known ? ` · ${esc(color.toUpperCase())}` : " · Farbe unbekannt"}</span>`);
       }
     } else {
       const keys = new Set<string>();
       for (const layer of this.#layers) for (const segment of layer.segments) keys.add(featureStyleKey(segment));
       for (const key of keys) chips.push(`<span class="chip"><i style="--chip:${esc(FEATURE_COLORS[key] || FEATURE_COLORS.model)}"></i>${esc(featureLabel(key))}</span>`);
     }
+    const paletteWarning = toolpathPaletteWarning(this.#layers, this.#summary.filament_colors ?? []);
+    if (paletteWarning) chips.push(`<span class="hint palette-warning" role="status">${esc(paletteWarning)}</span>`);
     const labels: Readonly<Record<string, string>> = { brim: "Brim", raft: "Raft", support: "Support", skirt: "Skirt", purge_tower: "Reinigungsturm" };
     for (const [key, layer] of Object.entries(this.#summary.feature_first_layers || {})) {
       if (labels[key] !== undefined) chips.push(`<span class="chip start">${esc(labels[key])} ab Layer ${layer + 1}</span>`);

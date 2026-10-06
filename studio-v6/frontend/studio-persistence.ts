@@ -1,3 +1,4 @@
+import type { StudioPlateLocalSettings } from "./studio-plate-storage.js";
 import type { StudioPlateProfileSelection } from "./studio-profile-catalog.js";
 import type { Vec3 } from "./webgl-studio-viewport.js";
 import type { PaintRegion } from "./studio-mesh-paint.js";
@@ -15,9 +16,11 @@ export type PersistedStudioInstance = Readonly<{
 
 export type PersistedStudioPlate = Readonly<{
   id: number;
+  uid?: string;
   name: string;
   width: number;
   depth: number;
+  localSettings?: StudioPlateLocalSettings | undefined;
   stage?: "prepared" | "slicing" | "sliced" | "printed" | "error";
   jobId?: string;
   materialSource?: "ams" | "external_spool";
@@ -48,6 +51,7 @@ export type PersistedStudioPaintLayerPoint = Readonly<{
   z: number;
   screenX: number;
   screenY: number;
+  normal?: number[];
 }>;
 
 export type PersistedStudioPaintLayer = Readonly<{
@@ -59,6 +63,13 @@ export type PersistedStudioPaintLayer = Readonly<{
   color: string;
   materialKey: string;
   radiusMm: number;
+  mode?: "add" | "remove";
+  mask?: Readonly<{
+    kind: "rectangle" | "circle" | "text";
+    matrix: number[];
+    left: number; top: number; right: number; bottom: number;
+    width?: number; height?: number; runs?: number[];
+  }>;
   points: PersistedStudioPaintLayerPoint[];
   text?: string;
   textSizePx?: number;
@@ -73,6 +84,8 @@ export type PersistedStudioWorkspace = Readonly<{
   selected: string[];
   assignments: Array<readonly [string, string]>;
   modelMaterials: PersistedStudioMaterial[];
+  paintCompositionVersion?: 1;
+  paintLegacyAmbiguousObjectIds?: string[];
   paintRegions: PersistedStudioPaintRegion[];
   paintLayers: Array<readonly [number, PersistedStudioPaintLayer[]]>;
   nextPaintLayerId: number;

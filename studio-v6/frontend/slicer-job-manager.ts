@@ -1,6 +1,8 @@
 import "./v6-action-dialog.js";
 import { errorMessage } from "./ha-api-transport.js";
+import { canCancelSliceJob, cancellationMessage } from "./slicer-cancel-state.js";
 import {
+  cancelSliceJob,
   downloadSliceArtifact,
   type SliceJob,
 } from "./slicing-api.js";
@@ -37,6 +39,8 @@ function signature(jobs: readonly SliceJob[]): string {
   return JSON.stringify(jobs.map((job) => [
     job.id,
     job.status,
+    job.cancellation_available,
+    job.cancel_requested,
     job.model_file,
     job.output_file,
     job.output_size_bytes,
@@ -104,6 +108,24 @@ export class Ultimate3DSlicerJobManager extends HTMLElement {
     } catch (error) {
       this.#notice(errorMessage(error), true);
     }
+  }
+
+  async #cancel(job: SliceJob): Promise<void> {
+    if (this.#busy || this.#dialogActive || !canCancelSliceJob(job)) return;
+    const confirmed = await this.#confirm({
+      title: "Slicerauftrag abbrechen",
+      message: "Den Auftrag abbrechen? Unvollständige Druckdateien werden entfernt; die Quelldatei bleibt erhalten.",
+      detail: `${job.model_file || job.id}\n${job.id}`,
+      confirmLabel: "Auftrag abbrechen",
+      cancelLabel: "Weiterlaufen lassen",
+      danger: true,
+    });
+    if (!confirmed || !this.isConnected) return;
+    await this.#run(async () => {
+      const result = await cancelSliceJob(job.id);
+      if (!result.cancel_requested) throw new Error("Der Worker hat den Abbruch nicht bestätigt.");
+      return cancellationMessage(result.status);
+    });
   }
 
   async #remove(job: SliceJob): Promise<void> {
@@ -207,6 +229,10 @@ export class Ultimate3DSlicerJobManager extends HTMLElement {
       ? this.#jobs.map((job) => this.#jobMarkup(job)).join("")
       : '<div class="empty">Keine Sliceraufträge oder GCode-Artefakte vorhanden.</div>';
     host.scrollTop = Math.min(scrollTop, host.scrollHeight);
+    host.querySelectorAll<HTMLButtonElement>("[data-cancel]").forEach((button) => button.addEventListener("click", () => {
+      const job = this.#jobs.find((item) => item.id === button.dataset.cancel);
+      if (job) void this.#cancel(job);
+    }));
     host.querySelectorAll<HTMLButtonElement>("[data-delete]").forEach((button) => button.addEventListener("click", () => {
       const job = this.#jobs.find((item) => item.id === button.dataset.delete);
       if (job) void this.#remove(job);
@@ -246,7 +272,7 @@ export class Ultimate3DSlicerJobManager extends HTMLElement {
 
   #jobMarkup(job: SliceJob): string {
     const terminal = TERMINAL.has(job.status);
-    return `<article class="job"><div><strong>${esc(job.model_file || job.id)}</strong><small>${esc(job.id)}<br>${dateLabel(job.created_at)} · Artefakt ${sizeLabel(job.output_size_bytes)}</small><span class="status ${esc(job.status)}">${esc(job.status)}</span>${job.error ? `<small>${esc(job.error)}</small>` : ""}</div><div class="buttons">${job.status === "succeeded" ? `<button data-download="${esc(job.id)}">GCode-3MF herunterladen</button>` : ""}${terminal ? `<button class="danger" data-delete="${esc(job.id)}">Auftrag löschen</button>` : ""}</div></article>`;
+    return `<article class="job"><div><strong>${esc(job.model_file || job.id)}</strong><small>${esc(job.id)}<br>${dateLabel(job.created_at)} · Artefakt ${sizeLabel(job.output_size_bytes)}</small><span class="status ${esc(job.status)}">${esc(job.status)}</span>${job.error ? `<small>${esc(job.error)}</small>` : ""}</div><div class="buttons">${job.status === "succeeded" ? `<button data-download="${esc(job.id)}">GCode-3MF herunterladen</button>` : ""}${canCancelSliceJob(job) ? `<button class="danger" data-cancel="${esc(job.id)}">Auftrag abbrechen</button>` : ""}${job.status === "cancelling" ? `<span role="status">Abbruch läuft …</span>` : ""}${terminal ? `<button class="danger" data-delete="${esc(job.id)}">Auftrag löschen</button>` : ""}</div></article>`;
   }
 }
 

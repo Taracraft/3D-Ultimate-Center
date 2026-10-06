@@ -1,4 +1,4 @@
-﻿"""Native Linux slicer routing for Ultimate 3D Studio V6."""
+"""Native Linux slicer routing for Ultimate 3D Studio V6."""
 from __future__ import annotations
 
 from collections import OrderedDict
@@ -46,6 +46,12 @@ _COMPLETED_ARTIFACT_CACHE: OrderedDict[
 _MAX_COMPLETED_ARTIFACT_CACHE = 1
 _COMPLETED_METADATA_CACHE: OrderedDict[str, dict[str, Any]] = OrderedDict()
 _MAX_COMPLETED_METADATA_CACHE = 100
+
+
+class SlicerCancellationError(SlicerServerError):
+    def __init__(self, message: str, status: int = 502) -> None:
+        super().__init__(message)
+        self.status = status if status in {400, 404, 409, 503} else 502
 
 
 def normalize_backend(value: object = BACKEND_SERVER) -> str:
@@ -306,7 +312,7 @@ def _build_detailed_warning(plate, original_warning):
             x, y = obj_info["position"]
             w, d, h = obj_info["size"]
             parts.append(
-                f"  * {obj_info[ name]}: "
+                f"  * {obj_info['name']}: "
                 f"Position ({x:.1f}, {y:.1f})mm, "
                 f"Size {w:.1f}x{d:.1f}x{h:.1f}mm"
             )
@@ -655,6 +661,8 @@ def _profile_application(
         "confirmation_source": (
             "parsed_gcode_header_and_toolpath"
             if gcode_confirmed
+            else "gcode_analysis_unconfirmed"
+            if applied and isinstance(meta.get("analysis"), dict)
             else "pending_gcode_analysis"
             if applied
             else "pending_native_materialization"
@@ -709,11 +717,17 @@ def _server_job(
         "id": SERVER_PREFIX + raw_id,
         "project_name": project_name_from_server_payload(payload, raw_id),
         "status": status,
+        "cancel_requested": payload.get("cancel_requested") is True,
+        "cancellation_available": payload.get("cancellation_available") is True,
         "created_at": job.get("created_at"),
         "started_at": progress.get("started_at"),
         "updated_at": progress.get("updated_at") or payload.get("status_updated_at"),
         "finished_at": payload.get("status_updated_at") if terminal else None,
-        "error": result.get("error") or payload.get("error"),
+        "error": (
+            "Abbruch konnte nicht bestätigt werden; Wiederherstellung des Auftrags erforderlich."
+            if progress.get("requires_recovery") is True
+            else result.get("error") or payload.get("error") or progress.get("error")
+        ),
         "output_size_bytes": artifact_size if artifact_size is not None else payload.get("download_size"),
         "output_filename": artifact_name or payload.get("download_name"),
         "output_file": artifact_name or payload.get("download_name"),
@@ -837,7 +851,7 @@ class V6SlicerBackendRouter:
                 "plan_persistence": True,
                 "gcode_generation": ready,
                 "gcode_3mf_artifact": ready,
-                "job_cancellation": False,
+                "job_cancellation": ready and server.get("capabilities", {}).get("job_cancellation") is True,
                 "direct_print": ready,
                 "detailed_gcode_analysis": ready,
                 "prime_tower_safety_gate": ready,
@@ -1046,6 +1060,29 @@ class V6SlicerBackendRouter:
                 f"Slicing Server nicht erreichbar: {exc}"
             ) from exc
 
+    async def async_cancel_job(self, job_id: str) -> dict[str, Any]:
+        """Request cancellation exactly once; the native supervisor owns termination."""
+        try:
+            raw_id = native_job_id(job_id)
+        except SlicerServerError as exc:
+            raise SlicerCancellationError(str(exc), 400) from exc
+        try:
+            async with self.session.post(
+                f"{SERVER_ENDPOINT}/api/v1/jobs/{raw_id}/cancel",
+                timeout=ClientTimeout(total=15),
+            ) as response:
+                payload = await response.json(content_type=None)
+                if response.status >= 400:
+                    code = payload.get("error", "job_cancellation_failed") if isinstance(payload, dict) else "job_cancellation_failed"
+                    raise SlicerCancellationError(str(code), response.status)
+                if not isinstance(payload, dict) or payload.get("status") not in {"cancelling", "cancelled"} or payload.get("cancel_requested") is not True:
+                    raise SlicerCancellationError("job_cancellation_unconfirmed")
+            _COMPLETED_ARTIFACT_CACHE.pop(raw_id, None)
+            _COMPLETED_METADATA_CACHE.pop(raw_id, None)
+            return payload
+        except (ClientError, TimeoutError, ValueError) as exc:
+            raise SlicerCancellationError("Abbruchstatus unbekannt; Auftragsstatus aktualisieren.") from exc
+
     async def async_release_job(
         self,
         job_id: str,
@@ -1091,7 +1128,7 @@ class V6SlicerBackendRouter:
                 "Der Slicing Server lieferte keine gültige Auftragsliste."
             )
         return [
-            _server_job(item)
+            _server_job(item, _cached_metadata(str(item.get("job_id") or "")))
             for item in items
             if isinstance(item, dict)
         ]
@@ -1129,6 +1166,7 @@ class V6SlicerBackendRouter:
                 "Der Slicing Server hat die Löschung nicht bestätigt."
             )
         _COMPLETED_ARTIFACT_CACHE.pop(raw_id, None)
+        _COMPLETED_METADATA_CACHE.pop(raw_id, None)
         return result
 
     async def async_artifact(
@@ -1145,4 +1183,3 @@ class V6SlicerBackendRouter:
             await self._server_completed_artifact(raw_id, payload)
         )
         return content, filename, digest, "model/3mf"
-

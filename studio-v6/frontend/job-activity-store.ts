@@ -32,6 +32,28 @@ const POLL_INTERVAL_MS = 2_500;
 const ACTIVE_SLICE_STATES = new Set(["queued", "running", "cancelling"]);
 const TERMINAL_SLICE_STATES = new Set(["succeeded", "failed", "cancelled", "interrupted"]);
 const ACTIVE_PRINT_STATES = new Set(["running", "printing", "pause", "paused", "prepare", "preparing", "starting"]);
+const INACTIVE_CONNECTION_STATES = new Set(["offline", "disconnected", "unavailable", "unknown", "failed", "error"]);
+
+export function activePrintJobs(jobs: V6Jobs, printers: readonly V6Printer[]): V6Job[] {
+  const current = (jobs.current || []).filter((job) => {
+    const jobState = String(job.status || "").trim().toLowerCase();
+    if (jobState && !ACTIVE_PRINT_STATES.has(jobState)) return false;
+
+    const printerId = String(job.printer_id || "").trim();
+    const printer = printers.find((item) => String(item.printer_id || "").trim() === printerId)
+      ?? (!printerId && printers.length === 1 ? printers[0] : null);
+    if (!printer) return false;
+
+    const printerState = String(printer.printer_state || "").trim().toLowerCase();
+    if (!ACTIVE_PRINT_STATES.has(printerState)) return false;
+
+    const connectionState = String(printer.connection_state || "").trim().toLowerCase();
+    if (connectionState && INACTIVE_CONNECTION_STATES.has(connectionState)) return false;
+    return true;
+  });
+  return [...current, ...(jobs.queue || [])];
+}
+
 const AUTH_ERROR_PATTERN = /(?:401|403|unauthori[sz]ed|forbidden|authentication|authentifizierung|zugriffstoken|access token)/i;
 
 class JobActivityStore {
@@ -41,6 +63,7 @@ class JobActivityStore {
   #authenticationBlocked = false;
   #slicerJobId = "";
   #restoredSlicerJobId = "";
+  #slicerRevision = 0;
   #lastAuditFingerprint = "";
   #snapshot: JobActivitySnapshot = {
     health: null,
@@ -80,10 +103,11 @@ class JobActivityStore {
   }
 
   registerSlicerJob(job: SliceJob | null): void {
+    this.#slicerRevision += 1;
     this.#restoredSlicerJobId = "";
     this.#slicerJobId = job?.id || "";
     this.#persistActiveSlicerJob(job && ACTIVE_SLICE_STATES.has(job.status) ? job.id : "");
-    this.#snapshot = { ...this.#snapshot, slicer: job, updatedAt: Date.now(), error: "" };
+    this.#snapshot = { ...this.#snapshot, slicer: job };
     this.#emit();
     if (job && ACTIVE_SLICE_STATES.has(job.status)) {
       this.start();
@@ -94,10 +118,11 @@ class JobActivityStore {
   dismissSlicerJob(jobId?: string): void {
     const currentId = this.#snapshot.slicer?.id || this.#slicerJobId;
     if (jobId && currentId && jobId !== currentId) return;
+    this.#slicerRevision += 1;
     this.#slicerJobId = "";
     this.#restoredSlicerJobId = "";
     this.#persistActiveSlicerJob("");
-    this.#snapshot = { ...this.#snapshot, slicer: null, updatedAt: Date.now() };
+    this.#snapshot = { ...this.#snapshot, slicer: null };
     this.#emit();
   }
 
@@ -115,6 +140,7 @@ class JobActivityStore {
   async refresh(): Promise<void> {
     if (this.#refreshing || this.#authenticationBlocked || !hasHomeAssistantApi()) return;
     this.#refreshing = true;
+    const slicerRevision = this.#slicerRevision;
     try {
       const [health, jobs, printers, capabilities, slicer] = await Promise.all([
         v6Api.getHealth(),
@@ -125,9 +151,9 @@ class JobActivityStore {
       ]);
       this.#snapshot = {
         health,
-        slicer,
+        slicer: slicerRevision === this.#slicerRevision ? slicer : this.#snapshot.slicer,
         jobs,
-        printJobs: this.#activePrintJobs(jobs),
+        printJobs: activePrintJobs(jobs, printers),
         printers,
         capabilities,
         updatedAt: Date.now(),
@@ -139,7 +165,7 @@ class JobActivityStore {
         this.#authenticationBlocked = true;
         this.stop();
       }
-      this.#snapshot = { ...this.#snapshot, updatedAt: Date.now(), error: message };
+      this.#snapshot = { ...this.#snapshot, error: message };
     } finally {
       this.#refreshing = false;
     }
@@ -180,9 +206,11 @@ class JobActivityStore {
       this.#restoredSlicerJobId = "";
       this.#persistActiveSlicerJob("");
       return null;
-    } catch {
+    } catch (error) {
       if (this.#slicerJobId !== requestedJobId) return null;
-      return this.#snapshot.slicer?.id === requestedJobId ? this.#snapshot.slicer : null;
+      // Preserve the complete last successful snapshot and its timestamp in
+      // refresh(). An unavailable slicer must not turn cached progress fresh.
+      throw error;
     }
   }
 
@@ -191,14 +219,6 @@ class JobActivityStore {
       if (jobId) globalThis.localStorage?.setItem(STORAGE_KEY, jobId);
       else globalThis.localStorage?.removeItem(STORAGE_KEY);
     } catch {}
-  }
-
-  #activePrintJobs(jobs: V6Jobs): V6Job[] {
-    const current = (jobs.current || []).filter((job) => {
-      const state = String(job.status || "").toLowerCase();
-      return !state || ACTIVE_PRINT_STATES.has(state);
-    });
-    return [...current, ...(jobs.queue || [])];
   }
 
   #auditSnapshot(): void {

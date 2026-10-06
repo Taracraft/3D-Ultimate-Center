@@ -16,6 +16,9 @@ class ProcessProfileContractError(ValueError):
 _LOCAL_SETTING_MAP = {
     "layer_height_mm": "layer_height",
     "first_layer_height_mm": "initial_layer_print_height",
+    "initial_layer_line_width_mm": "initial_layer_line_width",
+    "infill_direction_deg": "infill_direction",
+    "initial_layer_infill_speed_mm_s": "initial_layer_infill_speed",
     "walls": "wall_loops",
     "top_shell_layers": "top_shell_layers",
     "bottom_shell_layers": "bottom_shell_layers",
@@ -54,6 +57,9 @@ _LOCAL_SETTING_MAP = {
     "bed_temperature": "bed_temperature",
 }
 _ADVANCED_NUMERIC_RULES = {
+    "initial_layer_line_width_mm": (0.01, False),
+    "infill_direction_deg": (0, False),
+    "initial_layer_infill_speed_mm_s": (1, False),
     "line_width_mm": (0.01, False),
     "outer_wall_line_width_mm": (0.01, False),
     "inner_wall_line_width_mm": (0.01, False),
@@ -254,6 +260,12 @@ def _local_settings(
                 )
             if integer:
                 value = int(value)
+            if source_key == "initial_layer_line_width_mm" and value > 2 * nozzle_contract.diameter_mm:
+                raise ProcessProfileContractError("Die Erstschicht-Linienbreite überschreitet den Düsenbereich.")
+            if source_key == "infill_direction_deg" and value > 180:
+                raise ProcessProfileContractError("Die Füllrichtung muss zwischen 0 und 180 Grad liegen.")
+            if source_key == "initial_layer_infill_speed_mm_s" and value > 500:
+                raise ProcessProfileContractError("Die Erstschicht-Füllgeschwindigkeit überschreitet 500 mm/s.")
         if source_key == "infill_percent":
             percent = _number(value, "Der Füllgrad")
             if not 0 <= percent <= 100:

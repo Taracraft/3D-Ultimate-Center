@@ -1,3 +1,7 @@
+import { normalizeToolpathPalette, toolpathMaterialColor, toolpathPaletteWarning, UNKNOWN_TOOLPATH_COLOR } from "./toolpath-material-colors.js";
+import { preparePaintedExport, buildPaintedExportMeshes, localExportMaterialPlan } from "./studio-painted-export.js";
+import { readPlateLocalSettings, writePlateLocalSettings, reindexPlateLocalSettings } from "./studio-plate-storage.js";
+import { clonePaintLayer, restoreStudioPaintState, remapPaintLayerPlates, paintEditConflict, remapObjectPaintRegions, mirrorPaintLayer } from "./studio-paint-state.js";
 import { buildContinuousToolpathMeshes } from "./toolpath-ribbon-geometry.js";
 import { authenticatedFetch, errorMessage, writeFrontendAudit } from "./ha-api-transport.js";
 import { jobActivityStore } from "./job-activity-store.js";
@@ -17,7 +21,8 @@ import {
   toolpathSupportStats,
 } from "./toolpath-support-filter.js";
 import { loadPlatePurgeTower, savePlatePurgeTower } from "./purge-tower-state.js";
-import { createPrimitiveGeometry, type PrimitiveKind } from "./primitive-geometry.js";
+import { createPrimitiveGeometry, firstLayerParameters, type PrimitiveKind } from "./primitive-geometry.js";
+import { firstLayerProcessOptions } from "./first-layer-process.js";
 import { ProfileApi, type V6Profile, type V6ProfileCatalog } from "./profile-api.js";
 import { bestFlatRotation, positionCenteredOnPlate, positionOnBed } from "./mesh-export.js";
 import { measureMeshInstances, mirrorMeshGeometry, type StudioMirrorAxis } from "./studio-mesh-tools.js";
@@ -26,6 +31,8 @@ import { previewMeshPlaneSplit, type MeshPlaneSplitPreview, type MeshSplitAxis }
 import { shellHtmlV2, type MegaUiPlateV2, type MegaUiStateV2 } from "./studio-mega-ui-v2.js";
 import { StudioMegaViewport, type MegaAxis, type MegaGizmoMode } from "./studio-mega-viewport.js";
 import { createPaintSession, type PaintRegion } from "./studio-mesh-paint.js";
+import { composePaintLayers, refinePaintLayers } from "./studio-paint-layers.js";
+import { paintMaskContains, paintMaskRuns, paintSamplingStep, type MaterialPaintMask } from "./studio-paint-mask.js";
 import { refinePaintGeometry, remapPaintRegions } from "./studio-paint-refinement.js";
 import type { StudioPaintMaterial, StudioPaintTool } from "./studio-paint-ui.js";
 import "./studio-paint-ui.js";
@@ -42,6 +49,7 @@ import {
 } from "./studio-profile-catalog.js";
 import { filamentMaterial, filamentProfilesHtml, studioProfileBarHtml } from "./studio-profile-ui.js";
 import { updateDetailsOpenState } from "./details-open-state.js";
+import { preserveFilamentView } from "./filament-view-state.js";
 import { filamentSyncError, filamentSyncActionsHtml } from "./studio-filament-sync.js";
 import { waitForBrowserPaint } from "./browser-yield.js";
 import { buildMeshGeometryAsync } from "./mesh-geometry-async.js";
@@ -127,6 +135,7 @@ type MaterialChoice = Readonly<{
 }>;
 type Plate = {
   id: number;
+  uid: string;
   name: string;
   width: number;
   depth: number;
@@ -177,6 +186,9 @@ type ProjectOpenOptions = Readonly<{ replaceWorkspace?: boolean }>;
 type StudioClipboardEntry = Readonly<{
   instance: MeshInstance;
   assignment: string;
+  paintRegions: PaintRegion[];
+  paintLayers: StudioPaintLayer[];
+  legacyPaintAmbiguous: boolean;
 }>;
 type StudioClipboard = Readonly<{
   mode: "copy" | "cut";
@@ -187,7 +199,7 @@ type StudioClipboard = Readonly<{
 }>;
 
 type PaintLayerKind = "stroke" | "rectangle" | "circle" | "text";
-type PaintLayerPoint = { x: number; y: number; z: number; screenX: number; screenY: number };
+type PaintLayerPoint = { x: number; y: number; z: number; screenX: number; screenY: number; normal?: number[] };
 type StudioPaintLayer = {
   id: string;
   plateId: number;
@@ -197,6 +209,8 @@ type StudioPaintLayer = {
   color: string;
   materialKey: string;
   radiusMm: number;
+  mode?: "add" | "remove";
+  mask?: MaterialPaintMask;
   points: PaintLayerPoint[];
   text?: string;
   textSizePx?: number;
@@ -239,6 +253,10 @@ function colorLabel(value: string | null | undefined): string {
   return "";
 }
 
+function newPlateUid(): string {
+  return globalThis.crypto?.randomUUID?.() || `plate-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 function newPlate(
   id: number,
   name: string,
@@ -250,6 +268,7 @@ function newPlate(
 ): Plate {
   return {
     id,
+    uid: newPlateUid(),
     name,
     width,
     depth,
@@ -527,10 +546,11 @@ function toolpathMeshes(layers: readonly ToolpathLayer[], selectedLayer: number,
     if (!visibleFeatures.has(previewFeatureKey(feature, category))) return null;
     if (supportOnly && !isSupport) return null;
     if (!current && !supportOnly && !historyShellFeature(feature, category)) return null;
-    const materialColor = materialPreviewColor(toolColors[tool % Math.max(1, toolColors.length)] ?? COLORS[tool % COLORS.length]!);
+    const verifiedMaterialColor = toolpathMaterialColor(toolColors, tool);
+    const materialColor = verifiedMaterialColor ?? UNKNOWN_TOOLPATH_COLOR;
     const base = supportOnly ? toolpathSupportColor(supportKind) : colorMode === "feature" ? featurePreviewColor(feature, category) : materialColor;
-    const color = current ? base : mixColor(base, supportOnly ? "#102b27" : "#17212a", colorMode === "feature" ? .18 : .12);
-    const label = supportOnly ? toolpathSupportLabel(supportKind) : colorMode === "feature" ? feature : "Werkzeug " + (tool + 1);
+    const color = current || (!supportOnly && colorMode === "material") ? base : mixColor(base, supportOnly ? "#102b27" : "#17212a", .18);
+    const label = supportOnly ? toolpathSupportLabel(supportKind) : colorMode === "feature" ? feature : verifiedMaterialColor ? "Filament " + (tool + 1) : "Unbekannte Materialfarbe";
     const family = supportOnly ? supportKind : colorMode === "feature" ? category : "tool-" + tool;
     const highlight = !supportOnly && current
       ? colorMode === "material" ? materialHighlightColor(materialColor) : mixColor(base, "#ffffff", .28)
@@ -564,7 +584,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
   #plates: Plate[] = [newPlate(0, "Druckplatte 1", initialStudioSelection(null))];
   #activePlate = 0;
   #mode: StudioMode = "prepare";
-  #previewColorMode: PreviewColorMode = "feature";
+  #previewColorMode: PreviewColorMode = "material";
   #previewCumulative = true;
   #previewSupportOnly = false;
   #previewVisibleFeatures = new Set<PreviewFeatureKey>(PREVIEW_FEATURE_KEYS);
@@ -590,8 +610,11 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
   #modalError = "";
   #viewport: StudioMegaViewport | null = null;
   #paintSession = createPaintSession();
+  #paintGeometryFailures = new Set<number>();
+  #cancelViewportGesture: (() => void) | null = null;
   #paintLayers = new Map<number, StudioPaintLayer[]>();
   #nextPaintLayerId = 1;
+  #paintLegacyAmbiguousObjectIds = new Set<string>();
   #drag: DragState | null = null;
   #purgeDrag: PurgeDragState | null = null;
   #status = "Bereit";
@@ -760,11 +783,18 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     this.#selected.clear();
     this.#selectionAnchor = null;
     this.#assignments.clear();
+    this.#paintSession = createPaintSession();
+    this.#paintLayers.clear();
+    this.#paintLegacyAmbiguousObjectIds.clear();
+    this.#clipboard = null;
+    this.#projectId = "";
+    this.#projectName = "";
+    this.#projectRevision = 0;
     this.#modelMaterials = [];
     this.#inspection = null;
     this.#file = null;
     this.#mode = "prepare";
-    this.#previewColorMode = "feature";
+    this.#previewColorMode = "material";
     this.#previewCumulative = true;
     this.#previewSupportOnly = false;
     this.#previewVisibleFeatures = new Set(PREVIEW_FEATURE_KEYS);
@@ -849,6 +879,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
   }
 
   disconnectedCallback(): void {
+    this.#cancelViewportGesture?.();
     this.#supportWarning?.cancel();
     document.removeEventListener("keydown", this.#keyDown, true);
     this.#root.removeEventListener("pointerdown", this.#rootPointerDown);
@@ -877,9 +908,9 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     if (!target?.closest("input,select,textarea,[contenteditable='true']")) this.focus({ preventScroll: true });
   };
 
-  readonly #pageHide = (): void => { void this.#persistNow(); };
+  readonly #pageHide = (): void => { this.#cancelViewportGesture?.(); void this.#persistNow(); };
   readonly #visibilityChanged = (): void => {
-    if (document.visibilityState === "hidden") void this.#persistNow();
+    if (document.visibilityState === "hidden") { this.#cancelViewportGesture?.(); void this.#persistNow(); }
   };
 
   readonly #keyDown = (event: KeyboardEvent): void => {
@@ -938,12 +969,16 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       selected: [...this.#selected],
       assignments: [...this.#assignments.entries()],
       modelMaterials: this.#modelMaterials.map((item) => ({ ...item })),
-      paintRegions: this.#plates.flatMap((plate) => this.#paintRegionsForPlate(plate).map((region) => ({ ...region, plateId: plate.id, triangleIndices: [...region.triangleIndices] }))),
+      paintCompositionVersion: 1,
+      paintLegacyAmbiguousObjectIds: [...this.#paintLegacyAmbiguousObjectIds],
+      paintRegions: this.#plates.flatMap((plate) => this.#paintBaseRegionsForPlate(plate).map((region) => ({ ...region, plateId: plate.id, triangleIndices: [...region.triangleIndices] }))),
       plates: this.#plates.map((plate) => ({
         id: plate.id,
+        uid: plate.uid,
         name: plate.name,
         width: plate.width,
         depth: plate.depth,
+        localSettings: readPlateLocalSettings(plate.id),
         stage: plate.stage,
         jobId: plate.jobId,
         materialSource: plate.materialSource,
@@ -963,7 +998,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
           visible: item.visible,
         })),
       })),
-      paintLayers: [...this.#paintLayers.entries()].map(([plateId, layers]) => [plateId, layers.map((layer) => ({ ...layer, points: layer.points.map((point) => ({ ...point })) }))] as const),
+      paintLayers: [...this.#paintLayers.entries()].map(([plateId, layers]) => [plateId, layers.map(clonePaintLayer)] as const),
       nextPaintLayerId: this.#nextPaintLayerId,
     };
     return snapshot;
@@ -975,6 +1010,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       if (!snapshot?.plates.length) return;
       const plates: Plate[] = snapshot.plates.map((plate, index) => ({
         id: index,
+        uid: plate.uid || newPlateUid(),
         name: plate.name || `Druckplatte ${index + 1}`,
         width: Math.max(1, Number(plate.width) || 256),
         depth: Math.max(1, Number(plate.depth) || 256),
@@ -1002,23 +1038,19 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
         visibleLayer: 0,
         toolColors: [],
       }));
+      const paintState = restoreStudioPaintState(snapshot);
       const instanceIds = new Set(plates.flatMap((plate) => plate.instances.map((item) => item.id)));
+      writePlateLocalSettings(snapshot.plates.flatMap((plate, index) => plate.localSettings ? [[index, plate.localSettings] as const] : []));
       this.#plates = plates;
       this.#activePlate = Math.max(0, Math.min(snapshot.activePlate, plates.length - 1));
       this.#mode = snapshot.mode;
       this.#nextId = Math.max(1, snapshot.nextId);
       this.#assignments = new Map(snapshot.assignments.filter(([id]) => instanceIds.has(id)));
       this.#modelMaterials = snapshot.modelMaterials.map((item) => ({ ...item }));
-      this.#paintSession.replace((snapshot.paintRegions || [])
-        .filter((region) => plates.some((plate) => plate.id === region.plateId && plate.instances.some((instance) => instance.id === region.objectId)))
-        .map((region) => ({ objectId: region.objectId, triangleIndices: [...region.triangleIndices], color: region.color, materialKey: region.materialKey, ...(region.label ? { label: region.label } : {}) })));
-      const extendedSnapshot = snapshot as PersistedStudioWorkspace & { paintLayers?: Array<readonly [number, StudioPaintLayer[]]>; nextPaintLayerId?: number };
-      this.#paintLayers = new Map((extendedSnapshot.paintLayers || []).map(([plateId, layers]) => [
-        Number(plateId),
-        (layers || [])
-          .filter((layer) => plates.some((plate) => plate.id === Number(plateId) && plate.instances.some((instance) => instance.id === layer.objectId)))
-          .map((layer) => ({ ...layer, plateId: Number(plateId), points: (layer.points || []).map((point) => ({ ...point })) })),
-      ]));
+      this.#paintSession.replace(paintState.regions);
+      this.#paintLayers = paintState.layers as Map<number, StudioPaintLayer[]>;
+      this.#paintLegacyAmbiguousObjectIds = paintState.legacyAmbiguousObjectIds;
+      const extendedSnapshot = snapshot;
       this.#nextPaintLayerId = Math.max(1, Number(extendedSnapshot.nextPaintLayerId) || 1, ...[...this.#paintLayers.values()].flat().map((layer) => Number(String(layer.id).replace(/^paint-layer-/, "")) + 1 || 1));
       this.#selected = new Set(snapshot.selected.filter((id) => instanceIds.has(id) || id.startsWith("paint:") || id.startsWith("paint-layer:")));
       this.#selectionAnchor = [...this.#selected][0] ?? null;
@@ -1056,18 +1088,18 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
   }
 
   #snapshotWithCurrentRuntime(snapshot: PersistedStudioWorkspace): PersistedStudioWorkspace {
-    const runtime = new Map(this.#plates.map((plate) => [plate.id, plate]));
+    const runtime = new Map(this.#plates.map((plate) => [plate.uid, plate]));
     return {
       ...cloneWorkspaceSnapshot(snapshot),
       savedAt: Date.now(),
       plates: snapshot.plates.map((plate) => {
-        const current = runtime.get(plate.id);
-        const stage = current?.stage ?? plate.stage;
-        const jobId = current?.jobId ?? plate.jobId;
+        const current = plate.uid ? runtime.get(plate.uid) : undefined;
+        const stage = current?.stage ?? "prepared";
+        const jobId = current?.jobId ?? "";
         return {
           ...plate,
-          ...(stage ? { stage } : {}),
-          ...(jobId ? { jobId } : {}),
+          stage,
+          jobId,
         };
       }),
     };
@@ -1092,6 +1124,11 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
   }
 
   async #undoWorkspace(): Promise<void> {
+    if (this.#plates.some((plate) => plate.stage === "slicing")) {
+      this.#status = "Rückgängig/Wiederholen ist während eines laufenden Slicing-Auftrags gesperrt.";
+      this.#renderStatus();
+      return;
+    }
     await this.#persistNow();
     const snapshot = this.#history.undo();
     if (!snapshot) {
@@ -1103,6 +1140,11 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
   }
 
   async #redoWorkspace(): Promise<void> {
+    if (this.#plates.some((plate) => plate.stage === "slicing")) {
+      this.#status = "Rückgängig/Wiederholen ist während eines laufenden Slicing-Auftrags gesperrt.";
+      this.#renderStatus();
+      return;
+    }
     await this.#persistNow();
     const snapshot = this.#history.redo();
     if (!snapshot) {
@@ -1177,6 +1219,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     this.#renderStatus();
     try {
       const project = await getStudioProject(projectId);
+      restoreStudioPaintState(project.snapshot);
       this.#historyReplay = true;
       await saveStudioWorkspace(project.snapshot);
       await this.#restoreWorkspace();
@@ -1261,19 +1304,21 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
   }
 
   #refreshEnvironmentUi(): void {
-    const current = this.#root.querySelector<HTMLElement>(".profilebar-shell");
-    if (current) {
-      const template = document.createElement("template");
-      template.innerHTML = studioProfileBarHtml(this.#catalog, this.#printers, this.#plate().selection, this.#plate().materialSource, this.#plate().externalFilamentProfileId, this.#profileBarOpen).trim();
-      const replacement = template.content.firstElementChild;
-      if (replacement) current.replaceWith(replacement);
-    }
-    this.#bindProfileSelectors();
-    this.#viewport?.setPlate(this.#profileVisual());
-    this.#viewport?.setInstances(this.#displayInstances());
-    this.#renderSidebar();
-    this.#renderStatus();
-    this.#schedulePersist();
+    preserveFilamentView(this.#root, () => {
+      const current = this.#root.querySelector<HTMLElement>(".profilebar-shell");
+      if (current) {
+        const template = document.createElement("template");
+        template.innerHTML = studioProfileBarHtml(this.#catalog, this.#printers, this.#plate().selection, this.#plate().materialSource, this.#plate().externalFilamentProfileId, this.#profileBarOpen).trim();
+        const replacement = template.content.firstElementChild;
+        if (replacement) current.replaceWith(replacement);
+      }
+      this.#bindProfileSelectors();
+      this.#viewport?.setPlate(this.#profileVisual());
+      this.#viewport?.setInstances(this.#displayInstances());
+      this.#renderSidebar();
+      this.#renderStatus();
+      this.#schedulePersist();
+    });
   }
 
   async #loadEnvironment(): Promise<void> {
@@ -1461,7 +1506,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
           status: "running",
         });
         const summary = await fetchToolpath(jobId);
-        plate.toolColors = (summary.filament_colors ?? []).map((color) => normalizeColor(color));
+        plate.toolColors = normalizeToolpathPalette(summary.filament_colors);
         plate.layerCount = summary.layer_count;
         plate.visibleLayer = Math.max(0, plate.layerCount - 1);
         const summaryLayers = summary.layers ?? [];
@@ -1566,7 +1611,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       reportJobState(job);
       if (this.#plate() === plate) {
         this.#mode = "preview";
-        this.#previewColorMode = "feature";
+        // Preserve the user-selected view; new sessions and projects start in material mode.
         this.#status = plate.name + ": " + plate.layerCount + " Layer erfolgreich geladen.";
       }
       jobActivityStore.registerSlicerJob(job);
@@ -1687,7 +1732,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       return toolpathMeshes(
         plate.layers,
         plate.visibleLayer,
-        plate.toolColors.length ? plate.toolColors : this.#materialChoices(plate).map((choice) => choice.color),
+        plate.toolColors,
         this.#previewCumulative,
         this.#previewColorMode,
         this.#previewSupportOnly,
@@ -1770,7 +1815,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     if (!visible.length) throw new Error("Die aktive Druckplatte enthält kein sichtbares Objekt.");
     this.#materializePaintLayersForSlicing(plate);
     const visibleIds = new Set(visible.map((instance) => instance.id));
-    const painted = this.#paintRegionsForPlate(plate).filter((region) => visibleIds.has(region.objectId) && region.triangleIndices.length > 0);
+    const painted = this.#paintRegionsForPlate(plate, true).filter((region) => visibleIds.has(region.objectId) && region.triangleIndices.length > 0);
 
     if (plate.materialSource === "external_spool") {
       if (painted.length) throw new Error("Bemalte Flächen benötigen mehrere Materialkanäle. Eine externe Einzelspule kann keine Farbfläche drucken; bitte AMS Lite mit den gewünschten Filamenten wählen.");
@@ -1924,6 +1969,13 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
         this.#selected.clear();
         this.#selectionAnchor = null;
         this.#assignments.clear();
+        this.#paintSession = createPaintSession();
+        this.#paintLayers.clear();
+        this.#paintLegacyAmbiguousObjectIds.clear();
+        this.#clipboard = null;
+        this.#projectId = "";
+        this.#projectName = "";
+        this.#projectRevision = 0;
         this.#modelMaterials = [];
         this.#inspection = null;
         this.#previewSupportOnly = false;
@@ -2256,6 +2308,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
   }
 
   #setTool(tool: MegaGizmoMode): void {
+    this.#cancelViewportGesture?.();
     this.#tool = tool;
     this.#viewport?.setGizmo(this.#center(), tool, this.#gizmoAxis());
     this.#refreshToolUi();
@@ -2348,7 +2401,13 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     if (!copies.length) return;
     for (let index = 0; index < copies.length; index += 1) {
       const key = this.#assignments.get(selected[index]!.id);
-      if (key) this.#assignments.set(copies[index]!.id, key);
+      const sourceId = selected[index]!.id;
+      const copyId = copies[index]!.id;
+      if (key) this.#assignments.set(copyId, key);
+      for (const region of this.#paintSession.getRegions(sourceId)) this.#paintSession.paintTriangles(copyId, region.triangleIndices, { ...region, radiusMm: 1, mode: "add" });
+      const layers = this.#paintLayersForPlate().filter((layer) => layer.objectId === sourceId).map((layer) => clonePaintLayer({ ...layer, id: `paint-layer-${this.#nextPaintLayerId++}`, objectId: copyId }));
+      this.#setPaintLayersForPlate(this.#plate(), [...this.#paintLayersForPlate(), ...layers]);
+      if (this.#paintLegacyAmbiguousObjectIds.has(sourceId)) this.#paintLegacyAmbiguousObjectIds.add(copyId);
     }
     this.#plate().instances.push(...copies);
     this.#audit("objects_duplicated", "success", { count: copies.length, source_ids: selected.map((item) => item.id) });
@@ -2378,6 +2437,9 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
           scale: [...item.scale] as Vec3,
         },
         assignment: this.#assignments.get(item.id) || "",
+        paintRegions: this.#paintSession.getRegions(item.id).map((region) => ({ ...region, triangleIndices: [...region.triangleIndices] })),
+        paintLayers: this.#paintLayersForPlate(sourcePlate).filter((layer) => layer.objectId === item.id).map(clonePaintLayer),
+        legacyPaintAmbiguous: this.#paintLegacyAmbiguousObjectIds.has(item.id),
       })),
     };
     this.#status = mode === "cut"
@@ -2400,7 +2462,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     }
     const targetPlate = this.#plate();
     const samePlate = targetPlate === clipboard.sourcePlate;
-    const pasted = clipboard.objects.map(({ instance, assignment }) => {
+    const pasted = clipboard.objects.map(({ instance, assignment, paintRegions, paintLayers, legacyPaintAmbiguous }) => {
       const item: MeshInstance = {
         ...instance,
         id: `paste-${this.#nextId++}`,
@@ -2412,12 +2474,20 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
         scale: [...instance.scale] as Vec3,
       };
       if (assignment) this.#assignments.set(item.id, assignment);
+      for (const region of paintRegions) this.#paintSession.paintTriangles(item.id, region.triangleIndices, { ...region, radiusMm: 1, mode: "add" });
+      this.#setPaintLayersForPlate(targetPlate, [...this.#paintLayersForPlate(targetPlate), ...paintLayers.map((layer) => clonePaintLayer({ ...layer, id: `paint-layer-${this.#nextPaintLayerId++}`, plateId: targetPlate.id, objectId: item.id }))]);
+      if (legacyPaintAmbiguous) this.#paintLegacyAmbiguousObjectIds.add(item.id);
       return item;
     });
     if (clipboard.mode === "cut" && this.#plates.includes(clipboard.sourcePlate)) {
       const sourceIds = new Set(clipboard.sourceIds);
       clipboard.sourcePlate.instances = clipboard.sourcePlate.instances.filter((item) => !sourceIds.has(item.id));
-      for (const id of sourceIds) this.#assignments.delete(id);
+      for (const id of sourceIds) {
+        this.#assignments.delete(id);
+        this.#paintSession.clear(id);
+        this.#paintLegacyAmbiguousObjectIds.delete(id);
+      }
+      this.#setPaintLayersForPlate(clipboard.sourcePlate, this.#paintLayersForPlate(clipboard.sourcePlate).filter((layer) => !sourceIds.has(layer.objectId)));
       this.#invalidatePlate(clipboard.sourcePlate);
     }
     targetPlate.instances.push(...pasted);
@@ -2460,15 +2530,14 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     this.#renderStatus();
     try {
       let lastTraceProgress = -10;
+      const prepared = preparePaintedExport(selected, this.#paintBaseRegionsForPlate(plate), this.#paintLayersForPlate(plate), this.#paintLegacyAmbiguousObjectIds);
+      const palette = localExportMaterialPlan(prepared.instances, prepared.regions, this.#assignments, this.#materialChoices(plate));
+      const meshes = buildPaintedExportMeshes(prepared.instances, prepared.regions, palette.objectMaterials, palette.paintMaterials, palette.materials.length);
       const bytes = await export3mfStreamed(
-        selected.map((item) => ({
-          name: item.name,
-          geometry: item.geometry,
-          transform: { position: item.position, rotation: item.rotation, scale: item.scale },
-          color: item.color,
-        })),
+        meshes,
         {
           title: `${plate.name} – Auswahl`,
+          materials: palette.materials,
           buildPlateName: plate.name,
           buildPlateProfileId: plate.selection.build_plate_profile_id,
           plateWidthMm: plate.width,
@@ -2555,6 +2624,16 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       .map((id) => id.startsWith("paint:") ? Number(id.slice(6)) : Number.NaN)
       .filter((index) => Number.isInteger(index) && index >= 0 && index < paintRows.length)
       .sort((left, right) => right - left);
+    const removedIds = [...this.#selected].filter((id) => plate.instances.some((item) => item.id === id));
+    try {
+      for (const objectId of [...selectedPaintLayers.map((index) => paintLayers[index]!.objectId), ...selectedPaintRows.map((index) => paintRows[index]!.objectId)]) {
+        if (!removedIds.includes(objectId)) this.#assertPaintEditable(objectId);
+      }
+    } catch (error) {
+      this.#status = error instanceof Error ? error.message : String(error);
+      this.#renderStatus();
+      return;
+    }
     let removedPaintTriangles = 0;
     for (const index of selectedPaintRows) {
       const region = paintRows[index];
@@ -2570,12 +2649,15 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     if (selectedPaintLayers.length) {
       const nextLayers = paintLayers.filter((_, index) => !selectedPaintLayers.includes(index));
       this.#setPaintLayersForPlate(plate, nextLayers);
-      this.#paintSession.clear();
-      this.#viewport?.setPaintRegions([]);
+      this.#viewport?.setPaintRegions(this.#paintRegions());
     }
-    const removedIds = [...this.#selected].filter((id) => !id.startsWith("paint:") && !id.startsWith("paint-layer:"));
     plate.instances = plate.instances.filter((item) => !this.#selected.has(item.id));
-    for (const id of removedIds) this.#assignments.delete(id);
+    for (const id of removedIds) {
+      this.#assignments.delete(id);
+      this.#paintSession.clear(id);
+      this.#paintLegacyAmbiguousObjectIds.delete(id);
+    }
+    this.#setPaintLayersForPlate(plate, this.#paintLayersForPlate(plate).filter((layer) => !removedIds.includes(layer.objectId)));
     this.#selected.clear();
     this.#selectionAnchor = null;
     this.#audit("objects_deleted", "success", { count: removedIds.length, object_ids: removedIds, paint_area_count: selectedPaintRows.length + selectedPaintLayers.length });
@@ -2627,6 +2709,9 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     for (const item of selected) {
       changes.set(item.id, { ...item, geometry: mirrorMeshGeometry(item.geometry, axis) });
     }
+    const coordinate = axis === "x" ? 0 : axis === "y" ? 1 : 2;
+    const centers = new Map(selected.map((item) => [item.id, (item.geometry.boundsMin[coordinate] + item.geometry.boundsMax[coordinate]) / 2]));
+    this.#setPaintLayersForPlate(this.#plate(), this.#paintLayersForPlate().map((layer) => centers.has(layer.objectId) ? mirrorPaintLayer(layer, axis, centers.get(layer.objectId)!) : layer));
     this.#status = `${selected.length} Objekt(e) an der ${axis.toUpperCase()}-Achse gespiegelt.`;
     this.#audit("objects_mirrored", "success", {
       axis,
@@ -2700,28 +2785,42 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     });
     modal.querySelector<HTMLButtonElement>("#mesh-repair-confirm")?.addEventListener("click", () => {
       close();
-      const changes = new Map<string, MeshInstance>();
-      let removed = 0;
+      this.#applyMeshRepairs(reports);
+    });
+    this.#root.append(modal);
+  }
+
+  #applyMeshRepairs(reports: readonly { item: MeshInstance; report: MeshRepairReport }[]): void {
+    const changes = new Map<string, MeshInstance>();
+    const paint = new Map<string, PaintRegion[]>();
+    let removed = 0;
+    try {
       for (const { item } of reports) {
+        if (!this.#plate().instances.includes(item)) throw new Error("Das Modell wurde seit der Prüfung verändert. Bitte erneut prüfen.");
         const result = repairMeshGeometry(item.geometry);
         if (!result.changed) continue;
+        this.#assertPaintEditable(item.id);
+        paint.set(item.id, remapObjectPaintRegions(this.#paintSession.getRegions(item.id), item.id, result.triangleIndexMap));
         removed += result.report.repairableTriangleCount;
         changes.set(item.id, { ...item, geometry: result.geometry });
       }
-      if (!changes.size) {
-        this.#status = "Mesh-Reparatur nicht erforderlich; Geometrie blieb unverändert.";
-        this.#renderStatus();
-        return;
-      }
-      this.#status = `${removed} eindeutig ungültige oder doppelte Dreiecke sicher entfernt.`;
-      this.#audit("mesh_safe_repair_applied", "success", {
-        object_count: changes.size,
-        removed_triangles: removed,
-        object_ids: [...changes.keys()],
-      });
-      this.#replace(changes);
-    });
-    this.#root.append(modal);
+    } catch (error) {
+      this.#status = error instanceof Error ? error.message : String(error);
+      this.#renderStatus();
+      return;
+    }
+    if (!changes.size) {
+      this.#status = "Mesh-Reparatur nicht erforderlich; Geometrie blieb unverändert.";
+      this.#renderStatus();
+      return;
+    }
+    for (const [objectId, regions] of paint) {
+      this.#paintSession.clear(objectId);
+      for (const region of regions) this.#paintSession.paintTriangles(objectId, region.triangleIndices, { ...region, radiusMm: 1, mode: "add" });
+    }
+    this.#status = `${removed} eindeutig ungültige oder doppelte Dreiecke sicher entfernt; Bemalungen wurden mitgeführt.`;
+    this.#audit("mesh_safe_repair_applied", "success", { object_count: changes.size, removed_triangles: removed, object_ids: [...changes.keys()] });
+    this.#replace(changes);
   }
 
   #openSafeSplitDialog(): void {
@@ -2785,33 +2884,52 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     confirm.addEventListener("click", () => {
       if (!preview?.canApply || !preview.negativeGeometry || !preview.positiveGeometry) return;
       close();
-      const plate = this.#plate();
-      const index = plate.instances.findIndex((item) => item.id === source.id);
-      if (index < 0) return;
-      const axis = preview.axis.toUpperCase();
-      const negative: MeshInstance = { ...source, id: `split-${this.#nextId++}`, name: `${source.name} – ${axis}−`, geometry: preview.negativeGeometry };
-      const positive: MeshInstance = { ...source, id: `split-${this.#nextId++}`, name: `${source.name} – ${axis}+`, geometry: preview.positiveGeometry };
-      plate.instances.splice(index, 1, negative, positive);
-      const assignment = this.#assignments.get(source.id);
-      this.#assignments.delete(source.id);
-      if (assignment) {
-        this.#assignments.set(negative.id, assignment);
-        this.#assignments.set(positive.id, assignment);
-      }
-      this.#invalidatePlate(plate);
-      this.#selected = new Set([negative.id, positive.id]);
-      this.#selectionAnchor = negative.id;
-      this.#status = `${source.name} wurde an ${axis} ${preview.planeMm.toFixed(2)} mm in zwei vorhandene Geometriegruppen getrennt.`;
-      this.#audit("mesh_safe_plane_split_applied", "success", {
-        source_object_id: source.id,
-        result_object_ids: [negative.id, positive.id],
-        axis: preview.axis,
-        plane_mm: preview.planeMm,
-        triangle_counts: [preview.negativeTriangleCount, preview.positiveTriangleCount],
-      });
-      this.#renderFull();
+      this.#applyMeshSplit(source, preview);
     });
     this.#root.append(modal);
+  }
+
+  #applyMeshSplit(source: MeshInstance, preview: MeshPlaneSplitPreview): void {
+    const plate = this.#plate();
+    const index = plate.instances.indexOf(source);
+    if (index < 0 || !preview.canApply || !preview.negativeGeometry || !preview.positiveGeometry) {
+      this.#status = "Das Modell oder die Teilung hat sich geändert. Bitte erneut prüfen.";
+      this.#renderStatus();
+      return;
+    }
+    const axis = preview.axis.toUpperCase();
+    const negative: MeshInstance = { ...source, id: `split-${this.#nextId}`, name: `${source.name} – ${axis}−`, geometry: preview.negativeGeometry };
+    const positive: MeshInstance = { ...source, id: `split-${this.#nextId + 1}`, name: `${source.name} – ${axis}+`, geometry: preview.positiveGeometry };
+    let negativePaint: PaintRegion[], positivePaint: PaintRegion[];
+    try {
+      this.#assertPaintEditable(source.id);
+      const original = this.#paintSession.getRegions(source.id);
+      negativePaint = remapObjectPaintRegions(original, negative.id, preview.negativeTriangleIndexMap);
+      positivePaint = remapObjectPaintRegions(original, positive.id, preview.positiveTriangleIndexMap);
+    } catch (error) {
+      this.#status = error instanceof Error ? error.message : String(error);
+      this.#renderStatus();
+      return;
+    }
+    const layers = this.#paintLayersForPlate(plate);
+    const originalLayers = layers.filter((layer) => layer.objectId === source.id);
+    this.#setPaintLayersForPlate(plate, [
+      ...layers.filter((layer) => layer.objectId !== source.id),
+      ...[negative, positive].flatMap((item) => originalLayers.map((layer) => clonePaintLayer({ ...layer, id: `paint-layer-${this.#nextPaintLayerId++}`, objectId: item.id }))),
+    ]);
+    this.#paintSession.clear(source.id);
+    for (const region of [...negativePaint, ...positivePaint]) this.#paintSession.paintTriangles(region.objectId, region.triangleIndices, { ...region, radiusMm: 1, mode: "add" });
+    this.#nextId += 2;
+    plate.instances.splice(index, 1, negative, positive);
+    const assignment = this.#assignments.get(source.id);
+    this.#assignments.delete(source.id);
+    if (assignment) { this.#assignments.set(negative.id, assignment); this.#assignments.set(positive.id, assignment); }
+    this.#invalidatePlate(plate);
+    this.#selected = new Set([negative.id, positive.id]);
+    this.#selectionAnchor = negative.id;
+    this.#status = `${source.name} wurde an ${axis} ${preview.planeMm.toFixed(2)} mm geteilt. Bestehende Materialflächen und Malebenen wurden mitgeführt. Neue Schnittflächen bitte in der Materialvorschau prüfen.`;
+    this.#audit("mesh_safe_plane_split_applied", "success", { source_object_id: source.id, result_object_ids: [negative.id, positive.id], axis: preview.axis, plane_mm: preview.planeMm, triangle_counts: [preview.negativeTriangleCount, preview.positiveTriangleCount] });
+    this.#renderFull();
   }
 
   #arrange(): void {
@@ -2843,6 +2961,14 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
   }
 
   #primitive(kind: PrimitiveKind): void {
+    const nozzle = this.#selectedNozzleDiameter();
+    if (kind === "first-layer" && nozzle === null) {
+      this.#status = "Für den First-Layer-Test zuerst eine unterstützte Düse auswählen.";
+      this.#renderFull();
+      return;
+    }
+    // A full-bed calibration must not overlap existing user models.
+    if (kind === "first-layer" && this.#plate().instances.length) this.#addPlate();
     const plate = this.#plate();
     const names: Record<PrimitiveKind, string> = {
       cube: "Würfel",
@@ -2853,11 +2979,23 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       plate: "Platte",
       "first-layer": "First-Layer-Test",
     };
-    const mesh = createPrimitiveGeometry(kind, plate.width, plate.depth);
+    let mesh: MeshGeometry;
+    try {
+      mesh = createPrimitiveGeometry(kind, plate.width, plate.depth, nozzle ?? 0.4);
+    } catch (error) {
+      this.#status = error instanceof Error ? error.message : String(error);
+      this.#renderFull();
+      return;
+    }
+    if (kind === "first-layer") {
+      const { height, lineWidth } = firstLayerParameters(nozzle!);
+      saveProcess(String(plate.id), firstLayerProcessOptions(nozzle!, loadSliceProcessOverrides()));
+      this.#status = `TaraCraft First-Layer: ${height.toLocaleString("de-DE")} mm Höhe · ${lineWidth.toLocaleString("de-DE")} mm Linienbreite · diagonale Füllung · drei T-Konturen.`;
+    }
     const id = `primitive-${this.#nextId++}`;
     const item: MeshInstance = {
       id,
-      name: names[kind],
+      name: kind === "first-layer" ? "TaraCraft · First-Layer · dreifache T-Kontur" : names[kind],
       geometry: mesh,
       position: positionCenteredOnPlate(mesh, { position: [0,0,0], rotation: [0,0,0], scale: [1,1,1] }, plate.width, plate.depth),
       rotation: [0,0,0],
@@ -2886,12 +3024,24 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
 
   #removePlate(): void {
     if (this.#plates.length <= 1) return;
+    try {
+      reindexPlateLocalSettings(this.#plates.map((plate) => plate.id), this.#plates.filter((_, index) => index !== this.#activePlate).map((plate) => plate.id));
+    } catch (error) {
+      this.#status = `Druckplatte blieb erhalten: Einstellungen konnten nicht sicher umgeordnet werden. ${error instanceof Error ? error.message : String(error)}`;
+      this.#renderStatus();
+      return;
+    }
     const removed = this.#plates.splice(this.#activePlate, 1)[0];
-    for (const item of removed?.instances ?? []) this.#assignments.delete(item.id);
+    for (const item of removed?.instances ?? []) {
+      this.#assignments.delete(item.id);
+      this.#paintSession.clear(item.id);
+      this.#paintLegacyAmbiguousObjectIds.delete(item.id);
+    }
     this.#plates.forEach((plate, index) => {
       plate.id = index;
       if (/^Druckplatte \d+$/.test(plate.name)) plate.name = `Druckplatte ${index + 1}`;
     });
+    this.#paintLayers = remapPaintLayerPlates(this.#paintLayers, this.#plates);
     this.#activePlate = Math.max(0, Math.min(this.#activePlate, this.#plates.length - 1));
     this.#audit("plate_removed", "success", { removed_plate: removed?.name || null, plate_count: this.#plates.length });
     this.#selected.clear();
@@ -3057,25 +3207,13 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
   async #plateFile(materialPlan: SliceMaterialPlan, onProgress?: (progress: number) => void): Promise<File> {
     const plate = this.#plate();
     const materialIndexByKey = new Map((materialPlan.paintMaterialKeys || []).map((key, index) => [key, index]));
-    const regionsByObject = new Map<string, PaintRegion[]>();
-    for (const region of this.#paintRegionsForPlate(plate)) {
-      const current = regionsByObject.get(region.objectId) || [];
-      current.push(region);
-      regionsByObject.set(region.objectId, current);
-    }
-    const meshes = plate.instances.filter((item) => item.visible).map((item) => {
-      const materialIndex = Number(materialPlan.assignments[item.id] || 1) - 1;
-      const triangleMaterialIndices: Array<number | null> = Array.from({ length: item.geometry.triangleCount }, () => null);
-      for (const region of regionsByObject.get(item.id) || []) {
-        const mappedMaterial = materialIndexByKey.get(region.materialKey);
-        if (mappedMaterial === undefined) throw new Error("Ein Malbereich verweist auf kein aktives Druckfilament.");
-        for (const triangle of region.triangleIndices) {
-          if (!Number.isInteger(triangle) || triangle < 0 || triangle >= item.geometry.triangleCount) throw new Error(`Malbereich von ${item.name} enthält eine ungültige Dreiecksreferenz.`);
-          triangleMaterialIndices[triangle] = mappedMaterial;
-        }
-      }
-      return { name: item.name, geometry: item.geometry, transform: { position: item.position, rotation: item.rotation, scale: item.scale }, color: item.color, materialIndex, triangleMaterialIndices };
-    });
+    const meshes = buildPaintedExportMeshes(
+      plate.instances.filter((item) => item.visible),
+      this.#paintRegionsForPlate(plate, true),
+      new Map(Object.entries(materialPlan.assignments).map(([id, index]) => [id, Number(index) - 1])),
+      materialIndexByKey,
+      materialPlan.filaments.length,
+    );
     const bytes = await export3mfStreamed(meshes, {
       title: plate.name, buildPlateName: plate.name, buildPlateProfileId: plate.selection.build_plate_profile_id,
       plateWidthMm: plate.width, plateDepthMm: plate.depth,
@@ -3396,9 +3534,11 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
   #renderFull(): void {
     if (this.#supportWarning) { this.#deferredFullRender = true; return; }
     this.#deferredFullRender = false;
-    this.#root.innerHTML = shellHtmlV2(this.#ui());
-    this.#bindUi();
-    this.#renderSidebar();
+    preserveFilamentView(this.#root, () => {
+      this.#root.innerHTML = shellHtmlV2(this.#ui());
+      this.#bindUi();
+      this.#renderSidebar();
+    });
     queueMicrotask(() => this.#mountViewport());
     this.#schedulePersist();
   }
@@ -3413,7 +3553,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     if (!host) return;
     const plate = this.#plate();
     const objects = plate.instances.map((instance) => (
-      `<button class="object ${this.#selected.has(instance.id) ? "active" : ""}" data-object="${instance.id}"><span class="swatch" style="background:${instance.color}"></span><span><b>${instance.name}</b><small>${instance.geometry.triangleCount.toLocaleString("de-DE")} Dreiecke</small></span></button>`
+      `<button class="object ${this.#selected.has(instance.id) ? "active" : ""}" data-object="${escapeHtml(instance.id)}"><span class="swatch" style="background:${escapeHtml(normalizeColor(instance.color))}"></span><span><b>${escapeHtml(instance.name)}</b><small>${instance.geometry.triangleCount.toLocaleString("de-DE")} Dreiecke</small></span></button>`
     )).join("");
     const materialNames = new Map(this.#paintMaterials(plate).map((material) => [material.key, material.name]));
     const paintLayers = this.#paintLayersForPlate(plate);
@@ -3422,7 +3562,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       const material = materialNames.get(layer.materialKey) || "Filament nicht zugeordnet";
       const paintId = this.#paintLayerSelectionId(index);
       const kind = layer.kind === "stroke" ? "Freihand" : layer.kind === "rectangle" ? "Rechteck" : layer.kind === "circle" ? "Kreis" : "Text";
-      return `<div class="paint-area-row"><button class="object paint-area ${this.#selected.has(paintId) ? "active" : ""}" data-paint-layer-select="${paintId}" data-paint-layer="${index}"><span class="swatch" style="background:${layer.color}"></span><span><b>${object?.name || "Malbereich"} · ${escapeHtml(layer.label || kind)}</b><small>${kind} · ${layer.points.length.toLocaleString("de-DE")} Punkt(e) · ${material}</small></span></button><button class="paint-area-remove" data-paint-layer-remove="${index}" title="Dieses Malobjekt entfernen" aria-label="Dieses Malobjekt entfernen">×</button></div>`;
+      return `<div class="paint-area-row"><button class="object paint-area ${this.#selected.has(paintId) ? "active" : ""}" data-paint-layer-select="${paintId}" data-paint-layer="${index}"><span class="swatch" style="background:${escapeHtml(normalizeColor(layer.color))}"></span><span><b>${escapeHtml(object?.name || "Malbereich")} · ${escapeHtml(layer.label || kind)}</b><small>${kind} · ${layer.points.length.toLocaleString("de-DE")} Punkt(e) · ${escapeHtml(material)}</small></span></button><button class="paint-area-remove" data-paint-layer-remove="${index}" title="Dieses Malobjekt entfernen" aria-label="Dieses Malobjekt entfernen">×</button></div>`;
     }).join("");
     const paintRows = this.#paintRowsForSelection(plate);
     const regionRows = paintRows.map((region, index) => {
@@ -3430,7 +3570,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       const material = materialNames.get(region.materialKey) || "Filament nicht zugeordnet";
       const label = region.label || `Fläche ${index + 1}`;
       const paintId = this.#paintSelectionId(index);
-      return `<div class="paint-area-row"><button class="object paint-area ${this.#selected.has(paintId) ? "active" : ""}" data-paint-select="${paintId}" data-paint-area="${index}"><span class="swatch" style="background:${region.color}"></span><span><b>${object?.name || "Malbereich"} · ${escapeHtml(label)}</b><small>Slicer-Fläche · ${region.triangleIndices.length.toLocaleString("de-DE")} Rasterflächen · ${material}</small></span></button><button class="paint-area-remove" data-paint-remove="${index}" title="Diese Malfläche entfernen" aria-label="Diese Malfläche entfernen">×</button></div>`;
+      return `<div class="paint-area-row"><button class="object paint-area ${this.#selected.has(paintId) ? "active" : ""}" data-paint-select="${paintId}" data-paint-area="${index}"><span class="swatch" style="background:${escapeHtml(normalizeColor(region.color))}"></span><span><b>${escapeHtml(object?.name || "Malbereich")} · ${escapeHtml(label)}</b><small>Slicer-Fläche · ${region.triangleIndices.length.toLocaleString("de-DE")} Rasterflächen · ${escapeHtml(material)}</small></span></button><button class="paint-area-remove" data-paint-remove="${index}" title="Diese Malfläche entfernen" aria-label="Diese Malfläche entfernen">×</button></div>`;
     }).join("");
     const painted = layerRows || regionRows ? `<div class="object-section-title">Malbereich · ${paintLayers.length + paintRows.length}</div>${layerRows}${regionRows}` : "";
     host.innerHTML = objects + painted || '<div class="message"><div><b>Keine Objekte</b></div></div>';
@@ -3448,15 +3588,8 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
         event.preventDefault();
         event.stopPropagation();
         const index = Number(button.dataset.paintLayerRemove);
-        const layers = this.#paintLayersForPlate(plate).filter((_, layerIndex) => layerIndex !== index);
-        this.#setPaintLayersForPlate(plate, layers);
-        this.#paintSession.clear();
-        this.#viewport?.setPaintRegions([]);
-        this.#selected.delete(this.#paintLayerSelectionId(index));
-        this.#status = "Malobjekt entfernt.";
-        this.#renderObjectList();
-        this.#renderStatus();
-        this.#schedulePersist(180);
+        this.#selected = new Set([this.#paintLayerSelectionId(index)]);
+        this.#remove();
       });
     });
     host.querySelectorAll<HTMLButtonElement>("[data-paint-remove]").forEach((button) => {
@@ -3471,6 +3604,8 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
   }
 
   #removePaintRegion(region: PaintRegion): void {
+    try { this.#assertPaintEditable(region.objectId); }
+    catch (error) { this.#status = error instanceof Error ? error.message : String(error); this.#renderStatus(); return; }
     const result = this.#paintSession.paintTriangles(region.objectId, region.triangleIndices, {
       radiusMm: 1,
       color: region.color,
@@ -3637,12 +3772,34 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     return this.#root.querySelector<StudioPaintButtonElement>("studio-paint-tools");
   }
 
+  #paintBaseRegionsForPlate(plate: Plate): readonly PaintRegion[] {
+    return plate.instances.flatMap((instance) => this.#paintSession.getRegions(instance.id));
+  }
+
+  #assertPaintEditable(objectId: string): void {
+    const conflict = paintEditConflict(objectId, this.#paintLegacyAmbiguousObjectIds);
+    if (conflict) throw new Error(conflict);
+  }
+
   #paintRegions(): readonly PaintRegion[] {
     return this.#paintRegionsForPlate(this.#plate());
   }
 
-  #paintRegionsForPlate(plate: Plate): readonly PaintRegion[] {
-    return plate.instances.flatMap((instance) => this.#paintSession.getRegions(instance.id));
+  #paintRegionsForPlate(plate: Plate, forExport = false): readonly PaintRegion[] {
+    const base = this.#paintBaseRegionsForPlate(plate);
+    const legacyIds = this.#paintLegacyAmbiguousObjectIds;
+    const normal = plate.instances.filter((instance) => !legacyIds.has(instance.id));
+    const legacy = plate.instances.filter((instance) => legacyIds.has(instance.id));
+    const layers = this.#paintLayersForPlate(plate);
+    const modernRegions = this.#paintGeometryFailures.has(plate.id) && !forExport
+      ? base.filter((region) => !legacyIds.has(region.objectId))
+      : composePaintLayers(normal, base, layers);
+    // Old ambiguous exports used only rasterized layers, always in add mode. Preserve that
+    // contract without overwriting the saved base or another plate's paint.
+    const legacyRegions = forExport
+      ? composePaintLayers(legacy, [], layers, { legacy: true })
+      : base.filter((region) => legacyIds.has(region.objectId));
+    return [...modernRegions, ...legacyRegions];
   }
 
   #paintLayersForPlate(plate = this.#plate()): StudioPaintLayer[] {
@@ -3663,7 +3820,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
   }
 
   #paintRowsForSelection(plate = this.#plate()): readonly PaintRegion[] {
-    return this.#paintRegionsForPlate(plate).filter((region) => region.triangleIndices.length > 0);
+    return this.#paintBaseRegionsForPlate(plate).filter((region) => region.triangleIndices.length > 0);
   }
 
   #orderedSelectionIds(plate = this.#plate()): string[] {
@@ -3684,36 +3841,37 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       color: normalizeColor(brush.color),
       materialKey: String(brush.materialKey || ""),
       radiusMm: Math.max(.05, Number(brush.radiusMm) || 1),
+      mode: brush.mode === "remove" ? "remove" : "add",
       points: [],
       ...(options.text ? { text: options.text } : {}),
       ...(options.textSizePx ? { textSizePx: options.textSizePx } : {}),
     };
-    this.#setPaintLayersForPlate(plate, [...this.#paintLayersForPlate(plate), layer]);
+    // Provisional gestures are not persisted until geometry and material composition succeed.
     return layer;
   }
 
   #materializePaintLayersForSlicing(plate: Plate): void {
-    const layers = this.#paintLayersForPlate(plate).filter((layer) => layer.points.length > 0);
-    this.#paintSession.clear();
-    if (!layers.length) {
-      this.#viewport?.setPaintRegions([]);
-      return;
+    const layers = this.#paintLayersForPlate(plate).filter((layer) => layer.points.length > 0 && !this.#paintLegacyAmbiguousObjectIds.has(layer.objectId));
+    this.#paintGeometryFailures.add(plate.id);
+    let base = this.#plates.flatMap((item) => this.#paintBaseRegionsForPlate(item));
+    let changed = false;
+    const instances = plate.instances.map((instance) => {
+      if (this.#paintLegacyAmbiguousObjectIds.has(instance.id)) return instance;
+      const scale = Math.max(...instance.scale.map((value) => Math.abs(value)), .01);
+      const refined = refinePaintLayers(instance.id, instance.geometry, base, layers, .35 / scale);
+      if (!refined.changed) return instance;
+      base = [...refined.regions];
+      changed = true;
+      return { ...instance, geometry: geometry(refined.positions) };
+    });
+    // Complete composition before committing either half of the geometry/reference pair.
+    // Invalid material references and budget failures therefore leave the model untouched.
+    composePaintLayers(instances.filter((instance) => !this.#paintLegacyAmbiguousObjectIds.has(instance.id)), base, layers);
+    if (changed) {
+      plate.instances = instances;
+      this.#paintSession.replace(base);
     }
-    const instances = new Map(plate.instances.map((instance) => [instance.id, instance]));
-    for (const layer of layers) {
-      const instance = instances.get(layer.objectId);
-      if (!instance) continue;
-      const radiusMm = layer.kind === "stroke" ? Math.max(.05, layer.radiusMm) : Math.max(.08, layer.radiusMm * .55);
-      for (const point of layer.points) {
-        this.#paintSession.paint(layer.objectId, instance.geometry, [], [point.x, point.y, point.z], {
-          radiusMm,
-          color: layer.color,
-          materialKey: layer.materialKey,
-          label: layer.label,
-          mode: "add",
-        });
-      }
-    }
+    this.#paintGeometryFailures.delete(plate.id);
   }
 
   #paintMaterials(plate = this.#plate()): readonly StudioPaintMaterial[] {
@@ -3723,9 +3881,29 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
   }
 
   #mountViewport(): void {
+    this.#cancelViewportGesture?.();
     const canvas = this.#root.querySelector<HTMLCanvasElement>("canvas");
     const shapePreviewCanvas = this.#root.querySelector<HTMLCanvasElement>("canvas.paint-shape-preview");
     if (!canvas) return;
+    let paintStroke: { pointerId: number; lastX: number; lastY: number; layer: StudioPaintLayer } | null = null;
+    let remainingPickWork = 20_000_000;
+    const pickPaint = (clientX: number, clientY: number): PaintHit | null => {
+      remainingPickWork -= this.#plate().instances.filter((item) => item.visible).reduce((sum, item) => sum + item.geometry.triangleCount, 0);
+      if (remainingPickWork < 0) throw new Error("Der Malvorgang überschreitet das interaktive Rechenbudget. Bitte einen kleineren Bereich oder ein einfacheres Modell verwenden.");
+      return this.#viewport?.pickPaintPoint(clientX, clientY) ?? null;
+    };
+    const captureMask = (objectId: string, kind: MaterialPaintMask["kind"], left: number, top: number, right: number, bottom: number): MaterialPaintMask => {
+      const rect = canvas.getBoundingClientRect();
+      const matrix = this.#viewport?.getPaintProjection(objectId);
+      if (!matrix || rect.width <= 0 || rect.height <= 0 || right <= left || bottom <= top) throw new Error("Die Malform benötigt eine sichtbare Fläche mit Breite und Höhe.");
+      return { kind, matrix: [...matrix], left: (left - rect.left) / rect.width, top: (top - rect.top) / rect.height, right: (right - rect.left) / rect.width, bottom: (bottom - rect.top) / rect.height };
+    };
+    const sampleStepFor = (objectId: string, radiusMm: number, point: readonly number[]): number => {
+      const matrix = this.#viewport?.getPaintProjection(objectId);
+      const rect = canvas.getBoundingClientRect();
+      if (!matrix) throw new Error("Die Malfläche ist nicht mehr verfügbar.");
+      return paintSamplingStep(matrix, point, radiusMm, rect.width, rect.height);
+    };
     const clientPointForLayer = (point: PaintLayerPoint): readonly [number, number] => {
       const rect = canvas.getBoundingClientRect();
       return [rect.left + point.screenX * rect.width, rect.top + point.screenY * rect.height];
@@ -3736,7 +3914,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       const rect = canvas.getBoundingClientRect();
       const scaleX = canvas.width / Math.max(1, rect.width);
       const scaleY = canvas.height / Math.max(1, rect.height);
-      for (const layer of this.#paintLayersForPlate()) {
+      for (const layer of paintStroke ? [paintStroke.layer] : []) {
         if (!layer.points.length) continue;
         context.save();
         context.strokeStyle = layer.color;
@@ -3779,12 +3957,20 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     const pointFromHit = (hit: PaintHit | null, clientX: number, clientY: number): PaintLayerPoint | null => {
       if (!hit) return null;
       const rect = canvas.getBoundingClientRect();
+      const mesh = this.#plate().instances.find((instance) => instance.id === hit.objectId)?.geometry;
+      if (!mesh || !Number.isInteger(hit.triangleIndex) || hit.triangleIndex < 0 || hit.triangleIndex >= mesh.triangleCount) return null;
+      const p = mesh.positions, base = hit.triangleIndex * 9;
+      const ax = p[base + 3]! - p[base]!, ay = p[base + 4]! - p[base + 1]!, az = p[base + 5]! - p[base + 2]!;
+      const bx = p[base + 6]! - p[base]!, by = p[base + 7]! - p[base + 1]!, bz = p[base + 8]! - p[base + 2]!;
+      const normal = [ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx], length = Math.hypot(...normal);
+      if (!Number.isFinite(length) || length < 1e-8) return null;
       return {
         x: hit.localPosition[0],
         y: hit.localPosition[1],
         z: hit.localPosition[2],
         screenX: Math.max(0, Math.min(1, (clientX - rect.left) / Math.max(1, rect.width))),
         screenY: Math.max(0, Math.min(1, (clientY - rect.top) / Math.max(1, rect.height))),
+        normal: normal.map((value) => value / length),
       };
     };
     const addPointToLayer = (layer: StudioPaintLayer, hit: PaintHit | null, clientX: number, clientY: number): boolean => {
@@ -3792,7 +3978,8 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       const point = pointFromHit(hit, clientX, clientY);
       if (!point) return false;
       const previous = layer.points[layer.points.length - 1];
-      if (previous && Math.hypot(previous.screenX - point.screenX, previous.screenY - point.screenY) < .0015) return false;
+      if (layer.points.length >= 50_000) throw new Error("Der Malbereich überschreitet 50.000 Punkte. Die laufende Geste wurde verworfen.");
+      if (previous && Math.hypot(previous.x - point.x, previous.y - point.y, previous.z - point.z) < Math.max(.001, layer.radiusMm * .08)) return false;
       layer.points.push(point);
       return true;
     };
@@ -3800,9 +3987,9 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       let added = 0;
       const seen = new Set<string>();
       for (const [clientX, clientY] of points) {
-        const hit = this.#viewport?.pickPaintPoint(clientX, clientY) ?? null;
+        const hit = pickPaint(clientX, clientY);
         if (!hit || hit.objectId !== layer.objectId) continue;
-        const key = Math.round(clientX / 2) + ":" + Math.round(clientY / 2);
+        const key = Math.round(clientX * 2) + ":" + Math.round(clientY * 2);
         if (seen.has(key)) continue;
         seen.add(key);
         if (addPointToLayer(layer, hit, clientX, clientY)) added += 1;
@@ -3824,7 +4011,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       context.fillText(text, (clientX - rect.left) * scaleX, (baselineClientY - rect.top) * scaleY);
       context.restore();
     };
-    const drawShapePreview = (shape: "rectangle" | "circle", startX: number, startY: number, endX: number, endY: number): void => {
+    const drawShapePreview = (shape: "rectangle" | "circle" | "line", startX: number, startY: number, endX: number, endY: number): void => {
       const context = shapePreviewCanvas?.getContext("2d") ?? null;
       if (!context || !shapePreviewCanvas) return;
       const rect = canvas.getBoundingClientRect();
@@ -3844,12 +4031,15 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       context.shadowColor = "#000000";
       context.shadowBlur = Math.max(2, scaleX * 2);
       context.beginPath();
-      if (shape === "rectangle") context.rect(x, y, width, height);
+      if (shape === "line") { context.moveTo(x, y); context.lineTo(x + width, y + height); }
+      else if (shape === "rectangle") context.rect(x, y, width, height);
       else context.ellipse(x + width / 2, y + height / 2, Math.max(1, Math.abs(width) / 2), Math.max(1, Math.abs(height) / 2), 0, 0, Math.PI * 2);
       context.stroke();
       context.restore();
     };
     this.#viewport?.dispose();
+    try { this.#materializePaintLayersForSlicing(this.#plate()); }
+    catch (error) { this.#status = error instanceof Error ? error.message : String(error); this.#renderStatus(); }
     this.#viewport = new StudioMegaViewport(canvas, this.#profileVisual());
     this.#viewport.setPreviewMode(this.#mode === "preview");
     this.#viewport.setInstances(this.#displayInstances());
@@ -3859,6 +4049,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     const paintBtn = this.#paintButton();
     paintBtn?.setMaterials?.(this.#paintMaterials());
     const syncPaintMode = (): void => {
+      this.#cancelViewportGesture?.();
       const active = Boolean(paintBtn?.isActive?.()); canvas.classList.toggle("paint-mode", active);
       const toggle = this.#root.querySelector<HTMLButtonElement>("#paint-toggle");
       if (toggle) { toggle.classList.toggle("active", active); toggle.textContent = active ? "✋ Malen AUS" : "🎨 Malen AN"; }
@@ -3880,40 +4071,77 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       });
     });
     let down: { x: number; y: number; id: number } | null = null;
-    let paintStroke: { pointerId: number; lastX: number; lastY: number; layer: StudioPaintLayer } | null = null;
-    let paintShape: { pointerId: number; objectId: string; startX: number; startY: number; tool: "rectangle" | "circle" } | null = null;
-    const refinePaintResolution = (objectId: string, coarseIndices: readonly number[], targetEdgeMm = .22): boolean => {
-      const plate = this.#plate();
-      const instance = plate.instances.find((item) => item.id === objectId) ?? null;
-      if (!instance || !coarseIndices.length) return false;
-      const refined = refinePaintGeometry(instance.geometry, coarseIndices, { targetEdgeMm, maxSubdivisions: 24 });
-      if (!refined.changed) return false;
-      const regions = this.#plates.flatMap((item) => this.#paintRegionsForPlate(item));
-      this.#paintSession.replace(remapPaintRegions(regions, objectId, refined.triangleIndexMap));
-      plate.instances = plate.instances.map((item) => item.id === objectId ? { ...item, geometry: geometry(refined.positions) } : item);
-      this.#invalidatePlate(plate);
-      this.#viewport?.setInstances(this.#displayInstances());
-      this.#viewport?.setSelected([...this.#selected]);
-      this.#viewport?.setPaintRegions(this.#paintRegions());
-      return true;
+    let selectionFrame: { pointerId: number; startX: number; startY: number; initial: Set<string> } | null = null;
+    let paintShape: { pointerId: number; objectId: string; startX: number; startY: number; localPoint: readonly number[]; tool: "rectangle" | "circle" | "line" } | null = null;
+    const failPaint = (error: unknown): void => {
+      paintStroke = null;
+      paintShape = null;
+      clearShapePreview();
+      this.#viewport?.setSelected(this.#plate().instances.filter((item) => this.#selected.has(item.id)).map((item) => item.id));
+      this.#status = error instanceof Error ? error.message : String(error);
+      this.#renderStatus();
     };
-    const applyPaint = (event: PointerEvent): boolean => {
-      const hit = this.#viewport?.pickPaintPoint(event.clientX, event.clientY) ?? null;
+    const refinePaintResolution = (layer: StudioPaintLayer): boolean => {
+      if (!layer.points.length) return false;
+      const plate = this.#plate(), previousLayers = this.#paintLayersForPlate(plate);
+      let committed = false;
+      try {
+        this.#assertPaintEditable(layer.objectId);
+        if (this.#historyReady && !this.#historyReplay) this.#history.checkpoint(this.#workspaceSnapshot());
+        this.#setPaintLayersForPlate(plate, [...previousLayers, layer]);
+        this.#materializePaintLayersForSlicing(plate);
+        committed = true;
+        this.#invalidatePlate(plate);
+        this.#selected = new Set([this.#paintLayerSelectionId(previousLayers.length)]);
+        this.#selectionAnchor = [...this.#selected][0] ?? null;
+        this.#viewport?.setInstances(this.#displayInstances());
+        this.#viewport?.setPaintRegions(this.#paintRegions());
+        this.#renderObjectList();
+        this.#schedulePersist(350);
+        return true;
+      } catch (error) {
+        if (!committed) this.#setPaintLayersForPlate(plate, previousLayers);
+        this.#paintGeometryFailures.delete(plate.id);
+        failPaint(error);
+        if (committed) this.#schedulePersist(350);
+        return false;
+      }
+    };
+    const applyPaint = (event: Pick<PointerEvent, "clientX" | "clientY">): boolean => {
+      const hit = pickPaint(event.clientX, event.clientY);
       const instance = hit ? this.#plate().instances.find((item) => item.id === hit.objectId) ?? null : null;
       if (!hit || !instance) { this.#status = "Malen: Kein Objekt unter dem Zeiger."; this.#renderStatus(); return false; }
       const stroke = paintStroke;
       if (!stroke || stroke.layer.objectId !== hit.objectId) return false;
       const added = addPointToLayer(stroke.layer, hit, event.clientX, event.clientY);
       if (!added) return false;
-      this.#selected = new Set([this.#paintLayerSelectionId(Math.max(0, this.#paintLayersForPlate().indexOf(stroke.layer)))]);
-      this.#selectionAnchor = [...this.#selected][0] ?? null;
-      this.#viewport?.setSelected([hit.objectId]);
+      return true;
+    };
+    const showStrokeProgress = (): void => {
+      if (!paintStroke) return;
+      this.#viewport?.setSelected([paintStroke.layer.objectId]);
       clearShapePreview();
-      this.#status = instance.name + ": " + stroke.layer.label + " · " + stroke.layer.points.length.toLocaleString("de-DE") + " freie Malpunkte.";
-      this.#renderObjectList(); this.#renderStatus(); return true;
+      this.#status = paintStroke.layer.label + " · " + paintStroke.layer.points.length.toLocaleString("de-DE") + " Oberflächenpunkte (noch nicht gespeichert).";
+      this.#renderStatus();
+    };
+    const appendStrokeTo = (clientX: number, clientY: number): void => {
+      const stroke = paintStroke;
+      if (!stroke) return;
+      const last = stroke.layer.points[stroke.layer.points.length - 1];
+      if (!last) throw new Error("Unter dem Zeiger wurde keine gültige Modellfläche gefunden.");
+      const stepPx = sampleStepFor(stroke.layer.objectId, stroke.layer.radiusMm, [last.x, last.y, last.z]);
+      const steps = Math.max(1, Math.ceil(Math.hypot(clientX - stroke.lastX, clientY - stroke.lastY) / stepPx));
+      if (steps > 20_000) throw new Error("Die Zeigerstrecke überschreitet das interaktive Malbudget.");
+      for (let step = 1; step <= steps; step += 1) {
+        const ratio = step / steps;
+        applyPaint({ clientX: stroke.lastX + (clientX - stroke.lastX) * ratio, clientY: stroke.lastY + (clientY - stroke.lastY) * ratio });
+      }
+      stroke.lastX = clientX;
+      stroke.lastY = clientY;
+      showStrokeProgress();
     };
     const applyTextPaint = (event: PointerEvent): boolean => {
-      const button = this.#paintButton(), hit = this.#viewport?.pickPaintPoint(event.clientX, event.clientY) ?? null;
+      const button = this.#paintButton(), hit = pickPaint(event.clientX, event.clientY);
       const instance = hit ? this.#plate().instances.find((item) => item.id === hit.objectId) ?? null : null;
       const text = button?.getText?.() ?? "";
       const fontSize = button?.getTextSizePx?.() ?? 28;
@@ -3921,30 +4149,35 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       if (!text) { this.#status = "Text: Bitte zuerst einen Schriftzug eingeben."; this.#renderStatus(); return false; }
       const brush = button?.getBrush?.() ?? { radiusMm: 1, color: "#ff4444", mode: "add" as const };
       const layer = this.#createPaintLayer(this.#plate(), hit.objectId, "text", { ...brush, radiusMm: Math.max(.12, brush.radiusMm * .45) }, "Text: " + text, { text, textSizePx: fontSize });
-      const measure = document.createElement("canvas").getContext("2d");
-      const width = Math.max(fontSize, text.length * fontSize * .9);
+      const sampleCanvas = document.createElement("canvas");
+      const ctx = sampleCanvas.getContext("2d", { willReadFrequently: true });
+      if (!ctx) throw new Error("Die Textmaske konnte nicht erstellt werden. Es wurde kein Malbereich angelegt.");
+      const padding = Math.max(4, Math.ceil(fontSize * .18));
+      ctx.font = "700 " + fontSize + "px Inter,Segoe UI,sans-serif";
+      const measured = ctx.measureText(text);
+      const glyphWidth = Number.isFinite(measured.actualBoundingBoxRight) && Number.isFinite(measured.actualBoundingBoxLeft) ? measured.actualBoundingBoxRight + Math.abs(measured.actualBoundingBoxLeft) : measured.width;
+      const maskWidth = Math.ceil(Math.max(measured.width, glyphWidth, fontSize) + padding * 2);
+      const maskHeight = Math.ceil(fontSize * 1.45 + padding * 2);
+      if (![maskWidth, maskHeight].every(Number.isFinite) || maskWidth < 1 || maskHeight < 1 || maskWidth * maskHeight > 1_000_000) throw new Error("Der Schriftzug überschreitet das Textbudget. Text verkürzen oder Schriftgröße verringern.");
+      sampleCanvas.width = maskWidth;
+      sampleCanvas.height = maskHeight;
+      ctx.font = "700 " + fontSize + "px Inter,Segoe UI,sans-serif";
+      ctx.fillStyle = "#fff";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillText(text, padding, padding + fontSize);
+      const data = ctx.getImageData(0, 0, sampleCanvas.width, sampleCanvas.height).data;
+      const maskLeft = event.clientX - padding, maskTop = event.clientY - padding - fontSize;
+      layer.mask = { ...captureMask(hit.objectId, "text", maskLeft, maskTop, maskLeft + sampleCanvas.width, maskTop + sampleCanvas.height), width: sampleCanvas.width, height: sampleCanvas.height, runs: paintMaskRuns(data, sampleCanvas.width, sampleCanvas.height) };
       const samples: Array<readonly [number, number]> = [];
-      if (measure) {
-        const sampleCanvas = document.createElement("canvas");
-        const ctx = sampleCanvas.getContext("2d", { willReadFrequently: true });
-        const padding = Math.max(4, Math.ceil(fontSize * .18));
-        sampleCanvas.width = Math.ceil(width + padding * 2);
-        sampleCanvas.height = Math.ceil(fontSize * 1.45 + padding * 2);
-        if (ctx) {
-          ctx.font = "700 " + fontSize + "px Inter,Segoe UI,sans-serif";
-          ctx.fillStyle = "#fff";
-          ctx.textBaseline = "alphabetic";
-          ctx.fillText(text, padding, padding + fontSize);
-          const data = ctx.getImageData(0, 0, sampleCanvas.width, sampleCanvas.height).data;
-          const step = Math.max(3, Math.floor(fontSize / 8));
-          for (let y = 0; y < sampleCanvas.height; y += step) {
-            for (let x = 0; x < sampleCanvas.width; x += step) {
-              if (data[(y * sampleCanvas.width + x) * 4 + 3]! > 16) samples.push([event.clientX + x - padding, event.clientY + y - padding - fontSize]);
-            }
-          }
+      const naturalStep = sampleStepFor(hit.objectId, Math.max(.08, layer.radiusMm * .55), hit.localPosition);
+      // The exact alpha mask clips the footprint; every opaque pixel still needs geometric coverage.
+      if (naturalStep < 1) layer.radiusMm /= naturalStep;
+      const step = Math.max(1, Math.min(Math.floor(fontSize / 24) || 1, Math.floor(naturalStep) || 1));
+      for (let y = 0; y < sampleCanvas.height; y += step) {
+        for (let x = 0; x < sampleCanvas.width; x += step) {
+          if (data[(y * sampleCanvas.width + x) * 4 + 3]! >= 128) samples.push([maskLeft + x + .5, maskTop + y + .5]);
         }
       }
-      if (!samples.length) samples.push([event.clientX, event.clientY]);
       const count = sampleLayerPoints(layer, samples);
       if (!count) {
         this.#setPaintLayersForPlate(this.#plate(), this.#paintLayersForPlate().filter((item) => item !== layer));
@@ -3953,35 +4186,59 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
         return false;
       }
       clearShapePreview();
-      this.#selected = new Set([this.#paintLayerSelectionId(Math.max(0, this.#paintLayersForPlate().indexOf(layer)))]);
-      this.#selectionAnchor = [...this.#selected][0] ?? null;
-      this.#status = instance.name + ": Text \"" + text + "\" als freies Malobjekt angelegt.";
-      this.#renderObjectList(); this.#renderStatus(); this.#schedulePersist(350); return true;
+      if (!refinePaintResolution(layer)) return false;
+      this.#status = instance.name + ": Text \"" + text + "\" als Materialfläche angelegt.";
+      this.#renderStatus(); return true;
     };
     canvas.addEventListener("pointerdown", (event) => {
-      if (event.button !== 0) return;
       const paintButton = this.#paintButton();
+      if (paintStroke || paintShape || selectionFrame) {
+        event.preventDefault(); event.stopImmediatePropagation();
+        return;
+      }
+      if (event.button !== 0) {
+        if (paintButton?.isActive?.()) { event.preventDefault(); event.stopImmediatePropagation(); }
+        return;
+      }
       if (paintButton?.isActive?.() && this.#mode !== "preview") {
         event.preventDefault(); event.stopImmediatePropagation();
-        const hit = this.#viewport?.pickPaintPoint(event.clientX, event.clientY) ?? null;
+        remainingPickWork = 20_000_000;
+        try {
+        const hit = pickPaint(event.clientX, event.clientY);
         const tool = paintButton.getTool?.() ?? "brush";
         if (!hit) { this.#status = "Malen: Kein Objekt unter dem Zeiger."; this.#renderStatus(); down = null; return; }
+        this.#assertPaintEditable(hit.objectId);
+        if (this.#plate().stage === "slicing") throw new Error("Während des Slicings kann die Modellbemalung nicht geändert werden.");
+        const activeBrush = paintButton.getBrush?.();
+        if (!activeBrush) throw new Error("Die Malwerkzeuge sind noch nicht bereit.");
+        if (activeBrush.mode !== "remove" && !activeBrush.materialKey) throw new Error("Bitte vor dem Malen ein geladenes Druckfilament wählen.");
         canvas.setPointerCapture(event.pointerId);
         if (tool === "text") {
           clearShapePreview(); applyTextPaint(event); down = null; return;
         }
-        if (tool === "rectangle" || tool === "circle") {
-          paintShape = { pointerId: event.pointerId, objectId: hit.objectId, startX: event.clientX, startY: event.clientY, tool };
+        if (tool === "rectangle" || tool === "circle" || tool === "line") {
+          paintShape = { pointerId: event.pointerId, objectId: hit.objectId, startX: event.clientX, startY: event.clientY, localPoint: hit.localPosition, tool };
           clearShapePreview();
-          this.#status = (tool === "rectangle" ? "Rechteck" : "Kreis") + ": Bereich mit gedrückter Maustaste aufziehen."; this.#renderStatus();
+          this.#status = (tool === "line" ? "Linie" : tool === "rectangle" ? "Rechteck" : "Kreis") + ": Bereich mit gedrückter Maustaste aufziehen."; this.#renderStatus();
         } else {
           const brush = paintButton.getBrush?.() ?? { radiusMm: 10, color: "#ff4444", mode: "add" as const };
           const label = tool === "pen" ? "Stiftstrich" : tool === "eraser" ? "Radierer" : "Pinselstrich";
           const layer = this.#createPaintLayer(this.#plate(), hit.objectId, "stroke", brush, label);
           paintStroke = { pointerId: event.pointerId, lastX: event.clientX, lastY: event.clientY, layer };
-          applyPaint(event);
+          if (!applyPaint(event)) throw new Error("Unter dem Zeiger wurde keine gültige Modellfläche gefunden.");
+          showStrokeProgress();
         }
+        } catch (error) { failPaint(error); }
         down = null; return;
+      }
+      if (this.#tool === "select" && this.#mode !== "preview" && (event.ctrlKey || event.metaKey)) {
+        selectionFrame = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, initial: new Set(this.#selected) };
+        canvas.setPointerCapture(event.pointerId);
+        event.preventDefault(); event.stopImmediatePropagation();
+        this.#status = "Rahmenauswahl: Strg/Cmd gedrückt halten und den Bereich aufziehen. Bestehende Auswahl bleibt erhalten.";
+        this.#renderStatus();
+        down = null;
+        return;
       }
       const picked = this.#viewport?.pick(event.clientX, event.clientY) ?? null;
       if (picked?.startsWith("purge-tower-") && this.#mode !== "preview") {
@@ -4013,6 +4270,11 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       }
     }, { capture: true });
     canvas.addEventListener("pointermove", (event) => {
+      if (selectionFrame?.pointerId === event.pointerId) {
+        event.preventDefault(); event.stopImmediatePropagation();
+        drawShapePreview("rectangle", selectionFrame.startX, selectionFrame.startY, event.clientX, event.clientY);
+        return;
+      }
       if (this.#paintButton()?.isActive?.() && this.#paintButton()?.getTool?.() === "text") {
         event.preventDefault(); event.stopImmediatePropagation();
         drawTextPreview(this.#paintButton()?.getText?.() ?? "", this.#paintButton()?.getTextSizePx?.() ?? 28, event.clientX, event.clientY); return;
@@ -4020,26 +4282,8 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       if (paintStroke?.pointerId === event.pointerId && this.#paintButton()?.isActive?.()) {
         event.preventDefault();
         event.stopImmediatePropagation();
-        const brush = this.#paintButton()?.getBrush?.();
-        const tool = this.#paintButton()?.getTool?.() ?? "brush";
-        const radiusPx = tool === "pen" ? 1.8 : Math.max(3, Math.min(96, (brush?.radiusMm ?? 10) * 1.35));
-        const distance = Math.hypot(event.clientX - paintStroke.lastX, event.clientY - paintStroke.lastY);
-        const steps = Math.max(1, Math.ceil(distance / Math.max(1.2, radiusPx * .32)));
-        let modified = false;
-        for (let step = 1; step <= steps; step += 1) {
-          const ratio = step / steps;
-          const synthetic = new PointerEvent(event.type, {
-            clientX: paintStroke.lastX + (event.clientX - paintStroke.lastX) * ratio,
-            clientY: paintStroke.lastY + (event.clientY - paintStroke.lastY) * ratio,
-            pointerId: event.pointerId,
-            button: event.button,
-            buttons: event.buttons,
-          });
-          modified = applyPaint(synthetic) || modified;
-        }
-        paintStroke.lastX = event.clientX;
-        paintStroke.lastY = event.clientY;
-        if (modified) this.#schedulePersist(350);
+        try { appendStrokeTo(event.clientX, event.clientY); }
+        catch (error) { failPaint(error); }
         return;
       }
       if (paintShape?.pointerId === event.pointerId) {
@@ -4114,37 +4358,82 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       this.#renderCoordinates();
     }, { capture: true });
     const finish = (event: PointerEvent): void => {
+      if (selectionFrame?.pointerId === event.pointerId) {
+        event.preventDefault(); event.stopImmediatePropagation();
+        const frame = selectionFrame; selectionFrame = null;
+        clearShapePreview();
+        if (event.type === "pointercancel") return;
+        if (Math.hypot(event.clientX - frame.startX, event.clientY - frame.startY) < 4) {
+          this.#select(this.#viewport?.pick(event.clientX, event.clientY) ?? null, true, event.shiftKey);
+          return;
+        }
+        try {
+          const triangles = this.#viewport?.pickSelectionRectangle(frame.startX, frame.startY, event.clientX, event.clientY) ?? new Map<string, readonly number[]>();
+          const plate = this.#plate(), selected = new Set(frame.initial);
+          for (const instance of plate.instances) if (triangles.has(instance.id)) selected.add(instance.id);
+          const left = Math.min(frame.startX, event.clientX), top = Math.min(frame.startY, event.clientY);
+          const right = Math.max(frame.startX, event.clientX), bottom = Math.max(frame.startY, event.clientY);
+          this.#paintLayersForPlate(plate).forEach((layer, index) => {
+            if (!triangles.has(layer.objectId)) return;
+            const rectangle = captureMask(layer.objectId, "rectangle", left, top, right, bottom);
+            if (layer.points.some((point) => paintMaskContains(rectangle, point.x, point.y, point.z))) selected.add(this.#paintLayerSelectionId(index));
+          });
+          const selectedFaces = new Map([...triangles].map(([id, values]) => [id, new Set(values)]));
+          this.#paintRowsForSelection(plate).forEach((region, index) => {
+            if (region.triangleIndices.some((triangle) => selectedFaces.get(region.objectId)?.has(triangle))) selected.add(this.#paintSelectionId(index));
+          });
+          this.#selected = selected;
+          this.#selectionAnchor = [...selected].at(-1) ?? null;
+          this.#refreshSelectionUi();
+          this.#status = `${selected.size} Einträge ausgewählt.`;
+          this.#renderStatus();
+        } catch (error) { failPaint(error); }
+        return;
+      }
       if (paintShape?.pointerId === event.pointerId) {
         const shape = paintShape; paintShape = null;
         clearShapePreview();
-        const baseBrush = this.#paintButton()?.getBrush?.() ?? { radiusMm: 10, color: "#ff4444", mode: "add" as const };
-        const label = shape.tool === "rectangle" ? "Rechteck" : "Kreis";
-        const layer = this.#createPaintLayer(this.#plate(), shape.objectId, shape.tool, baseBrush, label);
-        const left = Math.min(shape.startX, event.clientX), right = Math.max(shape.startX, event.clientX);
-        const top = Math.min(shape.startY, event.clientY), bottom = Math.max(shape.startY, event.clientY);
-        const cx = (left + right) / 2, cy = (top + bottom) / 2;
-        const rx = Math.max(1, (right - left) / 2), ry = Math.max(1, (bottom - top) / 2);
-        const step = Math.max(3, Math.min(9, Math.max(rx, ry) / 18));
-        const samples: Array<readonly [number, number]> = [];
-        for (let y = top; y <= bottom; y += step) {
-          for (let x = left; x <= right; x += step) {
-            const inside = shape.tool === "rectangle" || (((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1);
-            if (inside) samples.push([x, y]);
+        if (event.type === "pointercancel") return;
+        try {
+          const baseBrush = this.#paintButton()?.getBrush?.() ?? { radiusMm: 10, color: "#ff4444", mode: "add" as const };
+          const label = shape.tool === "line" ? "Linie" : shape.tool === "rectangle" ? "Rechteck" : "Kreis";
+          const layer = this.#createPaintLayer(this.#plate(), shape.objectId, shape.tool === "line" ? "stroke" : shape.tool, baseBrush, label);
+          const left = Math.min(shape.startX, event.clientX), right = Math.max(shape.startX, event.clientX);
+          const top = Math.min(shape.startY, event.clientY), bottom = Math.max(shape.startY, event.clientY);
+          const samples: Array<readonly [number, number]> = [];
+          if (shape.tool === "line") {
+            const steps = Math.max(1, Math.ceil(Math.hypot(right - left, bottom - top) / sampleStepFor(shape.objectId, layer.radiusMm, shape.localPoint)));
+            if (steps > 20_000) throw new Error("Die Linie überschreitet das interaktive Malbudget.");
+            for (let step = 0; step <= steps; step += 1) samples.push([shape.startX + (event.clientX - shape.startX) * step / steps, shape.startY + (event.clientY - shape.startY) * step / steps]);
+          } else {
+            layer.mask = captureMask(shape.objectId, shape.tool, left, top, right, bottom);
+            const cx = (left + right) / 2, cy = (top + bottom) / 2;
+            const rx = (right - left) / 2, ry = (bottom - top) / 2;
+            const step = sampleStepFor(shape.objectId, Math.max(.08, layer.radiusMm * .55), shape.localPoint);
+            if (Math.ceil((right - left) / step) * Math.ceil((bottom - top) / step) > 50_000) throw new Error("Die Form überschreitet das interaktive Malbudget. Bitte einen kleineren Bereich zeichnen.");
+            for (let y = top + Math.min(step / 2, ry); y < bottom; y += step) {
+              for (let x = left + Math.min(step / 2, rx); x < right; x += step) {
+                if (shape.tool === "rectangle" || ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1) samples.push([x, y]);
+              }
+            }
           }
-        }
-        const count = sampleLayerPoints(layer, samples);
-        if (!count) this.#setPaintLayersForPlate(this.#plate(), this.#paintLayersForPlate().filter((item) => item !== layer));
-        clearShapePreview();
-        this.#selected = count ? new Set([this.#paintLayerSelectionId(Math.max(0, this.#paintLayersForPlate().indexOf(layer)))]) : new Set();
-        this.#selectionAnchor = [...this.#selected][0] ?? null;
-        this.#status = count ? label + ": " + count.toLocaleString("de-DE") + " freie Malpunkte angelegt." : label + ": Keine beschreibbare Oberfläche im gezogenen Bereich.";
-        this.#renderObjectList(); this.#renderStatus(); this.#schedulePersist(350); return;
+          const count = sampleLayerPoints(layer, samples);
+          if (!count) { this.#status = label + ": Keine beschreibbare Oberfläche im gezogenen Bereich."; this.#renderStatus(); return; }
+          if (refinePaintResolution(layer)) { this.#status = label + ": Materialfläche mit " + count.toLocaleString("de-DE") + " Oberflächenpunkten angelegt."; this.#renderStatus(); }
+        } catch (error) { failPaint(error); }
+        return;
       }
       if (paintStroke?.pointerId === event.pointerId) {
-        if (!paintStroke.layer.points.length) this.#setPaintLayersForPlate(this.#plate(), this.#paintLayersForPlate().filter((item) => item !== paintStroke?.layer));
+        const stroke = paintStroke;
+        if (event.type !== "pointercancel") {
+          try { appendStrokeTo(event.clientX, event.clientY); } catch (error) { failPaint(error); return; }
+        }
         paintStroke = null;
         clearShapePreview();
-        this.#schedulePersist(350);
+        if (event.type !== "pointercancel" && refinePaintResolution(stroke.layer)) {
+          this.#status = stroke.layer.label + ": Materialfläche gespeichert.";
+          this.#renderStatus();
+        }
         return;
       }
       if (this.#purgeDrag?.pointerId === event.pointerId) {
@@ -4171,6 +4460,21 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     };
     canvas.addEventListener("pointerup", finish, { capture: true });
     canvas.addEventListener("pointercancel", finish, { capture: true });
+    const cancelGesture = (): void => {
+      if (this.#cancelViewportGesture !== cancelGesture || (!paintStroke && !paintShape && !selectionFrame)) return;
+      paintStroke = null;
+      paintShape = null;
+      selectionFrame = null;
+      down = null;
+      clearShapePreview();
+      this.#viewport?.setSelected(this.#plate().instances.filter((item) => this.#selected.has(item.id)).map((item) => item.id));
+      this.#status = "Laufende Geste verworfen; gespeicherte Modell- und Materialdaten bleiben erhalten.";
+      this.#renderStatus();
+    };
+    this.#cancelViewportGesture = cancelGesture;
+    canvas.addEventListener("lostpointercapture", (event) => {
+      if (paintStroke?.pointerId === event.pointerId || paintShape?.pointerId === event.pointerId || selectionFrame?.pointerId === event.pointerId) cancelGesture();
+    });
   }
 
   #bindFilamentSyncActions(host: HTMLElement): void {
@@ -4189,6 +4493,12 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
   }
 
   #renderSidebar(): void {
+    const host = this.#root.querySelector<HTMLElement>("#sidebar");
+    if (!host) return;
+    preserveFilamentView(host, () => this.#renderSidebarContent());
+  }
+
+  #renderSidebarContent(): void {
     const host = this.#root.querySelector<HTMLElement>("#sidebar");
     if (!host) return;
     const selected = this.#selectedItems();
@@ -4255,8 +4565,9 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       const categories = new Map<string, string>();
       for (const segment of currentLayer?.segments ?? []) categories.set(String(segment[7] || "Modell"), String(segment[8] || "model"));
       const featureFilter = PREVIEW_FEATURE_KEYS.map((key) => `<label class="preview-filter-item"><input type="checkbox" data-preview-feature="${key}" ${this.#previewVisibleFeatures.has(key) ? "checked" : ""}><i style="--feature-color:${previewFeatureColor(key)}"></i><span>${escapeHtml(previewFeatureLabel(key))}</span></label>`).join("");
-      const materials = (plate.toolColors.length ? plate.toolColors : this.#materialChoices(plate).map((item) => item.color)).map(normalizeColor);
-      const materialRows = materials.map((color, index) => `<div class="preview-material-row"><i style="--material-color:${color}"></i><span>Filament ${index + 1}</span><small>${color.toUpperCase()}</small></div>`).join("");
+      const materials = normalizeToolpathPalette(plate.toolColors);
+      const paletteWarning = toolpathPaletteWarning(plate.layers, materials);
+      const materialRows = materials.map((color, index) => `<div class="preview-material-row"><i style="--material-color:${color || UNKNOWN_TOOLPATH_COLOR}"></i><span>Filament ${index + 1}</span><small>${color ? color.toUpperCase() : "Farbe unbekannt"}</small></div>`).join("");
       const support = toolpathSupportStats(plate.layers);
       if (!support.present) this.#previewSupportOnly = false;
       const supportPanel = support.present ? `<div class="section"><b>Support-Vorschau</b><span>${support.segmentCount.toLocaleString("de-DE")} Supportbahnen · ${support.interfaceSegmentCount.toLocaleString("de-DE")} Interface-Bahnen</span><small>Layer ${(support.firstLayer ?? 0) + 1} bis ${(support.lastLayer ?? 0) + 1}. Der sichere Modus blendet Modell, Brim, Raft und Reinigungsturm aus und erzeugt keine zusätzlichen 3D-Seitenflächen. Alle geladenen Supportbahnen bleiben zusammenhängend erhalten.</small><button id="preview-support-only" class="${this.#previewSupportOnly ? "active" : ""}" type="button">${this.#previewSupportOnly ? "Gesamte Vorschau anzeigen" : "Nur Supportstruktur anzeigen"}</button></div>` : "";
@@ -4269,7 +4580,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       const variableLayerRanges = loadSliceProcessOverrides().layer_height_ranges;
       const variableLayerSection = variableLayerRangesHtml(variableLayerRanges, currentLayer?.z ?? 0);
       const layerControlsDisabled = plate.layerCount ? "" : "disabled";
-      host.innerHTML = `<h3>G‑Code‑Vorschau</h3>${supportPanel}${variableLayerSection}<div class="section"><b>${escapeHtml(plate.name)}</b><span>Status: ${this.#stageLabel(plate.stage)}</span><div class="preview-summary"><span id="preview-track-count">${(currentLayer?.segments.length ?? 0).toLocaleString("de-DE")} Bahnen</span><span id="preview-extrusion">${(currentLayer?.extrusion_mm ?? 0).toFixed(2)} mm Extrusion</span></div><label><span id="layer-label">Layer ${plate.layerCount ? plate.visibleLayer + 1 : 0} / ${plate.layerCount} · Z ${(currentLayer?.z ?? 0).toFixed(2)} mm</span><input class="layer" id="layer" type="range" min="0" max="${Math.max(0, plate.layerCount - 1)}" value="${plate.visibleLayer}" ${layerControlsDisabled}></label><div class="layer-stepper" aria-label="Layer schrittweise wechseln"><button id="layer-first" type="button" ${layerControlsDisabled}>Erster</button><button id="layer-jump-back" type="button" ${layerControlsDisabled}>-10</button><button id="layer-prev" type="button" ${layerControlsDisabled}>Zurück</button><label class="layer-jump">Layer <input id="layer-index" type="number" min="1" max="${Math.max(1, plate.layerCount)}" step="1" value="${plate.layerCount ? plate.visibleLayer + 1 : 0}" ${layerControlsDisabled}></label><button id="layer-next" type="button" ${layerControlsDisabled}>Weiter</button><button id="layer-jump-forward" type="button" ${layerControlsDisabled}>+10</button><button id="layer-last" type="button" ${layerControlsDisabled}>Letzter</button></div><div class="preview-toggle"><button id="preview-material" class="${this.#previewColorMode === "material" ? "active" : ""}">Material</button><button id="preview-feature" class="${this.#previewColorMode === "feature" ? "active" : ""}">Drucktyp</button></div><label class="preview-check"><input id="preview-cumulative" type="checkbox" ${this.#previewCumulative ? "checked" : ""}>Vorherige Layer räumlich anzeigen</label>${this.#previewColorMode === "feature" && legend ? `<div class="feature-legend">${legend}</div>` : ""}${filterSection}${materialSection}${plate.stage === "sliced" ? '<button id="mark-printed">Als gedruckt markieren</button>' : ""}</div>`;
+      host.innerHTML = `<h3>G‑Code‑Vorschau</h3>${paletteWarning ? `<div class="error-box" role="status">${escapeHtml(paletteWarning)}</div>` : ""}${supportPanel}${variableLayerSection}<div class="section"><b>${escapeHtml(plate.name)}</b><span>Status: ${this.#stageLabel(plate.stage)}</span><div class="preview-summary"><span id="preview-track-count">${(currentLayer?.segments.length ?? 0).toLocaleString("de-DE")} Bahnen</span><span id="preview-extrusion">${(currentLayer?.extrusion_mm ?? 0).toFixed(2)} mm Extrusion</span></div><label><span id="layer-label">Layer ${plate.layerCount ? plate.visibleLayer + 1 : 0} / ${plate.layerCount} · Z ${(currentLayer?.z ?? 0).toFixed(2)} mm</span><input class="layer" id="layer" type="range" min="0" max="${Math.max(0, plate.layerCount - 1)}" value="${plate.visibleLayer}" ${layerControlsDisabled}></label><div class="layer-stepper" aria-label="Layer schrittweise wechseln"><button id="layer-first" type="button" ${layerControlsDisabled}>Erster</button><button id="layer-jump-back" type="button" ${layerControlsDisabled}>-10</button><button id="layer-prev" type="button" ${layerControlsDisabled}>Zurück</button><label class="layer-jump">Layer <input id="layer-index" type="number" min="1" max="${Math.max(1, plate.layerCount)}" step="1" value="${plate.layerCount ? plate.visibleLayer + 1 : 0}" ${layerControlsDisabled}></label><button id="layer-next" type="button" ${layerControlsDisabled}>Weiter</button><button id="layer-jump-forward" type="button" ${layerControlsDisabled}>+10</button><button id="layer-last" type="button" ${layerControlsDisabled}>Letzter</button></div><div class="preview-toggle"><button id="preview-material" class="${this.#previewColorMode === "material" ? "active" : ""}">Filamentfarben</button><button id="preview-feature" class="${this.#previewColorMode === "feature" ? "active" : ""}">Drucktyp</button></div><label class="preview-check"><input id="preview-cumulative" type="checkbox" ${this.#previewCumulative ? "checked" : ""}>Vorherige Layer räumlich anzeigen</label>${this.#previewColorMode === "feature" && legend ? `<div class="feature-legend">${legend}</div>` : ""}${filterSection}${materialSection}${plate.stage === "sliced" ? '<button id="mark-printed">Als gedruckt markieren</button>' : ""}</div>`;
       host.querySelector<HTMLButtonElement>("#preview-support-only")?.addEventListener("click", () => {
         this.#previewSupportOnly = !this.#previewSupportOnly;
         if (this.#previewSupportOnly) this.#previewCumulative = true;

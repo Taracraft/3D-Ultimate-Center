@@ -20,6 +20,25 @@ from .slicer_native_contract import (
     SlicerServerError,
 )
 from .slicer_job_list_client import async_list_slicer_jobs
+from .slicer_backend_router import SlicerCancellationError
+
+
+MAX_BATCH_BYTES = 160_000_000
+
+
+class BatchBodyTooLarge(ValueError):
+    pass
+
+
+async def _read_batch_part(part: Any, limit: int) -> bytes:
+    content = bytearray()
+    while True:
+        chunk = await part.read_chunk(size=64 * 1024)
+        if not chunk:
+            return bytes(content)
+        if len(content) + len(chunk) > limit:
+            raise BatchBodyTooLarge("batch_payload_too_large")
+        content.extend(chunk)
 
 
 class SlicerQueueStatusView(HomeAssistantView):
@@ -47,7 +66,7 @@ class SlicerQueueStatusView(HomeAssistantView):
             }, status=502)
 
         queued = sum(1 for j in items if j.get("status") == "queued")
-        running = sum(1 for j in items if j.get("status") == "running")
+        running = sum(1 for j in items if j.get("status") in {"running", "cancelling"})
         completed = sum(1 for j in items if j.get("status") == "succeeded")
         failed = sum(1 for j in items if j.get("status") in ("failed", "cancelled", "interrupted"))
 
@@ -75,6 +94,8 @@ class SlicerBatchCreateView(HomeAssistantView):
         try:
             reader = await request.multipart()
             files: list[tuple[str, bytes]] = []
+            total_bytes = 0
+            file_parts = 0
             plate_index = 0
             auto_release = False
             auto_release_seen = False
@@ -87,19 +108,23 @@ class SlicerBatchCreateView(HomeAssistantView):
                 if part is None:
                     break
                 if part.name and part.name.startswith("files_"):
-                    content = await part.read()
+                    file_parts += 1
+                    if file_parts > 50:
+                        return web.json_response({"error": "batch_limit_exceeded", "max_files": 50}, status=413)
+                    content = await _read_batch_part(part, MAX_BATCH_BYTES - total_bytes)
+                    total_bytes += len(content)
                     if content:
                         files.append((part.filename or "model.3mf", content))
                 elif part.name == "plate_index":
-                    plate_index = int(await part.text())
+                    plate_index = int((await _read_batch_part(part, 128)).decode("utf-8"))
                 elif part.name == "auto_release":
-                    value = (await part.text()).strip().casefold()
+                    value = (await _read_batch_part(part, 128)).decode("utf-8").strip().casefold()
                     if value not in {"true", "false"}:
                         return web.json_response({"error": "invalid_auto_release"}, status=400)
                     auto_release = value == "true"
                     auto_release_seen = True
                 elif part.name in {"studio_plate", "material_plan", "process_overrides"}:
-                    raw = await part.text()
+                    raw = (await _read_batch_part(part, 1_000_000)).decode("utf-8")
                     if len(raw) > 1_000_000:
                         return web.json_response({"error": f"{part.name}_too_large"}, status=413)
                     try:
@@ -199,6 +224,8 @@ class SlicerBatchCreateView(HomeAssistantView):
                 "jobs": jobs,
                 "errors": errors,
             }})
+        except BatchBodyTooLarge as exc:
+            return web.json_response({"error": str(exc), "max_bytes": MAX_BATCH_BYTES}, status=413)
         except ValueError as exc:
             return web.json_response({"error": str(exc)}, status=400)
         except SlicerServerConfigurationError as exc:
@@ -207,6 +234,22 @@ class SlicerBatchCreateView(HomeAssistantView):
             return web.json_response({"error": str(exc)}, status=502)
         except Exception as exc:
             return web.json_response({"error": str(exc)}, status=500)
+
+
+class SlicerCancelJobView(HomeAssistantView):
+    """Authenticated cooperative cancellation; no printer or kill command is exposed."""
+    url = f"{API_BASE}/slicer/jobs/{{job_id}}/cancel"
+    name = "api:ultimate_3d_studio_v6:slicer:job:cancel"
+    requires_auth = True
+
+    async def post(self, request: web.Request, job_id: str) -> web.Response:
+        try:
+            result = await V6SlicerBackendRouter(request.app["hass"]).async_cancel_job(job_id)
+            return web.json_response({"data": result})
+        except ValueError as exc:
+            return web.json_response({"error": str(exc)}, status=400)
+        except SlicerCancellationError as exc:
+            return web.json_response({"error": {"code": str(exc), "message": str(exc)}}, status=exc.status)
 
 
 class SlicerReleaseJobView(HomeAssistantView):
@@ -263,5 +306,6 @@ def async_register_slicer_queue_views(hass: HomeAssistant) -> None:
     """Register queue-related API views."""
     hass.http.register_view(SlicerQueueStatusView())
     hass.http.register_view(SlicerBatchCreateView())
+    hass.http.register_view(SlicerCancelJobView())
     hass.http.register_view(SlicerReleaseJobView())
     hass.http.register_view(SlicerReleaseAllView())

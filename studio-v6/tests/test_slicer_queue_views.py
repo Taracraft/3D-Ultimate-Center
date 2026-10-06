@@ -178,7 +178,10 @@ def test_worker_release_contract_is_wired() -> None:
     assert "def release_job(job_id: str) -> dict:" in server_source
     assert 'path.endswith("/release")' in server_source
     assert 'payload["released_at"]' in server_source
-    assert '(.released_at // "") | strings | length > 0' in dispatch_source
+    assert 'exec python3 "$BASE/job_control.py" dispatch --base "$BASE"' in dispatch_source
+    control_source = (worker / "job_control.py").read_text(encoding="utf-8")
+    assert 'job.get("manual_release") is True' in control_source
+    assert 'job.get("released_at")' in control_source
 
 
 def test_batch_reuses_plate_contract_and_validates_every_file_before_creation() -> None:

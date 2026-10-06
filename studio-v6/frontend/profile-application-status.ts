@@ -4,8 +4,10 @@ export const PROFILE_APPLICATION_STYLES = `
   .profile-proof{display:grid;gap:7px;margin-top:10px}
   .profile-proof-step{display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;align-items:start;padding:8px;border:1px solid #34404a;border-radius:8px;background:#171d22}
   .profile-proof-step.done{border-color:#2c7650;background:#11261a}
+  .profile-proof-step.unconfirmed{border-color:#956a27;background:#302516}
   .profile-proof-mark{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#313a42;color:#9da8b1;font-weight:900}
   .profile-proof-step.done .profile-proof-mark{background:#1d5d3a;color:#a9f5c4}
+  .profile-proof-step.unconfirmed .profile-proof-mark{background:#755321;color:#ffe0a1}
   .profile-proof-copy b,.profile-proof-copy small{display:block}
   .profile-proof-copy b{color:#edf4f8;font-size:12px}
   .profile-proof-copy small{margin-top:2px;color:#8f9ca5;font-size:10px;line-height:1.4}
@@ -25,10 +27,14 @@ const esc = (value: unknown): string => String(value ?? "").replace(
 export function profileApplicationSummary(application?: SliceProfileApplication): string {
   if (!application) return "Profilnachweis wird geladen";
   const mark = (value: boolean): string => value ? "✓" : "…";
+  const analyzedUnconfirmed = !application.gcode_confirmed
+    && application.confirmation_source === "gcode_analysis_unconfirmed";
   return [
     `${mark(application.selected)} gewählt`,
     `${mark(application.applied)} im Slicer angewandt`,
-    `${mark(application.gcode_confirmed)} im Artefakt bestätigt`,
+    analyzedUnconfirmed
+      ? "! G-Code geprüft, Profilnachweis unvollständig"
+      : `${mark(application.gcode_confirmed)} im Artefakt bestätigt`,
   ].join(" · ");
 }
 
@@ -41,26 +47,33 @@ export function profileApplicationMarkup(application?: SliceProfileApplication):
   const confirmedSettings = Math.max(0, Number(application.process?.gcode_confirmed_setting_count) || 0);
   const filamentProfiles = Math.max(0, Number(application.filament_profile_count) || 0);
   const materialChannels = Math.max(0, Number(application.material_channel_count) || 0);
+  const analyzedUnconfirmed = !application.gcode_confirmed
+    && application.confirmation_source === "gcode_analysis_unconfirmed";
   const steps = [
     {
       done: application.selected,
+      unconfirmed: false,
       label: "Gewählt",
       detail: `${processName} · ${selectedSettings} Prozesseinstellung(en) · ${filamentProfiles} Filamentprofil(e)`,
     },
     {
       done: application.applied,
+      unconfirmed: false,
       label: "Im Slicer angewandt",
       detail: `Prozessvertrag und ${materialChannels} Materialkanal/-kanäle wurden bei der nativen Materialisierung bestätigt.`,
     },
     {
       done: application.gcode_confirmed,
+      unconfirmed: analyzedUnconfirmed,
       label: "Im Artefakt bestätigt",
-      detail: application.confirmation_source === "parsed_gcode_header_and_toolpath"
+      detail: application.gcode_confirmed && application.confirmation_source === "parsed_gcode_header_and_toolpath"
         ? `${confirmedSettings} Prozesseinstellung(en), Materialkanäle, Farben und Filamentarten stimmen mit analysiertem G-Code-Header und Toolpath überein.`
+        : analyzedUnconfirmed
+          ? "Die G-Code-Analyse liegt vor. Angeforderte Profilwerte oder Materialkanäle sind jedoch nicht vollständig bestätigt. Abweichungen und fehlende Nachweise vor der Übertragung prüfen."
         : "Die Prüfung des erzeugten G-Code-3MF ist noch nicht vollständig bestätigt.",
     },
   ] as const;
-  return `<div class="profile-proof">${steps.map((step) => `<article class="profile-proof-step ${step.done ? "done" : "pending"}"><span class="profile-proof-mark">${step.done ? "✓" : "…"}</span><span class="profile-proof-copy"><b>${esc(step.label)}</b><small>${esc(step.detail)}</small></span></article>`).join("")}</div>`;
+  return `<div class="profile-proof">${steps.map((step) => `<article class="profile-proof-step ${step.done ? "done" : step.unconfirmed ? "unconfirmed" : "pending"}"><span class="profile-proof-mark">${step.done ? "✓" : step.unconfirmed ? "!" : "…"}</span><span class="profile-proof-copy"><b>${esc(step.label)}</b><small>${esc(step.detail)}</small></span></article>`).join("")}</div>`;
 }
 
 export const PROCESS_VALUE_PROOF_STYLES = `

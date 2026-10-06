@@ -229,6 +229,190 @@ Abnahme abgeschlossen: Vollständiges Windows-Gate am 03.10.2026 um 12:44 Uhr (C
 Same-Day-Backup der korrigierten Bereitstellung: `/var/lib/homeassistant/homeassistant/backups/20261003T104732Z-v6-h2s-studio-worker-contract`. Gate-Bundle-SHA256: `f7bfd148790143c0e9fc735339ebcefe3c05855038fc218de1370418fa8cf1b5`. Die erste Aktivierung wurde wegen der älteren A1-Katalogprüfung zurückgerollt; modellabhängige Prüfung und echter HA-Import sind korrigiert und erneut vollständig geprüft. Lokales Repo und HA-Quellen werden vollständig mit 588 Quelldateien und 598 öffentlichen GitHub-Zielen abgeglichen. Kein Druckerupload, Job-Release oder Druckstart.
 
 
+## 2026-10-03 — Notfallreparatur Druckvorschau, geprüfte Ursache
+
+Benutzer meldet fehlende Druckvorschau und Ladebalken und verlangt unveränderte Darstellung. Drei reale Benutzeraufträge sind einlagige First-Layer-Tests. Der finale Validator fordert trotzdem die Bettheizung für nicht existierende Folgeschichten und verwirft gültige G-Code-Artefakte. Dadurch startet der bestehende Vorschau-/Ladebalkenablauf nicht.
+
+Die erste Vermutung einer fehlenden Popup-Einbindung wurde durch das Gesamtgate widerlegt: Der originale Ladebalken ist absichtlich als Vorschau-Eintrag im gemeinsamen Vorgangsfenster integriert; das separate Legacy-Popup darf nicht zusätzlich eingebunden werden. Die versuchte Einbindung wurde vor jeder Bereitstellung zurückgenommen. Sämtliche Frontend- und Buildquellen bleiben bytegleich; kein zweites Fenster, keine neue Darstellung.
+
+Korrektur ausschließlich im Bett-Phasenvertrag: Wegfall des Folgephasen-Heiznachweises nur bei übereinstimmender Layerzahl 1, genau einem nativen Layerwechsel und konstanter tatsächlicher XY-Extrusionsebene. Erstschichtheizung, vollständige Parameterübernahme, Hardwaregrenzen und Mehrschichtprüfungen bleiben verbindlich. Alle drei ursprünglichen Archive bestehen mit dem Kandidaten. Zehn zusätzliche Regressionfälle sichern Einzelschicht, gefälschte Layerangaben, Heizfehler, Temperaturgrenzen und unveränderte UI-Verdrahtung. Gesamtgate, Deployment, frischer Slice-/Puppet-Nachweis und Dreifachsynchronisierung noch offen. Keine Druckeraktion.
+
+
+### Live-Abnahme der Vorschau-Reparatur
+
+Gesamtgate auf dem kanonischen PC erfolgreich (Source-Policy, TypeScript, Frontendtests, beide Builds, Python-/Worker-Tests, Compileall). 38 gezielte Artefakt-/Kanonizitätstests grün. Alle 213 bestehenden A1-/H2S-Archive bestehen den neuen vollständigen Parameter-/G-Code-Validator. Frischer isolierter nativer Slice des ursprünglichen First-Layer-Modells erfolgreich.
+
+Backup und atomare Bereitstellung: `/config/backups/20261003T120959Z-v6-preview-first-layer-restore`; acht Dateien inklusive HA-Quellen, Live-Komponente, nativer Worker-Abhängigkeit und Prüfsummen. HA-Konfigurationsprüfung, nativer Dienstneustart und HA-Core-Neustart erfolgreich. Live-Testjob `server__v6-preview-restore-20261003T121119Z` ist `succeeded`; vollständige Toolpath-API mit den produktiven Parametern `start=0&end=1` liefert HTTP 200, genau einen Layer und 690 Segmente. Keine Druckerübertragung, kein Druckstart, keine Änderung alter fehlgeschlagener Aufträge.
+
+Alle 207 Frontend-Dateien unverändert. Neu erzeugtes produktives JavaScript und CSS sind byteidentisch zu den ausgelieferten Originalen; JavaScript SHA256 `0bcc578072e2fd23ff5bd81cedf8a2bfa919cb5795cbc66fe82f6ad5d4d0ed9e`, CSS SHA256 `0ec340b2b24dca9bdcd9bb5528e9aa7f72e64acf6b83d82f2c81871c0a03901c`. Nur das Build-Nachweisdokument wird mit dem aktuellen bestandenen Gate synchronisiert.
+
+Offen bleiben die visuelle Browser-Endabnahme des konkreten neuen Jobs und der Commit/Hash-Abgleich mit dem öffentlichen GitHub. Der ursprüngliche Popup-Verdacht war falsch und wurde vor Bereitstellung vollständig zurückgenommen. Keine Behauptung einer bestandenen Pixel-Abnahme. Bestehender Puppet ist erreichbar und liefert ein gültiges PNG; ein automatisierter isolierter Browser-Abnahmepfad wurde nicht eingerichtet, ein weiterer HA-Connector-Versuch scheiterte mit HTTP 502. Reparatur ist live und API-verifiziert, aber der Gesamtpunkt bleibt bis Browser-/GitHub-Abnahme offen. Die Profil-Detailansicht meldet ohne angeforderte Vollanalyse weiterhin `pending_gcode_analysis`; dieser Wert wurde nicht künstlich auf bestätigt gesetzt.
+
+
+## 2026-10-03 — P0 Druckvorschau: Backend repariert, Sichtabnahme offen
+
+Die fehlende Vorschau der drei einlagigen First-Layer-Tests wurde durch die fälschlich verlangte Folgeschicht-Bettheizung verursacht. Korrektur ist auf HA und Worker aktiv; Erstschicht-, Hardware-, Parameter- und Mehrschichtprüfungen bleiben verbindlich. Der vorhandene Live-Testjob liefert HTTP 200, succeeded, eine Schicht und 690 Segmente. 38 gezielte Prüfungen erneut bestanden; das bestandene Gesamtgate und der 213-Artefakte-Nachweis bleiben dokumentiert.
+
+Alle 207 Frontend-Dateien und die ausgelieferten JS-/CSS-Artefakte sind unverändert. Puppet auf Host-Port 5000 wurde tatsächlich gesichtet: Das gültige PNG zeigt nur die Steuerzentrale, nicht die Druckvorschau. Die Navigation wurde lesend geprüft; der anschließende Navigationsklick scheiterte am Werkzeug-Sicherheitscheck. Keine Umgehung, kein Ersatzbrowser und keine DOM-Injektion.
+
+- [x] Einlagigen Backend-/Toolpath-Pfad und Regressionen erneut prüfen.
+- [x] Unveränderte Frontendquellen und Live-JavaScript per SHA bestätigen.
+- [ ] Druckbahnen und originalen Vorschau-Ladebalken tatsächlich sichtbar abnehmen, einschließlich Mehrschichtfall und Zustandswechseln.
+- [ ] pending_gcode_analysis nach angeforderter Vollanalyse prüfen.
+- [ ] Öffentliche Veröffentlichung einschließlich Datei-/Blobhash-Abgleich bestätigen; der frühere MCP-Erinnerungscommit ersetzt den Reparatur-Codeabgleich nicht.
+
+Details: [Druckvorschau-Abnahme](docs/V6-Druckvorschau-Abnahme-2026-10-03.md). Diese P0-Abnahme hat Vorrang vor weiteren Drucker- und Funktionsausbauten. Beta bleibt bestehen. Kein neuer Slice, Druckstart, Druckerupload oder Dienstneustart in dieser Fortsetzung.
+
+
+## 2026-10-03 — Benutzerbilder: First-Layer-Vorschau sichtbar, Uploadmodell fehlt
+
+Die drei Benutzerbilder zeigen den Vorschau-Ladebalken bei 100 Prozent und rote First-Layer-Bahnen. Abgleich mit primitive-geometry.ts: umlaufender Rahmen, parallele Querstege und mittlerer Längssteg entsprechen dem eingebauten Testmodell; das graue Raster ist die Druckplatte. Die erste Interpretation einer vollständig leeren Vorschau war zu pauschal. Kein Renderer-/Farb-/Layout-Umbau erforderlich. Vollständige Mehrschicht-/Interaktions-/Pixelabnahme bleibt separat.
+
+Der read-only Transferstatus des konkreten Benutzerjobs nennt den exakten Abbruch vor dem Upload: Für das gewählte Druckermodell fehlen geprüfte Hardwaregrenzen. Die verbundene Drucker-API meldet model=null; der Provider verwendete ausschließlich dieses optionale Telemetriefeld. Neue Identitätsauflösung bindet das Modell an die konfigurierte, verbundene Seriennummer und den gepinnten Herstellerkatalog: 039/N2S=A1, 093/O1S=H2S. Keine Ableitung aus Anzeigenamen oder vom Druckauftrag behaupteten Hardwaregrenzen. Unbekannte Familien, ungültige Seriennummern und widersprechende Telemetrie bleiben blockiert. Snapshot und Upload verwenden dieselbe Auflösung; die Hardware-/G-Code-Prüfung bleibt unverändert. Quelle: BambuStudio Commit da8b44ee34dd349f2ae0df3f1cbae366df482354, resources/printers/N2S.json und O1S.json.
+
+Zusätzlich schluckte der Frontendfehler-Resolver den strukturierten HA-Fehlerbody zugunsten von Response error: 502. Enger Fix stellt body.error.message wieder her, ohne den POST erneut auszuführen. Regression vor Korrektur: drei von vier Fällen fehlgeschlagen; nach Korrektur vier bestanden. 22 Identitäts-/Providerprüfungen ohne Netzwerk bestanden. Der originale Benutzerjob besteht die vollständige Artefaktprüfung mit der unabhängig aufgelösten A1-Hardware. Kein Druckerzugriff/Upload in diesem Test.
+
+Quellbackup/Kandidat: /config/backups/20261003-transfer-error-detail. Gesamtgate und Bereitstellung dieses neuen Fixes stehen bei diesem Eintrag noch aus. Ein späteres Deployment ist keine Behauptung eines erfolgreichen echten Uploads; automatische Wiederholung und Druckstart bleiben aus. Weiterer bestätigter UI-Befund: Profilkopf zeigt generische Düsenwerte 200/300 statt ausgewählter Prozesswerte 70/150 mm/s. Die tatsächlichen G-Code-Werte sind im Benutzerbild korrekt bestätigt; dieser Anzeige-Fehler bleibt ein eigener offener Punkt.
+
+
+### 03.10.2026, 15:50 CEST — Modell-/Übertragungsfix geprüft und bereitgestellt, Aktivierung offen
+
+Gesamtgate am kanonischen PC bestanden: Source-Policy, TypeScript, 153 Frontendtests, beide Builds, Python-Gesamttests und Compile-Prüfung. Zusätzlich 22 isolierte Identitäts-/Providerregressionen sowie vier Fehlerbody-/Nichtwiederholungsprüfungen bestanden. Letztere zeigen den Fehler vorher mit drei roten Tests. Der originale Benutzer-G-Code besteht mit der aus der Hersteller-Serienfamilie unabhängig ermittelten A1-Identität die vollständige Artefaktprüfung ohne FTPS-/Druckerzugriff.
+
+Sechs Ziele mit Same-Day-Backup `/config/backups/20261003T134818Z-v6-connected-model-transfer` bereitgestellt und per SHA bestätigt: zwei HA-Python-Dateien und JavaScript/Buildmanifest im Live-Ziel sowie in der HA-Quellkopie. Native Workerdateien und CSS unverändert. Von 207 Frontendquellen änderte sich ausschließlich `ha-api-transport.ts` zur Fehlerdetailanzeige; Renderer, Geometrie, Farben und Popup-Layout unverändert. Neues Live-JavaScript: `652d71e328b0bd352875800fe576c9911f4aeade9d5773984d46d9fb207e9305`.
+
+HA-Konfigurationsprüfung erfolgreich. Der anschließend notwendige `ha core restart` wurde vom Werkzeug-Sicherheitscheck blockiert und nicht ausgeführt. Die Backend-Aktivierung bleibt daher offen; kein Ersatzpfad und keine Umgehung. Der Nutzer muss Home Assistant neu starten, anschließend ist die laufende Drucker-API erneut auf model=A1 zu prüfen. Kein tatsächlicher Upload erneut ausgeführt und kein Druck gestartet. Ein erfolgreicher echter Transfer wird ausdrücklich noch nicht behauptet.
+
+Noch offen: Aktivierung/Live-Modellprüfung, tatsächliche manuell freigegebene Übertragung, falsche generische Platzhalter 200/300 statt ausgewählter 70/150 mm/s, vollständiger GitHub-Codeabgleich und weitergehende Vorschau-/Interaktionsabnahme. Quellen und Dokumentation lokal/HA synchron; öffentliches main in diesem Schritt nicht geändert.
+
+
 ## 2026-10-03 — Mehrfarben-Uploadfehler korrigiert und aktiviert
 
 Der interne Mehrteile-Name enthielt `+4 Teile`; der native Worker wies ihn mit HTTP 400 `invalid_filename` ab. Router erzeugt jetzt einen begrenzten ASCII-Transportnamen und erhält Projektname, Modelldaten und Materialplan. Fünf gezielte Regressionen grün (Originalcode: vier Fehler); isoliertes Gesamtgate mit 1.277 Python-Tests plus drei Untertests, 161 Frontendtests, TypeScript, beiden Builds, Source-Policy und Compile-Prüfung grün. Isolierung wegen separater unvollständiger First-Layer-Änderungen auf dem PC; diese unverändert. Backup und atomare Bereitstellung, HA core check und Neustart erfolgreich. Echter Upload der Original-AMS-Testdatei: alter Name HTTP 400, korrigierter Name HTTP 201, Daten bytegleich. Kein Slicerjob, Druckerupload oder Druckstart. Vollständige Vierfarben-Slice-/Slotabnahme bleibt offen. Details: [Mehrfarben-Upload-Reparatur](docs/V6-Mehrfarben-Upload-Reparatur-2026-10-03.md).
+
+
+### 03.10.2026 – TaraCraft First-Layer live, GitHub-Schreiben blockiert
+
+First-Layer-Test auf PC und HA umgesetzt: Bettfläche mit 5 mm Rand, mittiges großes T mit drei Konturbändern, diagonale Füllung 135°, bei 0,4-mm-Düse 0,28 mm Höhe und 0,60 mm Linienbreite. 167 Frontendtests, 1285 Python-/Worker-Tests plus 3 Subtests und vollständiges Gate grün. Isolierter nativer Slice bestätigt genau eine Schicht und diagonale Bodenbahnen. Kein Druckerupload oder Druckstart.
+
+HA-/Worker-Deployment mit Backup, atomarem Austausch und SHA-Prüfung; HA-Konfigurationsprüfung und Core-Neustart erfolgreich. Puppet Port 5000 als echtes PNG gesichtet: verbundenes Studio; interaktive T-Abnahme bleibt gesondert. Details und korrigierte PC-/MCP-Zugriffserinnerung: docs/FIRST_LAYER_TARACRAFT_2026-10-03.md.
+
+GitHub-Veröffentlichung noch offen: create_blob wurde mit „user rejected MCP tool call“ abgewiesen. Kein Commit und kein Ref-Update; kein alternativer Schreibweg. Aktuelle öffentliche Basis d490faad38a18b64e9c6f6a4548a23a4662b55b3. Vollständiger Gesamt-Repository-Gleichstand wird nicht behauptet; vorbestehende, nicht zum First-Layer-Delta gehörende PC/HA-Abweichungen bleiben erhalten.
+
+## 03.10.2026 21:55 CEST · Privater Prüfstand, Kamera und Namensmigration
+
+- Privaten Prüfstand weitergeführt; keine öffentliche Freigabe.
+- Live-Kameraartefakt und HA-Ressourcenhash abgeglichen: 57acf6c99c7010688f75b5f15ae83e0ea6cf053ee93d506d828b928eed6ba437; API und persistenter Ressourcenstand bestätigt, HTTPS-Auslieferung nach SHA geprüft.
+- Namensmigration aus 734 frischen PC-Textdateien vorbereitet: 373 angepasste Dateien, aktueller Kandidat 1.0.0-beta.4. Source-Policy, TypeScript, 182 Frontendtests, beide Builds und 1290 Python-Tests plus drei Untertests bestanden.
+- Elf Speicher-/Konfigurationsregressionen bestanden; elf HA-Speichersnapshots und zwei Konfigurationssnapshots vorbereitet. Drei Druck-Automationen behalten IDs, Trigger und Aktionen. Vier Nutzdatenbereiche unverändert. Browsercode mit Sicherung, Rücklesen und Rückweg am PC und HA gesichert.
+- Native Worker: 353 terminale Zustandsdateien; keine wartenden/aktiven Dateien. 98 von 100 API-Verlaufskennungen haben noch den bisherigen Prefix. 2471 Laufzeitdateien inventarisiert; binäre Artefakte und Jobverlauf unverändert.
+- Kandidat noch nicht aktiviert. Worker-/Connectorverträge, PC-Anwendung, atomare Aktivierung, reale Browser-/iPhone-Abnahme und nicht editierbare Site-Beschreibung bleiben offen. Browsersitzung blockiert; keine UI-Abnahme als bestanden behauptet. Kein Slice/Release/Upload/Druckstart.
+- Privater Prüfstand: https://taracraft-pruefstand.fassinator1982dn.chatgpt.site
+
+
+## 03.10.2026 23:34 CEST · Fehlerpass aus dem privaten Dashboard
+
+- Verbindliche Arbeitsliste: 53 Dashboard-Einträge in fünf Bereichen. SY-01 Audit-Restlücken und GA-06 MakerWorld-Kennzeichnung korrigiert; PR-08 bestehende Profilkorrektur anhand von Tests und bytegleichem Live-Ausgangsbuild bestätigt.
+- Audit: fünf neue Fehlerfälle am alten Code, sieben Regressionen nach Korrektur grün; sechs AMS-Kategorisierungsfälle bestanden. Aktive API HTTP 200, 5.000 Einträge und Zusammenfassung ohne weiteren Bedarf nach den geprüften Maskierungsregeln; keine Audit-Ereignisse gelöscht.
+- 176 Frontendtests, 1.297 Backendtests plus drei Untertests, Source-Policy, TypeScript, beide Builds, Syntax/Imports/Compile bestanden. Kanonischer PC-Status erfolgreich; PC-/isolierte Artefakte bytegleich. Ein Connector-Zeitlimit wurde über tatsächliche Statusdateien aufgelöst.
+- Sieben Quelländerungen am PC und auf HA gesichert, übernommen und rückgelesen. Acht Artefaktziele mit Same-Day-Backup aktualisiert. HA-Konfigurationsprüfung und Neustart erfolgreich, Integration loaded. Live-JS SHA256: 486590a08b9aecbb54ef73168900c78fe2a0cae4f693a2f9d2bbf47fb4f9a1a3; HTTPS und dauerhafte Ressourcenverknüpfung stimmen überein.
+- Namensmigrationskandidat aktualisiert: 737 Textquellen, 375 Anpassungen; 186 Frontendtests und 1.297 Backendtests plus drei Untertests grün. Elf Speicher-/zwei Konfigurationssnapshots erneuert; vier Nutzdatenbereiche erhalten. Aktivierung und die im Dashboard genannten Voraussetzungen bleiben offen.
+- Privates Dashboard um Arbeitsboard, Voraussetzungen, Sortierung, Direktlinks und persönliche Prüfschritte/Notizen erweitert. Neun Modell-/Interaktionslogiktests grün; echte Browser-/iPhone-Abnahme und WebMCP-Prüfung weiterhin offen. 22/53 dokumentierte Abschlüsse, 31 ausstehend; fünf teilweise abgenommene Bugs.
+- Bericht: docs/Studio-Dashboard-Fehlerpass-2026-10-03.md. Backup: backups/20261003-dashboard-defect-pass (HA), .codex-backups/20261003-dashboard-defect-pass (PC). Kein öffentlicher Schreibvorgang, kein Slice, Release, Druckerupload oder Druckstart. Beta bleibt.
+
+
+## 2026-10-04 06:10 CEST · Dashboard SY-11: Worker, Connector und Einbindungen
+
+Privater Prüfstand: https://taracraft-pruefstand.fassinator1982dn.chatgpt.site
+
+- Tatsächliche YAML-Einbindungen rekursiv erfasst: 27 Dateien, zwei Konfigurationskandidaten und elf frische HA-Speicherkandidaten. Vier Nutzdatenbereiche unverändert. Drei Druck-Automationen behalten ID/Trigger/Aktionen; eine weitere Modulstatus-Automation hat drei gegen das Register geprüfte neue Entitätsverweise, neuen Anzeigetext und eine nicht referenzierte versionsfreie Auslösekennung. Fremde Anwendungen bleiben erhalten.
+- Worker-Probekopie: 4.980 Dateien / 9.017.698.873 Byte; 354 Auftragskennungen, davon 324 umbenannt. 4.708 Pfade und 1.021 JSON-Metadatendateien angepasst, 3.959 übrige Dateiinhalte bytegleich. 353 Zustandsdateien sind abgeschlossen oder fehlgeschlagen, keine aktiv/wartend.
+- Tatsächliche Worker-Lesefunktionen gegen Quelle und Kandidat: 354 Details, 100 Verlaufseinträge in gleicher Reihenfolge, 327 Downloads und 1.871 Dateiverweise bestanden. Kein neu fehlender Verweis und keine alte Versionskennung in vorbereiteten Job-IDs.
+- PC-Connector: 13 Module frisch textuell abgeglichen, zehn Kandidatendateien angepasst; sechs aktive Produktwerkzeuge erhalten Namen ohne Versionsbezug bei gleichen Argumenten und Schutzprüfungen. Acht Vertragsprüfungen bestanden. Aktiver Dienst nicht ersetzt oder neu gestartet.
+- Browser-Migration ergänzt: nur Druckplatten-Auftragskennungen werden umgebunden; Geometrie, Profilwahl und rohe Rückwegsicherungen bleiben erhalten. Vier zusätzliche Frontendtests; kompilierter Helfer stimmt bei allen 354 Worker-Kennungen überein. Keine tatsächliche IndexedDB-Abnahme behauptet.
+- Gesamtgate im isolierten Produktkandidaten: 190 Frontendtests, 1297 Backendtests plus drei Untertests, Typen, Source-Policy, beide Builds, Syntax, Imports und Compile grün. Weitere 45 Migrationsprüfungen bestanden (22 Speicher/Konfiguration, 15 Worker, acht Connector).
+- Kandidaten-JavaScript: eb03e6232db722263d1b23b85caff9e06c395f85eb78e332e229a91b5375948c. Produktbetrieb bleibt auf dem bisherigen Live-Build 486590a08b9aecbb54ef73168900c78fe2a0cae4f693a2f9d2bbf47fb4f9a1a3.
+- Vorbereitung und Nachweise: HA backups/20261004-studio-migration; reproduzierbarer Code, Connector-Kandidaten und Berichte zusätzlich PC .codex-backups/20261004-studio-migration. Große Worker-Kopie verbleibt auf HA.
+- SY-11 bleibt partial: frischer vollständiger PC-Abgleich und Übernahme, koordinierte Aktivierung mit Rückweg, Cache-Neuerzeugung und echte Browser-/iPhone-Abnahme offen. Nicht editierbare Site-Beschreibung bleibt Plattformrestpunkt. Keine öffentliche Freigabe oder öffentliche GitHub-Schreiboperation. Kein Slice, Release, Druckerupload oder Druckstart.
+- Dashboard um neun nachvollziehbare Teilnachweise der Umbenennung erweitert; fünf Vorbereitungsnachweise geprüft. Zehn automatisierte Dashboardprüfungen bestanden. Gesamtzählung bleibt 22 von 53 abgeschlossen. Die private Auslieferung dieses Updates wird zusätzlich durch den Sites-Deploymentnachweis bestätigt.
+
+Vollständiger Bericht: docs/Studio-Namensmigration-Pruefpass-2026-10-04.md.
+
+## 2026-10-04 · Paralleler Fehlerpass mit sechs Agents
+
+53 Roadmap-Einträge auf sechs Prüfbereiche verteilt; 27 Dateien (14 Produkt, 13 Tests) zentral übernommen. Navigation/Reconnect, Kamera-Fortsetzung, Filamentgruppen/Scrollposition, CAD-Treffpunkt/Materialfarbe/sichere Namensanzeige, Slicerwarnung und Analysestatus, Galerie-Anfragerennen/Uploadziele/Dateischutz sowie Laufzeit-/Auditaktualisierung korrigiert.
+
+Gesamtgate und kanonisches PC-Gate grün: 231 Frontendtests, 1.334 Python-/Worker-Tests und neun Untertests; Source-Policy, Typprüfung, beide Builds, Syntax, Imports und Compile bestanden. PC-/isoliertes JavaScript und CSS bytegleich. HA-Konfigurationsprüfung und Neustart erfolgreich, Integration loaded, Health HTTP200. Ressourcen-API und dauerhafter Speicher abgeglichen. HTTPS-SHA: 29fc7bc256736fc7652555668b3a36ba3e9f9a7ac0bd22b7a96a7e346fb54eec.
+
+CAD-Gegenprüfung: Aktive Feintriangulierung nicht verdrahtet; globales Paint-Clear und Platten-ID/Layer-Zuordnung sind offene Datenhaltungsfehler. Größerer Kompositions-/Refinement-Prototyp wegen mehrdeutiger Altprojekte nicht übernommen. Ursprüngliche Dreiecksreferenzen müssen vor künftigem Refinement validiert werden. Jobabbruch weiterhin fehlende Capability. Echte Browser-/iPhone-/Touch- und Hardwareabnahmen bleiben offen; Beta bleibt.
+
+Namenskandidat nachgeführt: 245 Frontendtests, 1.334 Backendtests und neun Untertests sowie alle Gates grün. Kandidaten-SHA 3e869c5b9625e634d89ee1af55d45501276d3a9bfe17b7d8b1dd55583cb50020. Elf Speicherdateien, zwei geänderte Konfigurationen aus 27 erreichbaren Dateien; 15 Helpertests. Keine Namensaktivierung.
+
+Bericht: docs/Studio-Parallel-Fehlerpass-2026-10-04.md. Nachweise und Sicherungen: HA backups/20261004-parallel-defect-pass; PC .codex-backups/20261004-parallel-defect-pass. Keine öffentlichen Writes, kein neuer Slice, kein Release, kein Druckerupload und kein Druckstart.
+
+
+## 2026-10-05 · Hauptvorschau mit echten auftragsgebundenen Filamentfarben
+
+Sieben kanonische PC-Dateien nach frischer Quellprüfung und vollständiger Sicherung übernommen und rückgelesen. Hauptvorschau startet mit Materialfarben, automatische Drucktyp-Resets entfallen, ungültige Paletteinträge behalten ihren Kanalplatz, unbekannte Kanäle werden nicht per Modulo auf vorhandene Farben abgebildet. Historische Aufträge greifen nicht auf die aktuelle AMS-Bestückung zurück. Der Parser erfindet keine Filamentfarbe aus ungültigen Metadaten oder einer bloßen Extruder-Anzeigefarbe.
+
+Gegenprobe Hauptstudio: sieben Fehler unter 33 Tests am alten Code, alle 33 am Kandidaten bestanden. 13 neue plus drei vorhandene Parserprüfungen unter Linux bestanden. PC-Gesamtgate abgeschlossen 00:35:28 CEST: 403 Frontendtests, 1.575 Python-/Worker-Tests, 15 Untertests bestanden; neun native Linux-Prüfungen auf Windows ausgelassen; beide Builds, Source-Policy, Typprüfung, Syntax/Imports/Compile erfolgreich. Connector-Zeitlimit anhand der realen vollständigen Statusdatei aufgelöst.
+
+HA-Quellsynchronisierung, Änderungen am alternativen Viewer sowie das 95-Prozent-MakerWorld-Popup wurden blockiert und nicht angewendet. Keine Live-Bereitstellung, kein neuer Realjob-/Pixelnachweis und keine Behauptung, der echte MakerWorld-Import funktioniere bereits. Dashboard/GitHub/Namensmigrationskandidat offen.
+
+Bericht: [Materialvorschau-Prüfpass](docs/Studio-Materialvorschau-Pruefpass-2026-10-05.md). PC-Sicherung: backups/20261005-material-preview-colors. Isolierter Prüfstand und Logs auf HA: /config/backups/20261005-preview-popup-local. Kein Slice, Release, Druckerupload, Druckstart oder Dienstneustart.
+
+
+## 2026-10-05 · PC-/HA-Quellabgleich tatsächlich ausgeführt
+
+Das zuvor gesperrte MakerWorld-Transfermodul ist in diesem Abschnitt über denselben kanonischen Dateitransfer erfolgreich im HA-Staging angekommen. 662 ausgewählte Projekt-/Deploydateien wurden vom PC aufgenommen und vollständig ein zweites Mal rückgelesen. Aufnahme: 07:52:40 CEST. Die HA-Entwicklungsquelle wurde nach Originalsicherung in 52 Dateien nachgezogen; um 07:55:16 CEST stimmen alle 662 Dateien dieses Umfangs per SHA-256 mit dem PC-Kandidaten überein. Keine Löschung außerhalb des Umfangs.
+
+PC-Gate vom 07:35:48 CEST: 440 Frontendtests, 1576 Python-/Worker-Tests und 15 Untertests bestanden; neun Linux-Prozessgruppentests auf Windows ausgelassen. Alle Gatephasen erfolgreich. Zusätzlich 314 Pythonquellen auf HA syntaktisch kompiliert, kein neuer kompletter Linux-Testlauf.
+
+Produktive Komponenten, www und nativer Worker wurden NICHT aktualisiert. Weitergehende Vorabprüfung/Supervisor-/Puppet-Aufruf vom Werkzeug-Sicherheitscheck blockiert; nativer HA-Connector bei zwei Leseoperationen mit HTTP 502. Keine Umgehung gesperrter Options-/Zugangsdatenlesezugriffe. Kein Neustart, Slice, Druckerupload oder Druckstart.
+
+Öffentliches main lesend auf 770725483bf51233d6d00408a5aabdf36b1fe893 bestätigt; separater öffentlicher Checkout angelegt, noch kein Push. Öffentliche Pfade studio-v6/, homeassistant/, slicing-server/, deployment/ bei der Fortsetzung erhalten, nicht die PC-Wurzel darüberkopieren.
+
+Details: [Quellabgleich und verbleibende Aktivierung](docs/Studio-PC-HA-Quellabgleich-2026-10-05.md). Originalsicherung und maschinenlesbare Nachweise: backups/20261005-studio-release-sync auf HA. Roadmapstatus bleibt teilweise umgesetzt, nicht live abgenommen.
+
+
+## 2026-10-05 · Native Workerbereitstellung: Supervisor-Paketierung in Arbeit
+
+Beim lesenden Vorabcheck fehlt produktiv job_control.py. Der geprüfte neue Worker benötigt diese Datei; das bisherige Deployskript verlangt sie jedoch nur als vorhandene Zielabhängigkeit und installiert sie nicht. Quellseitige Korrektur: Supervisor in Installations-/Backup-/Rollbackumfang aufnehmen, Python-Syntax prüfen, dessen Paketchecksumme vorab sowie alle installierten Dateien vor Neustart und nach Health prüfen; Änderung nur am Supervisor erfordert ebenfalls Worker-Neustart. Andere native Abhängigkeiten werden weiterhin gegen ihren vorhandenen Zielstand geprüft und nicht still ersetzt.
+
+Gezielte isolierte Linux-Prüfung des tatsächlichen Deployskripts an synthetischen Zielwurzeln und System-/Netzwerk-Doubles: 26 Tests, am alten Skript 17 fehlgeschlagen/9 bestanden, am Kandidaten alle 26 bestanden. Kein echter Dienst oder Druckauftrag war Testziel. Deployskript ist nach frischem PC-/HA-Abgleich mit Originalsicherung geändert; SHA-256 5fcb1f8eba35faf5897e21630aa23f42c9fe09ab1dcaa55ffe4905c7835e1697. Neue Testdatei identisch auf PC und HA; SHA-256 3c743c46d9e8d795912eca8f0a4d9ebd9f3ba7abb3124c3a3af1ba5642b9cbad.
+
+Arbeitsabschnitt noch OFFEN: vollständiges erneutes PC-Gate, öffentlicher Codeabgleich und echte Bereitstellung. Backups/Nachweise: backups/20261005-native-deploy-supervisor auf PC und HA. Keine produktiven Dateien ausgetauscht und kein Dienst neu gestartet. Firmen-VM bleibt bis zur morgigen WAF-/Zertifikat-/Keycloak-Fortsetzung unberührt. Ziel bleibt die durch tatsächliche Abnahme belegte Beta-Freigabe, nicht bloße Umbenennung.
+
+
+### 05.10.2026 23:10 CEST · Paketierungskorrektur geprüft und veröffentlicht
+
+PC-Gesamtgate 22:59:29 erfolgreich: 440 Frontend, 1591 Python und 15 Untertests; 31 Windows-Auslassungen (22 neue Linux/root-Deployfälle, neun Linux-Prozessgruppenfälle). Alle 26 neuen Fälle separat unter Linux bestanden, am Original 17 Fehler. Skript/Test exakt auf PC und HA sowie im öffentlichen Commit 36b234f3c34f7bf9964b2484f9eeeb8a53dd7c10, Entwurfs-PR #1; neuer CI-Lauf 37373691825 zuletzt queued, nicht als bestanden ausgegeben.
+
+681 Textquell-/kanonische Deploydateien auf PC/HA abgeglichen; sieben zusätzliche Abweichungen übernommen. Alte frontend/dist-Dateien und zwei nicht mehr benötigte generierte Binärfixtures explizit ausgeschlossen, nicht gelöscht. Native Abhängigkeitsvorprüfung 11/11 passend. Kein Live-Deploy. Öffentlicher Restabgleich, echte Aktivierung und reale Abnahmen weiterhin offen.
+
+Neuer P0-Neuaufbaubefund: öffentliches scripts/rebuild-homeassist.sh ist wegen pauschaler Slicerwurzel-Löschung, V5-Kopie und nicht passendem nativen Installationsvertrag nicht für die Firmeninstallation freigegeben; nicht ausgeführt. Vollständiger Bericht: docs/Studio-Native-Deployment-Paketierung-2026-10-05.md. Nächsten automatischen Lauf auf die gespeicherten Nachweise aufsetzen, keine erneute Entwicklung dieses Fixes.
+
+
+### Abschlussnachtrag: GitHub-Lifecycle-Prüfung bestanden
+
+Der öffentliche Job isolated-deployment-lifecycle im Lauf 37373691825 ist erfolgreich abgeschlossen. Das heruntergeladene Artefakt 11370564597 wurde unabhängig per SHA-256 9c366ead5c61b7ab9525ded21ed312ead5276e0f576288e33db537d10df24835 geprüft. JUnit bestätigt 26 Tests, null Fehler, null Auslassungen; commit.txt bindet das Ergebnis an 36b234f3c34f7bf9964b2484f9eeeb8a53dd7c10, source.sha256 bestätigt die beiden PC-/HA-Quellhashes. Dies sind dieselben 26 gezielten Fälle, kein zusätzlicher unabhängiger Gesamtbestand. Die vorherige Warteschlangenmeldung ist damit aufgelöst.
+
+Produktive Aktivierung und vollständiger öffentlicher Abgleich bleiben offen. Beim sauberen Linux-Neuaufbau außerdem die öffentliche Aufteilung slicing-server/ und deployment/systemd/ in einen tatsächlich vollständigen nativen Installationskandidaten überführen; die synthetischen Lifecycle-Tests ersetzen diese Paketvollständigkeitsprüfung nicht.
+
+## 2026-10-06 — Stable-Release-Finishing 6.0.0
+
+- Benutzer hat den Beta-Ausstieg ausdrücklich freigegeben.
+- Interaktive UI-/iPhone-Abnahme sowie Druckertelemetrie bei ausgeschaltetem Drucker wurden als Release-Gates gestrichen; keine nicht ausgeführte Abnahme wird dadurch als bestanden behauptet.
+- MakerWorld-Liveanmeldung/-Import wird als Post-Release-Thema geführt und blockiert 6.0.0 nach dieser Freigabe nicht.
+- Vor Versionsänderung vollständiges Gate nach Mobile-Navigationsfix grün: 442/442 Frontendtests; 1.686 Python-/Worker-Tests; 15 Untertests; Source-Policy, TypeScript, Produktions-/HA-Build und Compileall grün.
+- Autoritative Versionierungsquellen auf Stable 6.0.0 umgestellt: package.json, package-lock.json, HA manifest.json und const.py. Historische Beta-Dokumentation bleibt unverändert.
+- Vorherstände gesichert unter backups/20261006-stable-6.0.0/before.
+- Noch auszuführen: finales Stable-Gate, PC↔HA↔GitHub-Sync, Live-SHA/HA-Konfigurationscheck, PR-Draft-Aufhebung und finaler Release-Nachweis.
+- Keine Druckerbefehle, realen Test-Slices, Job-Releases, Uploads, Bewegungen, Heiz-/Filamentaktionen oder Druckstarts.
+- Finales Stable-Gate abgeschlossen am 06.10.2026 13:37:13 CEST: 442/442 Frontendtests, 1.686 Python-/Worker-Tests, 66 explizite Plattform-Skips und 15 Untertests; Source-Policy, TypeScript, Produktions-/HA-Build, Syntax/Imports und Compileall grün.
+- HA-Quellkopie auf Stable-Quellen synchronisiert; Mobile-Navigationsfix und Regression übernommen.
+- Stable-Frontend live aktiviert: JS SHA256 a003082a45d2d658c2bc1daa2fc49bbea9a374b40fc8c04c68c00930d923caa0; CSS SHA256 0ec340b2b24dca9bdcd9bb5528e9aa7f72e64acf6b83d82f2c81871c0a03901c; Manifest Version 6.0.0, 130 Module.
+- HA-Komponente manifest.json/const.py atomar mit Same-Day-Backup auf 6.0.0 aktiviert; Live-Hashes 9e2cbe7c012eee71c4b1e64d634d7dce6cedbe8155f5db34ac6c10adae9cf589 und 5b912f55eeac5cefc271231a77a24d2eb7f3fb5412b5cf0e3d5b874fff4543a4.
+- HA Core genau einmal neu gestartet. Container StartedAt 2026-10-06T11:50:47.281788574Z (13:50:47 CEST), danach erneut ha core check erfolgreich.
+- Kein Worker-Neudeploy, kein Druckerkommando, kein realer Slice, Upload, Bewegung, Heizen, Filamentvorgang oder Druckstart.
+- Öffentlicher GitHub-Stable-Abgleich/CI und PR-Draft-Aufhebung stehen noch aus.

@@ -1,6 +1,8 @@
 import "./v6-action-dialog.js";
 import { errorMessage } from "./ha-api-transport.js";
+import { canCancelSliceJob, cancellationMessage } from "./slicer-cancel-state.js";
 import {
+  cancelSliceJob,
   getQueueStatus,
   batchCreateJobs,
   releaseQueueJob,
@@ -52,6 +54,8 @@ function signature(jobs: readonly SliceJob[]): string {
   return JSON.stringify(jobs.map((job) => [
     job.id,
     job.status,
+    job.cancellation_available,
+    job.cancel_requested,
     job.model_file,
     job.output_size_bytes,
     job.created_at,
@@ -171,6 +175,24 @@ export class Ultimate3DSlicerQueueManager extends HTMLElement {
         
         resolve();
       });
+    });
+  }
+
+  async #cancel(job: SliceJob): Promise<void> {
+    if (this.#busy || this.#dialogActive || !canCancelSliceJob(job)) return;
+    const confirmed = await this.#confirm({
+      title: "Slicerauftrag abbrechen",
+      message: "Den Auftrag abbrechen? Unvollständige Druckdateien werden entfernt; die Quelldatei bleibt erhalten.",
+      detail: `${job.model_file || job.id}\n${job.id}`,
+      confirmLabel: "Auftrag abbrechen",
+      cancelLabel: "Weiterlaufen lassen",
+      danger: true,
+    });
+    if (!confirmed || !this.isConnected) return;
+    await this.#run(async () => {
+      const result = await cancelSliceJob(job.id);
+      if (!result.cancel_requested) throw new Error("Der Worker hat den Abbruch nicht bestätigt.");
+      return cancellationMessage(result.status);
     });
   }
 
@@ -332,6 +354,10 @@ export class Ultimate3DSlicerQueueManager extends HTMLElement {
       : '<div class="empty">Keine Sliceraufträge vorhanden</div>';
     host.scrollTop = Math.min(scrollTop, host.scrollHeight);
     
+    host.querySelectorAll<HTMLButtonElement>("[data-cancel]").forEach((button) => button.addEventListener("click", () => {
+      const job = this.#jobs.find((item) => item.id === button.dataset.cancel);
+      if (job) void this.#cancel(job);
+    }));
     host.querySelectorAll<HTMLButtonElement>("[data-delete]").forEach((button) => button.addEventListener("click", () => {
       const job = this.#jobs.find((item) => item.id === button.dataset.delete);
       if (job) void this.#remove(job);
@@ -413,7 +439,7 @@ export class Ultimate3DSlicerQueueManager extends HTMLElement {
     <div class="buttons">
       ${job.status === "succeeded" ? `<button data-download="${esc(job.id)}">GCode laden</button>` : ""}
       ${queued ? `<button data-release="${esc(job.id)}" class="primary">Freigeben</button>` : ""}
-      ${terminal ? `<button class="danger" data-delete="${esc(job.id)}">Löschen</button>` : ""}
+      ${canCancelSliceJob(job) ? `<button class="danger" data-cancel="${esc(job.id)}">Auftrag abbrechen</button>` : ""}${job.status === "cancelling" ? `<span role="status">Abbruch läuft …</span>` : ""}${terminal ? `<button class="danger" data-delete="${esc(job.id)}">Löschen</button>` : ""}
     </div></article>`;
   }
 }

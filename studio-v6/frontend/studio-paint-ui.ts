@@ -1,6 +1,6 @@
 import { type PaintBrush } from "./studio-mesh-paint.js";
 
-export type StudioPaintTool = "brush" | "pen" | "eraser" | "rectangle" | "circle" | "text";
+export type StudioPaintTool = "brush" | "pen" | "eraser" | "rectangle" | "circle" | "line" | "text";
 export type StudioPaintMaterial = Readonly<{ key: string; name: string; color: string }>;
 export type StudioPaintSettings = Readonly<{ active: boolean; tool: StudioPaintTool; brush: PaintBrush; text: string; textSizePx: number; }>;
 
@@ -23,7 +23,7 @@ export class StudioPaintTools extends HTMLElement {
 
   connectedCallback(): void {
     if (this.#root.childNodes.length) return;
-    this.#root.innerHTML = "<style>" + PAINT_TOOL_CSS + "</style><section><div class=\"paint-head\"><b>Malwerkzeuge</b><span>Modelloberfläche</span></div><button class=\"toggle\" data-paint-toggle type=\"button\">🎨 Malen AN</button><div class=\"tools\"><button data-paint-tool=\"brush\" type=\"button\">🖌 Pinsel</button><button data-paint-tool=\"pen\" type=\"button\">✏ Stift</button><button data-paint-tool=\"eraser\" type=\"button\">⌫ Radierer</button><button data-paint-tool=\"rectangle\" type=\"button\">▭ Rechteck</button><button data-paint-tool=\"circle\" type=\"button\">◯ Kreis</button><button data-paint-tool=\"text\" type=\"button\">T Text</button></div><div class=\"controls\"><label>Größe <input data-paint-radius type=\"range\" min=\"1\" max=\"40\" step=\"1\" value=\"10\"></label><label>Text <input data-paint-text type=\"text\" maxlength=\"48\" value=\"Text\"></label><label>Schriftgröße <input data-paint-text-size type=\"range\" min=\"12\" max=\"96\" step=\"1\" value=\"28\"></label><div class=\"material-row\"><label>Druckfilament <select data-paint-material></select></label><label>Farbe <input data-paint-color type=\"color\" value=\"#ff4444\" disabled></label></div></div><div class=\"hint\"><b>Malen:</b> Drehen und Verschieben sind gesperrt. Pinsel/Stift ziehen frei; Rechteck/Kreis mit Klick-Ziehen. Text eingeben, Text wählen und auf die Modelloberfläche klicken. Farbe folgt immer dem gewählten AMS-Slot.</div></section>";
+    this.#root.innerHTML = "<style>" + PAINT_TOOL_CSS + "</style><section><div class=\"paint-head\"><b>Malwerkzeuge</b><span>Modelloberfläche</span></div><button class=\"toggle\" data-paint-toggle type=\"button\">🎨 Malen AN</button><div class=\"tools\"><button data-paint-tool=\"brush\" type=\"button\">🖌 Pinsel</button><button data-paint-tool=\"pen\" type=\"button\">✏ Stift</button><button data-paint-tool=\"eraser\" type=\"button\">⌫ Radierer</button><button data-paint-tool=\"rectangle\" type=\"button\">▭ Rechteck</button><button data-paint-tool=\"circle\" type=\"button\">◯ Kreis</button><button data-paint-tool=\"line\" type=\"button\">╱ Linie</button><button data-paint-tool=\"text\" type=\"button\">T Text</button></div><div class=\"controls\"><label>Größe <input data-paint-radius type=\"range\" min=\"1\" max=\"40\" step=\"1\" value=\"10\"></label><label>Text <input data-paint-text type=\"text\" maxlength=\"48\" value=\"Text\"></label><label>Schriftgröße <input data-paint-text-size type=\"range\" min=\"12\" max=\"96\" step=\"1\" value=\"28\"></label><div class=\"material-row\"><label>Druckfilament <select data-paint-material></select></label><label>Farbe <input data-paint-color type=\"color\" value=\"#ff4444\" disabled></label></div></div><div class=\"hint\"><b>Malen:</b> Drehen und Verschieben sind gesperrt. Pinsel/Stift ziehen frei; Rechteck/Kreis/Linie mit Klick-Ziehen. Text eingeben, Text wählen und auf die Modelloberfläche klicken. Farbe folgt immer dem gewählten AMS-Slot.</div></section>";
     this.#root.addEventListener("click", (event) => {
       const target = event.target instanceof Element ? event.target.closest<HTMLElement>("[data-paint-toggle],[data-paint-tool]") : null;
       if (!target) return;
@@ -58,8 +58,8 @@ export class StudioPaintTools extends HTMLElement {
     this.#materials = [...unique.values()];
     if (!this.#materials.some((item) => item.key === this.#materialKey)) {
       this.#materialKey = this.#materials[0]?.key || "";
-      this.#color = this.#materials[0]?.color || "#ff4444";
     }
+    this.#color = this.#materials.find((item) => item.key === this.#materialKey)?.color || "#6b7785";
     this.#render(); this.#emit();
   }
 

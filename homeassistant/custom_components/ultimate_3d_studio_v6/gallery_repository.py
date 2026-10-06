@@ -220,6 +220,8 @@ class V6GalleryRepository:
     def resolve(self, asset_id_or_path: str) -> Path:
         relative = self.path_from_asset_id(asset_id_or_path) if str(asset_id_or_path).startswith("path:") else str(asset_id_or_path)
         target = _real_path(self.root, _safe_relative(relative, allow_root=False))
+        if target == self.root.resolve(strict=False):
+            raise ValueError("Der Galerie-Hauptordner ist kein veränderbarer Eintrag")
         if not target.exists():
             raise FileNotFoundError(relative)
         return target
@@ -288,11 +290,13 @@ class V6GalleryRepository:
         directory = _real_path(self.root, _safe_relative(target_folder))
         if not directory.is_dir():
             raise NotADirectoryError(target_folder)
-        if source.is_dir() and source in directory.parents:
+        if source.is_dir() and (source == directory or source in directory.parents):
             raise ValueError("Ordner kann nicht in sich selbst verschoben werden")
         target = directory / source.name
         if source == target:
             return self._folder_item(source) if source.is_dir() else self._file_item(source)
+        if target in source.parents:
+            raise ValueError("Das Ziel enthält die Quelle und darf nicht überschrieben werden")
         if target.exists():
             if not overwrite:
                 raise FileExistsError(target.name)

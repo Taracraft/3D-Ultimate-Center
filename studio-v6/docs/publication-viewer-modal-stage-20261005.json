@@ -1,0 +1,56 @@
+{
+  "scope": "makerworld_modal_and_standalone_viewer_sources",
+  "full_repository_sync_complete": false,
+  "live_deployed": false,
+  "files": [
+    {
+      "pc_path": "frontend/makerworld-attribution.ts",
+      "public_path": "studio-v6/frontend/makerworld-attribution.ts",
+      "size_bytes": 582,
+      "sha256": "0a2f0e257aa1387963754b9b4ed9f990523d879189c1181f3c16e99535011a4d",
+      "git_blob_sha": "58482c7b7156d47bd783e47452a7122f819fffaf"
+    },
+    {
+      "pc_path": "frontend/makerworld-detail-dialog-v6.ts",
+      "public_path": "studio-v6/frontend/makerworld-detail-dialog-v6.ts",
+      "size_bytes": 39684,
+      "sha256": "8ade7c101d8298dd117f3e7caef2ba5d4e768151f880485c13ce26201ff8d6ba",
+      "git_blob_sha": "cc74ade2e23dfd0784860b0c38108dec2dca2eef"
+    },
+    {
+      "pc_path": "frontend/slicer-toolpath-viewer.ts",
+      "public_path": "studio-v6/frontend/slicer-toolpath-viewer.ts",
+      "size_bytes": 28630,
+      "sha256": "81e4c81d2f12b967383c3f3875578112e58c59a5285a06efa9b8bb14814b8e74",
+      "git_blob_sha": "7c25fa374111cc607a949cc24f9a1e1e9974add2"
+    },
+    {
+      "pc_path": "frontend-tests/makerworld-attribution.test.ts",
+      "public_path": "studio-v6/frontend-tests/makerworld-attribution.test.ts",
+      "size_bytes": 1990,
+      "sha256": "2624609c361972412f4e1fceb8812fd2cf6ace2a19cb0ad2993c0531fc1fc9cf",
+      "git_blob_sha": "34e24022b2b7b8f5601b81cf9c3a09f566c1edec"
+    },
+    {
+      "pc_path": "frontend-tests/makerworld-resume.test.mjs",
+      "public_path": "studio-v6/frontend-tests/makerworld-resume.test.mjs",
+      "size_bytes": 6094,
+      "sha256": "78613ec622f2498f2ee2485cc06f8927e8124f484da45b1be885c11c086b2780",
+      "git_blob_sha": "959bc575164f734d16759a0735da287f09b59d62"
+    },
+    {
+      "pc_path": "frontend-tests/viewer-modal-contract.test.mjs",
+      "public_path": "studio-v6/frontend-tests/viewer-modal-contract.test.mjs",
+      "size_bytes": 12664,
+      "sha256": "2ddd6287d83e57f03020eedfb66146e7a647f43f2c08a452c63f631e07c11967",
+      "git_blob_sha": "eadf78617860120be94e472c09e4341ab38660ab"
+    },
+    {
+      "pc_path": "tests/test_viewer_modal_node_contract.py",
+      "public_path": "studio-v6/tests/test_viewer_modal_node_contract.py",
+      "size_bytes": 2133,
+      "sha256": "9b8227bd0abaa5fa612b3011c96d5f1f57c1c12fba415974a4979c5d8e738388",
+      "git_blob_sha": "56f3b77b004c1cc4e27f667c371c9431a1d08ef7"
+    }
+  ]
+}

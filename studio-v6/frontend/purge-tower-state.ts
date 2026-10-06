@@ -1,7 +1,8 @@
+import { PURGE_TOWER_PLATE_PREFIX } from "./studio-plate-storage-keys.js";
 import type { SliceMaterialPlan } from "./plate-slice-api.js";
 import type { SlicePurgeTower } from "./slicing-api.js";
 
-const PREFIX = "ultimate-3d-studio-v6:purge-tower:plate:";
+const PREFIX = PURGE_TOWER_PLATE_PREFIX;
 
 function numberInRange(value: unknown, fallback: number, minimum: number, maximum: number): number {
   const parsed = Number(value);

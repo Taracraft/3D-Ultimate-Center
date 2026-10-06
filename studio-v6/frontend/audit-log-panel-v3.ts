@@ -113,10 +113,7 @@ function healthEvents(data: HealthData): AuditEvent[] {
 }
 
 function signature(events: readonly AuditEvent[]): string {
-  return events.map((event) => [
-    event.id, event.timestamp, event.category, event.level, event.event,
-    event.message, event.action, event.status, JSON.stringify(event.details || {}),
-  ].join("|")).join("\n");
+  return JSON.stringify(events);
 }
 
 function eventTime(event: AuditEvent): number {
@@ -141,24 +138,36 @@ export class Ultimate3DAuditLogPanelV3 extends HTMLElement {
   #error = "";
   #total = 0;
   #maximum = 10_000;
+  #mounted = false;
+  #refreshing = false;
+  #request = 0;
+  #rowsSignature: string | null = null;
+  #categoriesMarkup = "";
+  #chipsMarkup = "";
 
   connectedCallback(): void {
-    this.#mount();
+    if (!this.#mounted) { this.#mount(); this.#mounted = true; }
     void this.#refresh();
     if (this.#timer === null) this.#timer = window.setInterval(() => void this.#refresh(), 5000);
   }
 
   disconnectedCallback(): void {
+    this.#request += 1;
+    this.#refreshing = false;
     if (this.#timer !== null) window.clearInterval(this.#timer);
     this.#timer = null;
   }
 
   async #refresh(): Promise<void> {
+    if (!this.isConnected || this.#refreshing) return;
+    const request = ++this.#request;
+    this.#refreshing = true;
     try {
       const [auditData, healthData] = await Promise.all([
         callEnvelopeApi<AuditResponse>("GET", "ultimate_3d_studio_v6/v1/system/audit?limit=2000"),
         callEnvelopeApi<HealthData>("GET", "ultimate_3d_studio_v6/v1/health"),
       ]);
+      if (request !== this.#request || !this.isConnected) return;
       const persisted = Array.isArray(auditData?.items) ? auditData.items : [];
       const events = [...healthEvents(healthData || {}), ...persisted];
       this.#total = Number(auditData?.total ?? events.length) || events.length;
@@ -182,8 +191,11 @@ export class Ultimate3DAuditLogPanelV3 extends HTMLElement {
       this.#renderDynamic();
       this.#setStatus(`${this.#filteredEvents().length} angezeigt · ${this.#total}/${this.#maximum} gespeichert · ${new Date().toLocaleTimeString("de-DE")}`);
     } catch (error) {
+      if (request !== this.#request || !this.isConnected) return;
       this.#error = error instanceof Error ? error.message : String(error);
       this.#setStatus(this.#error, true);
+    } finally {
+      if (request === this.#request) this.#refreshing = false;
     }
   }
 
@@ -240,13 +252,17 @@ export class Ultimate3DAuditLogPanelV3 extends HTMLElement {
     this.#renderRows();
     const sort = this.#root.querySelector<HTMLButtonElement>("#sort");
     if (sort) sort.textContent = this.#sort === "desc" ? "Neueste zuerst ↓" : "Älteste zuerst ↑";
+    if (this.#error) this.#setStatus(this.#error, true);
   }
 
   #renderCategories(): void {
     const host = this.#root.querySelector<HTMLElement>("#category-bar");
     if (!host) return;
     const categories = [...this.#availableCategories.entries()].sort((a, b) => a[0].localeCompare(b[0], "de"));
-    host.innerHTML = `<small>Kategorien:</small>${categories.map(([name, count]) => `<button type="button" data-category="${esc(name)}" class="${this.#categories.has(name) ? "active" : ""}">${esc(name)}${count ? ` · ${count}` : ""}</button>`).join("")}`;
+    const markup = `<small>Kategorien:</small>${categories.map(([name, count]) => `<button type="button" data-category="${esc(name)}" class="${this.#categories.has(name) ? "active" : ""}">${esc(name)}${count ? ` · ${count}` : ""}</button>`).join("")}`;
+    if (markup === this.#categoriesMarkup) return;
+    this.#categoriesMarkup = markup;
+    host.innerHTML = markup;
     host.querySelectorAll<HTMLButtonElement>("[data-category]").forEach((button) => {
       button.addEventListener("click", () => {
         const category = button.dataset.category || "";
@@ -266,7 +282,10 @@ export class Ultimate3DAuditLogPanelV3 extends HTMLElement {
       ...this.#terms.map((value) => `<span class="chip">${esc(value)}<button type="button" data-remove-term="${esc(value)}">×</button></span>`),
     ];
     dock.classList.toggle("visible", chips.length > 0);
-    dock.innerHTML = chips.length ? `${chips.join("")}<button class="chip clear" id="clear-filters" type="button">Alle Filter entfernen ×</button>` : "";
+    const markup = chips.length ? `${chips.join("")}<button class="chip clear" id="clear-filters" type="button">Alle Filter entfernen ×</button>` : "";
+    if (markup === this.#chipsMarkup) return;
+    this.#chipsMarkup = markup;
+    dock.innerHTML = markup;
     dock.querySelectorAll<HTMLButtonElement>("[data-remove-category]").forEach((button) => button.addEventListener("click", () => {
       this.#categories.delete(button.dataset.removeCategory || "");
       this.#renderDynamic();
@@ -288,9 +307,20 @@ export class Ultimate3DAuditLogPanelV3 extends HTMLElement {
   #renderRows(): void {
     const list = this.#root.querySelector<HTMLElement>("#list");
     if (!list) return;
-    const scrollTop = list.scrollTop;
     const filtered = this.#filteredEvents();
+    const rowsSignature = signature(filtered);
+    this.#setStatus(`${filtered.length} angezeigt · ${this.#total}/${this.#maximum} gespeichert`);
+    if (rowsSignature === this.#rowsSignature) return;
+    const scrollTop = list.scrollTop;
+    const rows = [...list.querySelectorAll<HTMLElement>("[data-event-key]")];
+    const open = new Set(rows.filter((row) => row.querySelector<HTMLDetailsElement>("details")?.open).map((row) => row.dataset.eventKey));
+    const focused = rows.find((row) => this.#root.activeElement && row.contains(this.#root.activeElement))?.dataset.eventKey;
+    const identities = new Map<string, number>();
     list.innerHTML = filtered.length ? filtered.map((event) => {
+      const identity = JSON.stringify([event.source, event.id ?? [event.timestamp, event.created_at, event.component, event.event]]);
+      const occurrence = identities.get(identity) ?? 0;
+      identities.set(identity, occurrence + 1);
+      const key = `${identity}:${occurrence}`;
       const level = levelOf(event);
       const category = categoryOf(event);
       const date = new Date(String(event.timestamp || event.created_at || ""));
@@ -301,10 +331,14 @@ export class Ultimate3DAuditLogPanelV3 extends HTMLElement {
         .filter(Boolean).join(" · ");
       const diagnostic = details.message || details.error || details.reason || details.code || "";
       const raw = Object.keys(details).length ? JSON.stringify(details, null, 2) : "";
-      return `<article class="entry"><time>${esc(timestamp)}</time><span class="badge ${level}">${esc(level)}</span><span class="category">${esc(category)}</span><span class="message"><strong>${esc(title)}</strong>${detail ? `<small>${esc(detail)}</small>` : ""}${diagnostic ? `<code>${esc(diagnostic)}</code>` : ""}${raw ? `<details class="details"><summary>Details anzeigen</summary><pre>${esc(raw)}</pre></details>` : ""}</span></article>`;
+      return `<article class="entry" data-event-key="${esc(key)}"><time>${esc(timestamp)}</time><span class="badge ${level}">${esc(level)}</span><span class="category">${esc(category)}</span><span class="message"><strong>${esc(title)}</strong>${detail ? `<small>${esc(detail)}</small>` : ""}${diagnostic ? `<code>${esc(diagnostic)}</code>` : ""}${raw ? `<details class="details"${open.has(key) ? " open" : ""}><summary>Details anzeigen</summary><pre>${esc(raw)}</pre></details>` : ""}</span></article>`;
     }).join("") : '<div class="empty">Keine passenden System- oder Audit-Einträge vorhanden.</div>';
+    this.#rowsSignature = rowsSignature;
     list.scrollTop = Math.min(scrollTop, list.scrollHeight);
-    this.#setStatus(`${filtered.length} angezeigt · ${this.#total}/${this.#maximum} gespeichert`);
+    if (focused) {
+      [...list.querySelectorAll<HTMLElement>("[data-event-key]")]
+        .find((row) => row.dataset.eventKey === focused)?.querySelector<HTMLElement>("summary")?.focus({ preventScroll: true });
+    }
   }
 
   #setStatus(value: string, error = false): void {

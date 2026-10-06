@@ -1,4 +1,6 @@
 import { StudioApiClient } from "./api-client.js";
+import { fetchGalleryDuplicates } from "./gallery-duplicate-api.js";
+import type { GalleryDuplicateReport } from "./gallery-duplicate-contract.js";
 import { authenticatedFetch, callEnvelopeApi } from "./ha-api-transport.js";
 import { UploadController, type UploadProgress } from "./upload-controller.js";
 
@@ -67,6 +69,10 @@ export class GalleryApi {
 
   constructor(private readonly baseUrl = "ultimate_3d_studio_v6/v1") {
     this.#uploader = new UploadController(new StudioApiClient(baseUrl));
+  }
+
+  async duplicates(folder = "", signal?: AbortSignal): Promise<GalleryDuplicateReport> {
+    return fetchGalleryDuplicates(this.baseUrl, folder, signal);
   }
 
   async list(folder = "", query = "", recursive = false): Promise<GalleryLibrary> {

@@ -89,6 +89,9 @@ def _layer_height_ranges_query(request: web.Request) -> list[dict[str, object]] 
 _PROCESS_OVERRIDE_QUERY_RULES: dict[str, tuple[float, float | None, bool]] = {
     "layer_height_mm": (.04, .56, False),
     "first_layer_height_mm": (.04, .56, False),
+    "initial_layer_line_width_mm": (.01, 1.6, False),
+    "infill_direction_deg": (0, 180, False),
+    "initial_layer_infill_speed_mm_s": (1, 500, False),
     "walls": (0, None, True),
     "top_shell_layers": (0, None, True),
     "bottom_shell_layers": (0, None, True),

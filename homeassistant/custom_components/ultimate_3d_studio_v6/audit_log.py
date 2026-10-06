@@ -76,6 +76,8 @@ class V6AuditLog:
             "duration_ms": duration_ms,
             "details": sanitize_audit_value(deepcopy(details or {})),
         }
+        # Frontend metadata and exception text require the same protection as details.
+        record = sanitize_audit_value(record)
         self._events.append(record)
         self._events = self._events[-MAX_EVENTS:]
         self._store.async_delay_save(lambda: {"events": self._events}, 2.0)
@@ -128,12 +130,13 @@ class V6AuditLog:
         if status:
             items = [item for item in items if item.get("status") == status]
         bounded = max(1, min(int(limit), MAX_RETURNED_EVENTS))
-        return deepcopy(items[-bounded:][::-1])
+        # Protect historical records on read without changing stored history or its length.
+        return [sanitize_audit_value(deepcopy(item)) for item in items[-bounded:][::-1]]
 
     async def async_summary(self) -> dict[str, Any]:
         await self.async_load()
-        categories = Counter(str(item.get("category") or "System") for item in self._events)
-        statuses = Counter(str(item.get("status") or "info") for item in self._events)
+        categories = Counter(sanitize_audit_value(str(item.get("category") or "System")) for item in self._events)
+        statuses = Counter(sanitize_audit_value(str(item.get("status") or "info")) for item in self._events)
         return {
             "total": len(self._events),
             "maximum": MAX_EVENTS,

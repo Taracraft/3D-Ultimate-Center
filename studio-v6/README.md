@@ -2,17 +2,17 @@
 
 ## Current release
 
-**6.0.0-beta3 · 12 July 2026**
+**6.0.0 · 6 October 2026**
 
-Ultimate 3D Studio V6 has officially left the alpha phase. The beta3 baseline is the first release with a physically confirmed multicolor print prepared, sliced and started directly from the V6 Studio on a Bambu Lab A1 with AMS Lite.
+Ultimate 3D Studio V6 is released as **6.0.0 stable**. The stable baseline incorporates the reviewed native worker/package contract, Home Assistant integration, profile and artifact validation, the current frontend, rollback-protected deployment paths and the complete automated quality gate.
 
-The beta baseline includes authoritative AMS mapping, native Bambu build-plate selection and bed-temperature validation, bounded purge-tower placement, direct printing, persistent Studio workspaces, G-code analysis and monotonic printer-stage telemetry.
+Interactive UI/iPhone acceptance and live printer telemetry with the printer powered off were explicitly removed from the 6.0.0 release gates by the project owner on 6 October 2026. They are therefore not claimed as fresh acceptance evidence. MakerWorld live authentication/import remains tracked as post-release follow-up.
 
 ## Mission
 
 V6 is a clean-room architectural rewrite of the 3D-Printer Control Center. It is designed to replace the daily Bambu Studio workflow while preserving every working production capability from v5.0.0-beta38.
 
-The stable v5.0.0-beta38 implementation remains the regression oracle and rollback baseline. V6 now continues through the beta series with compatibility, performance, accessibility and full regression testing.
+The stable v5.0.0-beta38 implementation remains a historical regression oracle. V6 has now exited beta as 6.0.0; compatibility, performance, accessibility and additional printer-model work continue as normal post-release development.
 
 ## Product surfaces
 
@@ -105,7 +105,9 @@ The project entered beta with:
 - `6.0.0-beta2`: stable dashboard and deployment baseline
 - `6.0.0-beta3`: first physically confirmed multicolor AMS print from Ultimate 3D Studio V6
 
-Further beta releases focus on compatibility, reliability, performance, accessibility and complete regression coverage before the final 6.0.0 release.
+- `6.0.0`: stable release after the reviewed native package/deployment contracts and full automated release gate.
+
+Further work after 6.0.0 continues through normal stable maintenance; known post-release items are documented rather than represented as completed.
 
 ## Current forensic baseline
 

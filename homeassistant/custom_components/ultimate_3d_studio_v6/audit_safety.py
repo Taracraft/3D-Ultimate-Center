@@ -72,12 +72,19 @@ _ALLOWED_ATTRIBUTE_KEYS = frozenset({
     "recent_jobs",
 })
 
-_BEARER_RE = re.compile(r"(?i)\bbearer\s+[a-z0-9._~+/=-]+")
+_BEARER_RE = re.compile(r"(?i)\b(bearer|basic)\s+[a-z0-9._~+/=-]+")
+_URL_USERINFO_RE = re.compile(r"(?i)\b([a-z][a-z0-9+.-]*://)[^\s/?#@]+@")
+_SECRET_LABEL = r"access[_ -]?token|refresh[_ -]?token|bearer[_ -]?token|token|secret|password|passwd|authorization|cookie|api[_ -]?key|access[_ -]?code|credential|private[_ -]?key"
+_QUOTED_SECRET_RE = re.compile(
+    r"(?i)([\"'](?:" + _SECRET_LABEL + r")[\"']\s*:\s*)"
+    r"(?:\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'|[^\s,;}]+)"
+)
 _QUERY_SECRET_RE = re.compile(
     r"(?i)([?&][^\s&#=]*(?:token|secret|passw(?:or)?d|auth|api[_-]?key|access[_-]?code|signature|sig)[^\s&#=]*=)([^\s&#]*)"
 )
 _INLINE_SECRET_RE = re.compile(
-    r"(?i)\b(access[_ -]?token|bearer[_ -]?token|token|secret|password|passwd|authorization|api[_ -]?key|access[_ -]?code)\s*[:=]\s*([^\s,;&#]+)"
+    r"(?i)\b(" + _SECRET_LABEL + r")\s*[:=]\s*"
+    r"(?:\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'|[^\s,;&#]+)"
 )
 
 
@@ -91,7 +98,9 @@ def is_sensitive_audit_key(key: str) -> bool:
 
 
 def redact_audit_text(value: str) -> str:
-    text = _BEARER_RE.sub("Bearer ***", str(value))
+    text = _URL_USERINFO_RE.sub(lambda match: f"{match.group(1)}***@", str(value))
+    text = _BEARER_RE.sub(lambda match: f"{match.group(1).title()} ***", text)
+    text = _QUOTED_SECRET_RE.sub(lambda match: f'{match.group(1)}"***"', text)
     text = _QUERY_SECRET_RE.sub(lambda match: f"{match.group(1)}***", text)
     text = _INLINE_SECRET_RE.sub(lambda match: f"{match.group(1)}=***", text)
     if len(text) > MAX_STRING_LENGTH:

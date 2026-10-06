@@ -16,6 +16,8 @@ export type MeshPlaneSplitPreview = Readonly<{
   canApply: boolean;
   negativeGeometry: MeshGeometry | null;
   positiveGeometry: MeshGeometry | null;
+  negativeTriangleIndexMap: ReadonlyMap<number, readonly number[]>;
+  positiveTriangleIndexMap: ReadonlyMap<number, readonly number[]>;
 }>;
 
 type ClipVertex = Readonly<{
@@ -134,6 +136,8 @@ export function previewMeshPlaneSplit(
   const selectedAxis = axisIndex(axis);
   const negative: number[] = [];
   const positive: number[] = [];
+  const negativeTriangleIndexMap = new Map<number, readonly number[]>();
+  const positiveTriangleIndexMap = new Map<number, readonly number[]>();
   let crossingTriangleCount = 0;
   let touchingTriangleCount = 0;
   let invalidGeometry = !Number.isFinite(planeMm) || !Number.isFinite(epsilonMm) || epsilonMm < 0;
@@ -142,6 +146,9 @@ export function previewMeshPlaneSplit(
   const sourceIsClosed = boundaryEdgeCount(positions) === 0;
 
   for (let index = 0; index < positions.length; index += 9) {
+    const sourceIndex = index / 9;
+    negativeTriangleIndexMap.set(sourceIndex, []);
+    positiveTriangleIndexMap.set(sourceIndex, []);
     const vertices: ClipVertex[] = [
       [positions[index]!, positions[index + 1]!, positions[index + 2]!] as Vec3,
       [positions[index + 3]!, positions[index + 4]!, positions[index + 5]!] as Vec3,
@@ -160,17 +167,22 @@ export function previewMeshPlaneSplit(
       touchingTriangleCount += 1;
     }
     if (vertices.every((vertex) => vertex.distance < -epsilonMm)) {
+      negativeTriangleIndexMap.set(sourceIndex, [negative.length / 9]);
       negative.push(...positions.slice(index, index + 9));
       continue;
     }
     if (vertices.every((vertex) => vertex.distance > epsilonMm)) {
+      positiveTriangleIndexMap.set(sourceIndex, [positive.length / 9]);
       positive.push(...positions.slice(index, index + 9));
       continue;
     }
 
     crossingTriangleCount += 1;
+    const negativeStart = negative.length / 9, positiveStart = positive.length / 9;
     triangulateFan(clipPolygon(vertices, true, epsilonMm), negative);
     triangulateFan(clipPolygon(vertices, false, epsilonMm), positive);
+    negativeTriangleIndexMap.set(sourceIndex, Array.from({ length: negative.length / 9 - negativeStart }, (_, offset) => negativeStart + offset));
+    positiveTriangleIndexMap.set(sourceIndex, Array.from({ length: positive.length / 9 - positiveStart }, (_, offset) => positiveStart + offset));
   }
 
   if (sourceIsClosed && crossingTriangleCount > 0) {
@@ -186,6 +198,8 @@ export function previewMeshPlaneSplit(
   return {
     axis,
     planeMm,
+    negativeTriangleIndexMap,
+    positiveTriangleIndexMap,
     sourceTriangleCount: positions.length / 9,
     negativeTriangleCount: negative.length / 9,
     positiveTriangleCount: positive.length / 9,

@@ -62,6 +62,7 @@ export class Ultimate3DStudioShellV4 extends HTMLElement {
   #projectOpenGeneration = 0;
   #activity: JobActivitySnapshot = jobActivityStore.snapshot;
   #activityUnsubscribe: (() => void) | null = null;
+  #disconnectedHash: string | null = null;
 
   set hass(value: HassLike | null) {
     this.#hass = value;
@@ -72,6 +73,10 @@ export class Ultimate3DStudioShellV4 extends HTMLElement {
   get hass(): HassLike | null { return this.#hass; }
 
   connectedCallback(): void {
+    this.addEventListener("gallery-open-studio", this.#openStudio as EventListener);
+    this.addEventListener("gallery-open-slicer", this.#openStudio as EventListener);
+    this.addEventListener("workspace-source-request", this.#sourceRequest as EventListener);
+    addEventListener("hashchange", this.#hashChanged);
     if (!this.#activityUnsubscribe) {
       this.#activityUnsubscribe = jobActivityStore.subscribe((snapshot) => {
         this.#activity = snapshot;
@@ -79,19 +84,17 @@ export class Ultimate3DStudioShellV4 extends HTMLElement {
       });
     }
     if (this.#root.childElementCount) {
+      if (location.hash || (this.#disconnectedHash !== null && location.hash !== this.#disconnectedHash)) this.#hashChanged();
       this.#updateNavLive();
       return;
     }
     mountAppShell(this.#root);
     this.#mountNavigation();
-    this.addEventListener("gallery-open-studio", this.#openStudio as EventListener);
-    this.addEventListener("gallery-open-slicer", this.#openStudio as EventListener);
-    this.addEventListener("workspace-source-request", this.#sourceRequest as EventListener);
-    addEventListener("hashchange", this.#hashChanged);
     this.#render();
   }
 
   disconnectedCallback(): void {
+    this.#disconnectedHash = location.hash;
     this.#activityUnsubscribe?.();
     this.#activityUnsubscribe = null;
     removeEventListener("hashchange", this.#hashChanged);
@@ -111,9 +114,12 @@ export class Ultimate3DStudioShellV4 extends HTMLElement {
   }
 
   readonly #hashChanged = (): void => {
-    const parsed = normalizedRoute(parseRoute(location.hash));
+    const requested = parseRoute(location.hash);
+    const parsed = normalizedRoute(requested);
+    if (requested.name === "slicer" && location.hash !== "#/studio") location.hash = "#/studio";
+    // navigate() already mounted its target before the asynchronous hash event.
+    if (routeToHash(parsed) === routeToHash(this.#route)) return;
     this.#route = parsed;
-    if (parseRoute(location.hash).name === "slicer" && location.hash !== "#/studio") location.hash = "#/studio";
     this.#render();
   };
 
@@ -241,7 +247,10 @@ export class Ultimate3DStudioShellV4 extends HTMLElement {
     const host = this.#root.querySelector<HTMLElement>("#host");
     if (!host) return;
     this.#root.querySelectorAll<HTMLButtonElement>("[data-route]").forEach((button) => {
-      button.classList.toggle("active", button.dataset.route === this.#route.name);
+      const active = button.dataset.route === this.#route.name;
+      button.classList.toggle("active", active);
+      if (active) button.setAttribute("aria-current", "page");
+      else button.removeAttribute("aria-current");
     });
     this.#renderTools();
     this.#updateNavLive();

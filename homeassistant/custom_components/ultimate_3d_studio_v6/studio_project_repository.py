@@ -1,6 +1,7 @@
 """Persistent project and revision repository for 3D Ultimate Studio."""
 from __future__ import annotations
 
+import asyncio
 from copy import deepcopy
 from datetime import UTC, datetime
 import json
@@ -39,6 +40,45 @@ def _name(value: Any) -> str:
     return result[:160]
 
 
+def _validate_paint_masks(value: dict[str, Any]) -> None:
+    layers = value.get("paintLayers", [])
+    if not isinstance(layers, list):
+        raise ProjectValidationError("paintLayers must be a list")
+    for entry in layers:
+        if not isinstance(entry, (list, tuple)) or len(entry) != 2 or not isinstance(entry[1], list):
+            raise ProjectValidationError("paintLayers must contain plate/layer pairs")
+        for layer in entry[1]:
+            if not isinstance(layer, dict):
+                raise ProjectValidationError("paint layer must be an object")
+            mask = layer.get("mask")
+            if mask is None:
+                continue
+            if not isinstance(mask, dict) or mask.get("kind") not in ("rectangle", "circle", "text"):
+                raise ProjectValidationError("paint mask kind is invalid")
+            matrix = mask.get("matrix")
+            numeric = lambda item: isinstance(item, (int, float)) and not isinstance(item, bool)
+            if not isinstance(matrix, list) or len(matrix) != 16 or not all(numeric(item) for item in matrix):
+                raise ProjectValidationError("paint mask requires sixteen finite matrix values")
+            if not all(numeric(mask.get(key)) for key in ("left", "right", "top", "bottom")) or mask["right"] <= mask["left"] or mask["bottom"] <= mask["top"]:
+                raise ProjectValidationError("paint mask bounds are invalid")
+            pixel_budget = 1_000_000
+            if mask["kind"] == "text":
+                width, height = mask.get("width"), mask.get("height")
+                if type(width) is not int or type(height) is not int or width < 1 or height < 1 or width * height > pixel_budget:
+                    raise ProjectValidationError("paint text mask exceeds the pixel budget")
+                pixel_budget = width * height
+            elif "runs" not in mask:
+                continue
+            runs = mask.get("runs")
+            if not isinstance(runs, list) or len(runs) % 2 or len(runs) > 2 * pixel_budget:
+                raise ProjectValidationError("paint mask runs are invalid")
+            previous = 0
+            for start, end in zip(runs[::2], runs[1::2]):
+                if type(start) is not int or type(end) is not int or start < previous or end <= start or end > pixel_budget:
+                    raise ProjectValidationError("paint text mask pixel range is invalid")
+                previous = end
+
+
 def _snapshot(value: Any) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ProjectValidationError("snapshot must be a JSON object")
@@ -55,6 +95,7 @@ def _snapshot(value: Any) -> dict[str, Any]:
         raise ProjectValidationError(
             f"snapshot exceeds the {MAX_SNAPSHOT_BYTES // 1024 // 1024} MiB project limit"
         )
+    _validate_paint_masks(value)
     return deepcopy(value)
 
 
@@ -65,21 +106,26 @@ class StudioProjectRepository:
         self._store: Store[dict[str, Any]] = Store(hass, STORE_VERSION, STORE_KEY)
         self._projects: dict[str, dict[str, Any]] = {}
         self._loaded = False
+        self._load_lock = asyncio.Lock()
+        self._write_lock = asyncio.Lock()
 
     async def async_load(self) -> None:
-        if self._loaded:
-            return
-        stored = await self._store.async_load() or {}
-        projects = stored.get("projects", {})
-        if isinstance(projects, dict):
-            self._projects = {
-                str(key): item for key, item in projects.items()
-                if isinstance(item, dict)
-            }
-        self._loaded = True
+        async with self._load_lock:
+            if self._loaded:
+                return
+            stored = await self._store.async_load() or {}
+            projects = stored.get("projects", {})
+            if isinstance(projects, dict):
+                self._projects = {
+                    str(key): item for key, item in projects.items()
+                    if isinstance(item, dict)
+                }
+            self._loaded = True
 
-    async def _save(self) -> None:
-        await self._store.async_save({"projects": self._projects})
+    async def _save(self, projects: dict[str, dict[str, Any]]) -> None:
+        # Publish the new revision in memory only after durable storage accepted it.
+        await self._store.async_save({"projects": projects})
+        self._projects = projects
 
     @staticmethod
     def _summary(project: dict[str, Any]) -> dict[str, Any]:
@@ -96,27 +142,28 @@ class StudioProjectRepository:
 
     async def async_create(self, name: Any, snapshot: Any) -> dict[str, Any]:
         await self.async_load()
-        if len(self._projects) >= MAX_PROJECTS:
-            raise ProjectValidationError(f"at most {MAX_PROJECTS} projects are supported")
-        now = _now()
-        project_id = uuid4().hex
-        clean_snapshot = _snapshot(snapshot)
-        project = {
-            "id": project_id,
-            "name": _name(name),
-            "revision": 1,
-            "created_at": now,
-            "updated_at": now,
-            "snapshot": clean_snapshot,
-            "revisions": [{
+        async with self._write_lock:
+            if len(self._projects) >= MAX_PROJECTS:
+                raise ProjectValidationError(f"at most {MAX_PROJECTS} projects are supported")
+            now = _now()
+            project_id = uuid4().hex
+            clean_snapshot = _snapshot(snapshot)
+            project = {
+                "id": project_id,
+                "name": _name(name),
                 "revision": 1,
                 "created_at": now,
-                "snapshot": deepcopy(clean_snapshot),
-            }],
-        }
-        self._projects[project_id] = project
-        await self._save()
-        return deepcopy(project)
+                "updated_at": now,
+                "snapshot": clean_snapshot,
+                "revisions": [{
+                    "revision": 1,
+                    "created_at": now,
+                    "snapshot": deepcopy(clean_snapshot),
+                }],
+            }
+            candidate = {**self._projects, project_id: project}
+            await self._save(candidate)
+            return deepcopy(project)
 
     async def async_get(self, project_id: str) -> dict[str, Any] | None:
         await self.async_load()
@@ -132,32 +179,34 @@ class StudioProjectRepository:
         expected_revision: int,
     ) -> dict[str, Any] | None:
         await self.async_load()
-        project = self._projects.get(str(project_id))
-        if project is None:
-            return None
-        current = int(project.get("revision", 0))
-        if int(expected_revision) != current:
-            raise ProjectConflictError(
-                f"project revision conflict: expected {expected_revision}, current {current}"
-            )
-        revision = current + 1
-        now = _now()
-        clean_snapshot = _snapshot(snapshot)
-        revisions = list(project.get("revisions", []))
-        revisions.append({
-            "revision": revision,
-            "created_at": now,
-            "snapshot": deepcopy(clean_snapshot),
-        })
-        project.update({
-            "name": _name(name),
-            "revision": revision,
-            "updated_at": now,
-            "snapshot": clean_snapshot,
-            "revisions": revisions[-MAX_REVISIONS:],
-        })
-        await self._save()
-        return deepcopy(project)
+        async with self._write_lock:
+            existing = self._projects.get(str(project_id))
+            project = deepcopy(existing) if existing is not None else None
+            if project is None:
+                return None
+            current = int(project.get("revision", 0))
+            if int(expected_revision) != current:
+                raise ProjectConflictError(
+                    f"project revision conflict: expected {expected_revision}, current {current}"
+                )
+            revision = current + 1
+            now = _now()
+            clean_snapshot = _snapshot(snapshot)
+            revisions = list(project.get("revisions", []))
+            revisions.append({
+                "revision": revision,
+                "created_at": now,
+                "snapshot": deepcopy(clean_snapshot),
+            })
+            project.update({
+                "name": _name(name),
+                "revision": revision,
+                "updated_at": now,
+                "snapshot": clean_snapshot,
+                "revisions": revisions[-MAX_REVISIONS:],
+            })
+            await self._save({**self._projects, str(project_id): project})
+            return deepcopy(project)
 
     async def async_revisions(self, project_id: str) -> list[dict[str, Any]] | None:
         project = await self.async_get(project_id)
@@ -206,17 +255,20 @@ class StudioProjectRepository:
 
     async def async_delete(self, project_id: str, *, expected_revision: int) -> bool:
         await self.async_load()
-        project = self._projects.get(str(project_id))
-        if project is None:
-            return False
-        current = int(project.get("revision", 0))
-        if int(expected_revision) != current:
-            raise ProjectConflictError(
-                f"project revision conflict: expected {expected_revision}, current {current}"
-            )
-        del self._projects[str(project_id)]
-        await self._save()
-        return True
+        async with self._write_lock:
+            project = self._projects.get(str(project_id))
+            if project is None:
+                return False
+            current = int(project.get("revision", 0))
+            if int(expected_revision) != current:
+                raise ProjectConflictError(
+                    f"project revision conflict: expected {expected_revision}, current {current}"
+                )
+            candidate = dict(self._projects)
+            del candidate[str(project_id)]
+            await self._save(candidate)
+            return True
+
 
 
 def get_studio_project_repository(hass: HomeAssistant) -> StudioProjectRepository:

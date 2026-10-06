@@ -1,5 +1,6 @@
+import { PROCESS_OPTIONS_PLATE_PREFIX } from "./studio-plate-storage-keys.js";
 import{DEFAULT_SLICE_PROCESS_OVERRIDES,loadSliceProcessOverrides,saveSliceProcessOverrides,type AdhesionMode,type SliceProcessOverrides,type SupportMode,type SupportStyle}from"./plate-slice-api.js";
-const P="ultimate-3d-studio-v6:slicer-process-options:plate:";
+const P=PROCESS_OPTIONS_PLATE_PREFIX;
 export const clamp=(v:unknown,f:number,a:number,b:number)=>{const n=Number(v);return Number.isFinite(n)?Math.max(a,Math.min(b,n)):f};
 const optional=(v:unknown,a:number,b:number):number|null=>{if(v===null||v===undefined||v==="")return null;const n=Number(v);return Number.isFinite(n)&&n>=a&&n<=b?n:null};
 const ranges=(v:unknown)=>{if(!Array.isArray(v))return[];const r=[];let p=0;for(const x of v.slice(0,32)){const o=x as Record<string,unknown>,a=Number(o.min_z_mm??o.min_z),b=Number(o.max_z_mm??o.max_z),h=Number(o.layer_height_mm??o.layer_height);if(!Number.isFinite(a)||!Number.isFinite(b)||!Number.isFinite(h)||a<0||b<=a||b>256||a<p||h<.04||h>.56)continue;r.push({min_z_mm:a,max_z_mm:b,layer_height_mm:h});p=b}return r};

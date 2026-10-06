@@ -632,44 +632,9 @@ class MakerWorldRuntime:
         profile_id: str,
         model_id: str,
     ) -> bytes:
-        if not _INSTANCE_ID.fullmatch(profile_id):
-            raise MakerWorldError("Ungültige MakerWorld-Druckprofil-ID")
-        resolved_model_id = await self._resolve_model_id(design_id, model_id)
-        session = async_get_clientsession(self.hass)
-        manifest_url = (
-            f"{account.api_base}/iot-service/api/user/profile/"
-            f"{quote(profile_id, safe='')}"
-        )
-        async with session.get(
-            manifest_url,
-            params={"model_id": resolved_model_id},
-            headers=self._headers(account),
-            timeout=ClientTimeout(total=45),
-        ) as response:
-            payload = await response.json(content_type=None)
-            if response.status >= 400:
-                raise MakerWorldError(
-                    f"MakerWorld-Profilmanifest antwortete mit HTTP {response.status}"
-                )
-        url = _signed_url(payload)
-        if not url:
-            raise MakerWorldError("MakerWorld-Profilmanifest enthält keine Download-URL")
-        parsed = urlparse(url)
-        host = (parsed.hostname or "").casefold()
-        if parsed.scheme != "https" or not (
-            host in _ALLOWED_SIGNED_HOSTS or host.endswith(".amazonaws.com")
-        ):
-            raise MakerWorldError(f"MakerWorld-Downloadhost ist nicht freigegeben: {host or 'unbekannt'}")
-        async with session.get(
-            url,
-            headers={
-                "Accept": "application/octet-stream,application/zip,*/*",
-                "User-Agent": self._headers(account)["User-Agent"],
-            },
-            allow_redirects=False,
-            timeout=ClientTimeout(total=180),
-        ) as response:
-            return await self._read_binary(response, "MakerWorld-signierter 3MF-Download")
+        from .makerworld_transfer import download_signed_profile
+
+        return await download_signed_profile(self, account, design_id, profile_id, model_id)
 
     async def _legacy_download(self, account: _AccountContext, instance_id: str) -> bytes:
         if not _INSTANCE_ID.fullmatch(instance_id):
@@ -705,43 +670,19 @@ class MakerWorldRuntime:
         profile_id: str = "",
         model_id: str = "",
     ) -> bytes:
-        normalized_instance = _string(instance_id, 90)
-        normalized_profile = _string(profile_id, 90)
-        normalized_design = _string(design_id, 30)
-        normalized_model = _string(model_id, 120)
+        # Do not truncate or substitute identities: an explicit profile must stay
+        # that profile even after denial, timeout or an invalid response.
+        if not isinstance(instance_id, str) or not _INSTANCE_ID.fullmatch(instance_id):
+            raise ValueError("Ungültige MakerWorld-Instanz-ID")
+        if (not isinstance(profile_id, str) or not _INSTANCE_ID.fullmatch(profile_id)
+                or not isinstance(design_id, str) or not isinstance(model_id, str)
+                or not (design_id or model_id)):
+            raise MakerWorldError(
+                "Das gewählte MakerWorld-Druckprofil ist nicht vollständig zugeordnet. "
+                "Bitte die Modelldetails erneut öffnen und das Profil auswählen."
+            )
         account = self._account()
-        errors: list[str] = []
-
-        if normalized_profile and normalized_design:
-            try:
-                payload = await self._signed_download(
-                    account,
-                    normalized_design,
-                    normalized_profile,
-                    normalized_model,
-                )
-                if len(payload) >= 4 and payload.startswith(b"PK"):
-                    return payload
-                errors.append("Signierter Download lieferte keine gültige 3MF-Datei")
-            except Exception as exc:
-                errors.append(f"Signierter Download: {exc}")
-
-        fallback_ids = []
-        for candidate in (normalized_instance, normalized_profile):
-            if candidate and candidate not in fallback_ids:
-                fallback_ids.append(candidate)
-        for candidate in fallback_ids:
-            try:
-                payload = await self._legacy_download(account, candidate)
-                if len(payload) >= 4 and payload.startswith(b"PK"):
-                    return payload
-                errors.append(f"Legacy-ID {candidate} lieferte keine gültige 3MF-Datei")
-            except Exception as exc:
-                errors.append(f"Legacy-ID {candidate}: {exc}")
-
-        raise MakerWorldError(
-            "MakerWorld-Druckprofil konnte nicht geladen werden. " + " | ".join(errors)
-        )
+        return await self._signed_download(account, design_id, profile_id, model_id)
 
 
 def get_makerworld_runtime(hass: HomeAssistant) -> MakerWorldRuntime:

@@ -348,6 +348,7 @@ export type SliceJob = Readonly<{
   finished_at?: string;
   updated_at?: string;
   cancel_requested?: boolean;
+  cancellation_available?: boolean;
   command_summary?: readonly string[];
   profiles?: Readonly<{
     machine?: string | null;
@@ -654,3 +655,7 @@ export async function releaseAllQueuedJobs(): Promise<{ released: number }> {
   return jsonRequest<{ released: number }>(`${API_PREFIX}/jobs/release-all`, { method: "POST" });
 }
 
+
+export async function cancelSliceJob(jobId: string): Promise<{ status: "cancelling" | "cancelled"; cancel_requested: boolean }> {
+  return jsonRequest(`${API_PREFIX}/jobs/${encodeURIComponent(jobId)}/cancel`, { method: "POST" });
+}

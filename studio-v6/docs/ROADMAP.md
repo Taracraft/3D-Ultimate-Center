@@ -1510,3 +1510,89 @@ Abnahme abgeschlossen: Vollständiges Windows-Gate am 03.10.2026 um 12:44 Uhr (C
 Same-Day-Backup der korrigierten Bereitstellung: `/var/lib/homeassistant/homeassistant/backups/20261003T104732Z-v6-h2s-studio-worker-contract`. Gate-Bundle-SHA256: `f7bfd148790143c0e9fc735339ebcefe3c05855038fc218de1370418fa8cf1b5`. Die erste Aktivierung wurde wegen der älteren A1-Katalogprüfung zurückgerollt; modellabhängige Prüfung und echter HA-Import sind korrigiert und erneut vollständig geprüft. Lokales Repo und HA-Quellen werden vollständig mit 588 Quelldateien und 598 öffentlichen GitHub-Zielen abgeglichen. Kein Druckerupload, Job-Release oder Druckstart.
 
 Weiter offen: tatsächliche H2D/H2C-Werkzeugkonfiguration, kleinere physische Platten mit nativem Ursprungs-/Start-/Reinigungsvertrag, zusätzliche belegte AMS-Hardwarefreigaben sowie interaktive und physische Druckabnahme.
+
+
+## 2026-10-03 — P0 Druckvorschau: Backend repariert, Sichtabnahme offen
+
+Die fehlende Vorschau der drei einlagigen First-Layer-Tests wurde durch die fälschlich verlangte Folgeschicht-Bettheizung verursacht. Korrektur ist auf HA und Worker aktiv; Erstschicht-, Hardware-, Parameter- und Mehrschichtprüfungen bleiben verbindlich. Der vorhandene Live-Testjob liefert HTTP 200, succeeded, eine Schicht und 690 Segmente. 38 gezielte Prüfungen erneut bestanden; das bestandene Gesamtgate und der 213-Artefakte-Nachweis bleiben dokumentiert.
+
+Alle 207 Frontend-Dateien und die ausgelieferten JS-/CSS-Artefakte sind unverändert. Puppet auf Host-Port 5000 wurde tatsächlich gesichtet: Das gültige PNG zeigt nur die Steuerzentrale, nicht die Druckvorschau. Die Navigation wurde lesend geprüft; der anschließende Navigationsklick scheiterte am Werkzeug-Sicherheitscheck. Keine Umgehung, kein Ersatzbrowser und keine DOM-Injektion.
+
+- [x] Einlagigen Backend-/Toolpath-Pfad und Regressionen erneut prüfen.
+- [x] Unveränderte Frontendquellen und Live-JavaScript per SHA bestätigen.
+- [ ] Druckbahnen und originalen Vorschau-Ladebalken tatsächlich sichtbar abnehmen, einschließlich Mehrschichtfall und Zustandswechseln.
+- [ ] pending_gcode_analysis nach angeforderter Vollanalyse prüfen.
+- [ ] Öffentliche Veröffentlichung einschließlich Datei-/Blobhash-Abgleich bestätigen; der frühere MCP-Erinnerungscommit ersetzt den Reparatur-Codeabgleich nicht.
+
+Details: [Druckvorschau-Abnahme](V6-Druckvorschau-Abnahme-2026-10-03.md). Diese P0-Abnahme hat Vorrang vor weiteren Drucker- und Funktionsausbauten. Beta bleibt bestehen. Kein neuer Slice, Druckstart, Druckerupload oder Dienstneustart in dieser Fortsetzung.
+
+
+## 2026-10-03 — Benutzerbilder: First-Layer-Vorschau sichtbar, Uploadmodell fehlt
+
+Die drei Benutzerbilder zeigen den Vorschau-Ladebalken bei 100 Prozent und rote First-Layer-Bahnen. Abgleich mit primitive-geometry.ts: umlaufender Rahmen, parallele Querstege und mittlerer Längssteg entsprechen dem eingebauten Testmodell; das graue Raster ist die Druckplatte. Die erste Interpretation einer vollständig leeren Vorschau war zu pauschal. Kein Renderer-/Farb-/Layout-Umbau erforderlich. Vollständige Mehrschicht-/Interaktions-/Pixelabnahme bleibt separat.
+
+Der read-only Transferstatus des konkreten Benutzerjobs nennt den exakten Abbruch vor dem Upload: Für das gewählte Druckermodell fehlen geprüfte Hardwaregrenzen. Die verbundene Drucker-API meldet model=null; der Provider verwendete ausschließlich dieses optionale Telemetriefeld. Neue Identitätsauflösung bindet das Modell an die konfigurierte, verbundene Seriennummer und den gepinnten Herstellerkatalog: 039/N2S=A1, 093/O1S=H2S. Keine Ableitung aus Anzeigenamen oder vom Druckauftrag behaupteten Hardwaregrenzen. Unbekannte Familien, ungültige Seriennummern und widersprechende Telemetrie bleiben blockiert. Snapshot und Upload verwenden dieselbe Auflösung; die Hardware-/G-Code-Prüfung bleibt unverändert. Quelle: BambuStudio Commit da8b44ee34dd349f2ae0df3f1cbae366df482354, resources/printers/N2S.json und O1S.json.
+
+Zusätzlich schluckte der Frontendfehler-Resolver den strukturierten HA-Fehlerbody zugunsten von Response error: 502. Enger Fix stellt body.error.message wieder her, ohne den POST erneut auszuführen. Regression vor Korrektur: drei von vier Fällen fehlgeschlagen; nach Korrektur vier bestanden. 22 Identitäts-/Providerprüfungen ohne Netzwerk bestanden. Der originale Benutzerjob besteht die vollständige Artefaktprüfung mit der unabhängig aufgelösten A1-Hardware. Kein Druckerzugriff/Upload in diesem Test.
+
+Quellbackup/Kandidat: /config/backups/20261003-transfer-error-detail. Gesamtgate und Bereitstellung dieses neuen Fixes stehen bei diesem Eintrag noch aus. Ein späteres Deployment ist keine Behauptung eines erfolgreichen echten Uploads; automatische Wiederholung und Druckstart bleiben aus. Weiterer bestätigter UI-Befund: Profilkopf zeigt generische Düsenwerte 200/300 statt ausgewählter Prozesswerte 70/150 mm/s. Die tatsächlichen G-Code-Werte sind im Benutzerbild korrekt bestätigt; dieser Anzeige-Fehler bleibt ein eigener offener Punkt.
+
+
+### 03.10.2026, 15:50 CEST — Modell-/Übertragungsfix geprüft und bereitgestellt, Aktivierung offen
+
+Gesamtgate am kanonischen PC bestanden: Source-Policy, TypeScript, 153 Frontendtests, beide Builds, Python-Gesamttests und Compile-Prüfung. Zusätzlich 22 isolierte Identitäts-/Providerregressionen sowie vier Fehlerbody-/Nichtwiederholungsprüfungen bestanden. Letztere zeigen den Fehler vorher mit drei roten Tests. Der originale Benutzer-G-Code besteht mit der aus der Hersteller-Serienfamilie unabhängig ermittelten A1-Identität die vollständige Artefaktprüfung ohne FTPS-/Druckerzugriff.
+
+Sechs Ziele mit Same-Day-Backup `/config/backups/20261003T134818Z-v6-connected-model-transfer` bereitgestellt und per SHA bestätigt: zwei HA-Python-Dateien und JavaScript/Buildmanifest im Live-Ziel sowie in der HA-Quellkopie. Native Workerdateien und CSS unverändert. Von 207 Frontendquellen änderte sich ausschließlich `ha-api-transport.ts` zur Fehlerdetailanzeige; Renderer, Geometrie, Farben und Popup-Layout unverändert. Neues Live-JavaScript: `652d71e328b0bd352875800fe576c9911f4aeade9d5773984d46d9fb207e9305`.
+
+HA-Konfigurationsprüfung erfolgreich. Der anschließend notwendige `ha core restart` wurde vom Werkzeug-Sicherheitscheck blockiert und nicht ausgeführt. Die Backend-Aktivierung bleibt daher offen; kein Ersatzpfad und keine Umgehung. Der Nutzer muss Home Assistant neu starten, anschließend ist die laufende Drucker-API erneut auf model=A1 zu prüfen. Kein tatsächlicher Upload erneut ausgeführt und kein Druck gestartet. Ein erfolgreicher echter Transfer wird ausdrücklich noch nicht behauptet.
+
+Noch offen: Aktivierung/Live-Modellprüfung, tatsächliche manuell freigegebene Übertragung, falsche generische Platzhalter 200/300 statt ausgewählter 70/150 mm/s, vollständiger GitHub-Codeabgleich und weitergehende Vorschau-/Interaktionsabnahme. Quellen und Dokumentation lokal/HA synchron; öffentliches main in diesem Schritt nicht geändert.
+
+
+## 2026-10-05 · MakerWorld und echte Materialvorschau: aktueller Teilstand
+
+Verbindliche Anforderungen: [MakerWorld-Import, 95-Prozent-Popup und Materialfarben](Studio-Roadmap-MakerWorld-und-Materialvorschau-2026-10-04.md). Teilnachweis: [Materialvorschau-Prüfpass](Studio-Materialvorschau-Pruefpass-2026-10-05.md).
+
+- [x] PREVIEW-COLORS: Hauptvorschau und Parser im kanonischen PC-Quellstand an den neuen Materialfarbenvertrag angepasst, gesichert und vollständig rückgelesen.
+- [x] PC-Gesamtgate 05.10.2026 00:35:28 CEST: 403 Frontendtests, 1.575 Python-/Worker-Tests und 15 Untertests bestanden; neun Linux-spezifische Fälle unter Windows ausgelassen; Typprüfung, beide Builds, Source-Policy, Syntax/Imports/Compile bestanden.
+- [ ] PREVIEW-COLORS vollständig abschließen: alternativen eigenständigen Viewer nachführen; HA-Synchronisierung, koordinierte Bereitstellung und echte Browser-/iPhone-Abnahme.
+- [ ] MW-IMPORT: vorhandener geprüfter PC-Downloadvertrag ersetzt noch keine erfolgreiche Live-Anmeldung und 3MF-Übernahme des gemeldeten Modells.
+- [ ] MW-MODAL-95: Popup auf 95 Prozent nutzbare Websitebreite und -höhe vergrößern und mobil abnehmen; die Änderung wurde vom Werkzeug-Sicherheitscheck blockiert und ist nicht angewendet.
+- [ ] Privates Prüfdashboard, öffentlicher GitHub-Stand und Namensmigrationskandidat nachführen.
+
+Die Hauptvorschau ist damit ein getesteter Quellcode-Teilabschluss, kein abgeschlossenes Live-Feature. Die frühere Forderung nach Drucktyp als Standard ist ersetzt. Andere Agenda-Punkte, offene Daten-/Deploymentprüfungen und der Beta-Status bleiben bestehen. Keine Druckreihenfolge verändert.
+
+
+## 2026-10-05 · Nachweis: PC-Stand in HA-Entwicklungsquelle übernommen
+
+- [x] Im definierten Umfang 662 PC-Dateien aufgenommen, vollständig zweifach gelesen und 52 abweichende HA-Quelldateien nach Originalsicherung synchronisiert; Abschluss 07:55:16 CEST.
+- [ ] Zusammengehörige produktive Bereitstellung mit verlässlicher Vor-/Nachprüfung und Live-SHA-Nachweis. Die installierte Oberfläche ist weiterhin älter.
+- [ ] Öffentlichen Abgleich über die bestehenden Bereiche studio-v6/, homeassistant/, slicing-server/ und deployment/ abschließen; kein flaches Überschreiben der Repositorywurzel.
+- [ ] Reale Desktop-/iPhone-Abnahme, MakerWorld-Anmeldung und echter Import, Prüfdashboard und Namensmigrationskandidat nachführen.
+
+[Prüfbericht und Rückweg](Studio-PC-HA-Quellabgleich-2026-10-05.md). Das Häkchen bezieht sich ausschließlich auf den tatsächlich erfolgten Quellabgleich, nicht auf Produktivinstallation oder Releasefreigabe.
+
+
+## 2026-10-05 · Release-Bereitstellung und Linux-Neuaufbau
+
+- [x] REL-WORKER-PACKAGE: fehlende Installations-/Backup-/Rollbackzuordnung von job_control.py im kanonischen Deployskript repariert; 26 gezielte Linuxprüfungen und vollständiges PC-Gate bestanden, Code auf PC/HA/GitHub bestätigt.
+- [ ] Öffentlichen CI-Lauf 37373691825 abschließend auswerten und vollständigen verbleibenden Quellabgleich abschließen. Entwurfs-PR ist keine vollständige Releasefreigabe.
+- [ ] Koordinierte HA-/Frontend- und getrennte native Worker-Aktivierung nach aktuellem Druck-/Slicecheck und gesichertem Rückweg; Live-Hashes, Integration und Capabilities prüfen.
+- [ ] REL-BOOTSTRAP-20261005 · P0: zerstörungsfreien Linux-Neuaufbauvertrag prüfen und bereitstellen. Das alte öffentliche scripts/rebuild-homeassist.sh kopiert V5 und löscht Slicerwurzelinhalte zu breit; nicht für den Firmenaufbau verwenden.
+- [ ] Reale Vorschau-/Import-/Galerie-/CAD-/Mobilabnahme, Namensmigration, Prüfdashboard und Wiederanlauf-/Rückwegprüfung abschließen. Die Benutzerfrist für die Firmeninstallation ersetzt keines dieser Kriterien.
+
+[Prüfbericht, Quellhashes und Fortsetzung](Studio-Native-Deployment-Paketierung-2026-10-05.md). Keine Produktivaktivierung durch diese Anforderungshäkchen ableiten.
+
+## 2026-10-06 — Stable-Release-Freigabe 6.0.0
+
+Neuere Benutzerentscheidung ersetzt ausschließlich frühere Beta-Blocker, nicht die technischen Sicherheitsverträge:
+
+- [x] Interaktive UI-/iPhone-Abnahme ist kein Release-Gate mehr. Nicht erneut interaktiv geprüfte Oberflächen werden nicht als frisch manuell getestet ausgegeben.
+- [x] Druckertelemetrie bei ausgeschaltetem Drucker ist kein Release-Gate mehr. Der daraus resultierende MQTT-Fehler blockiert Stable nicht.
+- [x] Vollständiges automatisiertes Gate vor der Versionsumstellung grün: 442 Frontendtests, 1.686 Python-/Worker-Tests und 15 Untertests; Source-Policy, TypeScript, Produktions-/HA-Build und Compileprüfung bestanden.
+- [x] Native Worker-/Paketierungs-, Backup-/Rollback- und Linux-Bootstrapverträge bleiben unverändert verbindlich.
+- [x] Finales 6.0.0-Gate nach Versionsumstellung grün und Stable-Live-SHAs auf HA bestätigt. PC↔GitHub-Abgleich steht noch aus.
+- [ ] PR #1 nach finalem Stable-Gate aus Draft nehmen und Release-Nachweis abschließen.
+- [ ] MakerWorld-Liveanmeldung/-Import bleibt Post-Release-Arbeit; kein behaupteter Abschluss.
+
+Historische Roadmap-Einträge, in denen 6.0.0-beta3 ausdrücklich beibehalten wurde, bleiben als zeitgenössischer Nachweis unverändert.
