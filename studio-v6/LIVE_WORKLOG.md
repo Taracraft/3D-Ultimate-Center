@@ -398,3 +398,21 @@ Neuer P0-Neuaufbaubefund: öffentliches scripts/rebuild-homeassist.sh ist wegen 
 Der öffentliche Job isolated-deployment-lifecycle im Lauf 37373691825 ist erfolgreich abgeschlossen. Das heruntergeladene Artefakt 11370564597 wurde unabhängig per SHA-256 9c366ead5c61b7ab9525ded21ed312ead5276e0f576288e33db537d10df24835 geprüft. JUnit bestätigt 26 Tests, null Fehler, null Auslassungen; commit.txt bindet das Ergebnis an 36b234f3c34f7bf9964b2484f9eeeb8a53dd7c10, source.sha256 bestätigt die beiden PC-/HA-Quellhashes. Dies sind dieselben 26 gezielten Fälle, kein zusätzlicher unabhängiger Gesamtbestand. Die vorherige Warteschlangenmeldung ist damit aufgelöst.
 
 Produktive Aktivierung und vollständiger öffentlicher Abgleich bleiben offen. Beim sauberen Linux-Neuaufbau außerdem die öffentliche Aufteilung slicing-server/ und deployment/systemd/ in einen tatsächlich vollständigen nativen Installationskandidaten überführen; die synthetischen Lifecycle-Tests ersetzen diese Paketvollständigkeitsprüfung nicht.
+
+## 2026-10-06 — Stable-Release-Finishing 6.0.0
+
+- Benutzer hat den Beta-Ausstieg ausdrücklich freigegeben.
+- Interaktive UI-/iPhone-Abnahme sowie Druckertelemetrie bei ausgeschaltetem Drucker wurden als Release-Gates gestrichen; keine nicht ausgeführte Abnahme wird dadurch als bestanden behauptet.
+- MakerWorld-Liveanmeldung/-Import wird als Post-Release-Thema geführt und blockiert 6.0.0 nach dieser Freigabe nicht.
+- Vor Versionsänderung vollständiges Gate nach Mobile-Navigationsfix grün: 442/442 Frontendtests; 1.686 Python-/Worker-Tests; 15 Untertests; Source-Policy, TypeScript, Produktions-/HA-Build und Compileall grün.
+- Autoritative Versionierungsquellen auf Stable 6.0.0 umgestellt: package.json, package-lock.json, HA manifest.json und const.py. Historische Beta-Dokumentation bleibt unverändert.
+- Vorherstände gesichert unter backups/20261006-stable-6.0.0/before.
+- Noch auszuführen: finales Stable-Gate, PC↔HA↔GitHub-Sync, Live-SHA/HA-Konfigurationscheck, PR-Draft-Aufhebung und finaler Release-Nachweis.
+- Keine Druckerbefehle, realen Test-Slices, Job-Releases, Uploads, Bewegungen, Heiz-/Filamentaktionen oder Druckstarts.
+- Finales Stable-Gate abgeschlossen am 06.10.2026 13:37:13 CEST: 442/442 Frontendtests, 1.686 Python-/Worker-Tests, 66 explizite Plattform-Skips und 15 Untertests; Source-Policy, TypeScript, Produktions-/HA-Build, Syntax/Imports und Compileall grün.
+- HA-Quellkopie auf Stable-Quellen synchronisiert; Mobile-Navigationsfix und Regression übernommen.
+- Stable-Frontend live aktiviert: JS SHA256 a003082a45d2d658c2bc1daa2fc49bbea9a374b40fc8c04c68c00930d923caa0; CSS SHA256 0ec340b2b24dca9bdcd9bb5528e9aa7f72e64acf6b83d82f2c81871c0a03901c; Manifest Version 6.0.0, 130 Module.
+- HA-Komponente manifest.json/const.py atomar mit Same-Day-Backup auf 6.0.0 aktiviert; Live-Hashes 9e2cbe7c012eee71c4b1e64d634d7dce6cedbe8155f5db34ac6c10adae9cf589 und 5b912f55eeac5cefc271231a77a24d2eb7f3fb5412b5cf0e3d5b874fff4543a4.
+- HA Core genau einmal neu gestartet. Container StartedAt 2026-10-06T11:50:47.281788574Z (13:50:47 CEST), danach erneut ha core check erfolgreich.
+- Kein Worker-Neudeploy, kein Druckerkommando, kein realer Slice, Upload, Bewegung, Heizen, Filamentvorgang oder Druckstart.
+- Öffentlicher GitHub-Stable-Abgleich/CI und PR-Draft-Aufhebung stehen noch aus.

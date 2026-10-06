@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 6.0.0 — 06.10.2026
+
+### Stabiles Release
+
+- Beta-Serie beendet und die autoritative Frontend-/Paket- sowie Home-Assistant-Integrationsversion auf **6.0.0** gesetzt.
+- Geschlossenen nativen PROFILE_FILES-Vertrag für das kuratierte A1/H2S-Paket, fail-closed Manifeste, Same-Day-Backup/Rollback und Live-SHA-Prüfung beibehalten.
+- Mobile Navigationskorrektur aufgenommen: Die horizontale Tableiste bleibt alleiniger Scroll-Owner; aktive Tabs dürfen mobil nicht mehr vertikal aufgezogen werden.
+- Stable wird durch Source-Policy, TypeScript, Frontendlogik, Produktionsbuild, Python-/Worker-Tests und Home-Assistant-Compileprüfung abgesichert. Der finale 6.0.0-Gatenachweis steht im Release-Nachweis.
+- Interaktive UI-/iPhone-Abnahme und Druckertelemetrie bei ausgeschaltetem Drucker wurden vom Projekteigner ausdrücklich aus den 6.0.0-Release-Gates entfernt. Das ist eine Scope-Entscheidung und kein erfundener Testabschluss.
+- MakerWorld-Liveanmeldung/-Import bleibt als dokumentiertes Post-Release-Thema erhalten. Beim Versionswechsel werden keine Druckerbefehle, realen Test-Slices, Uploads, Bewegungen, Heiz-/Filamentaktionen oder Druckstarts ausgeführt.
+
+
 ## Unveroeffentlicht - 30.09.2026
 
 ### Malwerkzeug und Malbereiche

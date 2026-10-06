@@ -1,5 +1,17 @@
 # Changelog
 
+## 6.0.0 — 2026-10-06
+
+### Stable release
+
+- Exited the beta series and set the authoritative frontend/package and Home Assistant integration version to **6.0.0**.
+- Retained the closed native PROFILE_FILES contract for the curated A1/H2S package, fail-closed manifests, same-day backup/rollback and live SHA verification.
+- Included the mobile navigation layout correction that keeps the horizontal tab strip as the single scroll owner and prevents active tabs from stretching vertically.
+- Stable release is gated by the complete automated source policy, TypeScript, frontend logic, production build, Python/worker and Home Assistant compile checks. Final 6.0.0 gate evidence is recorded in the release evidence document.
+- Interactive UI/iPhone acceptance and printer telemetry while the printer is powered off were explicitly removed from the 6.0.0 release gates by the project owner. This is a scope decision, not fabricated test evidence.
+- MakerWorld live authentication/import remains a documented post-release follow-up. No printer command, real test slice, upload, movement, heating, filament action or print start is part of this release transition.
+
+
 ## Unreleased - 2026-09-30
 
 ### Paint tools and paint areas

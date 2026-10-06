@@ -1,5 +1,6 @@
 import "./material-preview-colors.test.js";
 import "./makerworld-attribution.test.js";
+import "./job-activity-store.test.js";
 import { safeMediaUrl, descriptionImageUrls, missingDescriptionImages } from "../frontend/makerworld-description-media.js";
 import { buildContinuousToolpathMeshes, extrusionRibbonWidth, type RibbonSegment } from "../frontend/toolpath-ribbon-geometry.js";
 import { transferMatchesAttempt } from "../frontend/transfer-attempt.js";

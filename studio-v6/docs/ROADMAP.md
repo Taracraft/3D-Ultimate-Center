@@ -1571,3 +1571,28 @@ Die Hauptvorschau ist damit ein getesteter Quellcode-Teilabschluss, kein abgesch
 - [ ] Reale Desktop-/iPhone-Abnahme, MakerWorld-Anmeldung und echter Import, Prüfdashboard und Namensmigrationskandidat nachführen.
 
 [Prüfbericht und Rückweg](Studio-PC-HA-Quellabgleich-2026-10-05.md). Das Häkchen bezieht sich ausschließlich auf den tatsächlich erfolgten Quellabgleich, nicht auf Produktivinstallation oder Releasefreigabe.
+
+
+## 2026-10-05 · Release-Bereitstellung und Linux-Neuaufbau
+
+- [x] REL-WORKER-PACKAGE: fehlende Installations-/Backup-/Rollbackzuordnung von job_control.py im kanonischen Deployskript repariert; 26 gezielte Linuxprüfungen und vollständiges PC-Gate bestanden, Code auf PC/HA/GitHub bestätigt.
+- [ ] Öffentlichen CI-Lauf 37373691825 abschließend auswerten und vollständigen verbleibenden Quellabgleich abschließen. Entwurfs-PR ist keine vollständige Releasefreigabe.
+- [ ] Koordinierte HA-/Frontend- und getrennte native Worker-Aktivierung nach aktuellem Druck-/Slicecheck und gesichertem Rückweg; Live-Hashes, Integration und Capabilities prüfen.
+- [ ] REL-BOOTSTRAP-20261005 · P0: zerstörungsfreien Linux-Neuaufbauvertrag prüfen und bereitstellen. Das alte öffentliche scripts/rebuild-homeassist.sh kopiert V5 und löscht Slicerwurzelinhalte zu breit; nicht für den Firmenaufbau verwenden.
+- [ ] Reale Vorschau-/Import-/Galerie-/CAD-/Mobilabnahme, Namensmigration, Prüfdashboard und Wiederanlauf-/Rückwegprüfung abschließen. Die Benutzerfrist für die Firmeninstallation ersetzt keines dieser Kriterien.
+
+[Prüfbericht, Quellhashes und Fortsetzung](Studio-Native-Deployment-Paketierung-2026-10-05.md). Keine Produktivaktivierung durch diese Anforderungshäkchen ableiten.
+
+## 2026-10-06 — Stable-Release-Freigabe 6.0.0
+
+Neuere Benutzerentscheidung ersetzt ausschließlich frühere Beta-Blocker, nicht die technischen Sicherheitsverträge:
+
+- [x] Interaktive UI-/iPhone-Abnahme ist kein Release-Gate mehr. Nicht erneut interaktiv geprüfte Oberflächen werden nicht als frisch manuell getestet ausgegeben.
+- [x] Druckertelemetrie bei ausgeschaltetem Drucker ist kein Release-Gate mehr. Der daraus resultierende MQTT-Fehler blockiert Stable nicht.
+- [x] Vollständiges automatisiertes Gate vor der Versionsumstellung grün: 442 Frontendtests, 1.686 Python-/Worker-Tests und 15 Untertests; Source-Policy, TypeScript, Produktions-/HA-Build und Compileprüfung bestanden.
+- [x] Native Worker-/Paketierungs-, Backup-/Rollback- und Linux-Bootstrapverträge bleiben unverändert verbindlich.
+- [x] Finales 6.0.0-Gate nach Versionsumstellung grün und Stable-Live-SHAs auf HA bestätigt. PC↔GitHub-Abgleich steht noch aus.
+- [ ] PR #1 nach finalem Stable-Gate aus Draft nehmen und Release-Nachweis abschließen.
+- [ ] MakerWorld-Liveanmeldung/-Import bleibt Post-Release-Arbeit; kein behaupteter Abschluss.
+
+Historische Roadmap-Einträge, in denen 6.0.0-beta3 ausdrücklich beibehalten wurde, bleiben als zeitgenössischer Nachweis unverändert.

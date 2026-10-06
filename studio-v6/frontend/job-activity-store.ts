@@ -32,6 +32,28 @@ const POLL_INTERVAL_MS = 2_500;
 const ACTIVE_SLICE_STATES = new Set(["queued", "running", "cancelling"]);
 const TERMINAL_SLICE_STATES = new Set(["succeeded", "failed", "cancelled", "interrupted"]);
 const ACTIVE_PRINT_STATES = new Set(["running", "printing", "pause", "paused", "prepare", "preparing", "starting"]);
+const INACTIVE_CONNECTION_STATES = new Set(["offline", "disconnected", "unavailable", "unknown", "failed", "error"]);
+
+export function activePrintJobs(jobs: V6Jobs, printers: readonly V6Printer[]): V6Job[] {
+  const current = (jobs.current || []).filter((job) => {
+    const jobState = String(job.status || "").trim().toLowerCase();
+    if (jobState && !ACTIVE_PRINT_STATES.has(jobState)) return false;
+
+    const printerId = String(job.printer_id || "").trim();
+    const printer = printers.find((item) => String(item.printer_id || "").trim() === printerId)
+      ?? (!printerId && printers.length === 1 ? printers[0] : null);
+    if (!printer) return false;
+
+    const printerState = String(printer.printer_state || "").trim().toLowerCase();
+    if (!ACTIVE_PRINT_STATES.has(printerState)) return false;
+
+    const connectionState = String(printer.connection_state || "").trim().toLowerCase();
+    if (connectionState && INACTIVE_CONNECTION_STATES.has(connectionState)) return false;
+    return true;
+  });
+  return [...current, ...(jobs.queue || [])];
+}
+
 const AUTH_ERROR_PATTERN = /(?:401|403|unauthori[sz]ed|forbidden|authentication|authentifizierung|zugriffstoken|access token)/i;
 
 class JobActivityStore {
@@ -131,7 +153,7 @@ class JobActivityStore {
         health,
         slicer: slicerRevision === this.#slicerRevision ? slicer : this.#snapshot.slicer,
         jobs,
-        printJobs: this.#activePrintJobs(jobs),
+        printJobs: activePrintJobs(jobs, printers),
         printers,
         capabilities,
         updatedAt: Date.now(),
@@ -197,14 +219,6 @@ class JobActivityStore {
       if (jobId) globalThis.localStorage?.setItem(STORAGE_KEY, jobId);
       else globalThis.localStorage?.removeItem(STORAGE_KEY);
     } catch {}
-  }
-
-  #activePrintJobs(jobs: V6Jobs): V6Job[] {
-    const current = (jobs.current || []).filter((job) => {
-      const state = String(job.status || "").toLowerCase();
-      return !state || ACTIVE_PRINT_STATES.has(state);
-    });
-    return [...current, ...(jobs.queue || [])];
   }
 
   #auditSnapshot(): void {

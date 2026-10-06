@@ -28,20 +28,6 @@ else:
     _GRAPH_SPEC.loader.exec_module(_GRAPH_MODULE)
     mesh_instances = _GRAPH_MODULE.mesh_instances
 
-if __package__:
-    from .filament_parameter_contract import apply_filament_parameters, check_filament_temperatures, parameter_proof, native_filament_authorities, validate_shared_bed_temperatures
-    from .slicer_execution_contract import validate_execution_contract, job_hardware_limits, digest
-else:
-    for _name in ("filament_parameter_contract", "slicer_execution_contract"):
-        _spec = importlib.util.spec_from_file_location(_name, Path(__file__).with_name(_name + ".py"))
-        if _spec is None or _spec.loader is None:
-            raise ImportError(_name)
-        _module = importlib.util.module_from_spec(_spec)
-        sys.modules[_name] = _module
-        _spec.loader.exec_module(_module)
-    from filament_parameter_contract import apply_filament_parameters, check_filament_temperatures, parameter_proof, native_filament_authorities, validate_shared_bed_temperatures
-    from slicer_execution_contract import validate_execution_contract, job_hardware_limits, digest
-
 _METADATA_KEYS = {
     "name", "type", "from", "instantiation", "inherits", "include",
     "setting_id", "filament_id", "compatible_printers", "compatible_prints",
@@ -49,7 +35,6 @@ _METADATA_KEYS = {
     "model_id", "dev_model_name",
 }
 _MODEL_SUFFIXES = {
-    "h2s": ("@BBL H2S",),
     "a1": ("@BBL A1",),
     "a1_mini": ("@BBL A1M", "@BBL A1 mini"),
     "p1s": ("@BBL P1S", "@BBL P1P"),
@@ -57,66 +42,6 @@ _MODEL_SUFFIXES = {
     "x1c": ("@BBL X1C", "@BBL X1"),
     "x1": ("@BBL X1", "@BBL X1C"),
     "x1e": ("@BBL X1E", "@BBL X1"),
-}
-
-_PROCESS_OVERRIDE_MAP = {
-    "layer_height_mm": "layer_height",
-    "first_layer_height_mm": "initial_layer_print_height",
-    "initial_layer_line_width_mm": "initial_layer_line_width",
-    "infill_direction_deg": "infill_direction",
-    "initial_layer_infill_speed_mm_s": "initial_layer_infill_speed",
-    "walls": "wall_loops",
-    "top_shell_layers": "top_shell_layers",
-    "bottom_shell_layers": "bottom_shell_layers",
-    "infill_percent": "sparse_infill_density",
-    "outer_wall_speed_mm_s": "outer_wall_speed",
-    "inner_wall_speed_mm_s": "inner_wall_speed",
-    "travel_speed_mm_s": "travel_speed",
-    "line_width_mm": "line_width",
-    "outer_wall_line_width_mm": "outer_wall_line_width",
-    "inner_wall_line_width_mm": "inner_wall_line_width",
-    "top_surface_line_width_mm": "top_surface_line_width",
-    "support_line_width_mm": "support_line_width",
-    "sparse_infill_speed_mm_s": "sparse_infill_speed",
-    "internal_solid_infill_speed_mm_s": "internal_solid_infill_speed",
-    "top_surface_speed_mm_s": "top_surface_speed",
-    "initial_layer_speed_mm_s": "initial_layer_speed",
-    "bridge_speed_mm_s": "bridge_speed",
-    "gap_infill_speed_mm_s": "gap_infill_speed",
-    "solid_infill_speed_mm_s": "solid_infill_speed",
-    "ironing_speed_mm_s": "ironing_speed",
-    "support_speed_mm_s": "support_speed",
-    "support_interface_speed_mm_s": "support_interface_speed",
-    "bridge_flow_ratio": "bridge_flow",
-    "support_top_z_distance_mm": "support_top_z_distance",
-    "support_bottom_z_distance_mm": "support_bottom_z_distance",
-    "support_object_xy_distance_mm": "support_object_xy_distance",
-    "support_interface_spacing_mm": "support_interface_spacing",
-    "support_interface_top_layers": "support_interface_top_layers",
-    "support_interface_bottom_layers": "support_interface_bottom_layers",
-}
-_PROCESS_OVERRIDE_RULES = {
-    "layer_height_mm": (.04, .56, False),
-    "first_layer_height_mm": (.04, .56, False),
-    "initial_layer_line_width_mm": (.01, 1.6, False),
-    "infill_direction_deg": (0, 180, False),
-    "initial_layer_infill_speed_mm_s": (1, 500, False),
-    "walls": (0, None, True),
-    "top_shell_layers": (0, None, True),
-    "bottom_shell_layers": (0, None, True),
-    "infill_percent": (0, 100, False),
-    "outer_wall_speed_mm_s": (1, 500, False),
-    "inner_wall_speed_mm_s": (1, 500, False),
-    "travel_speed_mm_s": (1, 500, False),
-    **{key: (.01, None, False) for key in ("line_width_mm", "outer_wall_line_width_mm", "inner_wall_line_width_mm", "top_surface_line_width_mm", "support_line_width_mm")},
-    **{key: (1, None, False) for key in ("sparse_infill_speed_mm_s", "internal_solid_infill_speed_mm_s", "top_surface_speed_mm_s", "initial_layer_speed_mm_s", "bridge_speed_mm_s", "gap_infill_speed_mm_s", "solid_infill_speed_mm_s", "ironing_speed_mm_s", "support_speed_mm_s", "support_interface_speed_mm_s")},
-    "bridge_flow_ratio": (0, None, False),
-    "support_top_z_distance_mm": (0, None, False),
-    "support_bottom_z_distance_mm": (0, None, False),
-    "support_object_xy_distance_mm": (0, None, False),
-    "support_interface_spacing_mm": (0, None, False),
-    "support_interface_top_layers": (0, None, True),
-    "support_interface_bottom_layers": (0, None, True),
 }
 
 
@@ -140,7 +65,6 @@ def _canonical_model(value: object) -> str:
         (("x1e",), "x1e"),
         (("p1s",), "p1s"),
         (("p1p",), "p1p"),
-        (("h2s",), "h2s"),
         (("a1",), "a1"),
         (("x1",), "x1"),
     ):
@@ -344,10 +268,6 @@ def _as_profile_value(value: Any, reference: Any = None) -> Any:
         if isinstance(value, list):
             return value
         return [str(value)]
-    if isinstance(value, bool):
-        return "1" if value else "0"
-    if isinstance(value, (int, float)):
-        return str(value)
     return value
 
 
@@ -359,8 +279,47 @@ def _apply_selected_profile_payload(
     if not isinstance(selected, dict):
         return profile
     payload = selected.get("payload") if isinstance(selected.get("payload"), dict) else {}
-    result = apply_filament_parameters(profile, payload)
+    result = dict(profile)
     result["name"] = str(selected.get("name") or result.get("name") or "")
+    direct_prefixes = (
+        "filament_",
+        "nozzle_",
+        "hot_plate_",
+        "textured_plate_",
+        "cool_plate_",
+        "eng_plate_",
+        "smooth_plate_",
+        "supertack_plate_",
+    )
+    for key, value in payload.items():
+        if key in _METADATA_KEYS or key.startswith("_"):
+            continue
+        if key in result or key.startswith(direct_prefixes):
+            result[key] = _as_profile_value(value, result.get(key))
+    mappings = {
+        "flow_ratio": "filament_flow_ratio",
+        "max_volumetric_speed_mm3_s": "filament_max_volumetric_speed",
+        "density_g_cm3": "filament_density",
+        "diameter_mm": "filament_diameter",
+    }
+    for source, target in mappings.items():
+        if source in payload:
+            result[target] = [str(payload[source])]
+    nozzle = payload.get("nozzle_temperature_c")
+    if isinstance(nozzle, (int, float, str)):
+        result["nozzle_temperature"] = [str(nozzle)]
+        result["nozzle_temperature_initial_layer"] = [str(nozzle)]
+    bed = payload.get("bed_temperature_c")
+    if isinstance(bed, (int, float, str)):
+        for key in (
+            "hot_plate_temp",
+            "hot_plate_temp_initial_layer",
+            "textured_plate_temp",
+            "textured_plate_temp_initial_layer",
+            "eng_plate_temp",
+            "eng_plate_temp_initial_layer",
+        ):
+            result[key] = [str(bed)]
     return result
 
 
@@ -378,7 +337,7 @@ def _required_override_number(
     overrides: dict[str, Any],
     key: str,
     minimum: float,
-    maximum: float | None,
+    maximum: float,
 ) -> float | None:
     value = overrides.get(key)
     if value is None:
@@ -389,33 +348,13 @@ def _required_override_number(
         parsed = float(value)
     except (TypeError, ValueError) as exc:
         raise ValueError(f"{key} ist ungültig") from exc
-    if not math.isfinite(parsed) or parsed < minimum or (maximum is not None and parsed > maximum):
+    if not math.isfinite(parsed) or not minimum <= parsed <= maximum:
         raise ValueError(f"{key} ist außerhalb des gültigen Bereichs")
     return parsed
 
 
-def _apply_process_overrides(process: dict[str, Any], overrides: dict[str, Any]) -> None:
-    for override_key, process_key in _PROCESS_OVERRIDE_MAP.items():
-        minimum, maximum, integer = _PROCESS_OVERRIDE_RULES[override_key]
-        if override_key == "initial_layer_line_width_mm" and overrides.get("nozzle_diameter_mm") is not None:
-            maximum = min(1.6, 2 * _number(overrides["nozzle_diameter_mm"], 0))
-        value = _required_override_number(overrides, override_key, minimum, maximum)
-        if value is None:
-            continue
-        if integer:
-            if not value.is_integer():
-                raise ValueError(f"{override_key} erfordert eine ganze Zahl")
-            applied: Any = int(value)
-        elif override_key == "infill_percent":
-            applied = f"{value:g}%"
-        else:
-            applied = _clean_number(value)
-        process[process_key] = _as_profile_value(applied, process.get(process_key))
-
-
 def _validated_layer_height_ranges(
     overrides: dict[str, Any],
-    max_build_height_mm: float = 256.,
 ) -> list[dict[str, float]]:
     ranges = overrides.get("layer_height_ranges")
     if ranges is None:
@@ -435,13 +374,13 @@ def _validated_layer_height_ranges(
             item,
             "min_z_mm" if item.get("min_z_mm") is not None else "min_z",
             0.0,
-            max_build_height_mm,
+            256.0,
         )
         max_z = _required_override_number(
             item,
             "max_z_mm" if item.get("max_z_mm") is not None else "max_z",
             0.0,
-            max_build_height_mm,
+            256.0,
         )
         height = _required_override_number(
             item,
@@ -590,8 +529,7 @@ def _apply_selected_process_profile(
     profile_id = str(body.get("profile_id") or "")
     name = str(body.get("name") or "")
     settings = body.get("settings")
-    empty_cloud_base = (body.get("source") == "bambu_cloud" and body.get("materialization_policy") == "exact_bambu_cloud_overlay")
-    if not profile_id or not name or not isinstance(settings, dict) or (not settings and not empty_cloud_base):
+    if not profile_id or not name or not isinstance(settings, dict) or not settings:
         raise ValueError("Der Prozessprofilvertrag ist unvollständig.")
 
     applied = dict(process)
@@ -601,18 +539,16 @@ def _apply_selected_process_profile(
             key,
         ):
             raise ValueError("Der Prozessprofilvertrag enthält einen ungültigen Schlüssel.")
-        if key in {"printable_area", "printable_height", "bed_exclude_area", "extruder_offset", "gcode_flavor", "curr_bed_type", "bed_temperature"} or key.startswith(("machine_", "filament_", "nozzle_")) or "plate_temp" in key:
-            raise ValueError("Prozessprofile dürfen keine Maschinen- oder Filamentparameter überschreiben.")
         if "gcode" in key.casefold():
             raise ValueError(
                 "Prozessprofile dürfen keine G-Code-Vorlage überschreiben."
             )
-        if key in {"layer_height", "initial_layer_print_height"}:
+        if key == "layer_height":
             value = _clean_number(_required_override_number(
                 {"layer_height": value},
                 "layer_height",
-                _number(overrides.get("min_layer_height_mm"), .04),
-                (_number(overrides.get("nozzle_diameter_mm"), .4) if key == "initial_layer_print_height" else _number(overrides.get("max_layer_height_mm"), .56)),
+                .04,
+                .56,
             ) or 0.2)
         applied[key] = _as_profile_value(value, applied.get(key))
     return applied, {
@@ -646,14 +582,6 @@ def _materialize_process(
     dict[str, Any],
 ]:
     process = _resolve_profile(process_directory, process_source)
-    if model == "h2s":
-        try:
-            from .printer_model_contract import h2s_defaults
-        except ImportError:
-            from printer_model_contract import h2s_defaults
-        expected = h2s_defaults()["processes"][str(overrides.get("h2s_nozzle_diameter_mm"))]
-        if digest(process) != expected["resolved_sha256"]:
-            raise ValueError("Die native H2S-Prozessquelle wurde verändert.")
     process, process_profile_proof = _apply_selected_process_profile(
         process,
         process_source,
@@ -665,20 +593,12 @@ def _materialize_process(
     for filament in filaments:
         path = _select_filament_profile(filament_directory, filament, model)
         selected_paths.append(path)
-        base = _resolve_profile(filament_directory, path)
-        authority = native_filament_authorities().get(str(base.get("name") or path.stem))
-        if overrides.get("require_execution_contract") is True and authority is not None and digest(base) != authority["resolved_sha256"]:
-            raise ValueError("Die native Filamentbasis weicht von der geprüften Parameterautorität ab.")
-        if model == "h2s":
-            if authority is None or "H2S" not in str(base.get("name")):
-                raise ValueError("Für die H2S-Filamentbasis fehlt eine geprüfte native Autorität.")
-            if "Bambu Lab H2S " + str(overrides.get("h2s_nozzle_diameter_mm")) + " nozzle" not in authority["compatible_printers"]:
-                raise ValueError("Die H2S-Filamentbasis passt nicht zum Düsendurchmesser.")
-        if model == "h2s":
-            base = {k: [v[0]] if isinstance(v, list) and v and k not in _METADATA_KEYS else v for k,v in base.items()}
-        if model == "h2s" and filament.get("source") == "ams_slot" and authority.get("ams_supported") is not True:
-            raise ValueError("Für diese native H2S-Filamentbasis fehlt die AMS-Freigabe.")
-        resolved_profiles.append(_apply_selected_profile_payload(base, filament))
+        resolved_profiles.append(
+            _apply_selected_profile_payload(
+                _resolve_profile(filament_directory, path),
+                filament,
+            )
+        )
 
     option_keys: set[str] = set()
     for profile in resolved_profiles:
@@ -787,19 +707,32 @@ def _materialize_process(
         else "0"
     )
     process["enable_support"] = "0" if support == "off" else "1"
-    support_style = str(overrides.get("support_style") or "standard")
     process["support_type"] = (
         "tree(auto)" if support == "tree" else "normal(auto)"
     )
-    process["support_style"] = support_style
-    process["v6_support_style"] = support_style
     process["support_on_build_plate_only"] = (
         "1" if overrides.get("support_build_plate_only", True) else "0"
     )
     process["support_threshold_angle"] = str(
         overrides.get("support_threshold_angle") or 30
     )
-    _apply_process_overrides(process, overrides)
+    for override_key, process_key, minimum, maximum in (
+        ("layer_height_mm", "layer_height", .04, .56),
+        ("outer_wall_speed_mm_s", "outer_wall_speed", 1, 500),
+        ("inner_wall_speed_mm_s", "inner_wall_speed", 1, 500),
+    ):
+        value = _required_override_number(
+            overrides,
+            override_key,
+            minimum,
+            maximum,
+        )
+        if value is None:
+            continue
+        process[process_key] = _as_profile_value(
+            _clean_number(value),
+            process.get(process_key),
+        )
     return process, selected_paths, resolved_profiles, tower, process_profile_proof
 
 
@@ -879,15 +812,12 @@ def _extract_parts(
     assignments: dict[str, int],
     *,
     default_channel: int | None = None,
-    material_channel_count: int | None = None,
     plate_width_mm: float = 256.0,
     plate_depth_mm: float = 256.0,
-) -> tuple[list[dict[str, Any]], int, dict[str, int]]:
+) -> tuple[list[dict[str, Any]], int]:
     parts_dir.mkdir(parents=True, exist_ok=True)
     manifest_objects: list[dict[str, Any]] = []
     triangle_total = 0
-    painted_triangle_count = 0
-    painted_channels: set[int] = set()
     instances = mesh_instances(input_3mf)
     offset_x, offset_y = _plate_placement_offset(
         instances,
@@ -901,49 +831,28 @@ def _extract_parts(
                 f"3MF-Objekt {instance.logical_object_id} besitzt keine AMS-Zuordnung"
             )
         name = instance.name or f"Part {order}"
-        grouped_triangles: dict[int, list[tuple[int, int, int]]] = {}
-        for triangle_index, triangle in enumerate(instance.triangles):
-            material_index = instance.triangle_material_indices[triangle_index]
-            if material_index is None:
-                triangle_channel = channel
-            else:
-                triangle_channel = material_index + 1
-                painted_triangle_count += 1
-                painted_channels.add(triangle_channel)
-            if triangle_channel is None:
-                raise ValueError(
-                    f"3MF-Objekt {instance.logical_object_id} besitzt keine AMS-Zuordnung"
-                )
-            if material_channel_count is not None and not 1 <= triangle_channel <= material_channel_count:
-                raise ValueError(
-                    "Eine bemalte 3MF-Fläche verweist auf keinen aktiven Materialkanal."
-                )
-            grouped_triangles.setdefault(int(triangle_channel), []).append(triangle)
-
-        vertices = [
-            (x + offset_x, y + offset_y, z)
-            for x, y, z in instance.vertices
-        ]
-        for material_channel, triangles in sorted(grouped_triangles.items()):
-            path = parts_dir / (
-                f"part-{order:03d}-ch{material_channel}-{_safe_name(name)}.stl"
-            )
-            triangle_total += _write_binary_stl(path, name, vertices, triangles)
-            manifest_objects.append(
-                {
-                    "path": str(path),
-                    "count": 1,
-                    "filaments": [material_channel],
-                    "assemble_index": [1],
-                    "pos_x": [0],
-                    "pos_y": [0],
-                    "pos_z": [0],
-                }
-            )
-    return manifest_objects, triangle_total, {
-        "painted_triangle_count": painted_triangle_count,
-        "painted_material_channel_count": len(painted_channels),
-    }
+        path = parts_dir / f"part-{order:03d}-{_safe_name(name)}.stl"
+        triangle_total += _write_binary_stl(
+            path,
+            name,
+            [
+                (x + offset_x, y + offset_y, z)
+                for x, y, z in instance.vertices
+            ],
+            instance.triangles,
+        )
+        manifest_objects.append(
+            {
+                "path": str(path),
+                "count": 1,
+                "filaments": [int(channel)],
+                "assemble_index": [1],
+                "pos_x": [0],
+                "pos_y": [0],
+                "pos_z": [0],
+            }
+        )
+    return manifest_objects, triangle_total
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -958,8 +867,6 @@ def main() -> None:
     args = parser.parse_args()
 
     job = _json(args.job)
-    validate_execution_contract(job)
-    hardware_limits = job_hardware_limits(job)
     plan = job.get("material_plan")
     if not isinstance(plan, dict):
         raise ValueError("material_plan fehlt")
@@ -997,9 +904,7 @@ def main() -> None:
         else {}
     )
     effective_overrides = dict(overrides)
-    if model == "h2s":
-        effective_overrides["h2s_nozzle_diameter_mm"] = str(float(target["nozzle_diameter_mm"]))
-    for key in ("min_layer_height_mm", "max_layer_height_mm", "nozzle_diameter_mm"):
+    for key in ("min_layer_height_mm", "max_layer_height_mm"):
         if key not in effective_overrides and target.get(key) is not None:
             effective_overrides[key] = target.get(key)
     try:
@@ -1023,41 +928,21 @@ def main() -> None:
             plate_index,
         )
     )
-    if hardware_limits:
-        for profile in resolved:
-            check_filament_temperatures(profile, hardware_limits, str(overrides.get("bambu_bed_type") or ""))
-    if hardware_limits:
-        validate_shared_bed_temperatures(resolved, str(overrides.get("bambu_bed_type") or ""))
     args.process_output.parent.mkdir(parents=True, exist_ok=True)
     args.process_output.write_text(
         json.dumps(process, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
 
-    # Load each resolved user filament, rather than its unmodified native base.
-    # The CLI loads --load-filaments after --load-settings and would otherwise
-    # replace the selected filament G-code with the base profile's empty fields.
-    runtime_filament_paths: list[Path] = []
-    for index, profile in enumerate(resolved, start=1):
-        path = args.process_output.with_name(
-            f"{args.process_output.stem}-filament-{index}.json"
-        )
-        path.write_text(
-            json.dumps(profile, ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
-        runtime_filament_paths.append(path)
-
-    objects, triangles, paint_summary = _extract_parts(
+    objects, triangles = _extract_parts(
         args.input,
         args.parts_dir,
         assignments,
         default_channel=1 if len(filaments) == 1 else None,
-        material_channel_count=len(filaments),
         plate_width_mm=float(effective_overrides.get("build_plate_width_mm") or 256.0),
         plate_depth_mm=float(effective_overrides.get("build_plate_depth_mm") or 256.0),
     )
-    layer_height_ranges = _validated_layer_height_ranges(effective_overrides, hardware_limits["height_mm"] if hardware_limits else 256.)
+    layer_height_ranges = _validated_layer_height_ranges(effective_overrides)
     assembled_params = []
     if layer_height_ranges:
         assembled_params.append({
@@ -1094,7 +979,6 @@ def main() -> None:
         ),
         "material_channel_count": len(filaments),
         "triangle_count": triangles,
-        **paint_summary,
         "requested_plate_index": plate_index,
         "selected_process_profile": process_profile_proof,
         "variable_layer_heights": {
@@ -1112,18 +996,7 @@ def main() -> None:
         },
         "process_settings": {
             key: process[key]
-            for key in set((
-                "layer_height",
-                "outer_wall_speed",
-                "inner_wall_speed",
-                "enable_support",
-                "support_type",
-                "support_style",
-                "support_on_build_plate_only",
-                "support_threshold_angle",
-                "v6_support_style",
-            ))
-            | set(_PROCESS_OVERRIDE_MAP.values())
+            for key in set(("layer_height", "outer_wall_speed", "inner_wall_speed"))
             | set((overrides.get("selected_process_profile") or {}).get("settings", {}))
             if key in process
         },
@@ -1135,13 +1008,10 @@ def main() -> None:
             **effective_tower,
         },
         "filament_profile_paths": [
-            str(path) for path in runtime_filament_paths
+            str(path) for path in selected_paths
         ],
-        "native_filament_base_paths": [str(path) for path in selected_paths],
         "filaments": [
             {
-                "selected_profile_sha256": digest(filaments[index].get("selected_profile")),
-                **parameter_proof(profile, (filaments[index].get("selected_profile") or {}).get("payload") or {}),
                 "channel": index + 1,
                 "name": str(
                     profile.get("name") or selected_paths[index].stem
