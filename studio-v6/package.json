@@ -1,6 +1,6 @@
 {
   "name": "ultimate-3d-printing-studio-v6-frontend",
-  "version": "6.0.0-beta3",
+  "version": "6.0.0",
   "private": true,
   "type": "module",
   "scripts": {

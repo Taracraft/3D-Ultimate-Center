@@ -4,7 +4,7 @@ from homeassistant.const import Platform
 
 DOMAIN = "ultimate_3d_studio_v6"
 NAME = "Ultimate 3D Studio V6"
-VERSION = "6.0.0-beta3"
+VERSION = "6.0.0"
 API_BASE = "/api/ultimate_3d_studio_v6/v1"
 
 CONF_INSTANCE_NAME = "instance_name"
