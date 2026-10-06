@@ -38,6 +38,29 @@ Der Projekteigner hat den Beta-Ausstieg ausdrücklich freigegeben. Interaktive U
 - Home-Assistant-Container danach neu gestartet: StartedAt 2026-10-06T11:50:47.281788574Z (13:50:47 CEST).
 - HA-Konfigurationscheck nach dem Restart erneut erfolgreich.
 
+## Native Worker und Linux-Vertrag
+
+- A1-Profil meldet nur noch den tatsächlich materialisierten Engine-Pfad `bambu_studio`.
+- Gezielte Linux-Regressionsprüfung nach der A1-Korrektur: 100 bestanden; nur die bekannte asyncio_mode-Warnung.
+- Realer kanonischer 27-Dateien-Preflight: success=true.
+- Paket-SHA256: 549b199adc64b7bff9a5698335f6aa3e1d219d40bbb224285bf1afab1139db5c.
+- Native Dienste aktiv; queued=0, slicing=0, kein dispatcher.lock.
+- Runtime-, Unit- und Profil-SHAs entsprechen dem kanonischen Quellstand.
+- Kein realer Slice, Upload oder Druckstart wurde für diesen Nachweis ausgeführt.
+
+## Öffentliche Finalisierung
+
+- Erlaubter öffentlicher Releaseumfang gegen den kanonischen PC-Fingerprint geprüft: 0 fehlende und 0 abweichende Dateien.
+- Nicht veröffentlicht: generierte lokale frontend/dist-Duplikate, drei private operative Release-/P0-Arbeitsberichte sowie zwei lokale STL-Testmodelle.
+- Release-Branch letzter geprüfter Head vor Merge: fa441a711fee5e45b9993840bbd18267663ff332.
+- CI an diesem Head:
+  - Linux Bootstrap Contract Run 37467621861: SUCCESS
+  - Rebuild Check Run 37467621889: SUCCESS
+  - Native Deploy Contract Run 37467622045: SUCCESS
+- PR #1 aus Draft genommen und erfolgreich nach main gemergt.
+- Öffentlicher Merge-Commit: 9c20c7ab3bdb6de2b74500287b1021316e5a633b.
+- Mergezeit: 06.10.2026 15:04:16 CEST.
+
 ## Rückweg und Sicherheit
 
 - PC-Vorherstände: backups/20261006-stable-6.0.0/before
@@ -46,10 +69,7 @@ Der Projekteigner hat den Beta-Ausstieg ausdrücklich freigegeben. Interaktive U
 - Nativer Worker wurde für den Stable-Versionswechsel nicht neu deployt.
 - Keine Druckerbefehle, realen Test-Slices, Job-Releases, Druckeruploads, Bewegungen, Heiz-/Filamentaktionen oder Druckstarts.
 
-## Noch nachzuführen
+## Post-Release
 
-- Öffentlichen GitHub-Head mit dem Stable-Quellstand synchronisieren.
-- Alle Release-CI-Gates am Stable-Head grün bestätigen.
-- PR #1 aus Draft nehmen.
-- Danach diesen Nachweis um öffentlichen Commit/CI ergänzen.
-- MakerWorld-Liveanmeldung/-Import als Post-Release-Arbeit weiterführen.
+- MakerWorld-Liveanmeldung/-Import bleibt als Post-Release-Arbeit bestehen.
+- Nicht ausgeführte interaktive/physische Abnahmen werden nicht rückwirkend als bestanden dargestellt.
