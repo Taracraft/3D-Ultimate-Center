@@ -416,3 +416,14 @@ Produktive Aktivierung und vollständiger öffentlicher Abgleich bleiben offen. 
 - HA Core genau einmal neu gestartet. Container StartedAt 2026-10-06T11:50:47.281788574Z (13:50:47 CEST), danach erneut ha core check erfolgreich.
 - Kein Worker-Neudeploy, kein Druckerkommando, kein realer Slice, Upload, Bewegung, Heizen, Filamentvorgang oder Druckstart.
 - Öffentlicher GitHub-Stable-Abgleich/CI und PR-Draft-Aufhebung stehen noch aus.
+
+
+## 2026-10-06 15:04 CEST · Stable 6.0.0 öffentlich finalisiert
+
+- Erlaubter öffentlicher Releaseumfang gegen den kanonischen PC-Fingerprint geprüft: 0 fehlende und 0 abweichende Dateien. Generierte lokale frontend/dist-Duplikate, drei private operative Release-/P0-Berichte und zwei lokale STL-Testmodelle bleiben absichtlich unveröffentlicht.
+- Letzter geprüfter Release-Head vor Merge: fa441a711fee5e45b9993840bbd18267663ff332.
+- CI auf diesem Head vollständig grün: Linux Bootstrap Contract 37467621861, Rebuild Check 37467621889, Native Deploy Contract 37467622045.
+- PR #1 aus Draft genommen und erfolgreich gemergt. Öffentlicher Merge-Commit: 9c20c7ab3bdb6de2b74500287b1021316e5a633b.
+- Stable-Release-Nachweis in docs/Studio-Release-6.0.0-2026-10-06.md finalisiert.
+- Release 6.0.0 ist damit im autorisierten Scope abgeschlossen. MakerWorld-Liveanmeldung/-Import bleibt Post-Release-Arbeit; nicht ausgeführte interaktive oder physische Abnahmen werden nicht als bestanden behauptet.
+- Keine Druckerbefehle, realen Test-Slices, Job-Releases, Uploads, Bewegungen, Heiz-/Filamentaktionen oder Druckstarts.

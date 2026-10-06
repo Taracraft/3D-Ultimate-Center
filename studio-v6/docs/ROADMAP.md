@@ -1596,3 +1596,19 @@ Neuere Benutzerentscheidung ersetzt ausschließlich frühere Beta-Blocker, nicht
 - [ ] MakerWorld-Liveanmeldung/-Import bleibt Post-Release-Arbeit; kein behaupteter Abschluss.
 
 Historische Roadmap-Einträge, in denen 6.0.0-beta3 ausdrücklich beibehalten wurde, bleiben als zeitgenössischer Nachweis unverändert.
+
+
+## 2026-10-06 · Stable 6.0.0 abgeschlossen
+
+Dieser Abschnitt ist neuer als die oben erhaltenen historischen Zwischenstände und ersetzt deren noch offene Stable-Release-Häkchen:
+
+- [x] Finales PC-Gesamtgate: 442/442 Frontendtests, 1.686 Python-/Worker-Tests, 66 explizite Plattform-Skips und 15 Untertests; Source-Policy, TypeScript, Produktions-/HA-Build und Compileall grün.
+- [x] A1-Enginevertrag bereinigt und unter Linux regressionsgeprüft; realer kanonischer 27-Dateien-Preflight success=true.
+- [x] HA Stable 6.0.0 aktiviert und Live-SHAs für Integration und Frontend bestätigt; HA-Konfigurationsprüfung erfolgreich.
+- [x] Erlaubter öffentlicher Releaseumfang vollständig synchronisiert: 0 fehlende und 0 abweichende Dateien. Private operative Berichte, lokale Modelle und generierte frontend/dist-Duplikate bleiben absichtlich unveröffentlicht.
+- [x] Release-CI am finalen PR-Head grün: Linux Bootstrap Contract 37467621861, Rebuild Check 37467621889, Native Deploy Contract 37467622045.
+- [x] PR #1 aus Draft genommen und gemergt; Merge-Commit 9c20c7ab3bdb6de2b74500287b1021316e5a633b.
+- [ ] MakerWorld-Liveanmeldung/-Import bleibt Post-Release-Arbeit.
+- [ ] H2D/H2C, kleinere physische Platten und weitere physische Drucker-/Qualitätsabnahmen bleiben eigene spätere Hardwareverträge.
+
+Stable 6.0.0 ist damit im autorisierten Release-Scope abgeschlossen; kein Druckerupload oder Druckstart war Bestandteil dieser Freigabe.
