@@ -24,6 +24,7 @@ SCRIPT = Path(os.environ.get("NATIVE_DEPLOY_SOURCE", str(DEFAULT_SCRIPT)))
 LINUX_ROOT = sys.platform == "linux" and getattr(os, "geteuid", lambda: -1)() == 0
 RUNTIME = ["bambu_lab_h2s_04.json", "server.py", "job_control.py", "dispatch-job.sh",
            "progress-pipe-reader.py", "refresh-state.sh", "append-slicing-journal.sh"]
+PROFILES = ["profiles/printers/bambu_lab_a1_04.json", "profiles/printers/bambu_lab_h2s_04.json"]
 UNITS = ["3d-printer-slicing-server.service", "3d-printer-slicing-dispatch.service",
          "3d-printer-slicing-dispatch.timer", "3d-printer-slicing-refresh.service",
          "3d-printer-slicing-refresh.timer"]
@@ -31,6 +32,14 @@ UNITS = ["3d-printer-slicing-server.service", "3d-printer-slicing-dispatch.servi
 
 def sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def test_profile_files_are_owned_by_install_backup_and_rollback_loops():
+    script = SCRIPT.read_text(encoding="utf-8")
+    entries = re.search(r"PROFILE_FILES=\((.*?)\)", script, re.S).group(1).split()
+    assert entries == PROFILES
+    assert script.count('for file in "${PROFILE_FILES[@]}"; do') >= 4
+    assert 'install -m 0644 "$SOURCE_DIR/$file"' in script
 
 
 def test_supervisor_is_owned_by_install_backup_and_rollback_loops():
@@ -71,7 +80,8 @@ def deployment(tmp_path):
         if not shutil.which(command):
             pytest.fail(f"Required isolated-test program missing: {command}")
     source, target, units, doubles = [tmp_path / name for name in ["source", "target", "units", "doubles"]]
-    for path in [source, target / "data/jobs", units, doubles, source / "systemd"]:
+    for path in [source, target / "data/jobs", units, doubles, source / "systemd",
+                 source / "profiles/printers", target / "profiles/printers"]:
         path.mkdir(parents=True, exist_ok=True)
     current = {}
     for name in RUNTIME:
@@ -79,6 +89,11 @@ def deployment(tmp_path):
         (source / name).write_bytes(data)
         current[name] = data
         (target / name).write_bytes(data)
+    for name in PROFILES:
+        data = ('{"profile":"' + Path(name).stem + '"}\n').encode()
+        (source / name).write_bytes(data)
+        (target / name).write_bytes(data)
+        current[name] = data
     for name in UNITS:
         data = b"[Unit]\nDescription=Synthetic deployment fixture\n"
         (source / "systemd" / name).write_bytes(data)
@@ -88,7 +103,7 @@ def deployment(tmp_path):
     (target / "config.json").write_text('{"token":""}', encoding="utf-8")
     (source / "SHA256SUMS").write_text("".join(
         f"{sha((source / name).read_bytes())}  {name}\n"
-        for name in [n for n in RUNTIME if n != "job_control.py"] + ["systemd/" + n for n in UNITS]
+        for name in [n for n in RUNTIME if n != "job_control.py"] + PROFILES + ["systemd/" + n for n in UNITS]
     ), encoding="utf-8")
     (source / "DEPENDENCY-SHA256SUMS").write_text(
         f"{sha(dependency)}  existing_dependency.py\n{sha(current['job_control.py'])}  job_control.py\n", encoding="utf-8")
@@ -268,13 +283,47 @@ def test_hash_drift_during_health_cannot_be_reported_as_success(deployment):
     assert len([c for c in calls if c["args"][0] == "restart"]) == 2
 
 
+def test_missing_profile_is_installed_as_0644_and_recorded_missing(deployment):
+    source, target, _, run = deployment
+    name = PROFILES[0]
+    (target / name).unlink()
+    result, calls = run()
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert not [c for c in calls if c["args"][0] == "restart"]
+    assert (target / name).read_bytes() == (source / name).read_bytes()
+    assert (target / name).stat().st_mode & 0o777 == 0o644
+    backup = next((target / "backups").iterdir())
+    assert f"profile/{name}" in (backup / "MISSING-BEFORE.txt").read_text()
+
+
+def test_changed_profile_is_backed_up_and_replaced_without_worker_restart(deployment):
+    source, target, _, run = deployment
+    name = PROFILES[1]
+    old = b'{"profile":"old"}\n'
+    (target / name).write_bytes(old)
+    result, calls = run()
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert not [c for c in calls if c["args"][0] == "restart"]
+    assert next((target / "backups").glob(f"*/{name}")).read_bytes() == old
+    assert (target / name).read_bytes() == (source / name).read_bytes()
+
+
+def test_extra_or_linked_source_profile_fails_before_service_changes(deployment):
+    source, target, _, run = deployment
+    extra = source / "profiles/printers/unreviewed.json"
+    extra.write_text("{}")
+    result, calls = run()
+    assert result.returncode != 0
+    assert not calls and not (target / "backups").exists()
+
+
 def test_identical_package_is_read_only_except_local_logs(deployment):
     source, target, _, run = deployment
-    before = {name: (target / name).read_bytes() for name in RUNTIME}
+    before = {name: (target / name).read_bytes() for name in RUNTIME + PROFILES}
     result, calls = run()
     assert result.returncode == 0, result.stdout + result.stderr
     assert not calls and not (target / "backups").exists()
-    assert before == {name: (target / name).read_bytes() for name in RUNTIME}
+    assert before == {name: (target / name).read_bytes() for name in RUNTIME + PROFILES}
 
 
 @pytest.mark.parametrize("marker", ["queued", "slicing", "dispatcher"])

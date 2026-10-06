@@ -25,12 +25,17 @@ def digest(value): return hashlib.sha256(value).hexdigest()
 def make_source(root, layout="public"):
     native = root / ("slicing-server" if layout == "public" else "deploy/homeassistant/host/3d-printer-slicing-server")
     units = root / "deployment/systemd" if layout == "public" else native / "systemd"
+    component = root / ("homeassistant/custom_components/ultimate_3d_studio_v6" if layout == "public"
+                        else "deploy/homeassistant/custom_components/ultimate_3d_studio_v6")
     native.mkdir(parents=True)
     units.mkdir(parents=True)
+    component.mkdir(parents=True)
     sources = {}
-    for name in set(mod.RUNTIME) | mod.DEPENDENCIES:
+    for name in set(mod.RUNTIME) | set(mod.PROFILES) | mod.DEPENDENCIES:
         data = ("# synthetic " + name + "\n").encode()
-        (native / name).write_bytes(data)
+        target = component / name if name in mod.COMPONENT_DEPENDENCIES else native / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
         sources[name] = data
     for name in mod.UNITS:
         data = ("# synthetic unit " + name + "\n").encode()
@@ -40,7 +45,9 @@ def make_source(root, layout="public"):
     deps = "".join(digest(sources[name]) + "  " + name + "\n" for name in sorted(mod.DEPENDENCIES))
     (native / "SHA256SUMS").write_text(primary, encoding="utf-8")
     (native / "DEPENDENCY-SHA256SUMS").write_text(deps, encoding="utf-8")
-    script = "#!/usr/bin/env bash\nRUNTIME_FILES=(\n" + "\n".join(mod.RUNTIME) + ")\nUNIT_FILES=(\n" + "\n".join(mod.UNITS) + ")\nexit 91\n"
+    script = ("#!/usr/bin/env bash\nRUNTIME_FILES=(\n" + "\n".join(mod.RUNTIME)
+              + ")\nPROFILE_FILES=(\n" + "\n".join(mod.PROFILES)
+              + ")\nUNIT_FILES=(\n" + "\n".join(mod.UNITS) + ")\nexit 91\n")
     (native / "deploy-native-slicer.sh").write_text(script, encoding="utf-8")
     return native, units
 
@@ -56,7 +63,7 @@ def test_complete_source_is_read_only_and_has_no_release_authority(tmp_path, lay
     before = bytes_in(root)
     files, _ = mod.collect(root, layout)
     result = mod.evidence(files)
-    assert result["file_count"] == 25
+    assert result["file_count"] == 27
     assert "job_control.py" in files and set(mod.DEPENDENCIES) <= files.keys()
     assert result["source_complete"] and not result["release_approved"]
     assert not result["installation_performed"] and not result["services_started"]
@@ -75,8 +82,9 @@ def test_public_systemd_layout_reconstructs_canonical_package(tmp_path):
 def test_no_dependency_is_taken_from_another_directory(tmp_path):
     root = tmp_path / "repo"
     native, _ = make_source(root)
-    needed = native / "bed-temperature-contract.sh"
+    needed = root / "homeassistant/custom_components/ultimate_3d_studio_v6/bed-temperature-contract.sh"
     (tmp_path / needed.name).write_bytes(needed.read_bytes())
+    (native / needed.name).write_bytes(needed.read_bytes())
     needed.unlink()
     with pytest.raises(FileNotFoundError): mod.collect(root, "public")
 
@@ -110,7 +118,9 @@ def test_examples_legacy_component_and_unlisted_files_are_not_packaged(tmp_path)
 def test_tampered_runtime_or_dependency_rejected(tmp_path, name):
     root = tmp_path / "repo"
     native, _ = make_source(root)
-    (native / name).write_bytes(b"changed")
+    target = (root / "homeassistant/custom_components/ultimate_3d_studio_v6" / name
+              if name in mod.COMPONENT_DEPENDENCIES else native / name)
+    target.write_bytes(b"changed")
     with pytest.raises(mod.PreflightError, match="source_digest_mismatch"):
         mod.collect(root, "public")
 
@@ -165,7 +175,7 @@ def test_matching_overlap_is_allowed_once(tmp_path):
     native, _ = make_source(root)
     sha = digest((native / "job_control.py").read_bytes())
     with (native / "SHA256SUMS").open("a") as f: f.write(sha + "  job_control.py\n")
-    assert len(mod.collect(root, "public")[0]) == 25
+    assert len(mod.collect(root, "public")[0]) == 27
 
 
 @pytest.mark.parametrize("edit", ["missing", "duplicate", "expansion", "unclosed"])
@@ -181,6 +191,41 @@ def test_deployer_must_own_the_exact_complete_package(tmp_path, edit):
     script.write_text(text)
     with pytest.raises(mod.PreflightError, match="unsupported_deployer_contract"):
         mod.collect(root, "public")
+
+
+@pytest.mark.parametrize("layout", ["canonical", "public"])
+def test_profile_scope_is_exact_and_manifest_bound(tmp_path, layout):
+    root = tmp_path / "repo"
+    native, _ = make_source(root, layout)
+    files, _ = mod.collect(root, layout)
+    assert set(mod.PROFILES) <= files.keys()
+    for name in mod.PROFILES:
+        assert files[name] == (native / name).read_bytes()
+        assert f"{digest(files[name])}  {name}" in (native / "SHA256SUMS").read_text()
+
+
+@pytest.mark.parametrize("problem", ["missing", "changed", "extra_file", "extra_directory"])
+def test_profile_scope_fails_closed(tmp_path, problem):
+    root = tmp_path / "repo"
+    native, _ = make_source(root)
+    target = native / mod.PROFILES[0]
+    if problem == "missing":
+        target.unlink()
+    elif problem == "changed":
+        target.write_bytes(b"changed profile\n")
+    elif problem == "extra_file":
+        (native / "profiles/printers/unreviewed.json").write_text("{}")
+    else:
+        (native / "profiles/unreviewed").mkdir()
+    expected = "source_digest_mismatch" if problem == "changed" else (
+        "input_or_stage_io_error" if problem == "missing" else "unexpected_profile_scope"
+    )
+    if problem == "missing":
+        with pytest.raises((FileNotFoundError, mod.PreflightError)):
+            mod.collect(root, "public")
+    else:
+        with pytest.raises(mod.PreflightError, match=expected):
+            mod.collect(root, "public")
 
 
 def test_read_refuses_a_size_limit_and_directory(tmp_path):

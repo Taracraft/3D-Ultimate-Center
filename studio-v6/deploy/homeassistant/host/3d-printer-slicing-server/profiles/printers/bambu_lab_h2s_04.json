@@ -1,0 +1,23 @@
+{
+  "id": "bambu_lab_h2s_04",
+  "name": "Bambu Lab H2S",
+  "manufacturer": "Bambu Lab",
+  "model": "H2S",
+  "technology": "fff",
+  "preferred_engine": "bambu_studio",
+  "compatible_engines": [
+    "bambu_studio"
+  ],
+  "build_volume": {
+    "x": 340,
+    "y": 320,
+    "z": 340
+  },
+  "engine_profiles": {
+    "bambu_studio": {
+      "machine": "BBL/machine/Bambu Lab H2S 0.4 nozzle.json",
+      "process": "BBL/process/0.20mm Standard @BBL H2S.json",
+      "filament": "BBL/filament/Generic PLA @BBL H2S.json"
+    }
+  }
+}

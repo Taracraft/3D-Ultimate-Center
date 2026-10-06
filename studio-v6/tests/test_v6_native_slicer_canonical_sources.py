@@ -10,7 +10,7 @@ BRIDGE = DEPLOY / "custom_components" / "printer_slicing_server"
 V6_COMPONENT = DEPLOY / "custom_components" / "ultimate_3d_studio_v6"
 
 # Reviewed cooperative-cancellation package; remaining files retain the live alpha5 baseline.
-HOST_HASHES = {'server.py': 'f565e9c8b77f32c70469714e03c43f0bf713b7040092b2734eeff0e45af1efa8', 'dispatch-job.sh': '731d90aa5aa4138e905b68cc9f4a217bb3bf60d21d2ae74adb0ede678b111ad1', 'progress-pipe-reader.py': 'f5e46d2ffb866d8864b153045eb251982340e502c32ef9339eee1f0a5cee3bad', 'refresh-state.sh': '7af4bc256bf1d1f4861ecb7740c5f5861cbb8eab8c54e80d8f9503e049fc301d', 'append-slicing-journal.sh': '9798d21528828c901be4e0f3726908d027c8af60580af88981656c88496d5239', 'systemd/3d-printer-slicing-server.service': '92607dcdbd2f8cdd61a0de9c4ec0e84033b725d6838fe6bf5d27432adf253ecb', 'systemd/3d-printer-slicing-dispatch.service': 'd7448af9596dddfcf7ea23a8cbb3049e019420303082d1e909efb459874faeed', 'systemd/3d-printer-slicing-dispatch.timer': 'e1d582e1b8a21f7b8adaad1cc19df8b9eccb0fe68c437e4fceba5faa69c78d91', 'systemd/3d-printer-slicing-refresh.service': '424fa03a956321130ac2f65dee3b9a77d35bc1c5eb3fb8374323c84696d88eaa', 'systemd/3d-printer-slicing-refresh.timer': '557c7d18b5757a73e346b9f1244ff3fff10942a575c72c8e920502e6f917feed', 'bambu_lab_h2s_04.json': '22e0839d2cd43e262b28082cb05b1fec68f3692aafcb1193198d193e99118363'}
+HOST_HASHES = {'server.py': 'f565e9c8b77f32c70469714e03c43f0bf713b7040092b2734eeff0e45af1efa8', 'dispatch-job.sh': '731d90aa5aa4138e905b68cc9f4a217bb3bf60d21d2ae74adb0ede678b111ad1', 'progress-pipe-reader.py': 'f5e46d2ffb866d8864b153045eb251982340e502c32ef9339eee1f0a5cee3bad', 'refresh-state.sh': '7af4bc256bf1d1f4861ecb7740c5f5861cbb8eab8c54e80d8f9503e049fc301d', 'append-slicing-journal.sh': '9798d21528828c901be4e0f3726908d027c8af60580af88981656c88496d5239', 'systemd/3d-printer-slicing-server.service': '92607dcdbd2f8cdd61a0de9c4ec0e84033b725d6838fe6bf5d27432adf253ecb', 'systemd/3d-printer-slicing-dispatch.service': 'd7448af9596dddfcf7ea23a8cbb3049e019420303082d1e909efb459874faeed', 'systemd/3d-printer-slicing-dispatch.timer': 'e1d582e1b8a21f7b8adaad1cc19df8b9eccb0fe68c437e4fceba5faa69c78d91', 'systemd/3d-printer-slicing-refresh.service': '424fa03a956321130ac2f65dee3b9a77d35bc1c5eb3fb8374323c84696d88eaa', 'systemd/3d-printer-slicing-refresh.timer': '557c7d18b5757a73e346b9f1244ff3fff10942a575c72c8e920502e6f917feed', 'bambu_lab_h2s_04.json': '22e0839d2cd43e262b28082cb05b1fec68f3692aafcb1193198d193e99118363', 'profiles/printers/bambu_lab_a1_04.json': '2a543f6f3c172b2e1ef9f2a29398f49b0c43dad62ae5193a1c8d89a3f9218d8f', 'profiles/printers/bambu_lab_h2s_04.json': '22e0839d2cd43e262b28082cb05b1fec68f3692aafcb1193198d193e99118363'}
 
 BRIDGE_HASHES = {
     "__init__.py": "2b9a59b5438d9e4e31e05fad5de883c83ea158404bbb87c2eba94dcaf8892a18",
@@ -91,11 +91,23 @@ def test_native_package_contains_no_runtime_secrets_or_job_data() -> None:
         HOST / "config.json",
         HOST / "data",
         HOST / "engines",
-        HOST / "profiles",
         HOST / "run",
         HOST / "last_job.json",
     ]
     assert not any(path.exists() for path in forbidden)
+
+    profiles = HOST / "profiles"
+    allowed_profiles = {
+        Path("printers/bambu_lab_a1_04.json"),
+        Path("printers/bambu_lab_h2s_04.json"),
+    }
+    actual_profiles = {
+        path.relative_to(profiles)
+        for path in profiles.rglob("*")
+        if path.is_file()
+    } if profiles.is_dir() else set()
+    assert actual_profiles == allowed_profiles
+    assert not any(path.is_symlink() for path in profiles.rglob("*")) if profiles.is_dir() else True
 
 
 def test_native_deployer_is_fail_closed_and_print_safe() -> None:

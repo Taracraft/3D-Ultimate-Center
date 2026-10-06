@@ -26,6 +26,10 @@ RUNTIME_FILES=(
   refresh-state.sh
   append-slicing-journal.sh
 )
+PROFILE_FILES=(
+  profiles/printers/bambu_lab_a1_04.json
+  profiles/printers/bambu_lab_h2s_04.json
+)
 UNIT_FILES=(
   3d-printer-slicing-server.service
   3d-printer-slicing-dispatch.service
@@ -44,6 +48,38 @@ say() {
 fail() {
   say "FEHLER: $*"
   return 1
+}
+
+# No missing directory, failed enumeration or unusual lock may mean "idle".
+# This examines marker existence only; job contents and printer data are not read.
+verify_idle_state() {
+  local directory markers
+  for directory in "$TARGET_BASE" "$TARGET_BASE/data" "$TARGET_BASE/data/jobs"; do
+    if [ ! -d "$directory" ] || [ -L "$directory" ] ||
+       [ ! -r "$directory" ] || [ ! -x "$directory" ]; then
+      fail "Deployment gesperrt: Jobverzeichnis fehlt, ist verknüpft oder nicht lesbar."
+      return 1
+    fi
+  done
+  if [ -L "$TARGET_BASE/run" ] ||
+     { [ -e "$TARGET_BASE/run" ] && [ ! -d "$TARGET_BASE/run" ]; }; then
+    fail "Deployment gesperrt: Dispatcher-Zustandsverzeichnis ist unklar."
+    return 1
+  fi
+  if [ -e "$TARGET_BASE/run/dispatcher.lock" ] || [ -L "$TARGET_BASE/run/dispatcher.lock" ]; then
+    fail "Deployment gesperrt: Dispatcher-Lock ist vorhanden."
+    return 1
+  fi
+  # Preserve find's exit status. Do not pipe it into wc or default errors to zero.
+  # Any matching entry blocks, including directories and dangling symlinks.
+  if ! markers="$(find "$TARGET_BASE/data/jobs" -mindepth 1 -maxdepth 1       \( -name '*.slicing.json' -o -name '*.queued.json' \) -printf 'x' 2>/dev/null)"; then
+    fail "Deployment gesperrt: Jobzustand konnte nicht vollständig gelesen werden."
+    return 1
+  fi
+  if [ -n "$markers" ]; then
+    fail "Deployment gesperrt: aktive, wartende oder unklare Jobmarker vorhanden."
+    return 1
+  fi
 }
 
 # Only the packaged supervisor is a deploy-owned dependency. All other
@@ -84,6 +120,16 @@ verify_dependencies() {
   fi
 }
 
+verify_profile_target_path() {
+  local directory
+  for directory in "$TARGET_BASE/profiles" "$TARGET_BASE/profiles/printers"; do
+    if [ -L "$directory" ] || { [ -e "$directory" ] && [ ! -d "$directory" ]; }; then
+      fail "Profilziel ist verknüpft oder kein Verzeichnis."
+      return 1
+    fi
+  done
+}
+
 verify_live_hashes() {
   local file expected actual
   for file in "${RUNTIME_FILES[@]}"; do
@@ -95,6 +141,21 @@ verify_live_hashes() {
     actual="$(sha256sum "$TARGET_BASE/$file" | awk '{print $1}')"
     if [ "$expected" != "$actual" ]; then
       fail "Live-SHA-Prüfung fehlgeschlagen: runtime/$file"
+      return 1
+    fi
+  done
+  if ! verify_profile_target_path; then
+    return 1
+  fi
+  for file in "${PROFILE_FILES[@]}"; do
+    if [ ! -f "$TARGET_BASE/$file" ] || [ -L "$TARGET_BASE/$file" ]; then
+      fail "Installiertes Druckerprofil fehlt oder ist verknüpft: $file"
+      return 1
+    fi
+    expected="$(sha256sum "$SOURCE_DIR/$file" | awk '{print $1}')"
+    actual="$(sha256sum "$TARGET_BASE/$file" | awk '{print $1}')"
+    if [ "$expected" != "$actual" ]; then
+      fail "Live-SHA-Prüfung fehlgeschlagen: profile/$file"
       return 1
     fi
   done
@@ -147,6 +208,21 @@ rollback() {
       rm -f "$TARGET_BASE/$file"
     fi
   done
+  for file in "${PROFILE_FILES[@]}"; do
+    if [ -f "$BACKUP_DIR/$file" ]; then
+      mkdir -p "$(dirname "$TARGET_BASE/$file")"
+      install -m 0644 "$BACKUP_DIR/$file" "$TARGET_BASE/.rollback-profile-$(basename "$file").$" || continue
+      mv -f "$TARGET_BASE/.rollback-profile-$(basename "$file").$" "$TARGET_BASE/$file"
+    elif grep -Fxq "profile/$file" "$MISSING_BEFORE" 2>/dev/null; then
+      rm -f "$TARGET_BASE/$file"
+    fi
+  done
+  if grep -Fxq "directory/profiles/printers" "$MISSING_BEFORE" 2>/dev/null; then
+    rmdir "$TARGET_BASE/profiles/printers" 2>/dev/null || true
+  fi
+  if grep -Fxq "directory/profiles" "$MISSING_BEFORE" 2>/dev/null; then
+    rmdir "$TARGET_BASE/profiles" 2>/dev/null || true
+  fi
   for unit in "${UNIT_FILES[@]}"; do
     if [ -f "$BACKUP_DIR/systemd/$unit" ]; then
       install -m 0644 "$BACKUP_DIR/systemd/$unit" "$UNIT_DIR/.rollback-$unit.$$" || continue
@@ -216,6 +292,26 @@ if [ ! -f "$SOURCE_DIR/SHA256SUMS" ]; then
 fi
 
 say "[1/8] Quellhashes prüfen"
+PROFILE_ROOT="$SOURCE_DIR/profiles"
+if [ ! -d "$PROFILE_ROOT/printers" ] || [ -L "$PROFILE_ROOT" ] || [ -L "$PROFILE_ROOT/printers" ]; then
+  fail "Kuratierter Profilquellbaum fehlt oder ist verknüpft."
+  finish_log_archive
+  exit 1
+fi
+for file in "${PROFILE_FILES[@]}"; do
+  if [ ! -f "$SOURCE_DIR/$file" ] || [ -L "$SOURCE_DIR/$file" ]; then
+    fail "Kuriertes Druckerprofil fehlt oder ist verknüpft: $file"
+    finish_log_archive
+    exit 1
+  fi
+done
+PROFILE_COUNT="$(find "$PROFILE_ROOT" -type f -print 2>/dev/null | wc -l | tr -d '[:space:]')"
+if [ "$PROFILE_COUNT" -ne "${#PROFILE_FILES[@]}" ] ||
+   [ -n "$(find "$PROFILE_ROOT" -mindepth 1 -type l -print -quit 2>/dev/null)" ]; then
+  fail "Der Profilquellbaum enthält nicht freigegebene Dateien oder Verknüpfungen."
+  finish_log_archive
+  exit 1
+fi
 if ! (cd "$SOURCE_DIR" && sha256sum -c SHA256SUMS); then
   fail "Quellhashprüfung fehlgeschlagen."
   finish_log_archive
@@ -250,6 +346,10 @@ if ! verify_dependencies source; then
 fi
 
 say "[4/8] Änderungen ermitteln"
+if ! verify_profile_target_path; then
+  finish_log_archive
+  exit 1
+fi
 for file in "${RUNTIME_FILES[@]}"; do
   if [ ! -f "$TARGET_BASE/$file" ] || ! cmp -s "$SOURCE_DIR/$file" "$TARGET_BASE/$file"; then
     CHANGED=1
@@ -257,6 +357,12 @@ for file in "${RUNTIME_FILES[@]}"; do
       SERVER_RESTART_NEEDED=1
     fi
     say "Änderung: runtime/$file"
+  fi
+done
+for file in "${PROFILE_FILES[@]}"; do
+  if [ ! -f "$TARGET_BASE/$file" ] || ! cmp -s "$SOURCE_DIR/$file" "$TARGET_BASE/$file"; then
+    CHANGED=1
+    say "Änderung: profile/$file"
   fi
 done
 for unit in "${UNIT_FILES[@]}"; do
@@ -271,15 +377,7 @@ done
 if [ "$CHANGED" -eq 0 ]; then
   say "Keine Dateiänderung erforderlich. Nur Health-Verifikation wird ausgeführt."
 else
-  ACTIVE="$(find "$TARGET_BASE/data/jobs" -maxdepth 1 -type f -name '*.slicing.json' 2>/dev/null | wc -l | tr -d '[:space:]')"
-  QUEUED="$(find "$TARGET_BASE/data/jobs" -maxdepth 1 -type f -name '*.queued.json' 2>/dev/null | wc -l | tr -d '[:space:]')"
-  if [ "${ACTIVE:-0}" -ne 0 ] || [ "${QUEUED:-0}" -ne 0 ]; then
-    fail "Deployment gesperrt: active=$ACTIVE queued=$QUEUED"
-    finish_log_archive
-    exit 1
-  fi
-  if [ -d "$TARGET_BASE/run/dispatcher.lock" ]; then
-    fail "Deployment gesperrt: Dispatcher-Lock ist aktiv."
+  if ! verify_idle_state; then
     finish_log_archive
     exit 1
   fi
@@ -287,13 +385,25 @@ else
   say "[5/8] Dispatcher-/Refresh-Timer kontrolliert anhalten"
   DISPATCH_TIMER_WAS_ACTIVE="$(systemctl is-active 3d-printer-slicing-dispatch.timer 2>/dev/null || true)"
   REFRESH_TIMER_WAS_ACTIVE="$(systemctl is-active 3d-printer-slicing-refresh.timer 2>/dev/null || true)"
-  systemctl stop 3d-printer-slicing-dispatch.timer 2>/dev/null || true
-  systemctl stop 3d-printer-slicing-refresh.timer 2>/dev/null || true
+  case "$DISPATCH_TIMER_WAS_ACTIVE/$REFRESH_TIMER_WAS_ACTIVE" in
+    active/active|active/inactive|inactive/active|inactive/inactive) ;;
+    *)
+      fail "Deployment gesperrt: Timerzustand ist unbekannt oder nicht stabil."
+      finish_log_archive
+      exit 1
+      ;;
+  esac
+  # Arm restoration before the first stop: even a failed stop may partially act.
   TIMERS_STOPPED=1
+  if ! systemctl stop 3d-printer-slicing-dispatch.timer 2>/dev/null ||
+     ! systemctl stop 3d-printer-slicing-refresh.timer 2>/dev/null; then
+    fail "Timer konnten nicht vollständig angehalten werden; Deployment abgebrochen."
+    restore_timers
+    finish_log_archive
+    exit 1
+  fi
 
-  ACTIVE="$(find "$TARGET_BASE/data/jobs" -maxdepth 1 -type f -name '*.slicing.json' 2>/dev/null | wc -l | tr -d '[:space:]')"
-  QUEUED="$(find "$TARGET_BASE/data/jobs" -maxdepth 1 -type f -name '*.queued.json' 2>/dev/null | wc -l | tr -d '[:space:]')"
-  if [ "${ACTIVE:-0}" -ne 0 ] || [ "${QUEUED:-0}" -ne 0 ] || [ -d "$TARGET_BASE/run/dispatcher.lock" ]; then
+  if ! verify_idle_state; then
     fail "Zustand änderte sich während der Sperrphase; Deployment abgebrochen."
     restore_timers
     finish_log_archive
@@ -301,7 +411,7 @@ else
   fi
 
   say "[6/8] Same-Day-Backup erstellen und verifizieren"
-  mkdir -p "$BACKUP_DIR/runtime" "$BACKUP_DIR/systemd" || {
+  mkdir -p "$BACKUP_DIR/runtime" "$BACKUP_DIR/systemd" "$BACKUP_DIR/profiles/printers" || {
     fail "Backup-Verzeichnis konnte nicht erstellt werden."
     restore_timers
     finish_log_archive
@@ -327,6 +437,20 @@ else
       echo "runtime/$file" >> "$MISSING_BEFORE"
     fi
   done
+  [ -e "$TARGET_BASE/profiles" ] || echo "directory/profiles" >> "$MISSING_BEFORE"
+  [ -e "$TARGET_BASE/profiles/printers" ] || echo "directory/profiles/printers" >> "$MISSING_BEFORE"
+  for file in "${PROFILE_FILES[@]}"; do
+    if [ -f "$TARGET_BASE/$file" ]; then
+      cp -a "$TARGET_BASE/$file" "$BACKUP_DIR/$file" || {
+        fail "Backup fehlgeschlagen: profile/$file"
+        restore_timers
+        finish_log_archive
+        exit 1
+      }
+    else
+      echo "profile/$file" >> "$MISSING_BEFORE"
+    fi
+  done
   for unit in "${UNIT_FILES[@]}"; do
     if [ -f "$UNIT_DIR/$unit" ]; then
       cp -a "$UNIT_DIR/$unit" "$BACKUP_DIR/systemd/$unit" || {
@@ -339,7 +463,7 @@ else
       echo "systemd/$unit" >> "$MISSING_BEFORE"
     fi
   done
-  find "$BACKUP_DIR/runtime" "$BACKUP_DIR/systemd" -type f -print0 | sort -z | xargs -0 sha256sum > "$BACKUP_DIR/SHA256SUMS.before"
+  find "$BACKUP_DIR/runtime" "$BACKUP_DIR/profiles" "$BACKUP_DIR/systemd" -type f -print0 | sort -z | xargs -0 sha256sum > "$BACKUP_DIR/SHA256SUMS.before"
   if [ "$(basename "$BACKUP_DIR" | cut -c1-8)" != "$TODAY" ] || ! grep -q "^created_date=$TODAY$" "$BACKUP_META"; then
     fail "Same-Day-Backup-Verifikation fehlgeschlagen."
     restore_timers
@@ -360,6 +484,42 @@ else
       }
       mv -f "$TARGET_BASE/.v6-new-$file.$$" "$TARGET_BASE/$file" || {
         fail "Atomarer Dateitausch fehlgeschlagen: $file"
+        rollback
+        finish_log_archive
+        exit 1
+      }
+    fi
+  done
+  if ! verify_profile_target_path; then
+    fail "Profilzielprüfung vor Installation fehlgeschlagen."
+    rollback
+    finish_log_archive
+    exit 1
+  fi
+  mkdir -p "$TARGET_BASE/profiles/printers" || {
+    fail "Profilzielverzeichnis konnte nicht erstellt werden."
+    rollback
+    finish_log_archive
+    exit 1
+  }
+  if ! verify_profile_target_path; then
+    fail "Profilzielprüfung nach Verzeichniserstellung fehlgeschlagen."
+    rollback
+    finish_log_archive
+    exit 1
+  fi
+  for file in "${PROFILE_FILES[@]}"; do
+    if [ ! -f "$TARGET_BASE/$file" ] || ! cmp -s "$SOURCE_DIR/$file" "$TARGET_BASE/$file"; then
+      target="$TARGET_BASE/$file"
+      temp="$(dirname "$target")/.v6-new-$(basename "$file").$"
+      install -m 0644 "$SOURCE_DIR/$file" "$temp" || {
+        fail "Profilinstallation fehlgeschlagen: $file"
+        rollback
+        finish_log_archive
+        exit 1
+      }
+      mv -f "$temp" "$target" || {
+        fail "Atomarer Profiltausch fehlgeschlagen: $file"
         rollback
         finish_log_archive
         exit 1
@@ -453,7 +613,11 @@ restore_timers
 say ""
 say "Deployment/Verifikation erfolgreich."
 say "Kein Slice und kein Druck wurde gestartet."
-say "Aktive/wartende Jobs vor Änderung: 0/0."
+if [ "$CHANGED" -eq 1 ]; then
+  say "Jobmarker wurden vor der Änderung zweimal als leer geprüft."
+else
+  say "Jobzustand nicht geprüft: keine Dateiänderung ausgeführt."
+fi
 [ -d "$BACKUP_DIR" ] && say "Rollback-Backup: $BACKUP_DIR"
 finish_log_archive
 say "Terminal bleibt offen."

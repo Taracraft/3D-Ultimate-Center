@@ -23,6 +23,10 @@ RUNTIME = (
 UNITS = tuple("3d-printer-slicing-" + name for name in (
     "server.service", "dispatch.service", "dispatch.timer", "refresh.service", "refresh.timer",
 ))
+PROFILES = (
+    "profiles/printers/bambu_lab_a1_04.json",
+    "profiles/printers/bambu_lab_h2s_04.json",
+)
 DEPENDENCIES = frozenset({
     "bed-temperature-contract.sh", "materialize-bambu-machine.py",
     "materialize-bambu-multimaterial.py", "three_mf_mesh_graph.py",
@@ -30,7 +34,13 @@ DEPENDENCIES = frozenset({
     "slicer_execution_contract.py", "gcode_artifact_validation.py",
     "printer_model_contract.py", "h2s_native_defaults.json", "job_control.py",
 })
-PRIMARY_REQUIRED = frozenset(set(RUNTIME) - {"job_control.py"}) | frozenset("systemd/" + u for u in UNITS)
+# Dependency filenames describe the installed flat worker layout. Their source
+# ownership is split: only the supervisor is native; the other contracts belong
+# to the HA component. Never use a duplicate or a live file as a fallback.
+COMPONENT_DEPENDENCIES = DEPENDENCIES - {"job_control.py"}
+PRIMARY_REQUIRED = (frozenset(set(RUNTIME) - {"job_control.py"})
+                    | frozenset("systemd/" + u for u in UNITS)
+                    | frozenset(PROFILES))
 PRIMARY_ALLOWED = PRIMARY_REQUIRED | {"job_control.py"}
 MAX_FILE_BYTES = 8 * 1024 * 1024
 MAX_MANIFEST_BYTES = 64 * 1024
@@ -127,17 +137,42 @@ def _array(script: str, name: str, expected: tuple[str, ...]) -> None:
         raise PreflightError("unsupported_deployer_contract")
 
 
+def _profile_scope(native: Path) -> None:
+    root = _plain(native / "profiles", directory=True)
+    _plain(root / "printers", directory=True)
+    actual_files: set[str] = set()
+    actual_dirs: set[str] = set()
+    for path in root.rglob("*"):
+        info = path.lstat()
+        if _link(path, info):
+            raise PreflightError("linked_path")
+        relative = path.relative_to(root).as_posix()
+        if stat.S_ISREG(info.st_mode):
+            actual_files.add(relative)
+        elif stat.S_ISDIR(info.st_mode):
+            actual_dirs.add(relative)
+        else:
+            raise PreflightError("invalid_file_type")
+    expected_files = {Path(name).relative_to("profiles").as_posix() for name in PROFILES}
+    if actual_files != expected_files or actual_dirs != {"printers"}:
+        raise PreflightError("unexpected_profile_scope")
+
+
 def collect(source_root: Path, layout: str) -> tuple[dict[str, bytes], list[Path]]:
     """Resolve only the two explicit source layouts; never use live dependencies."""
     root = _plain(source_root, directory=True)
     if layout == "public":
         native, units = root / "slicing-server", root / "deployment/systemd"
+        component = root / "homeassistant/custom_components/ultimate_3d_studio_v6"
     elif layout == "canonical":
         native = root / "deploy/homeassistant/host/3d-printer-slicing-server"
         units = native / "systemd"
+        component = root / "deploy/homeassistant/custom_components/ultimate_3d_studio_v6"
     else:
         raise PreflightError("unknown_layout")
     native, units = _plain(native, directory=True), _plain(units, directory=True)
+    component = _plain(component, directory=True)
+    _profile_scope(native)
     if any((native / name).exists() or (native / name).is_symlink() for name in FORBIDDEN_SOURCE_ENTRIES):
         raise PreflightError("runtime_data_in_source")
     primary_data = _read(native / "SHA256SUMS", MAX_MANIFEST_BYTES)
@@ -151,7 +186,12 @@ def collect(source_root: Path, layout: str) -> tuple[dict[str, bytes], list[Path
     files = {"SHA256SUMS": primary_data, "DEPENDENCY-SHA256SUMS": dependency_data}
     locations = {"SHA256SUMS": native / "SHA256SUMS", "DEPENDENCY-SHA256SUMS": native / "DEPENDENCY-SHA256SUMS"}
     for name, digest in sorted(expected.items()):
-        location = units / name.removeprefix("systemd/") if name.startswith("systemd/") else native / name
+        if name.startswith("systemd/"):
+            location = units / name.removeprefix("systemd/")
+        elif name in COMPONENT_DEPENDENCIES:
+            location = component / name
+        else:
+            location = native / name
         data = _read(location)
         if _sha(data) != digest:
             raise PreflightError("source_digest_mismatch:" + name)
@@ -163,6 +203,7 @@ def collect(source_root: Path, layout: str) -> tuple[dict[str, bytes], list[Path
     except UnicodeError as exc:
         raise PreflightError("deployer_encoding") from exc
     _array(script, "RUNTIME_FILES", RUNTIME)
+    _array(script, "PROFILE_FILES", PROFILES)
     _array(script, "UNIT_FILES", UNITS)
     if sum(map(len, files.values())) > MAX_PACKAGE_BYTES:
         raise PreflightError("package_size_limit")
@@ -170,7 +211,7 @@ def collect(source_root: Path, layout: str) -> tuple[dict[str, bytes], list[Path
     for name, location in locations.items():
         if _read(location) != files[name]:
             raise PreflightError("source_changed")
-    return files, [root, native, units]
+    return files, [root, native, units, component]
 
 
 def evidence(files: dict[str, bytes]) -> dict[str, Any]:
@@ -180,7 +221,8 @@ def evidence(files: dict[str, bytes]) -> dict[str, Any]:
             "package_sha256": _sha(json.dumps(entries, sort_keys=True, separators=(",", ":")).encode()),
             "installation_performed": False, "services_started": False, "release_approved": False,
             "remaining_requirements": ["full_release_source_and_quality_gate", "home_assistant_component_and_frontend",
-                "native_bambu_engine_and_host_libraries", "private_configuration_and_authentication",
+                "printer_profile_package_completeness", "native_bambu_engine_and_host_libraries",
+                "private_configuration_and_authentication",
                 "current_job_and_printer_state", "backup_rollback_and_live_acceptance"]}
 
 
