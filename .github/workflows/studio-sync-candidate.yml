@@ -1,17 +1,120 @@
-name: Studio Sync Candidate
+name: Studio P1 Source Integrity
 
 on:
   push:
-    branches: [sync/studio-release-20261005]
+    branches: [main, "p1/**"]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  makerworld-source-check:
+  exact-source-identity:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Validate reviewed PC source identities and protected V5 tree
+        shell: bash
+        run: |
+          mkdir -p .p1-evidence
+          python - <<'PY'
+          import hashlib
+          import json
+          import subprocess
+          from pathlib import Path
+          root = Path.cwd()
+          record = json.loads((root / ".github/p1-public-source-sha256.json").read_text(encoding="utf-8"))
+          assert record["format"] == "tara-studio-p1-public-source-identity-v1"
+          assert record["base_commit"] == "7f69fd44101f9984d106205489f399286419b566"
+          expected_v5 = record["protected_v5_tree"]
+          actual_v5 = subprocess.check_output(
+              ["git", "rev-parse", "HEAD:homeassistant/custom_components/printer_control_center"],
+              text=True,
+          ).strip()
+          assert actual_v5 == expected_v5, ("protected_v5_tree_modified", actual_v5)
+          entries = record["entries"]
+          assert len(entries) == 846, len(entries)
+          unique = set()
+          for row in entries:
+              relative = Path(row["path"])
+              assert not relative.is_absolute() and ".." not in relative.parts
+              assert row["path"] not in unique, row["path"]
+              unique.add(row["path"])
+              path = root / relative
+              assert path.is_file() and not path.is_symlink(), row["path"]
+              data = path.read_bytes()
+              assert len(data) == row["size_bytes"], row["path"]
+              assert hashlib.sha256(data).hexdigest() == row["sha256"], row["path"]
+              actual_blob = hashlib.sha1(
+                  b"blob " + str(len(data)).encode("ascii") + b"\0" + data,
+                  usedforsecurity=False,
+              ).hexdigest()
+              assert actual_blob == row["git_blob_sha"], row["path"]
+          for prefix in (
+              "studio/",
+              "homeassistant/custom_components/ultimate_3d_studio/",
+              "homeassistant/www/3d-studio/",
+          ):
+              expected = {p for p in unique if p.startswith(prefix)}
+              directory = root / prefix
+              actual = {
+                  p.relative_to(root).as_posix()
+                  for p in directory.rglob("*") if p.is_file()
+              }
+              assert actual == expected, ("public_scope_extra_or_missing", prefix, sorted(actual ^ expected)[:20])
+          old_active_paths = (
+              "studio-v6",
+              "homeassistant/custom_components/ultimate_3d_studio_v6",
+              "homeassistant/www/3d-studio-v6",
+              ".github/workflows/recover-canonical-v6.yml",
+          )
+          if (root / ".github/p1-finalized.txt").is_file():
+              assert all(not (root / p).exists() for p in old_active_paths), "active V6 paths remain after finalization"
+              print("P1 finalized: old active namespaces absent")
+          else:
+              print("P1 transitional candidate: retirement awaits first green CI")
+          assert not (root / "studio/deploy/homeassistant/custom_components/ultimate_3d_studio_v6").exists()
+          assert not (root / "studio/deploy/homeassistant/www/3d-studio-v6").exists()
+          print("Verified", len(entries), "PC-identical public files and unchanged V5 tree")
+          PY
+          git rev-parse HEAD > .p1-evidence/commit.txt
+          sha256sum .github/p1-public-source-sha256.json > .p1-evidence/source-manifest.sha256
+      - name: Validate isolated native worker source package without deploying
+        shell: bash
+        run: |
+          bash -n scripts/rebuild-homeassist.sh
+          cmp scripts/rebuild-homeassist.sh studio/scripts/rebuild-homeassist.sh
+          python studio/tools/studio_linux_preflight.py --source-root "$GITHUB_WORKSPACE" --layout public --check > .p1-evidence/native-package.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          doc = json.loads(Path('.p1-evidence/native-package.json').read_text())
+          assert doc["success"] and doc["file_count"] == 27
+          assert doc["installation_performed"] is False
+          assert doc["services_started"] is False
+          assert doc["package_sha256"] == "933f63ef7d4eb08d0b78ef9057fd2eed5ed115e747812b41c369632ee76a43f8"
+          PY
+      - name: Preserve read-only source evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: studio-p1-source-identity
+          path: .p1-evidence/
+          if-no-files-found: warn
+          retention-days: 7
+
+  isolated-source-regressions:
+    needs: exact-source-identity
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,108 +125,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-      - name: Verify exact reviewed source identities
-        run: |
-          python - <<'PY'
-          import hashlib, json
-          from pathlib import Path
-          root = Path.cwd()
-          count = 0
-          for name in ('publication-stage-20261005.json', 'publication-palette-stage-20261005.json', 'publication-viewer-modal-stage-20261005.json'):
-              record = json.loads((root / 'studio-v6/docs' / name).read_text())
-              assert record['full_repository_sync_complete'] is False
-              assert record['live_deployed'] is False
-              for row in record['files']:
-                  path = root / row['public_path']
-                  assert path.is_file() and not path.is_symlink(), row['public_path']
-                  data = path.read_bytes()
-                  assert hashlib.sha256(data).hexdigest() == row['sha256'], row['public_path']
-                  assert hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data, usedforsecurity=False).hexdigest() == row['git_blob_sha'], row['public_path']
-                  count += 1
-          print('Verified', count, 'reviewed source files; no live deployment')
-          PY
-      - name: Assemble the existing repository layout for isolated source tests
-        run: |
-          mkdir -p studio-v6/deploy/homeassistant/custom_components
-          test ! -e studio-v6/deploy/homeassistant/custom_components/ultimate_3d_studio_v6
-          cp -a homeassistant/custom_components/ultimate_3d_studio_v6 studio-v6/deploy/homeassistant/custom_components/
-      - name: Install isolated Python test dependencies
-        run: python -m pip install --disable-pip-version-check 'pytest>=8,<10' 'aiohttp>=3.9,<4' 'yarl>=1,<2'
-      - name: Test actual MakerWorld and palette paths plus source identity
-        working-directory: studio-v6
-        run: python -m pytest -q tests/test_makerworld_transfer_contract.py tests/test_toolpath_palette_integrity.py tests/test_source_fingerprint.py --junitxml=.test-results/publication-junit.xml
-      - name: Install locked TypeScript toolchain without package scripts
-        working-directory: studio-v6
+      - name: Install locked frontend dependencies
+        working-directory: studio
         run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Strictly compile the shared palette helper
-        working-directory: studio-v6
-        run: node node_modules/typescript/bin/tsc frontend/toolpath-material-colors.ts --strict --skipLibCheck --target ES2022 --module ES2022 --noEmitOnError --outDir .test-results/palette
-      - name: Check actual compiled palette behavior
-        working-directory: studio-v6
-        run: |
-          node --input-type=module > .test-results/palette-node.log <<'JS'
-          import test from 'node:test';
-          import assert from 'node:assert/strict';
-          import { normalizeToolpathPalette, toolpathMaterialColor, toolpathPaletteWarning } from './.test-results/palette/toolpath-material-colors.js';
-          for (const color of ['#ff0000', '#ffffff', '#fbff00', '#000000']) {
-            test('exact job color ' + color, () => assert.equal(toolpathMaterialColor([color], 0), color));
-          }
-          test('missing entries never shift subsequent channels', () => {
-            assert.deepEqual(normalizeToolpathPalette(['#FF0000', null, '#000000']), ['#ff0000', '', '#000000']);
-          });
-          test('invalid tools never wrap to a real material', () => {
-            for (const tool of [-1, 4, 255, 1.5, NaN, '0']) assert.equal(toolpathMaterialColor(['#ff0000'], tool), null);
-          });
-          test('unknown channels get an explicit warning', () => {
-            assert.match(toolpathPaletteWarning([{segments: [[0,0,1,1,.2,3,1]]}], ['#ff0000']), /Kanal 4/);
-          });
-          test('normalization never mutates the source job palette', () => {
-            const original = ['#FF0000', '', '#FFFFFF'];
-            normalizeToolpathPalette(original);
-            assert.deepEqual(original, ['#FF0000', '', '#FFFFFF']);
-          });
-          JS
-          cat .test-results/palette-node.log
-      - name: Typecheck the combined public frontend candidate
-        working-directory: studio-v6
+      - name: Typecheck canonical Studio frontend
+        working-directory: studio
         run: npm run typecheck
-      - name: Test popup, attribution, cache return and standalone material viewer
-        working-directory: studio-v6
+      - name: Run source-owned logic tests (no printer access)
+        working-directory: studio
+        run: node run_frontend_logic_tests.mjs
+      - name: Validate production frontend build
+        working-directory: studio
+        run: npm run build
+      - name: Install isolated Python test dependencies
+        run: python -m pip install --disable-pip-version-check 'pytest>=8,<10' 'pytest-asyncio>=0.25,<2' 'aiohttp>=3.11,<4' 'yarl>=1,<2'
+      - name: Check P1 naming and functional source contracts
+        working-directory: studio
         run: |
-          node node_modules/esbuild/bin/esbuild frontend-tests/makerworld-attribution.test.ts --bundle --platform=node --format=esm --packages=external --outfile=.test-results/viewer-modal-public.test.mjs
-          node --test --test-reporter=tap .test-results/viewer-modal-public.test.mjs > .test-results/viewer-modal-public.tap
-          cat .test-results/viewer-modal-public.tap
-          python - <<'PYTEST'
-          import re
-          from pathlib import Path
-          output = Path('.test-results/viewer-modal-public.tap').read_text()
-          counts = {key: int(value) for key, value in re.findall(r'^# (tests|pass|fail|skipped) (\d+)$', output, re.MULTILINE)}
-          assert counts == {'tests': 41, 'pass': 41, 'fail': 0, 'skipped': 0}, counts
-          print('Verified 41 controller/attribution tests; not browser acceptance')
-          PYTEST
-      - name: Retain standalone source-bound controller wrapper evidence
-        working-directory: studio-v6
-        run: python -m pytest -q tests/test_viewer_modal_node_contract.py --junitxml=.test-results/viewer-wrapper-junit.xml
-      - name: Preserve the exact tracked public source revision
+          python -m pytest -q tests/test_p1_active_namespace.py tests/test_source_fingerprint.py tests/test_makerworld_transfer_contract.py tests/test_toolpath_palette_integrity.py tests/test_http_server.py tests/test_http_contract_errors.py tests/test_viewer_modal_node_contract.py
+      - name: Compile canonical Python and HA component sources
         run: |
-          git archive --format=tar.gz --output=studio-v6/.test-results/public-candidate-source.tar.gz HEAD
-          git rev-parse HEAD > studio-v6/.test-results/public-candidate-source.commit
-          sha256sum studio-v6/.test-results/public-candidate-source.tar.gz > studio-v6/.test-results/public-candidate-source.sha256
-      - name: Retain source-bound test evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: studio-source-sync-evidence
-          path: |
-            studio-v6/.test-results/publication-junit.xml
-            studio-v6/.test-results/palette-node.log
-            studio-v6/.test-results/viewer-modal-public.tap
-            studio-v6/.test-results/viewer-wrapper-junit.xml
-            studio-v6/.test-results/viewer-modal-node-contract.json
-            studio-v6/.test-results/public-source-fingerprints.json
-            studio-v6/.test-results/public-transfer-fingerprints.json
-            studio-v6/.test-results/public-candidate-source.tar.gz
-            studio-v6/.test-results/public-candidate-source.commit
-            studio-v6/.test-results/public-candidate-source.sha256
-          if-no-files-found: error
-          retention-days: 7
+          python -m compileall -q studio/core studio/api
+          python -m compileall -q homeassistant/custom_components/ultimate_3d_studio

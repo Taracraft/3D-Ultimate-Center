@@ -1,0 +1,16 @@
+{
+  "format": 1,
+  "date": "2026-10-05",
+  "stage": "job_bound_palette_parser_and_helper",
+  "base_commit": "fec52fe26791fc0e3743fe17beeeec0fef73da7d",
+  "full_repository_sync_complete": false,
+  "live_deployed": false,
+  "main_viewer_default_published": false,
+  "files": [
+    {"public_path":"homeassistant/custom_components/ultimate_3d_studio_v6/gcode_toolpath.py","pc_path":"deploy/homeassistant/custom_components/ultimate_3d_studio_v6/gcode_toolpath.py","sha256":"16ffb8cc20a4caed402ea682cfd71ebb8a703e1c66264478423d3fc0a2597fd1","git_blob_sha":"da6a303ebad158f476292a0d3c27d789c83f5563"},
+    {"public_path":"studio-v6/frontend/toolpath-material-colors.ts","pc_path":"frontend/toolpath-material-colors.ts","sha256":"38630b06a08ca1fabd29b09286d472baec9a5c95ea3ce8617c15aafda25d35fe","git_blob_sha":"580d11e98cb87e2f4b70dd4a4432777171e64a02"},
+    {"public_path":"studio-v6/tests/test_toolpath_palette_integrity.py","pc_path":"tests/test_toolpath_palette_integrity.py","size_bytes":2511,"sha256":"aa2522fe5711933766a029c7ce2db22c233db416a9c93a339b2a0d6e42654848","git_blob_sha":"22755b5cac8f1614325bcd2e150d9d6635a540ec"}
+  ],
+  "remaining": ["main_viewer_and_remaining_frontend_sources", "standalone_viewer_binding", "95_percent_MakerWorld_popup", "gallery_and_CAD_changes", "worker_sources_and_tests", "built_artifacts", "HA_live_activation", "browser_iPhone_acceptance", "private_dashboard", "namespace_migration"],
+  "note": "This is a dependency/parser upload, not publication of the complete frontend material-default change."
+}

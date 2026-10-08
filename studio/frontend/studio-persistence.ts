@@ -1,0 +1,147 @@
+import type { StudioPlateLocalSettings } from "./studio-plate-storage.js";
+import type { StudioPlateProfileSelection } from "./studio-profile-catalog.js";
+import type { Vec3 } from "./webgl-studio-viewport.js";
+import type { PaintRegion } from "./studio-mesh-paint.js";
+import { openStudioWorkspaceDatabase } from "./studio-storage-upgrade.js";
+
+const STORE_NAME = "workspace";
+const ACTIVE_KEY = "active";
+
+export type PersistedStudioInstance = Readonly<{
+  id: string;
+  name: string;
+  positions: Float32Array;
+  position: Vec3;
+  rotation: Vec3;
+  scale: Vec3;
+  color: string;
+  visible: boolean;
+}>;
+
+export type PersistedStudioPlate = Readonly<{
+  id: number;
+  uid?: string;
+  name: string;
+  width: number;
+  depth: number;
+  localSettings?: StudioPlateLocalSettings | undefined;
+  stage?: "prepared" | "slicing" | "sliced" | "printed" | "error";
+  jobId?: string;
+  materialSource?: "ams" | "external_spool";
+  externalFilamentProfileId?: string;
+  selection: StudioPlateProfileSelection;
+  instances: PersistedStudioInstance[];
+}>;
+
+export type PersistedStudioMaterial = Readonly<{
+  key: string;
+  name: string;
+  material: string;
+  color: string;
+  source: "ams" | "external_spool" | "model";
+  global_id?: string;
+  unit_id?: string;
+  slot_index?: number;
+  display_slot?: number;
+  tray_id?: string;
+  filament_id?: string;
+}>;
+
+export type PersistedStudioPaintRegion = PaintRegion & Readonly<{ plateId: number }>;
+
+export type PersistedStudioPaintLayerPoint = Readonly<{
+  x: number;
+  y: number;
+  z: number;
+  screenX: number;
+  screenY: number;
+  normal?: number[];
+}>;
+
+export type PersistedStudioPaintLayer = Readonly<{
+  id: string;
+  plateId: number;
+  objectId: string;
+  kind: "stroke" | "rectangle" | "circle" | "text";
+  label: string;
+  color: string;
+  materialKey: string;
+  radiusMm: number;
+  mode?: "add" | "remove";
+  mask?: Readonly<{
+    kind: "rectangle" | "circle" | "text";
+    matrix: number[];
+    left: number; top: number; right: number; bottom: number;
+    width?: number; height?: number; runs?: number[];
+  }>;
+  points: PersistedStudioPaintLayerPoint[];
+  text?: string;
+  textSizePx?: number;
+}>;
+
+export type PersistedStudioWorkspace = Readonly<{
+  version: 1;
+  savedAt: number;
+  activePlate: number;
+  mode: "prepare" | "colors";
+  nextId: number;
+  selected: string[];
+  assignments: Array<readonly [string, string]>;
+  modelMaterials: PersistedStudioMaterial[];
+  paintCompositionVersion?: 1;
+  paintLegacyAmbiguousObjectIds?: string[];
+  paintRegions: PersistedStudioPaintRegion[];
+  paintLayers: Array<readonly [number, PersistedStudioPaintLayer[]]>;
+  nextPaintLayerId: number;
+  plates: PersistedStudioPlate[];
+}>;
+
+function transactionComplete(transaction: IDBTransaction): Promise<void> {
+  return new Promise((resolve, reject) => {
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error ?? new Error("Studio-Sitzung konnte nicht gespeichert werden."));
+    transaction.onabort = () => reject(transaction.error ?? new Error("Studio-Speicherung wurde abgebrochen."));
+  });
+}
+
+export async function saveStudioWorkspace(snapshot: PersistedStudioWorkspace): Promise<void> {
+  const database = await openStudioWorkspaceDatabase();
+  if (!database) return;
+  try {
+    const transaction = database.transaction(STORE_NAME, "readwrite");
+    transaction.objectStore(STORE_NAME).put(snapshot, ACTIVE_KEY);
+    await transactionComplete(transaction);
+  } finally {
+    database.close();
+  }
+}
+
+export async function loadStudioWorkspace(): Promise<PersistedStudioWorkspace | null> {
+  const database = await openStudioWorkspaceDatabase();
+  if (!database) return null;
+  try {
+    return await new Promise((resolve, reject) => {
+      const transaction = database.transaction(STORE_NAME, "readonly");
+      const request = transaction.objectStore(STORE_NAME).get(ACTIVE_KEY);
+      request.onsuccess = () => {
+        const value = request.result;
+        resolve(value && value.version === 1 ? value as PersistedStudioWorkspace : null);
+      };
+      request.onerror = () => reject(request.error ?? new Error("Studio-Sitzung konnte nicht geladen werden."));
+    });
+  } finally {
+    database.close();
+  }
+}
+
+export async function clearStudioWorkspace(): Promise<void> {
+  const database = await openStudioWorkspaceDatabase();
+  if (!database) return;
+  try {
+    const transaction = database.transaction(STORE_NAME, "readwrite");
+    transaction.objectStore(STORE_NAME).delete(ACTIVE_KEY);
+    await transactionComplete(transaction);
+  } finally {
+    database.close();
+  }
+}

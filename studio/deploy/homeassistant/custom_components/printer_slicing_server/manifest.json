@@ -1,0 +1,9 @@
+{
+  "domain": "printer_slicing_server",
+  "name": "3D-Printer Slicing Server",
+  "version": "0.1.0-alpha4",
+  "config_flow": true,
+  "iot_class": "local_polling",
+  "dependencies": ["frontend", "http", "websocket_api"],
+  "requirements": []
+}

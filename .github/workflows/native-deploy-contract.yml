@@ -2,7 +2,7 @@ name: Native Deploy Contract
 
 on:
   push:
-    branches: [sync/studio-release-20261005]
+    branches: [main, "p1/**"]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -23,8 +23,8 @@ jobs:
           python-version: "3.13"
       - name: Verify reviewed source hashes
         run: |
-          echo '34395dfe41d156bcc1ca843ead50e648a6cd7338934571df03d93a79db0fc117  slicing-server/deploy-native-slicer.sh' | sha256sum -c -
-          echo 'e988b7b4a1b3f638c0f03ff56b259f89dea8695fbb1bf3a1bf12ec2f065354e1  studio-v6/tests/test_native_deploy_supervisor.py' | sha256sum -c -
+          echo '1f2919e1098dba5a3bf76318dfc51185f07a0aba572c7736495aca3313df6d42  slicing-server/deploy-native-slicer.sh' | sha256sum -c -
+          echo 'd9033ba313c5f019e44c6959e8f26fc0011b71543873f272ff0264604ef99b8c  studio/tests/test_native_deploy_supervisor.py' | sha256sum -c -
           bash -n slicing-server/deploy-native-slicer.sh
       - name: Install isolated test dependency
         run: python -m pip install --disable-pip-version-check 'pytest>=8,<10'
@@ -32,7 +32,7 @@ jobs:
         run: |
           command -v jq
           mkdir -p .native-deploy-evidence
-          sudo -n env NATIVE_DEPLOY_SOURCE="$GITHUB_WORKSPACE/slicing-server/deploy-native-slicer.sh" "$(command -v python)" -m pytest --noconftest -q studio-v6/tests/test_native_deploy_supervisor.py --junitxml="$GITHUB_WORKSPACE/.native-deploy-evidence/junit.xml"
+          sudo -n env NATIVE_DEPLOY_SOURCE="$GITHUB_WORKSPACE/slicing-server/deploy-native-slicer.sh" "$(command -v python)" -m pytest --noconftest -q studio/tests/test_native_deploy_supervisor.py --junitxml="$GITHUB_WORKSPACE/.native-deploy-evidence/junit.xml"
       - name: Require all lifecycle cases to have run
         run: |
           python - <<'PY'
@@ -44,7 +44,7 @@ jobs:
           print('30 isolated deployment tests passed; no production deployment performed')
           PY
           git rev-parse HEAD > .native-deploy-evidence/commit.txt
-          sha256sum slicing-server/deploy-native-slicer.sh studio-v6/tests/test_native_deploy_supervisor.py > .native-deploy-evidence/source.sha256
+          sha256sum slicing-server/deploy-native-slicer.sh studio/tests/test_native_deploy_supervisor.py > .native-deploy-evidence/source.sha256
       - name: Retain test evidence
         if: always()
         uses: actions/upload-artifact@v4

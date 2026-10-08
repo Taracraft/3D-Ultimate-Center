@@ -1,0 +1,129 @@
+{
+  "views": [
+    {
+      "title": "Steuerung",
+      "path": "steuerung",
+      "icon": "mdi:printer-3d",
+      "panel": true,
+      "cards": [
+        {
+          "type": "custom:ultimate-3d-studio-card",
+          "title": "3D Ultimate Studio",
+          "version": "20260713-984fed6c21df81f4"
+        }
+      ]
+    },
+    {
+      "title": "3D Studio",
+      "path": "studio",
+      "icon": "mdi:printer-3d-nozzle",
+      "panel": true,
+      "cards": [
+        {
+          "type": "custom:ultimate-3d-studio-card",
+          "title": "3D Ultimate Studio",
+          "version": "20260713-984fed6c21df81f4"
+        }
+      ],
+      "subview": true
+    },
+    {
+      "title": "Galerie",
+      "path": "galerie",
+      "icon": "mdi:image-multiple",
+      "panel": true,
+      "cards": [
+        {
+          "type": "custom:ultimate-3d-studio-card",
+          "title": "3D Ultimate Studio",
+          "version": "20260713-984fed6c21df81f4"
+        }
+      ],
+      "subview": true
+    },
+    {
+      "title": "AMS",
+      "path": "ams",
+      "icon": "mdi:palette",
+      "panel": true,
+      "cards": [
+        {
+          "type": "custom:ultimate-3d-studio-card",
+          "title": "3D Ultimate Studio",
+          "version": "20260713-984fed6c21df81f4"
+        }
+      ],
+      "subview": true
+    },
+    {
+      "title": "Profile",
+      "path": "profile",
+      "icon": "mdi:tune",
+      "panel": true,
+      "cards": [
+        {
+          "type": "custom:ultimate-3d-studio-card",
+          "title": "3D Ultimate Studio",
+          "version": "20260713-984fed6c21df81f4"
+        }
+      ],
+      "subview": true
+    },
+    {
+      "title": "Aufgaben",
+      "path": "aufgaben",
+      "icon": "mdi:format-list-checks",
+      "panel": true,
+      "cards": [
+        {
+          "type": "custom:ultimate-3d-studio-card",
+          "title": "3D Ultimate Studio",
+          "version": "20260713-984fed6c21df81f4"
+        }
+      ],
+      "subview": true
+    },
+    {
+      "title": "Verlauf",
+      "path": "verlauf",
+      "icon": "mdi:history",
+      "panel": true,
+      "cards": [
+        {
+          "type": "custom:ultimate-3d-studio-card",
+          "title": "3D Ultimate Studio",
+          "version": "20260713-984fed6c21df81f4"
+        }
+      ],
+      "subview": true
+    },
+    {
+      "title": "System",
+      "path": "system",
+      "icon": "mdi:cog",
+      "panel": true,
+      "cards": [
+        {
+          "type": "custom:ultimate-3d-studio-card",
+          "title": "3D Ultimate Studio",
+          "version": "20260713-984fed6c21df81f4"
+        }
+      ],
+      "subview": true
+    },
+    {
+      "title": "Slicing-Server",
+      "path": "slicing-server",
+      "icon": "mdi:server",
+      "panel": true,
+      "cards": [
+        {
+          "type": "custom:ultimate-3d-studio-card",
+          "title": "3D Ultimate Studio",
+          "version": "20260713-984fed6c21df81f4"
+        }
+      ],
+      "subview": true
+    }
+  ]
+}

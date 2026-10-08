@@ -1,0 +1,18 @@
+{
+  "format": 1,
+  "date": "2026-10-05",
+  "stage": "makerworld_transfer_and_source_identity",
+  "base_commit": "ce86ff53db9bdeb05e603fe6230eac7810989f6d",
+  "full_repository_sync_complete": false,
+  "live_deployed": false,
+  "real_makerworld_import_accepted": false,
+  "files": [
+    {"public_path":"homeassistant/custom_components/ultimate_3d_studio_v6/makerworld_transfer.py","pc_path":"deploy/homeassistant/custom_components/ultimate_3d_studio_v6/makerworld_transfer.py","sha256":"b147558c69061cdc060e2817387cdcf47f39485e3ae9df9c2f9d7b09fc347766","git_blob_sha":"d3665f6e1ae192b73b217dbb67eecbd6bf59eae6"},
+    {"public_path":"homeassistant/custom_components/ultimate_3d_studio_v6/makerworld_runtime.py","pc_path":"deploy/homeassistant/custom_components/ultimate_3d_studio_v6/makerworld_runtime.py","sha256":"90350bfec7830416fe84468e8b49fd11cad71b59f29b6e33e09cf0e229326298","git_blob_sha":"f0e0ede61fba30c647d068f9c7444a62a8c27b90"},
+    {"public_path":"homeassistant/custom_components/ultimate_3d_studio_v6/makerworld_download.py","pc_path":"deploy/homeassistant/custom_components/ultimate_3d_studio_v6/makerworld_download.py","sha256":"046c09f2f5e140ae3fae61b01c7d4605caadddfdfe4f8a9122501b0c67d44637","git_blob_sha":"c338d4a496ed1c2fec87239c037d46422abe917e"},
+    {"public_path":"studio-v6/tests/test_makerworld_transfer_contract.py","pc_path":"tests/test_makerworld_transfer_contract.py","sha256":"a9c215437bec7a853e9ac5775f1601857543f38a4f4f1fdb70967b7b9cf78aa7","git_blob_sha":"73ba5cb6585de40893f974b1a5e223cd89985597"},
+    {"public_path":"studio-v6/tools/studio_source_fingerprint.py","pc_path":"tools/studio_source_fingerprint.py","sha256":"b6f1275e4129dccfbcae1c7c8b4f454de5502b83d202f33c2c7cd64f795eb3f8","git_blob_sha":"513428e31e82b9b003c50fda92200f8c560a41dc"},
+    {"public_path":"studio-v6/tests/test_source_fingerprint.py","pc_path":"tests/test_source_fingerprint.py","sha256":"1de6f53413f28bfda840d6cce28a12cfa581f1cdb187ce47f13aa5fe2153b097","git_blob_sha":"91ab05c92fff404664a809f9d72d6e5ccd38fae1"}
+  ],
+  "remaining": ["full_frontend_and_backend_source_sync", "worker_sync", "built_artifacts", "HA_live_activation", "browser_iPhone_acceptance", "MakerWorld_account_and_real_import", "private_dashboard", "namespace_migration"]
+}

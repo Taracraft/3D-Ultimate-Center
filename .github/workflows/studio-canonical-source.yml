@@ -1,0 +1,43 @@
+name: Canonical Studio Source Guard
+
+on:
+  push:
+    branches: [main, "p1/**"]
+    paths:
+      - ".github/workflows/studio-canonical-source.yml"
+      - ".github/p1-public-source-sha256.json"
+      - "studio/frontend/studio-mega-workspace-v2.ts"
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canonical-source-hash:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify source against reviewed PC identity without network recovery or writes
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import json
+          root = Path.cwd()
+          target = "studio/frontend/studio-mega-workspace-v2.ts"
+          record = json.loads((root / ".github/p1-public-source-sha256.json").read_text(encoding="utf-8"))
+          rows = [row for row in record["entries"] if row["path"] == target]
+          assert len(rows) == 1
+          path = root / target
+          assert path.is_file() and not path.is_symlink()
+          data = path.read_bytes()
+          assert len(data) == rows[0]["size_bytes"]
+          assert hashlib.sha256(data).hexdigest() == rows[0]["sha256"]
+          print("Canonical Studio source verified; no runtime deployment or Git push")
+          PY

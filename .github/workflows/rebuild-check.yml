@@ -2,9 +2,9 @@ name: Rebuild Check
 
 on:
   push:
-    branches: [main]
+    branches: [main, "p1/**"]
   pull_request:
-    branches: [main]
+    branches: [main, "p1/**"]
 
 permissions:
   contents: read
@@ -19,20 +19,20 @@ jobs:
           python-version: "3.13"
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
       - name: Compile Python sources
         run: |
-          python -m compileall -q studio-v6/core studio-v6/api
-          python -m compileall -q homeassistant/custom_components/ultimate_3d_studio_v6
+          python -m compileall -q studio/core studio/api
+          python -m compileall -q homeassistant/custom_components/ultimate_3d_studio
           python -m compileall -q homeassistant/custom_components/printer_control_center
           python -m compileall -q homeassistant/custom_components/printer_slicing_server
           python -m compileall -q slicing-server
       - name: Install frontend dependencies
-        working-directory: studio-v6
-        run: npm install
+        working-directory: studio
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Typecheck frontend
-        working-directory: studio-v6
+        working-directory: studio
         run: npm run typecheck
       - name: Build frontend
-        working-directory: studio-v6
+        working-directory: studio
         run: npm run build
