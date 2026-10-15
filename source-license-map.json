@@ -12054,9 +12054,9 @@
     },
     {
       "identity": {
-        "bytes": 22939,
+        "bytes": 24568,
         "kind": "sha256-raw-bytes",
-        "sha256": "c65e2de7e99ed478082f46f7076e4fc37fc3a84b43fc6a895ea9435e09fa4b50"
+        "sha256": "e47d569967daa47fa58a2e5a709d9aa7c2c0ff108609882632e703d687a109a0"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/tests/test_studio_native_install_transaction.py",
@@ -13471,9 +13471,9 @@
     },
     {
       "identity": {
-        "bytes": 16549,
+        "bytes": 16841,
         "kind": "sha256-raw-bytes",
-        "sha256": "2659b3e34926c964e88bc3cbc5557c38ecba191c7ee4b3412162c87a54868742"
+        "sha256": "a71b674cc05b3660a58a6e507d0ae977f6f78a4d4366151327c3f33b365c39b3"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/tests/test_worker_cancellation.py",

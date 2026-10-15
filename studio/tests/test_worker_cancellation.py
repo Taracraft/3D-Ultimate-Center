@@ -162,6 +162,12 @@ class LinuxCancellationTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
         self.base=Path(self.temp.name);self.control=JobControl(self.base)
+        environment=patch.dict(os.environ,{
+            'STUDIO_WORKER_SOURCE_ROOT':str(self.base),
+            'STUDIO_WORKER_PROFILE_ROOT':str(self.base/'profiles/printers'),
+            'STUDIO_WORKER_ISOLATION':'',
+        })
+        environment.start();self.addCleanup(environment.stop)
         (self.control.jobs/'sample.queued.json').write_text(json.dumps({'job_id':'sample','manual_release':False}))
 
     def run_dispatch(self, body):

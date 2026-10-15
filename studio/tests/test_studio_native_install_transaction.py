@@ -75,7 +75,22 @@ def isolated_root(monkeypatch, tmp_path):
     monkeypatch.setitem(sys.modules, "grp", grp)
 
     actions = []
-    failure = {"daemon_reload": False, "namespace": False}
+    failure = {"daemon_reload": False, "namespace": False, "backup_owner_uid": 0}
+    real_stat = Path.stat
+    backup_parent = roots[0].parent / ".private-native-code-backups"
+
+    def synthetic_owner_stat(path, *args, **kwargs):
+        details = real_stat(path, *args, **kwargs)
+        if path != backup_parent:
+            return details
+        fields = list(details)
+        fields[4] = failure["backup_owner_uid"]
+        return installer.os.stat_result(fields, {
+            name: getattr(details, name)
+            for name in ("st_atime_ns", "st_mtime_ns", "st_ctime_ns")
+        })
+
+    monkeypatch.setattr(Path, "stat", synthetic_owner_stat)
 
     def mock_run(command, **kwargs):
         actions.append((tuple(command), dict(kwargs)))
@@ -522,3 +537,25 @@ def test_repeating_already_completed_program_upgrade_adds_no_second_backup(
     assert second["unchanged"] is True
     assert sorted(p.name for p in backups.iterdir()) == before
     assert (code / "server.py").read_bytes() == changed["payload/server.py"]
+
+
+def test_upgrade_refuses_backup_root_owned_by_unprivileged_user(
+    installation_inputs, isolated_root, monkeypatch
+):
+    files, digest, engine = installation_inputs
+    (code, config, _state, _units), _calls, failure = isolated_root
+    installer.install_first_time(files, digest, engine)
+    original_program = (code / "server.py").read_bytes()
+    original_config = (config / "config.json").read_bytes()
+    backup_parent = code.parent / ".private-native-code-backups"
+    monkeypatch.setattr(installer, "upgrade_backup_root", lambda: backup_parent)
+    failure["backup_owner_uid"] = 1099
+    incoming = dict(files)
+    incoming["payload/server.py"] += b"\n# synthetic rejected upgrade\n"
+
+    with pytest.raises(installer.NativeInstallError, match="not owned by root"):
+        installer.upgrade_stopped_native_server(incoming, digest, engine)
+
+    assert (code / "server.py").read_bytes() == original_program
+    assert (config / "config.json").read_bytes() == original_config
+    assert list(backup_parent.iterdir()) == []
