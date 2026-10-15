@@ -52,3 +52,12 @@ def test_tampering_and_missing_source_fail_closed(tmp_path):
     missing.unlink()
     with pytest.raises(FileNotFoundError):
         builder.verify(root)
+
+
+def test_workflow_shell_commands_with_yaml_colons_are_quoted():
+    workflow = (ROOT / 'Slicer-Server/slicer-source-contract.yml').read_text()
+    for line in workflow.splitlines():
+        if line.lstrip().startswith('run:'):
+            command = line.lstrip()[4:].strip()
+            if ': ' in command:
+                assert command[:1] in {chr(34), chr(39)} and command[-1:] == command[:1], line

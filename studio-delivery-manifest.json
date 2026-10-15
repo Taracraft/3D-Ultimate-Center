@@ -893,7 +893,7 @@
     {
       "bytes": 6835,
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "fd1fa710b7fada569a0890342b0ffc6e9968c1e0f13840ff3e4215758d477b48"
+      "sha256": "c47684a5b3c7e362e5b326fafdcc645d5d04f61616a27e0ce147cbfbc6122064"
     },
     {
       "bytes": 801,
@@ -913,7 +913,7 @@
     {
       "bytes": 491946,
       "path": "source-license-map.json",
-      "sha256": "a95c67e35880b4ef4b1d4ba6c17b4f54740bec7cffd3db0377708932f709e8d3"
+      "sha256": "d147fab7e33698ea749d9df5ffb590153553769b6a4ac4d77f1a6e3ce233f24b"
     },
     {
       "bytes": 2883,
@@ -1261,9 +1261,9 @@
       "sha256": "e5c95f9b8f61a8d3b7bf7fb31cfb38816130f46014b9ea3bf2ba85ccf6a9d630"
     },
     {
-      "bytes": 1694,
+      "bytes": 1696,
       "path": "studio/Slicer-Server/slicer-source-contract.yml",
-      "sha256": "9c8c197781eb50b7b36ad197481359cb6771177d0cee997999cd5726834c409c"
+      "sha256": "e780726cf14262fcff61601927eb34542bdaf385b777d69088b0eb887b277fdd"
     },
     {
       "bytes": 10658,
@@ -2618,7 +2618,7 @@
     {
       "bytes": 6835,
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "fd1fa710b7fada569a0890342b0ffc6e9968c1e0f13840ff3e4215758d477b48"
+      "sha256": "c47684a5b3c7e362e5b326fafdcc645d5d04f61616a27e0ce147cbfbc6122064"
     },
     {
       "bytes": 801,
@@ -4901,9 +4901,9 @@
       "sha256": "447d01098d16cba0f86fb925889ac00c692c101c124f9da27df406d9b5840229"
     },
     {
-      "bytes": 2343,
+      "bytes": 2747,
       "path": "studio/tests/test_studio_slicer_repository.py",
-      "sha256": "b7881010b09b91b133b1a197e51d387aa842fbac0d911f9ca32d08a0f285eea1"
+      "sha256": "023ffe2f2c2ba1f826ad0afb4ad02e56901044f5d61f8886edabd6687ac07922"
     },
     {
       "bytes": 2600,
@@ -5370,19 +5370,19 @@
   "protected_component_tree": "83eee0b12ba828dd1de1e3c9ba83ca2af45e66df",
   "review_evidence": {
     "credentials": {
-      "sha256": "c7b9c1cd1602e333072d9dc07fbcdae0a0527c830ab4d4ce5bbbda8ab4f6d803",
+      "sha256": "8130d77498aa75b6d7f4625795b80e466da72bf60d66c0cbe132c799ddc1fe13",
       "verified": true
     },
     "infrastructure": {
-      "sha256": "f94aa11f722b6e1248b1fef70078e083a8102cd62fe72c8561f1c07d0f033b1e",
+      "sha256": "425359d26e0cac91af4d92327f327ea545c67909bd8c16e604f61b80c3bfa6ba",
       "verified": true
     },
     "isolated_candidate": {
-      "sha256": "335d70596a597554c4a8fe411d96f929956958310372bdde1aa15f5b4373f596",
+      "sha256": "973db2a47d3076c64f74a0982ee79f7758eda84dd6e21f7eb489b4ac3489b386",
       "verified": true
     },
     "licenses": {
-      "sha256": "1261a69d98153d39a62820ca352ad4da4f4463f8c8abf5fb6c319bace8009628",
+      "sha256": "dac846eb8e206f42920afe56e10869137166d8bd2b3d44e1bba9a040d10ff175",
       "verified": true
     }
   },

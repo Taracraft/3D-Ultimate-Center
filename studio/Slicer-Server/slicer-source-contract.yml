@@ -24,7 +24,7 @@ jobs:
       - name: Verify exact component source closure
         run: python Slicer-Server/build_repository.py --verify .
       - name: Install hash-pinned test wheels without dependency expansion
-        run: python -m pip install --disable-pip-version-check --only-binary=:all: --no-deps --require-hashes -r requirements-test.txt
+        run: 'python -m pip install --disable-pip-version-check --only-binary=:all: --no-deps --require-hashes -r requirements-test.txt'
       - name: Verify offline profile source closure
         run: python Slicer-Server/verify_profile_sources.py --source-root .
       - name: Run isolated component tests
