@@ -18,9 +18,9 @@
     },
     {
       "identity": {
-        "bytes": 2348,
+        "bytes": 2350,
         "kind": "sha256-raw-bytes",
-        "sha256": "497ef4de32cd46082aab5b524ec9213f951cd7571b9b49e5215621ecf59cfb1e"
+        "sha256": "7e84b7041a01f1029b24527acc94b96aea9433b60bb5ffce616fbc633f13e55b"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": ".github/workflows/studio-source-contract.yml",
