@@ -2,11 +2,11 @@
 
 **Vom ersten Modell zur vorbereiteten Druckplatte: Import, CAD, Materialien, Bemalung, Vorschau und Auftragsübersicht in Home Assistant.**
 
-[Zur Repo-Startseite](../README.md) · [Architektur](ARCHITECTURE.md) · [Slicer-Server](Slicer-Server/README.md)
+[Zur Repo-Startseite](../README.md) · [Detaillierter Funktionskatalog](handbook/FEATURES.md) · [CAD-Beispiele](handbook/CAD_EXAMPLES.md) · [Architektur](ARCHITECTURE.md) · [Slicer-Server](Slicer-Server/README.md)
 
-![Arbeitsbereich 3D-Studio mit Profilwahl und Malwerkzeugen](handbook/images/studio.png)
+![Echte Studio-Druckplatte mit Würfel, Zylinder, Ring und Kegel](handbook/images/cad-plate.png)
 
-*Die Bilder sind echte Puppet-Aufnahmen einer bestehenden Home-Assistant-Installation vom 15. Oktober 2026. Sie zeigen die Oberfläche und vorhandene Installationswerte. Der hier beschriebene Funktionsumfang bezieht sich auf die aktuellen Quellen; ein installierter Build kann davon abweichen. Die abgebildete leere Platte ist kein Slice- oder Drucknachweis.*
+*Die Bilder sind echte Puppet-Aufnahmen einer bestehenden Home-Assistant-Installation vom 15. Oktober 2026. Sie zeigen die Oberfläche und vorhandene Installationswerte. Der hier beschriebene Funktionsumfang bezieht sich auf die aktuellen Quellen; ein installierter Build kann davon abweichen. Die gezeigte Beispielplatte enthält vier im Studio erzeugte Grundkörper. Die Bilder sind kein Slice- oder Drucknachweis. [Ganze CAD-Oberfläche und Bildherkunft](handbook/CAD_EXAMPLES.md).*
 
 ## Inhalt
 
@@ -40,6 +40,8 @@ Die Navigation umfasst neun Arbeitsbereiche. Auf schmalen Bildschirmen liegen di
 | **System** | Verbindungs- und Diagnoseinformationen einsehen |
 | **Slicing-Server** | Den getrennten Slicer und seine gemeldeten Zustände überblicken |
 
+Der [ausführliche Funktionskatalog](handbook/FEATURES.md) schlüsselt die einzelnen Funktionen, ihren Nutzen, Grenzen und Quell-Einstiegspunkte auf. Die [CAD-Beispielanleitung](handbook/CAD_EXAMPLES.md) zeigt die Druckplatte mit echten Grundkörpern statt einer leeren Arbeitsfläche.
+
 ### Die wichtigsten Werkzeuge auf einen Blick
 
 | Aufgabe | Vorhandene Werkzeuge |
@@ -63,6 +65,8 @@ Das Studio besteht aus der **Home-Assistant-Integration mit Frontend** und einem
 
 Für eine neue Installation zuerst den dokumentierten Status prüfen:
 
+- [Aktueller Docker-Schnellstart](Slicer-Server/DOCKER_QUICKSTART.md)
+- [Vollständiger separater Slicer-Quellumfang](Slicer-Server/REPOSITORY_CONTENTS.md)
 - [Slicer-Installation und Quell-Preflight](Slicer-Server/INSTALLATION.md)
 - [Compose-Dienstkandidat und Laufzeitvertrag](Slicer-Server/RUNTIME_INSTALLATION.md)
 - [Sauberer manueller Linux-Testserver](Slicer-Server/LINUX_TEST_SERVER_RUNBOOK.md)
@@ -377,3 +381,4 @@ Dieses Repository enthält den überprüfbaren Studio-Quellstand mit automatisie
 | [OPERATIONS.md](Slicer-Server/OPERATIONS.md) | Betrieb und Rückweg |
 | [Wiki-Quellen](Slicer-Server/wiki/Home.md) | Weitere komponentenbezogene Dokumentation |
 | [Quellhinweise](../SOURCE_NOTICES.md) | Herkunft und Lizenzgrenzen |
+

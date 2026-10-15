@@ -1,0 +1,40 @@
+name: Slicer source contract
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verified-slicer-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Verify exact component source closure
+        run: python Slicer-Server/build_repository.py --verify .
+      - name: Install hash-pinned test wheels without dependency expansion
+        run: python -m pip install --disable-pip-version-check --only-binary=:all: --no-deps --require-hashes -r requirements-test.txt
+      - name: Verify offline profile source closure
+        run: python Slicer-Server/verify_profile_sources.py --source-root .
+      - name: Run isolated component tests
+        run: python -m pytest -q tests
+      - name: Build native and Docker test packages outside clone
+        shell: bash
+        run: |
+          SLICER_BUILD_ROOT="$(mktemp -d "$RUNNER_TEMP/slicer-build-XXXXXX")"
+          python packages/ultimate-slicer-server/build_native_package.py --source-root "$PWD" --output "$SLICER_BUILD_ROOT/native.tar.gz"
+          python Slicer-Server/prepare_context.py --source-root "$PWD" --output "$SLICER_BUILD_ROOT/context"
+          python Slicer-Server/prepare_test_server_package.py --source-root "$PWD" --output "$SLICER_BUILD_ROOT/testserver"
+      - name: Verify source identities after tests and builds
+        run: python Slicer-Server/build_repository.py --verify .

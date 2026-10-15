@@ -1,7 +1,14 @@
-# Ultimate 3D Studio – Wiki
+# Ultimate Slicer Server – Wiki
 
-Diese Texte werden gemeinsam mit dem Code gepflegt und beim abgeschlossenen Release in das GitHub-Wiki uebertragen. Das GitHub-Wiki ist ein eigenes Auslieferungsziel; diese lokalen Dateien sind noch kein veroeffentlichtes Wiki.
+Diese Seiten gehören zum vollständigen Slicer-Quellrepo und werden mit dem
+Code versioniert. Das separate GitHub-Wiki war bei der Lieferung deaktiviert.
+Diese lesbaren Repo-Seiten sind deshalb kein behaupteter veröffentlichter Wiki-Tab.
 
+## Einstieg
+
+- [Quellumfang und Repository](Quellumfang.md)
+- [Build und Tests](Build-und-Tests.md)
+- [Engine-Bestand und 10-GB-Frage](Engine-Bestand.md)
 - [Architektur](Architektur.md)
 - [Docker-Installation](Docker-Installation.md)
 - [Home Assistant verbinden](Home-Assistant.md)
@@ -11,4 +18,13 @@ Diese Texte werden gemeinsam mit dem Code gepflegt und beim abgeschlossenen Rele
 - [Lizenz und Nutzung](Lizenz-und-Nutzung.md)
 - [Release-Abnahme](Release-Abnahme.md)
 
-Aktuell implementiert sind die Docker-Kontextbildung und eine rein lesende Paketpruefung. Die Betriebsinstallation mit Engine folgt erst nach den dokumentierten Abnahmen. Alle Beispiele werden vor der Veroeffentlichung gegen das freigegebene Image nachgestellt.
+Aktuell vorhanden sind API/Worker, native Paketbauer und Installerverträge,
+Docker-Kontext und Compose-Kandidat, Engine-Staging-/Aktivierungsverträge,
+Offline-Profilnachweise und isolierte Tests. Die unabhängige echte Linux-,
+Engine-, TLS-, Upgrade-/Restore- und HA/HACS-Betriebsabnahme bleibt getrennt.
+
+Der aktuelle [Docker-Schnellstart](../DOCKER_QUICKSTART.md) erläutert
+Arbeitsverzeichnisse, alle Compose-Eingaben und die Grenze zwischen Build,
+Leerlaufprüfung und echtem Slicing. Die Betriebsinstallation mit vollständig
+freigegebener Engine ist noch kein abgenommener Ein-Klick-Ablauf.
+

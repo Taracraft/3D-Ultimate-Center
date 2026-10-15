@@ -97,3 +97,20 @@ no private models, job files, credentials or site addresses.
 The rendered interface retains its applicable inherited source notices.
 Depicted third-party product names and marks retain their respective rights;
 this documentation grants no additional rights in those marks.
+
+
+## Additional original CAD documentation captures
+
+studio/handbook/images/cad-plate.png and cad-overview.png were captured on
+2026-10-15 in the existing Puppet add-on, using its installed browser with
+software WebGL. They show only four synthetic Studio primitives (cube,
+cylinder, torus, cone) on the actual rendered plate. cad-plate.png is a direct
+browser-rectangle capture; neither image was AI-generated or composited.
+Original PNG bytes are preserved. No existing private scene, saved project,
+slice or printer action was used. Existing runtime screenshots are not proof
+of current source deployment or production acceptance. Existing UI/source
+notices and depicted product marks retain their applicable rights.
+
+The separate private slicer source repository is generated from an explicit
+component closure. Its source completeness does not include private runtime
+models/jobs/secrets or grant new rights to distribute engine binaries.

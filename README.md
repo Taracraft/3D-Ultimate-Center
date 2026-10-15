@@ -4,27 +4,53 @@
 
 [![Quellprüfung](https://github.com/Taracraft/3D-Ultimate-Center/actions/workflows/studio-source-contract.yml/badge.svg?branch=main)](https://github.com/Taracraft/3D-Ultimate-Center/actions/workflows/studio-source-contract.yml)
 
-[**Zum Studio-Handbuch**](studio/README.md) · [Erste Schritte](studio/README.md#schnellstart) · [Alle Funktionen](studio/README.md#funktionen) · [Slicer-Installation](studio/Slicer-Server/INSTALLATION.md)
+[**Zum Studio-Handbuch**](studio/README.md) · [Erste Schritte](studio/README.md#schnellstart) · [Detaillierter Funktionskatalog](studio/handbook/FEATURES.md) · [CAD-Beispiele](studio/handbook/CAD_EXAMPLES.md) · [Slicer-Installation](studio/Slicer-Server/INSTALLATION.md)
 
-![3D-Studio mit Werkzeugen, Profilwahl, Malwerkzeugen und einer leeren Druckplatte](studio/handbook/images/studio.png)
+![Echte CAD-Ebene: gerasterte Druckplatte mit Würfel, Zylinder, Ring und ausgewähltem Kegel](studio/handbook/images/cad-plate.png)
 
-*Echte Puppet-Aufnahme einer bestehenden Home-Assistant-Installation, 15. Oktober 2026. Installierte Ansichten können vom aktuellen Quellstand abweichen.*
+*Echte CAD-Aufnahme aus dem vorhandenen Puppet-Add-on, 15. Oktober 2026. Vier im Studio erzeugte Beispielkörper, keine KI-erfundene Oberfläche. Installierter Build und aktueller Quellstand können abweichen. [Ganze Oberfläche, Beispielaufbau und Bildherkunft](studio/handbook/CAD_EXAMPLES.md).*
 
 ## Was du mit dem Studio machen kannst
 
-| Dein Vorhaben | Werkzeuge im Studio |
-| --- | --- |
-| Ein Modell vorbereiten | STL/3MF öffnen, verschieben, drehen, skalieren, spiegeln und auf dem Druckbett ausrichten |
-| Eigene Formen aufbauen | Würfel, Zylinder, Kugel, Kegel, Ring und Platte einfügen; messen, teilen und Mesh prüfen |
-| Mehrere Druckplatten planen | Objekte auf Platten organisieren und die aktive Platte gezielt vorbereiten |
-| Mehrfarbig arbeiten | Pinsel, Stift, Radierer, Rechteck, Kreis, Linie und Text mit zugeordneten Materialkanälen |
-| Druckparameter abstimmen | Drucker, Düse, Filament, Druckprofil und Druckplatte getrennt auswählen |
-| Eine Bibliothek pflegen | Galerie, Ordner, Suche, Upload, ZIP-Import und Duplikatprüfung |
-| Modelle finden | MakerWorld-Modelle und Druckprofile ansehen und gezielt ins Studio übernehmen |
-| Ergebnisse prüfen | Schichtvorschau mit auftragsgebundenen Filamentfarben, Analyse und Diagnoseansichten |
-| Den Betrieb überblicken | Steuerzentrale, Kamera, Materialsysteme, Aufgaben, Verlauf und Systemdiagnose |
+| Arbeitsbereich | Was du konkret machen kannst | Was du dabei kontrollierst |
+| --- | --- | --- |
+| **Import und Projekte** | STL/3MF lokal öffnen; Modelle aus Galerie, SD-Karte oder MakerWorld übernehmen; weitere Objekte importieren; Modelle exportieren; Projekte auf HA speichern und wieder öffnen | Geometrie, Materialdaten und gespeicherter Arbeitsstand sind nicht automatisch fertiger G-Code |
+| **Auswahl und Bearbeitung** | Einzel-/Mehrfachauswahl, Duplizieren, Kopieren, Ausschneiden, Einfügen, Löschen, Rückgängig und Wiederholen | Modelle und Malbereiche sind getrennte Ebenen |
+| **CAD-Transformation** | Verschieben, Drehen, Skalieren; freie oder X/Y/Z-begrenzte Bearbeitung; Spiegeln an allen drei Achsen | Abmessungen, Orientierung und Bettgrenzen |
+| **Ausrichtung** | Zentrieren, auf Druckbett setzen, flach legen und mehrere Objekte automatisch anordnen | Auflage, Abstände und mögliche Kollisionen |
+| **Geometriewerkzeuge** | Messen, Mesh prüfen/reparieren und ein ausgewähltes Modell geometrisch teilen | Ergebnis prüfen; keine pauschale Reparaturgarantie |
+| **Eigene Formen** | Würfel, Zylinder, Kugel, Kegel, Ring und Platte direkt erzeugen; düsenabhängige First-Layer-Testgeometrie vorbereiten | Geometrieerzeugung startet keinen Kalibrierdruck |
+| **Druckplatten** | Mehrere Platten anlegen, zwischen ihnen wechseln, Objekte getrennt organisieren und bewusst die aktive Platte bearbeiten | Objektliste, Einstellungen, Vorschau und Slice sind plattenbezogen |
+| **Drucker- und Prozessprofile** | Drucker, Düse, Filament, Druckprofil und Plattenoberfläche getrennt auswählen; lokale und übernommene Cloud-Profile unterscheiden | Unterstützte Kombination und echte Hardwaregrenzen |
+| **Prozessoptionen** | Betthaftung, Stützen, Schichthöhe, variable Höhenbereiche und angebotene Prozessüberschreibungen einstellen | Explizite Werte gegenüber Profilstandard |
+| **G-Code und Sounds** | Start-/Endsound sowie Maschinen-Start-/Endbausteine separat verwalten | Ausführungsrelevante Werte bewusst prüfen |
+| **Materialsysteme** | AMS-/Systemkonfiguration, erkannte Hardware, belegte Fächer und externe Spule auseinanderhalten | Keine erfundenen Slot-/RFID-/Farbwerte bei fehlender Telemetrie |
+| **Bemalung** | Pinsel, Stift, Radierer, Rechteck, Kreis, Linie und Text auf Modellflächen anwenden; Malbereiche separat verwalten | Farbe folgt einem tatsächlich zugeordneten Materialkanal |
+| **Vorschau und Analyse** | Vorbereiten, Farben und echte Schicht-/Toolpath-Vorschau unterscheiden; Schichten und Diagnosefilter prüfen | Auftragsgebundene Filamentfarben statt späterer AMS-Werte |
+| **Bibliothek und MakerWorld** | Galerie mit Ordnern, Suche, Upload, ZIP-Import und Duplikatprüfung; externe Modelle und Druckprofile gezielt übernehmen | Berechtigung, Importprüfung und private Inhalte |
+| **Aufgaben und Verlauf** | Warteschlange, Jobzustände, vergangene Aufträge und Ergebnisse nachvollziehen | Slice, Druckvorbereitung und Druckstart sind getrennte Schritte |
+| **Steuerzentrale und System** | Druckerzustand, Fortschritt, Störungen, Kamera, Verbindungen und getrennten Slicer überblicken | Tatsächliche Erreichbarkeit statt bloßer Anzeige einer Schaltfläche |
+
+Der [ausführliche Funktionskatalog](studio/handbook/FEATURES.md) geht jede Funktion einzeln mit Nutzen, Bediengrenze und Quell-Einstiegspunkt durch. Das [Handbuch](studio/README.md) ergänzt Schrittfolgen, Tastenkürzel und Fehlerhilfe.
 
 Die Verfügbarkeit einzelner Abläufe hängt von Drucker, Profilen, Berechtigungen und dem verbundenen Slicer ab. Eine Anzeige in der Oberfläche ist kein Nachweis für jede Hardwarekombination.
+
+## So sieht der echte Arbeitsbereich aus
+
+[![Komplette CAD-Oberfläche mit Objektliste, Werkzeugen und Prozessoptionen](studio/handbook/images/cad-overview.png)](studio/handbook/CAD_EXAMPLES.md)
+
+Für die Originalaufnahmen wurden nur vier synthetische Grundkörper angelegt und angeordnet. Kein privates Modell, kein gespeicherter Auftrag und kein Druckstart. [Beispiel selbst nachbauen](studio/handbook/CAD_EXAMPLES.md).
+
+## Zwei Repositories, klare Aufgaben
+
+| Repository | Inhalt |
+| --- | --- |
+| [3D-Ultimate-Center](https://github.com/Taracraft/3D-Ultimate-Center) | Studio-Gesamtprodukt, Home-Assistant-Integration, Frontend und gesamter geprüfter Quellstand |
+| [3D-Ultimate-Slicer-Server](https://github.com/Taracraft/3D-Ultimate-Slicer-Server) | Separates privates Slicer-Repo mit vollständiger geprüfter Komponentenprojektion, Paketbau, Worker/API, Docker, Tests und Wiki-Dateien |
+
+Das Slicer-Repo enthält keine privaten Modelle, Aufträge, Laufdaten oder Zugangsdaten. Die rund 10,45 GB einer bestehenden Installation sind überwiegend Betriebsdaten, nicht fehlender Quellcode. [Bestandsaufteilung und Engine-Grenzen](studio/Slicer-Server/LIVE_ENGINE_INVENTORY.md).
+
+[Docker vom vollständigen Klon aus bauen](studio/Slicer-Server/DOCKER_QUICKSTART.md) · [Slicer-Quellumfang prüfen](studio/Slicer-Server/REPOSITORY_CONTENTS.md) · [Versioniertes Slicer-Wiki](studio/Slicer-Server/wiki/Home.md)
 
 ## Ein Arbeitsbereich für den ganzen Ablauf
 

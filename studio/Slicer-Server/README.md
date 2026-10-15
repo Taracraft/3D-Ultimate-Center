@@ -1,9 +1,25 @@
 ﻿# Ultimate Slicer Server
 
-Slicer-Server ist der eigene Produktbereich im bestehenden Ultimate-3D-Studio-
-Repository. Docker wird der regulaere Installationsweg. Ein separates Repository
-und ein dauerhaft separater Git-Branch sind dafuer nicht erforderlich. Nach der
-abgeschlossenen Migration soll das Produkt weiterhin aus main ausgeliefert werden.
+Slicer-Server ist die eigenständige Slicer-Komponente von Ultimate 3D Studio.
+Die kanonischen Entwicklungsquellen bleiben gemeinsam gepflegt. Auf ausdrücklichen
+Auftrag wird die vollständige geprüfte Komponente zusätzlich nach
+`Taracraft/3D-Ultimate-Slicer-Server` ausgeliefert; das Studio-Gesamtprodukt liegt
+in `Taracraft/3D-Ultimate-Center`. Das separate Repo bleibt privat.
+Docker ist der vorgesehene neue Installationsweg; der bestehende native Betrieb
+wird dadurch nicht automatisch migriert.
+
+## Vollständige Quellen und aktuelle Anleitungen
+
+- [Komponenten-Quellumfang und prüfbare Repository-Erzeugung](REPOSITORY_CONTENTS.md)
+- [Docker-Schnellstart vom vollständigen Klon](DOCKER_QUICKSTART.md)
+- [Betriebsgröße und beobachteter Engine-Bestand](LIVE_ENGINE_INVENTORY.md)
+- [Versioniertes Wiki mit Build-/Test-/Engine-Seiten](wiki/Home.md)
+
+Im eigenständigen Repo gilt dessen Wurzel als Arbeitsverzeichnis, im Studio-
+Gesamtrepo `studio/`. Neue absolute Ausgaben müssen außerhalb des ganzen Klons
+liegen. Alte datierte Fortschrittsblöcke unten sind Verlauf, keine heutige
+Gesamtfreigabe. Ein vollständiges Quellrepo enthält keine privaten 10-GB-Laufdaten
+und keine ungeprüft weiterverteilten Engine-Binärdateien.
 
 **Aktueller Stand: Docker-Dienstkandidat mit API, Worker und Telemetrie.**
 Compose-Start, TLS/Authentifizierung, Stop/Neustart sowie synthetischer
@@ -258,3 +274,4 @@ mit Home Assistant Supervisor als Laborumgebung. Vor jeder Erstinstallation
 blockiert ein read-only Clean-Host-Preflight bekannte native Units, Marker,
 Prozesse und vorhandene Slicer-Container. Er bereinigt oder migriert nichts.
 Die HAOS-Migration bleibt ein separater Plan und wird nicht ausgefuehrt.
+
