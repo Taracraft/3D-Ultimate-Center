@@ -142,7 +142,7 @@ def _path(value: object) -> str:
 def _url(value: object, prefixes: tuple[str, ...]) -> str:
     value = _text(value, maximum=2048)
     # Exact ASCII origins/prefixes, no credentials, queries, fragments or escapes.
-    # The downloader must separately reject redirects and enforce TLS verification.
+    # The downloader separately enforces its bounded asset-hop policy and TLS.
     try:
         parts = urlsplit(value)
     except ValueError:
@@ -305,3 +305,4 @@ def verify_artifact(stream: BinaryIO, artifact: Artifact) -> None:
         raise CatalogError("artifact_size_mismatch")
     if digest.hexdigest() != artifact.sha256:
         raise CatalogError("artifact_digest_mismatch")
+

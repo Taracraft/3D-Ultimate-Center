@@ -2523,9 +2523,9 @@
     },
     {
       "identity": {
-        "bytes": 6780,
+        "bytes": 7745,
         "kind": "sha256-raw-bytes",
-        "sha256": "2a1b58e9469e39253340fcde2de01438bc0c329419799c4d361e76d08bb40f42"
+        "sha256": "0ac269dc54a6b56eea2eaa6d7c92ceb0f48776a5b22d85b6899c8e1790f05118"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/ENGINE_CATALOG.md",
@@ -2761,9 +2761,9 @@
     },
     {
       "identity": {
-        "bytes": 7516,
+        "bytes": 10143,
         "kind": "sha256-raw-bytes",
-        "sha256": "6609d8cc030e4c7f880d47f481eac5fc7ae803416e18136377648f0b86a94a6c"
+        "sha256": "4c4a1b007e1616913b62c47ff291a6a2a278e88b38bb2aaa10fd38ff8476eeac"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/PACKAGE_STAGING.md",
@@ -3112,9 +3112,9 @@
     },
     {
       "identity": {
-        "bytes": 12544,
+        "bytes": 12540,
         "kind": "sha256-raw-bytes",
-        "sha256": "d7a90c7d4752d430112129662a676eaf7f6c3b128e7ff7c020a1da27f449e4b2"
+        "sha256": "e69e1364093bf10cd81ad6e92f9ebe198dc8dc5cf66c8bb265ea47db488ee2d1"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/engine_catalog.py",
@@ -3264,9 +3264,9 @@
     },
     {
       "identity": {
-        "bytes": 19716,
+        "bytes": 21771,
         "kind": "sha256-raw-bytes",
-        "sha256": "3a5ead756a76c4640f5525f7f57475911345276e9ea36c3c37173904f869a94c"
+        "sha256": "68df287e3bfff7a0a480845eddde39d4bc54b6978dcf869e39b63d7a8434a480"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/package_staging.py",
@@ -12486,9 +12486,9 @@
     },
     {
       "identity": {
-        "bytes": 20878,
+        "bytes": 31459,
         "kind": "sha256-raw-bytes",
-        "sha256": "2c8b5aebf78a6e8fce0ab6ee2db70a10892271a8b7a93c5c13183dd8dd70c2fc"
+        "sha256": "595b2225a19e43063e3ddc1620beb008fa4f9abc1197436863bae76dcc7a86aa"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/tests/test_studio_package_staging.py",
@@ -12642,9 +12642,9 @@
     },
     {
       "identity": {
-        "bytes": 20378,
+        "bytes": 23685,
         "kind": "sha256-raw-bytes",
-        "sha256": "adaa9cfcb46b72c6452860389942836bbde44af255f4bb1e94d1e22bfaa9186a"
+        "sha256": "f8922c9b130cf585ae0775e3323074ba6e84d1ee1d2a96e8fa108a09e3688d8f"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/tests/test_studio_restricted_installer.py",

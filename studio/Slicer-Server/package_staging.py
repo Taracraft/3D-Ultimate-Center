@@ -13,6 +13,7 @@ import json
 import lzma
 import os
 from pathlib import Path
+import re
 import shutil
 import ssl
 import stat
@@ -24,7 +25,8 @@ from urllib.parse import urlsplit
 import zipfile
 import zlib
 
-from engine_catalog import Artifact, CatalogError, Release, _release, verify_artifact
+from engine_catalog import (Artifact, CatalogError, Release, DOWNLOAD_PREFIXES,
+                            _release, verify_artifact)
 
 CHUNK = 65536
 MAX_EXPANDED = 2 * 1024**3
@@ -34,6 +36,9 @@ MAX_ZIP_DIRECTORY = 16 * 1024**2
 LZMA_MEMORY = 256 * 1024**2
 IO_TIMEOUT = 20
 OPERATION_SECONDS = 1800
+MAX_ASSET_LOCATION = 16384
+GITHUB_RELEASE_PREFIXES = tuple(p for p in DOWNLOAD_PREFIXES
+                                if p.startswith("https://github.com/"))
 
 
 class StagingError(ValueError):
@@ -110,22 +115,61 @@ def _copy_checked(source, target, size, expected, guard, *, read=None):
         raise StagingError("file_digest_mismatch")
 
 
+def _github_asset_target(origin, response):
+    """One catalog GitHub release -> exact official asset origin, never a chain.
+
+    The transient signed query is opaque and is never persisted or included in
+    errors. Archive size/digest and all selected files remain independently pinned.
+    """
+    if (response.status != 302 or not origin.startswith(GITHUB_RELEASE_PREFIXES)):
+        raise StagingError("redirect_denied")
+    locations = [value for key, value in response.getheaders()
+                 if key.lower() == "location"]
+    if len(locations) != 1:
+        raise StagingError("redirect_denied")
+    value = locations[0]
+    if (type(value) is not str or not 1 <= len(value) <= MAX_ASSET_LOCATION
+            or any(ord(c) < 33 or ord(c) > 126 for c in value)
+            or "\\" in value or "#" in value):
+        raise StagingError("redirect_denied")
+    try:
+        parts = urlsplit(value)
+    except ValueError:
+        raise StagingError("redirect_denied") from None
+    if (parts.scheme != "https" or parts.netloc != "release-assets.githubusercontent.com"
+            or parts.fragment or not parts.query
+            or re.fullmatch(r"/github-production-release-asset/[1-9][0-9]{0,19}/"
+                            r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-"
+                            r"[a-f0-9]{4}-[a-f0-9]{12}", parts.path) is None):
+        raise StagingError("redirect_denied")
+    return parts
+
+
 def _download(artifact, target, guard):
-    # No proxy environment, cookies, credentials or redirect-following handlers.
+    # No proxy environment, cookies, credentials or generic redirect handlers.
     parts = urlsplit(artifact.url)
     context = ssl.create_default_context()
     context.set_alpn_protocols(["http/1.1"])
-    connection = http.client.HTTPSConnection(parts.hostname, 443,
-                                             timeout=IO_TIMEOUT, context=context)
+    connection = None
     try:
-        guard.check()
-        connection.request("GET", parts.path, headers={
-            "Accept-Encoding": "identity", "User-Agent": "Ultimate-Studio-Installer",
-            "Connection": "close",
-        })
-        response = connection.getresponse()
-        if 300 <= response.status < 400:
-            raise StagingError("redirect_denied")
+        for hop in range(2):
+            guard.check()
+            connection = http.client.HTTPSConnection(parts.hostname, 443,
+                                                     timeout=IO_TIMEOUT, context=context)
+            request_target = parts.path + ("?" + parts.query if hop else "")
+            connection.request("GET", request_target, headers={
+                "Accept-Encoding": "identity", "User-Agent": "Ultimate-Studio-Installer",
+                "Connection": "close",
+            })
+            response = connection.getresponse()
+            guard.check()
+            if not 300 <= response.status < 400:
+                break
+            if hop:
+                raise StagingError("redirect_denied")
+            parts = _github_asset_target(artifact.url, response)
+            connection.close()
+            connection = None
         if response.status != 200:
             raise StagingError("download_status")
         headers = {}
@@ -157,7 +201,8 @@ def _download(artifact, target, guard):
             raise
         raise StagingError("download_failed") from None
     finally:
-        connection.close()
+        if connection is not None:
+            connection.close()
 
 
 class _Slice:
@@ -418,7 +463,7 @@ def prepare_release(release: Release, parent: Path, *, archives=None, cancelled=
     """Prepare an isolated candidate and return its private work directory.
 
     archives is an optional exact artifact-ID -> local verified-cache path mapping.
-    Without it, download from catalog origins using verified TLS and no redirects.
+    Without it, download with verified TLS and the single GitHub asset-hop policy.
     The returned payload/<engine> is NOT active. No daemon, engine or script runs.
     The caller must protect the parent against concurrent/privileged mutation,
     validate persistent storage and recheck the manifest immediately at activation.
@@ -480,3 +525,4 @@ def prepare_release(release: Release, parent: Path, *, archives=None, cancelled=
     finally:
         if not complete:
             shutil.rmtree(work)
+

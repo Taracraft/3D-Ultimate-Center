@@ -5,11 +5,12 @@ import io
 import json
 import os
 from pathlib import Path
+import ssl
 import sys
 import tempfile
 import threading
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 import zipfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "Slicer-Server"))
@@ -79,6 +80,7 @@ class InstallerTests(unittest.TestCase):
         self.service = self.make()
         self.seq = 0
         self.downloads = []
+        self.real_download = staging._download
         def download(artifact, path, guard):
             guard.check()
             self.downloads.append(artifact.id)
@@ -202,6 +204,63 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(status["generation_id"], result["generation_id"])
         self.assertNotIn(str(self.base), json.dumps(status))
         self.assertEqual(set(self.downloads), set(self.archives))
+
+    def test_github_download_three_engine_stage_activate_and_restart(self):
+        value = json.loads(self.data)
+        for row in value["releases"]:
+            row["artifacts"][0]["url"] = (
+                "https://github.com/Taracraft/3D-Ultimate-Center/releases/download/"
+                "synthetic/" + row["artifacts"][0]["id"] + ".zip")
+        self.data = json.dumps(value).encode()
+        self.service = self.make()
+        ids = list(self.archives)
+        connections = []
+        class Response(io.BytesIO):
+            def __init__(self, data, status, headers):
+                super().__init__(data)
+                self.status, self.headers = status, headers
+            def getheaders(self):
+                return self.headers
+        def connect(host, port, **kwargs):
+            self.assertEqual(port, 443)
+            self.assertTrue(kwargs["context"].check_hostname)
+            self.assertEqual(kwargs["context"].verify_mode, ssl.CERT_REQUIRED)
+            conn = Mock()
+            connections.append((host, conn))
+            def request(method, path, *, headers):
+                self.assertEqual(method, "GET")
+                self.assertEqual(set(headers), {"Accept-Encoding", "User-Agent", "Connection"})
+                if host == "github.com":
+                    ident = path.rsplit("/", 1)[1][:-4]
+                    index = ids.index(ident) + 1
+                    location = ("https://release-assets.githubusercontent.com/"
+                                "github-production-release-asset/123456/"
+                                "00000000-0000-0000-0000-" + str(index).zfill(12)
+                                + "?signature=synthetic")
+                    conn.getresponse.return_value = Response(b"", 302, [("Location", location)])
+                else:
+                    self.assertEqual(host, "release-assets.githubusercontent.com")
+                    index = int(path.split("?", 1)[0][-12:]) - 1
+                    data = self.archives[ids[index]]
+                    conn.getresponse.return_value = Response(data, 200, [("Content-Length", str(len(data)))])
+            conn.request.side_effect = request
+            return conn
+        with patch.object(staging, "_download", self.real_download), patch.object(staging.http.client, "HTTPSConnection", side_effect=connect):
+            target = self.ready()
+            result = self.call("activate", target=target, ident="a" * 32)
+            self.assertEqual(result["state"], "activated", result)
+            self.assertEqual(self.stops, 1)
+            self.service = self.make()
+            self.assertEqual(result, self.call("activate", target=target, ident="a" * 32))
+            self.assertEqual(self.stops, 1)
+            self.assertEqual(self.call("status", target="a" * 32)["generation_id"], result["generation_id"])
+        self.assertEqual([host for host, _ in connections],
+                         ["github.com", "release-assets.githubusercontent.com"] * 3)
+        for _, conn in connections:
+            conn.close.assert_called_once()
+        for path in self.control.rglob("*.json"):
+            self.assertNotIn("signature=synthetic", path.read_text())
+        self.assertTrue((self.policy.store / "ACTIVE.json").is_file())
 
     def test_stage_replay_does_not_repeat_downloads(self):
         self.call("initialize")
@@ -410,3 +469,4 @@ class InstallerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

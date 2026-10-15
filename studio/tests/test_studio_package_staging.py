@@ -13,7 +13,7 @@ import sys
 import tarfile
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 import zipfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "Slicer-Server"))
@@ -351,6 +351,186 @@ class StagingTests(unittest.TestCase):
     def test_download_chunked_success(self):
         self.assert_payload(self.network(Response(tar_bytes(), headers=[("Transfer-Encoding", "chunked")])))
 
+    ASSET_LOCATION = ("https://release-assets.githubusercontent.com/"
+                      "github-production-release-asset/123456/"
+                      "01234567-89ab-cdef-0123-456789abcdef?signature=synthetic%2Bvalue")
+    RELEASE_URL = "https://github.com/Ultimaker/CuraEngine/releases/download/5.0.0/engine.tar"
+
+    def github_network(self, first=None, second=None, *, art=None, cancelled=None):
+        first = first if first is not None else Response(
+            b"untrusted redirect body", status=302, headers=[("Location", self.ASSET_LOCATION)])
+        second = second if second is not None else Response(tar_bytes())
+        origin, asset = Mock(), Mock()
+        origin.getresponse.return_value = first
+        asset.getresponse.return_value = second
+        with patch.object(staging.http.client, "HTTPSConnection", side_effect=[origin, asset]) as factory:
+            try:
+                work = staging.prepare_release(
+                    release(art or replace(artifact(tar_bytes()), url=self.RELEASE_URL)),
+                    self.parent, cancelled=cancelled)
+            finally:
+                self.last_hops = (factory, origin, asset)
+            return work
+
+    def test_github_single_asset_hop_preserves_payload_and_tls(self):
+        work = self.github_network(first=Response(b"", status=302, headers=[
+            ("Location", self.ASSET_LOCATION), ("Set-Cookie", "synthetic=not-forwarded"),
+            ("Authorization", "synthetic-not-forwarded")]))
+        self.assert_payload(work)
+        factory, origin, asset = self.last_hops
+        self.assertEqual(factory.call_count, 2)
+        self.assertEqual([c.args for c in factory.call_args_list],
+                         [("github.com", 443), ("release-assets.githubusercontent.com", 443)])
+        for call in factory.call_args_list:
+            self.assertEqual(call.kwargs["timeout"], staging.IO_TIMEOUT)
+            self.assertEqual(call.kwargs["context"].verify_mode, ssl.CERT_REQUIRED)
+            self.assertTrue(call.kwargs["context"].check_hostname)
+        self.assertIs(factory.call_args_list[0].kwargs["context"],
+                      factory.call_args_list[1].kwargs["context"])
+        self.assertEqual(origin.request.call_args.args, ("GET", "/Ultimaker/CuraEngine/releases/download/5.0.0/engine.tar"))
+        self.assertEqual(asset.request.call_args.args, ("GET", self.ASSET_LOCATION.split(".com", 1)[1]))
+        for conn in [origin, asset]:
+            self.assertEqual(set(conn.request.call_args.kwargs["headers"]),
+                             {"Accept-Encoding", "User-Agent", "Connection"})
+            conn.close.assert_called_once()
+        self.assertNotIn("signature", (work / "READY.json").read_text())
+
+    def test_github_direct_200_remains_supported(self):
+        self.assert_payload(self.network(Response(tar_bytes()),
+                           art=replace(artifact(tar_bytes()), url=self.RELEASE_URL)))
+
+    def test_github_chunked_asset_payload(self):
+        self.assert_payload(self.github_network(second=Response(
+            tar_bytes(), headers=[("Transfer-Encoding", "chunked")])))
+
+    def test_github_asset_hop_reaches_all_existing_archive_adapters(self):
+        raw = tar_bytes()
+        for form, data in [("tar", raw), ("tar.gz", gzip.compress(raw)),
+                           ("tar.xz", lzma.compress(raw)), ("zip", zip_bytes()),
+                           ("deb", deb_bytes(lzma.compress(raw)))]:
+            with self.subTest(form=form):
+                art = replace(artifact(data, form), url=self.RELEASE_URL)
+                work = self.github_network(second=Response(data), art=art)
+                self.assert_payload(work)
+                shutil.rmtree(work)
+
+    def test_github_asset_rejects_unsafe_location_before_second_connection(self):
+        good = self.ASSET_LOCATION
+        invalid = ["", "/relative", "//release-assets.githubusercontent.com/path",
+                   good.replace("https:", "http:", 1),
+                   good.replace("release-assets.githubusercontent.com", "localhost"),
+                   good.replace("release-assets.githubusercontent.com", "127.0.0.1"),
+                   good.replace("release-assets.githubusercontent.com", "[::1]"),
+                   good.replace("release-assets.githubusercontent.com", "release-assets.githubusercontent.com.evil.invalid"),
+                   good.replace("release-assets.githubusercontent.com", "evil.invalid@release-assets.githubusercontent.com"),
+                   good.replace(".com/", ".com:443/", 1),
+                   good.replace(".com/", ".com:8443/", 1),
+                   good.replace("/123456/", "/../"),
+                   good.replace("/123456/", "/%31%32%33/"),
+                   good.replace("/123456/", "/0123456/"),
+                   good.replace("github-production-release-asset", "other"),
+                   good.replace("?signature", "#signature"),
+                   good.split("?", 1)[0], good + "#fragment", good + "\r\nInjected: yes",
+                   good + " ", good + "\\", good + "\u00e4",
+                   good + "x" * 16384]
+        for value in invalid:
+            with self.subTest(value=value[:70]), self.assertRaisesRegex(staging.StagingError, "^redirect_denied$"):
+                self.github_network(first=Response(b"", status=302, headers=[("Location", value)]))
+            factory, origin, asset = self.last_hops
+            self.assertEqual(factory.call_count, 1)
+            origin.close.assert_called_once()
+            asset.request.assert_not_called()
+            self.assert_clean()
+
+    def test_github_redirect_location_must_be_unique(self):
+        for headers in [[], [("Location", self.ASSET_LOCATION), ("location", self.ASSET_LOCATION)]]:
+            with self.subTest(headers=len(headers)), self.assertRaisesRegex(staging.StagingError, "^redirect_denied$"):
+                self.github_network(first=Response(b"", status=302, headers=headers))
+            self.assertEqual(self.last_hops[0].call_count, 1)
+            self.assert_clean()
+
+    def test_only_github_302_is_supported(self):
+        for status in [301, 303, 307, 308]:
+            with self.subTest(status=status), self.assertRaisesRegex(staging.StagingError, "^redirect_denied$"):
+                self.github_network(first=Response(b"", status=status, headers=[("Location", self.ASSET_LOCATION)]))
+            self.assertEqual(self.last_hops[0].call_count, 1)
+            self.assert_clean()
+        with self.assertRaisesRegex(staging.StagingError, "^redirect_denied$"):
+            self.github_network(art=artifact(tar_bytes()))
+        self.assertEqual(self.last_hops[0].call_count, 1)
+        self.assert_clean()
+
+    def test_github_second_redirect_is_never_followed(self):
+        for status in [301, 302, 303, 307, 308]:
+            with self.subTest(status=status), self.assertRaisesRegex(staging.StagingError, "^redirect_denied$"):
+                self.github_network(second=Response(b"", status=status, headers=[("Location", self.ASSET_LOCATION)]))
+            factory, origin, asset = self.last_hops
+            self.assertEqual(factory.call_count, 2)
+            origin.close.assert_called_once()
+            asset.close.assert_called_once()
+            self.assert_clean()
+
+    def test_github_asset_still_enforces_headers_size_and_digest(self):
+        raw = tar_bytes()
+        responses = [Response(raw, status=403), Response(raw, headers=[("Content-Encoding", "gzip")]),
+                     Response(raw, headers=[("Content-Length", "1")]),
+                     Response(raw, headers=[("Content-Length", str(len(raw))), ("Content-Length", str(len(raw)))]),
+                     Response(raw, headers=[("Content-Length", str(len(raw))), ("Transfer-Encoding", "chunked")]),
+                     Response(raw[:-1], headers=[]), Response(raw + b"x", headers=[]),
+                     Response(bytes(len(raw)), headers=[])]
+        for response in responses:
+            with self.subTest(status=response.status, size=len(response.getvalue())), self.assertRaises(staging.StagingError):
+                self.github_network(second=response)
+            self.last_hops[2].close.assert_called_once()
+            self.assert_clean()
+
+    def test_github_cancel_after_origin_response_prevents_asset_connection(self):
+        cancelled = False
+        def stop():
+            return cancelled
+        response = Response(b"", status=302, headers=[("Location", self.ASSET_LOCATION)])
+        original = response.getheaders
+        def cancel_after_headers():
+            nonlocal cancelled
+            cancelled = True
+            return original()
+        response.getheaders = cancel_after_headers
+        with self.assertRaisesRegex(staging.StagingError, "^cancelled$"):
+            self.github_network(first=response, cancelled=stop)
+        self.assertEqual(self.last_hops[0].call_count, 1)
+        self.last_hops[1].close.assert_called_once()
+        self.assert_clean()
+
+    def test_github_asset_errors_never_include_transient_url(self):
+        origin, asset = Mock(), Mock()
+        origin.getresponse.return_value = Response(b"", status=302, headers=[("Location", self.ASSET_LOCATION)])
+        asset.request.side_effect = OSError(self.ASSET_LOCATION)
+        with patch.object(staging.http.client, "HTTPSConnection", side_effect=[origin, asset]):
+            with self.assertRaisesRegex(staging.StagingError, "^download_failed$") as error:
+                staging.prepare_release(release(replace(artifact(tar_bytes()), url=self.RELEASE_URL)), self.parent)
+        self.assertNotIn("signature", str(error.exception))
+        self.assertIsNone(error.exception.__cause__)
+        self.assertTrue(error.exception.__suppress_context__)
+        origin.close.assert_called_once()
+        asset.close.assert_called_once()
+        self.assert_clean()
+
+    def test_github_hop_does_not_reset_operation_deadline(self):
+        clock = 0
+        response = Response(b"", status=302, headers=[("Location", self.ASSET_LOCATION)])
+        original = response.getheaders
+        def advance_clock():
+            nonlocal clock
+            clock = 11
+            return original()
+        response.getheaders = advance_clock
+        with patch.object(staging, "OPERATION_SECONDS", 10), patch.object(staging.time, "monotonic", side_effect=lambda: clock):
+            with self.assertRaisesRegex(staging.StagingError, "^deadline_exceeded$"):
+                self.github_network(first=response)
+        self.assertEqual(self.last_hops[0].call_count, 1)
+        self.last_hops[1].close.assert_called_once()
+        self.assert_clean()
+
     def test_download_rejects_redirect_status_encoding_and_headers(self):
         raw = tar_bytes()
         cases = [Response(raw, status=302), Response(raw, status=404),
@@ -436,3 +616,4 @@ class StagingTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

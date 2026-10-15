@@ -35,15 +35,39 @@ eingreifenden privilegierten Prozess bietet dieser Vertrag keinen Schutz.
 
 - Nur die festen HTTPS-Quellen des validierten Katalogs; Zertifikat und
   Hostname werden geprueft. Keine automatischen Proxys, Cookies oder Credentials.
-- HTTP 200 erforderlich. Alle Weiterleitungen werden abgewiesen; insbesondere
-  sind GitHub-Asset-Weiterleitungen noch nicht freigegeben.
+- Nutzdaten erfordern HTTP 200. Zusaetzlich ist genau ein HTTP-302-Wechsel von
+  einer bereits im Katalog erlaubten GitHub-Releaseadresse zu
+  `https://release-assets.githubusercontent.com` implementiert. Die Zieladresse
+  muss dem begrenzten Release-Asset-Pfad mit numerischer Repository-ID und UUID
+  entsprechen; Host und HTTPS bleiben exakt festgelegt. Andere Statuscodes,
+  relative Ziele, andere Hosts/Ports, Benutzerinfos, Fragmente, Steuerzeichen,
+  Pfadausbrueche, fehlende oder doppelte Location-Header sowie weitere
+  Weiterleitungen werden vor einer weiteren Verbindung abgewiesen.
+- Die gesamte temporaere Zieladresse ist auf16384Zeichen begrenzt. Ihr
+  signierter Querystring wird nur als opaker Requestteil an die feste Asset-Domain weitergegeben und
+  weder im Katalog, READY-Beleg noch Fehlertext gespeichert. Cookies und
+  Authentifizierungsheader aus Antworten werden niemals weitergereicht.
+  Beide Verbindungen verwenden dieselbe verifizierende TLS-Konfiguration;
+  SHA-256 und Groesse bleiben die bereits festgelegten Katalogwerte.
 - Identitaetskodierung, eindeutige Laengen-/Transferheader und exakte erwartete
   Downloadgroesse. Daten werden in begrenzten Bloecken geschrieben und gehasht.
 - 20 Sekunden Socket-Timeout; kooperatives Gesamtbudget von 1800 Sekunden pro
   Aufruf. Abbruch und Zeitbudget werden zwischen Verarbeitungsschritten geprueft.
   Dies ist keine harte Prozessfrist und keine garantierte DNS-Zeitbegrenzung.
+  Der Asset-Wechsel setzt das Gesamtbudget nicht zurueck und prueft vor dem
+  zweiten Verbindungsaufbau erneut Abbruch und Frist. Beide Verbindungen
+  werden bei Erfolg wie Fehler geschlossen.
 - Fehler liefern feste Codes statt Rohantworten oder lokaler Pfade. Kein
   automatischer Wiederholungssturm; ein neuer Aufruf startet einen neuen Versuch.
+
+Die GitHub-Dokumentation beschreibt direkte200- und umgeleitete302-Antworten
+fuer Release-Downloads und nennt die Asset-Domain. Der hier implementierte
+Pfadvertrag ist bewusst enger als allgemeines HTTP-Redirect-Following. Aendert
+GitHub seine Assetpfade, scheitert der Installer geschlossen statt andere Ziele
+zu versuchen. Das ist keine Freigabe eines echten Katalogreleases.
+
+- https://docs.github.com/en/rest/releases/assets
+- https://docs.github.com/en/actions/reference/runners/self-hosted-runners
 
 ## Archivpfad und Zielpfad
 
@@ -128,3 +152,22 @@ Release erfunden. Der komplette prepare_release-Ablauf ist synthetisch geprueft.
 
 Diese Module bleiben beim Installer. API-/Worker-Image und dessen Netzisolation
 wurden nicht geaendert. Docker-Betriebsfreigabe bleibt container_deploy_ready=false.
+
+
+
+## Gemeinsamer Download-/Installer-Nachweis vom 15.10.2026
+
+13 neue synthetische Regressionen und47Unterpruefungen bestehen nach einem
+roten Altstand. Der positive Verbund nutzt den echten Downloader fuer drei
+Katalog-Enginefamilien, deren ZIP-Staging und den echten Generationsspeicher.
+Danach folgen Aktivierung, Installerneustart, Statusreadback und idempotente
+Wiederholung ohne erneute Downloads. HTTP und Worker-Stillstandsquittung sind
+gezielte Doubles; die Enginebytes werden weder importiert noch ausgefuehrt.
+Kontroll-/READY-Dokumente enthalten keine temporaeren signierten URLs.
+
+Negative Faelle pruefen unter anderem fremde und mehrdeutige Ziele,
+URL-Steuerzeichen/Pfadvarianten, doppelte Location-Header, zweite Hops,
+HTTP-Status/Encoding/Laengenfehler, abgeschnittene/zusätzliche/falsche Bytes,
+Abbruch, durchgehendes Zeitbudget und bereinigte Fehler. Bestehende Tests
+werden nicht entfernt. Die echte Linux-/TLS-/Engine-/Lizenz-/Hostkanal-
+und Betriebsabnahme bleibt hiervon unabhaengig offen.

@@ -82,8 +82,8 @@ Releaseanforderungen. Ein erfolgreich geparster Testkatalog ist keine Freigabe.
    Archive und Quellrevisionen unabhaengig verifizieren, Lizenztexte aufnehmen,
    Datei-Digests erzeugen, Ressourcen/Profile und Pluginpfade pruefen.
 2. Implementierten Download/Staging an den Installationsablauf anbinden.
-   GitHub-Asset-Weiterleitungen brauchen weiterhin einen eigenen Vertrag;
-   derzeit werden alle Redirects abgewiesen.
+   Ein einzelner GitHub-Asset-Wechsel ist jetzt streng begrenzt implementiert;
+   Ketten, fremde Zielhosts und sonstige Weiterleitungen bleiben gesperrt.
 3. Den implementierten [Speicher- und Aktivierungsvertrag](PACKAGE_ACTIVATION.md)
    an den begrenzten Host-Installer und dessen eindeutigen Worker-Stop anbinden.
 4. Begrenzte Installer-Operationen an den HA-Assistenten anbinden und
@@ -110,3 +110,21 @@ Speichervertrag und HA-Assistent bleiben offen; alle Katalogreleases pending.
 Die aktuell statisch belegten Archive, Dateimanifeste, Paketversionen, direkten ELF-Abhaengigkeiten und offenen Lizenzgrenzen stehen in [ENGINE_PROVENANCE.md](ENGINE_PROVENANCE.md). Der Vertrag ist fail-closed: Alle drei Releases bleiben pending; weder ein vorhandener Hash noch ein erfolgreicher statischer Bibliotheksabschluss setzt release_approved, legal_approved oder container_deploy_ready.
 
 Vor jeder spaeteren Freigabe muessen Herkunft und Quellrevision, Lizenz-/Notice-Closure, transitive Laufzeitbibliotheken, Profile/Ressourcen/Plugins, SBOM sowie die getrennten realen Installations- und Laufzeitabnahmen erneut gegen die eingefrorenen Artefakte geprueft werden.
+
+
+## Begrenzter GitHub-Asset-Download
+
+Der Katalog speichert weiterhin ausschliesslich feste Release-URLs ohne
+Queryparameter, Zugangsdaten oder bewegliche Versionsmarker. Nur der interne
+Downloader darf einen einmaligen HTTP302-Wechsel einer solchen erlaubten
+GitHub-Releaseadresse annehmen: exakte HTTPS-Asset-Domain, begrenzter
+Release-Asset-Pfad, eindeutiger Location-Header und kein weiterer Hop.
+Die temporaere signierte Zieladresse ist kein neuer Katalogeintrag und wird
+nicht im READY-Beleg gespeichert. Abbruch, Gesamtfrist, Archivgroesse und
+SHA-256 bleiben ueber beide Verbindungen unveraendert gebunden.
+Details: [Download-/Stagingvertrag](PACKAGE_STAGING.md).
+
+Dies erweitert weder die echten Katalogfreigaben noch unterstuetzte
+Archivformate. AppImages werden nicht ausgefuehrt; eine geeignete
+manifestgebundene Archivauswahl muss gesondert kuratiert werden. Alle drei
+ausgelieferten Enginefamilien bleiben pending.
