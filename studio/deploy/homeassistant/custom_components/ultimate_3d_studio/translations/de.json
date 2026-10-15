@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Ultimate 3D Studio einrichten",
-        "description": "Erstellt eine vollst\u00e4ndig isolierte Studio-Testlaufzeit.",
+        "description": "Erstellt eine vollständig isolierte Studio-Testlaufzeit.",
         "data": {
           "instance_name": "Name der Testinstanz"
         }
@@ -18,7 +18,7 @@
     "step": {
       "init": {
         "title": "Drucker- und Bambu-Konto konfigurieren",
-        "description": "Der LAN-Provider arbeitet direkt mit dem Drucker. Die optionale Kontoanmeldung stellt deine eigenen Filament-, Druck- und Maschinenprofile sowie MakerWorld in Studio bereit. Den Cloud-Profilabgleich startest du ausschlie\u00dflich manuell unter Profile. Das Passwort wird nur f\u00fcr diese Anmeldung verwendet und nicht gespeichert. Wenn bereits ein Token vorhanden ist, bleiben Passwort und E-Mail optional. Aktueller Tokenstatus: {cloud_token_status}. LAN-Zugangscode: {lan_code_status}. Slicer-Schl\u00fcsselstatus: {slicer_secret_status}. Verbindungspr\u00fcfung: {slicer_connection_status}.",
+        "description": "Der LAN-Provider arbeitet direkt mit dem Drucker. Die optionale Kontoanmeldung stellt deine eigenen Filament-, Druck- und Maschinenprofile sowie MakerWorld in Studio bereit. Den Cloud-Profilabgleich startest du ausschließlich manuell unter Profile. Das Passwort wird nur für diese Anmeldung verwendet und nicht gespeichert. Wenn bereits ein Token vorhanden ist, bleiben Passwort und E-Mail optional. Aktueller Tokenstatus: {cloud_token_status}. LAN-Zugangscode: {lan_code_status}. Slicer-Schlüsselstatus: {slicer_secret_status}. Verbindungsprüfung: {slicer_connection_status}.",
         "data": {
           "lan_enabled": "Bambu-LAN-Provider aktivieren",
           "printer_name": "Anzeigename des Druckers",
@@ -30,37 +30,60 @@
           "cloud_profile_sync": "Manuellen Cloud-Profilabgleich unter Profile erlauben",
           "cloud_region": "Bambu-Kontoregion",
           "cloud_email": "Bambu-Konto-E-Mail-Adresse",
-          "password": "Bambu-Konto-Passwort f\u00fcr die einmalige Anmeldung",
+          "password": "Bambu-Konto-Passwort für die einmalige Anmeldung",
           "slicer_enabled": "Separaten Linux-Slicer verwenden",
           "slicer_base_url": "Slicer-Serveradresse (HTTPS)",
           "slicer_api_secret": "Slicer-API-Secret (wird nicht wieder angezeigt)",
-          "slicer_connection_test": "Slicer-Verbindung pr\u00fcfen (ohne Speichern)"
+          "slicer_connection_test": "Slicer-Verbindung prüfen (ohne Speichern)",
+          "slicer_installer_setup": "Slicer-Einrichtung oeffnen (ohne andere Aenderungen zu speichern)"
         }
       },
       "cloud_code": {
         "title": "Bambu-E-Mail-Verifizierung",
-        "description": "Bambu hat einen Verifizierungscode an die Konto-E-Mail-Adresse gesendet. Der Code wird nur f\u00fcr diesen Anmeldevorgang verwendet.",
+        "description": "Bambu hat einen Verifizierungscode an die Konto-E-Mail-Adresse gesendet. Der Code wird nur für diesen Anmeldevorgang verwendet.",
         "data": {
           "verification_code": "Verifizierungscode"
+        }
+      },
+      "installer_action": {
+        "title": "Slicer einrichten und wiederherstellen",
+        "description": "Zustand: {state}. Grund: {reason}. Laufender Vorgang: {active}. Nur ein sicher provisionierter Host wird unterstuetzt. Die Einrichtung aktiviert pausiert und gibt keinen Druckauftrag frei. Das Schliessen dieses Dialogs beendet keinen Hostvorgang. Danach erneut Status oder Abbrechen waehlen. Serveradresse und API-Secret bleiben in den bisherigen Einstellungen, bis eine getrennte sichere Uebernahme angebunden ist.",
+        "data": {
+          "operation": "Aktion"
+        }
+      },
+      "installer_confirm": {
+        "title": "Installer-Aktion bestaetigen",
+        "description": "Angeforderte Aktion: {operation}. Diese kann den gekoppelten Host veraendern. Daten und vorherige Generationen bleiben erhalten. Resume hebt die Wartungssperre auf und kann bereits wartende Auftraege zulassen; nur nach deren Pruefung auswaehlen. Der Dialog sendet keinen Druckerbefehl.",
+        "data": {
+          "confirm": "Diese Aktion ausfuehren"
         }
       }
     },
     "error": {
-      "required": "Dieses Feld ist f\u00fcr die aktivierte Funktion erforderlich.",
+      "required": "Dieses Feld ist für die aktivierte Funktion erforderlich.",
       "invalid_auth": "Die Bambu-Anmeldung oder der Verifizierungscode wurde abgelehnt.",
       "cannot_connect": "Die Bambu Cloud ist momentan nicht erreichbar.",
-      "invalid_slicer_url": "Ung\u00fcltige Slicer-Serveradresse. Keine Anmeldedaten in der URL eingeben.",
-      "slicer_https_required": "Entfernte Slicer-Server ben\u00f6tigen HTTPS; HTTP ist nur auf Loopback erlaubt.",
-      "invalid_slicer_secret": "Der Slicer-Schl\u00fcssel muss mindestens 32 g\u00fcltige Zeichen enthalten.",
+      "invalid_slicer_url": "Ungültige Slicer-Serveradresse. Keine Anmeldedaten in der URL eingeben.",
+      "slicer_https_required": "Entfernte Slicer-Server benötigen HTTPS; HTTP ist nur auf Loopback erlaubt.",
+      "invalid_slicer_secret": "Der Slicer-Schlüssel muss mindestens 32 gültige Zeichen enthalten.",
       "slicer_not_configured": "Bitte zuerst den Slicer aktivieren und die Verbindung eintragen.",
-      "slicer_auth_required": "Der Slicer hat den API-Schl\u00fcssel zur\u00fcckgewiesen.",
-      "slicer_incompatible": "Die Slicer-Info-API ist nicht kompatibel oder unvollst\u00e4ndig.",
+      "slicer_auth_required": "Der Slicer hat den API-Schlüssel zurückgewiesen.",
+      "slicer_incompatible": "Die Slicer-Info-API ist nicht kompatibel oder unvollständig.",
       "slicer_redirect_refused": "Der Slicer hat eine unsichere Umleitung gesendet.",
       "slicer_unavailable": "Der Slicer ist nicht erreichbar oder antwortet nicht korrekt.",
-      "slicer_certificate_error": "Das TLS-Zertifikat des Slicers konnte nicht gepr\u00fcft werden."
+      "slicer_certificate_error": "Das TLS-Zertifikat des Slicers konnte nicht geprüft werden.",
+      "installer_invalid_action": "Ungueltige Installer-Aktion.",
+      "installer_busy": "Eine Installer-Aenderung laeuft noch. Status und Abbrechen bleiben verfuegbar.",
+      "installer_operation_failed": "Der Vorgang wurde nicht bestaetigt. Angezeigten Grund pruefen; keine automatische Wiederholung gestartet.",
+      "installer_host_blocked": "Hostvoraussetzungen oder Engine-Freigaben sind noch nicht erfuellt."
     },
     "abort": {
-      "cloud_login_expired": "Der Bambu-Anmeldevorgang ist abgelaufen. \u00d6ffne die Optionen erneut."
+      "cloud_login_expired": "Der Bambu-Anmeldevorgang ist abgelaufen. Öffne die Optionen erneut.",
+      "installer_integration_unavailable": "Die Studio-Integration ist nicht geladen. Bestehende Einstellungen wurden nicht veraendert."
+    },
+    "progress": {
+      "installer_working": "Die ausgewaehlte Installer-Aktion wird geprueft oder bearbeitet. Neuladen startet keinen zweiten Vorgang."
     }
   },
   "selector": {
@@ -68,6 +91,23 @@
       "options": {
         "global": "Global / Europa",
         "china": "China"
+      }
+    },
+    "installer_operation": {
+      "options": {
+        "install": "Einrichten: pruefen, vorbereiten und pausiert aktivieren",
+        "preflight": "Voraussetzungen pruefen",
+        "status": "Aktuellen Vorgang pruefen",
+        "cancel": "Laufenden Download abbrechen",
+        "retry": "Fehlgeschlagenen Download wiederholen",
+        "activate": "Vorbereitete Komponenten pausiert aktivieren",
+        "rollback": "Zur vorherigen Installation zurueckkehren",
+        "resume": "Wartung nach eigener Pruefung aufheben",
+        "recover_stage": "Unterbrochene Vorbereitung abschliessen",
+        "recover_retry": "Unterbrochene Wiederholung abschliessen",
+        "recover_activation": "Unklaren Aktivierungsstand uebernehmen",
+        "recover_rollback": "Unklaren Aktivierungsstand zuruecksetzen",
+        "finish": "Zurueck zu den unveraenderten Einstellungen"
       }
     }
   }

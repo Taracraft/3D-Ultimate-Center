@@ -29,6 +29,9 @@ from .printer_storage_views import async_register_printer_storage_views
 from .profile_runtime_v2 import install_profile_runtime_v2
 from .profile_views import async_register_profile_views
 from .runtime import Ultimate3DStudioRuntime
+from .slicer_installer_runtime import (
+    register_installer_session, async_remove_installer_session,
+)
 from .slicer_job_delete_views import async_register_slicer_job_delete_views
 from .slicer_queue_views import async_register_slicer_queue_views
 from .slicer_job_list_views import async_register_slicer_job_list_views
@@ -114,6 +117,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.async_on_unload(entry.add_update_listener(_async_reload_entry))
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
         await async_start_cloud_profile_sync(hass, entry)
+        register_installer_session(hass, entry)
         await get_audit_log(hass).async_append(
             category="System",
             component="config_entry",
@@ -123,6 +127,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             details={"entry_id": entry.entry_id, "title": entry.title, "provider_count": runtime.provider_count},
         )
     except Exception as error:
+        await async_remove_installer_session(hass, entry)
         runtimes.pop(entry.entry_id, None)
         await runtime.async_stop()
         await async_stop_cloud_profile_sync(hass)
@@ -150,6 +155,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             details={"entry_id": entry.entry_id, "title": entry.title},
         )
         return False
+    await async_remove_installer_session(hass, entry)
     await async_stop_cloud_profile_sync(hass)
     runtime = hass.data[DOMAIN][DATA_RUNTIMES].pop(entry.entry_id, None)
     if runtime is not None:

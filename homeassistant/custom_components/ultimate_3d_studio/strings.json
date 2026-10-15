@@ -34,7 +34,8 @@
           "slicer_enabled": "Separaten Linux-Slicer verwenden",
           "slicer_base_url": "Slicer-Serveradresse (HTTPS)",
           "slicer_api_secret": "Slicer-API-Secret (wird nicht wieder angezeigt)",
-          "slicer_connection_test": "Slicer-Verbindung prüfen (ohne Speichern)"
+          "slicer_connection_test": "Slicer-Verbindung prüfen (ohne Speichern)",
+          "slicer_installer_setup": "Slicer-Einrichtung oeffnen (ohne andere Aenderungen zu speichern)"
         }
       },
       "cloud_code": {
@@ -42,6 +43,20 @@
         "description": "Bambu hat einen Verifizierungscode an die Konto-E-Mail-Adresse gesendet. Der Code wird nur für diesen Anmeldevorgang verwendet.",
         "data": {
           "verification_code": "Verifizierungscode"
+        }
+      },
+      "installer_action": {
+        "title": "Slicer einrichten und wiederherstellen",
+        "description": "Zustand: {state}. Grund: {reason}. Laufender Vorgang: {active}. Nur ein sicher provisionierter Host wird unterstuetzt. Die Einrichtung aktiviert pausiert und gibt keinen Druckauftrag frei. Das Schliessen dieses Dialogs beendet keinen Hostvorgang. Danach erneut Status oder Abbrechen waehlen. Serveradresse und API-Secret bleiben in den bisherigen Einstellungen, bis eine getrennte sichere Uebernahme angebunden ist.",
+        "data": {
+          "operation": "Aktion"
+        }
+      },
+      "installer_confirm": {
+        "title": "Installer-Aktion bestaetigen",
+        "description": "Angeforderte Aktion: {operation}. Diese kann den gekoppelten Host veraendern. Daten und vorherige Generationen bleiben erhalten. Resume hebt die Wartungssperre auf und kann bereits wartende Auftraege zulassen; nur nach deren Pruefung auswaehlen. Der Dialog sendet keinen Druckerbefehl.",
+        "data": {
+          "confirm": "Diese Aktion ausfuehren"
         }
       }
     },
@@ -57,10 +72,18 @@
       "slicer_incompatible": "Die Slicer-Info-API ist nicht kompatibel oder unvollständig.",
       "slicer_redirect_refused": "Der Slicer hat eine unsichere Umleitung gesendet.",
       "slicer_unavailable": "Der Slicer ist nicht erreichbar oder antwortet nicht korrekt.",
-      "slicer_certificate_error": "Das TLS-Zertifikat des Slicers konnte nicht geprüft werden."
+      "slicer_certificate_error": "Das TLS-Zertifikat des Slicers konnte nicht geprüft werden.",
+      "installer_invalid_action": "Ungueltige Installer-Aktion.",
+      "installer_busy": "Eine Installer-Aenderung laeuft noch. Status und Abbrechen bleiben verfuegbar.",
+      "installer_operation_failed": "Der Vorgang wurde nicht bestaetigt. Angezeigten Grund pruefen; keine automatische Wiederholung gestartet.",
+      "installer_host_blocked": "Hostvoraussetzungen oder Engine-Freigaben sind noch nicht erfuellt."
     },
     "abort": {
-      "cloud_login_expired": "Der Bambu-Anmeldevorgang ist abgelaufen. Öffne die Optionen erneut."
+      "cloud_login_expired": "Der Bambu-Anmeldevorgang ist abgelaufen. Öffne die Optionen erneut.",
+      "installer_integration_unavailable": "Die Studio-Integration ist nicht geladen. Bestehende Einstellungen wurden nicht veraendert."
+    },
+    "progress": {
+      "installer_working": "Die ausgewaehlte Installer-Aktion wird geprueft oder bearbeitet. Neuladen startet keinen zweiten Vorgang."
     }
   },
   "selector": {
@@ -68,6 +91,23 @@
       "options": {
         "global": "Global / Europa",
         "china": "China"
+      }
+    },
+    "installer_operation": {
+      "options": {
+        "install": "Einrichten: pruefen, vorbereiten und pausiert aktivieren",
+        "preflight": "Voraussetzungen pruefen",
+        "status": "Aktuellen Vorgang pruefen",
+        "cancel": "Laufenden Download abbrechen",
+        "retry": "Fehlgeschlagenen Download wiederholen",
+        "activate": "Vorbereitete Komponenten pausiert aktivieren",
+        "rollback": "Zur vorherigen Installation zurueckkehren",
+        "resume": "Wartung nach eigener Pruefung aufheben",
+        "recover_stage": "Unterbrochene Vorbereitung abschliessen",
+        "recover_retry": "Unterbrochene Wiederholung abschliessen",
+        "recover_activation": "Unklaren Aktivierungsstand uebernehmen",
+        "recover_rollback": "Unklaren Aktivierungsstand zuruecksetzen",
+        "finish": "Zurueck zu den unveraenderten Einstellungen"
       }
     }
   }

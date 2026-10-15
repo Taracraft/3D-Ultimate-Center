@@ -34,7 +34,8 @@
           "slicer_enabled": "Use separate Linux slicer",
           "slicer_base_url": "Slicer server address (HTTPS)",
           "slicer_api_secret": "Slicer API secret (will not be shown again)",
-          "slicer_connection_test": "Check slicer connection (without saving)"
+          "slicer_connection_test": "Check slicer connection (without saving)",
+          "slicer_installer_setup": "Open Slicer installer (without saving other changes)"
         }
       },
       "cloud_code": {
@@ -42,6 +43,20 @@
         "description": "Bambu sent a verification code to the account email address. The code is used only for this sign-in.",
         "data": {
           "verification_code": "Verification code"
+        }
+      },
+      "installer_action": {
+        "title": "Slicer setup and recovery",
+        "description": "State: {state}. Reason: {reason}. Running operation: {active}. Only a securely provisioned host is supported. Installation activates paused; no print job is released. Closing this dialog does not stop a host operation. Use Status or Cancel after reopening. Server URL and API secret remain in the existing settings until a separate secure handoff is implemented.",
+        "data": {
+          "operation": "Action"
+        }
+      },
+      "installer_confirm": {
+        "title": "Confirm installer action",
+        "description": "Requested operation: {operation}. This may change the configured host. Data and previous generations are retained. Resume releases the maintenance barrier and can allow already queued work; choose it only after checking those jobs. No printer command is sent by this dialog.",
+        "data": {
+          "confirm": "Execute this action"
         }
       }
     },
@@ -57,10 +72,18 @@
       "slicer_incompatible": "The slicer info API is incompatible or incomplete.",
       "slicer_redirect_refused": "The slicer returned an unsafe redirect.",
       "slicer_unavailable": "The slicer is unavailable or returned an invalid response.",
-      "slicer_certificate_error": "The slicer TLS certificate could not be verified."
+      "slicer_certificate_error": "The slicer TLS certificate could not be verified.",
+      "installer_invalid_action": "Invalid installer action.",
+      "installer_busy": "An installer mutation is still running. Status and Cancel remain available.",
+      "installer_operation_failed": "The operation was not confirmed. Check the displayed reason; no automatic retry was started.",
+      "installer_host_blocked": "Host prerequisites or engine releases are not ready."
     },
     "abort": {
-      "cloud_login_expired": "Bambu sign-in has expired. Open the options again."
+      "cloud_login_expired": "Bambu sign-in has expired. Open the options again.",
+      "installer_integration_unavailable": "The Studio integration is not loaded. Existing settings were not changed."
+    },
+    "progress": {
+      "installer_working": "Checking or processing the selected installer operation. No duplicate request is started on page refresh."
     }
   },
   "selector": {
@@ -68,6 +91,23 @@
       "options": {
         "global": "Global / Europe",
         "china": "China"
+      }
+    },
+    "installer_operation": {
+      "options": {
+        "install": "Set up: check, prepare and activate paused",
+        "preflight": "Check prerequisites",
+        "status": "Inspect current operation",
+        "cancel": "Cancel running download",
+        "retry": "Retry failed download",
+        "activate": "Activate prepared components paused",
+        "rollback": "Restore previous installation",
+        "resume": "Release maintenance after verification",
+        "recover_stage": "Reconcile interrupted preparation",
+        "recover_retry": "Reconcile interrupted retry",
+        "recover_activation": "Adopt uncertain activation",
+        "recover_rollback": "Roll back uncertain activation",
+        "finish": "Return to unchanged settings"
       }
     }
   }
