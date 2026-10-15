@@ -160,3 +160,27 @@ pinnt aber keine Versionen. Damit ist die Herstellerbinaerdatei weiterhin
 nicht reproduziert. Zielimage-, Loader-, Plugin-, Ressourcen-, Notice-,
 Lizenz- und reale Linuxabnahme bleiben offen. Katalog und
 `container_deploy_ready=false` bleiben unveraendert fail closed.
+
+
+## Statischer FFmpeg-Buildvertragsbefund vom 15.10.2026
+
+Die gepruefte Originalrevision BambuStudio 42d319c6692fa8e64790fddf0cdaafd2a4254bcc
+setzt im CMake-Rezept deps/FFMPEG/FFMPEG.cmake zwar die lokalen Zeichenketten
+--enable-gpl und --enable-nonfree in _extra_cmd. Der tatsaechliche
+CONFIGURE_COMMAND verwendet _extra_cmd aber nicht und uebergibt die beiden
+Schalter auch nicht unmittelbar. Das Standard-CMake-Flag DEP_BUILD_FFMPEG ist
+ON, kann durch den historischen, nicht archivierten Cache jedoch abweichen.
+
+Diese Quellenanalyse ist weder der effektive FFmpeg-Konfigurationsausdruck des
+Hersteller-Builds noch eine Lizenz- oder Weitergabefreigabe fuer die Binaerdatei.
+Dafuer werden tatsaechliche Konfigurationsbelege, enthaltene Bibliotheken und
+Plugins sowie die zugehoerigen Rechte und Quellen benoetigt. Der Befund darf
+nicht als bestaetigtes aktives --enable-nonfree und auch nicht als
+Lizenzunbedenklichkeit ausgegeben werden.
+
+Die 27 bereits gepinnten externen Quellarchiv-Kandidaten wurden gegen ihren
+Notice-Index zugeordnet; alle 302 unterschiedlichen archivierten Notice-Texte
+wurden erneut auf Laenge und SHA-256 geprueft. Ein gesicherter Notice-Text
+beweist noch keine vollstaendige komponentenbezogene Lizenzpruefung. Keine
+Archive neu bezogen, keine Engine ausgefuehrt, keine Laufzeit geaendert.
+Freigaben fuer alle drei Enginefamilien und den Container bleiben pending.

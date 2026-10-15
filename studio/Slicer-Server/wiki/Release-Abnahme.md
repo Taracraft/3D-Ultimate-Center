@@ -58,3 +58,16 @@ zurueckgelesen; anschliessend werden README-/Release-Links geprueft.
 Ein lokaler Wiki-Ordner ist kein veroeffentlichter Wiki-Tab.
 `production_approved=false` und `container_deploy_ready=false` bleiben
 bis zum echten Gesamtabschluss erhalten.
+
+
+## FFmpeg-Quell- und Lizenzgrenze (15.10.2026)
+
+Der gepinnte BambuStudio-Quellstand deklariert die Schalter --enable-gpl und
+--enable-nonfree nur in einer im untersuchten CMake-Konfigurationsaufruf
+nicht verwendeten Variablen _extra_cmd. Daraus darf weder die tatsaechliche
+Binaerlizenz noch eine Nichtweiterverteilbarkeit oder Lizenzfreigabe
+abgeleitet werden. 27 Quellarchiv-Kandidaten und 302 gesicherte Notice-Texte
+sind statisch hashgeprueft; ihr vollstaendiger Bezug zu den tatsaechlich
+gepackten Komponenten, Bibliotheken und Plugins bleibt offen. Siehe
+ENGINE_PROVENANCE.md im Slicer-Server-Quellverzeichnis. Bis zur realen
+Zielimage- und Rechteabnahme bleibt die Engine-Releasesperre bestehen.
