@@ -51,12 +51,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libwebkit2gtk-4.1-0 \
     libx11-6 \
     && mkdir -p /usr/share/ultimate-slicer-server \
-    && dpkg-query -W -f='${binary:Package}\t${Version}\t${Architecture}\n' \
+    && dpkg-query -W -f='${binary:Package}\t${Version}\t${Architecture}\t${source:Package}\t${source:Version}\n' \
        > /usr/share/ultimate-slicer-server/debian-packages.tsv \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/ultimate-slicer-server
 COPY --chown=65532:65532 payload/ ./payload/
-COPY --chown=65532:65532 context-manifest.json verify_profile_sources.py PROFILE_SOURCE_BUNDLE.json container_check.py container_runtime.py container_probe.py container_service.py container_engines.py LICENSE THIRD_PARTY_NOTICES.md PAYLOAD_PROVENANCE.json ./
+COPY --chown=65532:65532 context-manifest.json verify_profile_sources.py PROFILE_SOURCE_BUNDLE.json target_image_sbom.py TARGET_IMAGE_REFERENCE.json container_check.py container_runtime.py container_probe.py container_service.py container_engines.py LICENSE THIRD_PARTY_NOTICES.md PAYLOAD_PROVENANCE.json ./
 COPY --chown=65532:65532 licenses/ ./licenses/
 RUN chmod 0555 payload/progress-pipe-reader.py
 USER 65532:65532

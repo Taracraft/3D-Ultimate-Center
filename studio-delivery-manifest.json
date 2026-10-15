@@ -11,21 +11,6 @@
       "sha256": "7e84b7041a01f1029b24527acc94b96aea9433b60bb5ffce616fbc633f13e55b"
     },
     {
-      "bytes": 1066,
-      "path": "LICENSE",
-      "sha256": "2cd47d14537993c48a899d2a3e6b30cf764ea31e18a468b662263e1f14027708"
-    },
-    {
-      "bytes": 9149,
-      "path": "README.md",
-      "sha256": "5419d3d5227b74f76404d410415cac0bbac7540a24a2f579444f8d78a29fe810"
-    },
-    {
-      "bytes": 6093,
-      "path": "SOURCE_NOTICES.md",
-      "sha256": "614a77ac7bdb7fa2e0121384e9f287a67d919edd6c0bdfe142e48c6ee42c355c"
-    },
-    {
       "bytes": 3589,
       "path": "homeassistant/custom_components/printer_control_center/__init__.py",
       "sha256": "55c3e62e2983c4a68446b80ce159f5fd39db1d7e2a49937cff047a78fb6b3202"
@@ -566,11 +551,6 @@
       "sha256": "cbf628b9724e232bb17c31728e8b1cc390f9f9c920def036cc8ca1254a0109a1"
     },
     {
-      "bytes": 11856,
-      "path": "homeassistant/custom_components/ultimate_3d_studio/network_plugin.py",
-      "sha256": "516f26fcbd7813fe8d10fe17d5a661dcb9100fab0f763e4c1498c5519f9b2d41"
-    },
-    {
       "bytes": 605,
       "path": "homeassistant/custom_components/ultimate_3d_studio/network_plugin/__init__.py",
       "sha256": "305df3ac3f55332b6abd681a0fe8ceb14eba13502a3f6cd39b8438ada7fbbcc7"
@@ -589,6 +569,11 @@
       "bytes": 7573,
       "path": "homeassistant/custom_components/ultimate_3d_studio/network_plugin/plugin.py",
       "sha256": "1cd65038244e0bd2d03d42245957a33ae3ee54f95bd3db20922ecaaba17e21a0"
+    },
+    {
+      "bytes": 11856,
+      "path": "homeassistant/custom_components/ultimate_3d_studio/network_plugin.py",
+      "sha256": "516f26fcbd7813fe8d10fe17d5a661dcb9100fab0f763e4c1498c5519f9b2d41"
     },
     {
       "bytes": 6289,
@@ -893,7 +878,7 @@
     {
       "bytes": 6835,
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "624925902f2fd540094b433762e738b7b581a9b54bdee21dfaebd29392d67307"
+      "sha256": "20bf15007016542e639f059b9664535187f036b3d6d883bd9934dcdc6347a568"
     },
     {
       "bytes": 801,
@@ -906,439 +891,29 @@
       "sha256": "0a506544901467a2f7c70d48af0043d9c78b6578bd83ec4b21b85f659a3a881e"
     },
     {
+      "bytes": 1066,
+      "path": "LICENSE",
+      "sha256": "2cd47d14537993c48a899d2a3e6b30cf764ea31e18a468b662263e1f14027708"
+    },
+    {
+      "bytes": 9149,
+      "path": "README.md",
+      "sha256": "5419d3d5227b74f76404d410415cac0bbac7540a24a2f579444f8d78a29fe810"
+    },
+    {
       "bytes": 1234,
       "path": "scripts/rebuild-homeassist.sh",
       "sha256": "c34a65548032d1228b03b500fc410af53ed85cdd00ff944d7bfb7e7b84aa7bb1"
     },
     {
-      "bytes": 491947,
+      "bytes": 493331,
       "path": "source-license-map.json",
-      "sha256": "af396e230c0b46ff4cbbf4dfe222c16b172f428a3ae3e86febf55f3482b68733"
+      "sha256": "970cc0ffcf2873d24e386e5ffc4440e5836fa64f86926be5395e89efe216ef7a"
     },
     {
-      "bytes": 2883,
-      "path": "studio/ARCHITECTURE.md",
-      "sha256": "4180183de163466e4af833b8ea38595cfa9f79e270e23124cd2692f2a0c6effa"
-    },
-    {
-      "bytes": 1937,
-      "path": "studio/CHANGELOG-DE.md",
-      "sha256": "d5829ea9e88d532c17a2114d9d0bfdcce8705215aa922540f6efbf5ec0a95876"
-    },
-    {
-      "bytes": 1898,
-      "path": "studio/CHANGELOG.md",
-      "sha256": "fa84afc77a62e1b5c074f2dfcc67e7e89220c57370f17820f1c058a90642dfba"
-    },
-    {
-      "bytes": 2380,
-      "path": "studio/CI_DEPENDENCIES.md",
-      "sha256": "6bc1bf52572a3f31e26788f35cc31843a034f5b9fc2f8caa12c8c6830eb5b95c"
-    },
-    {
-      "bytes": 24815,
-      "path": "studio/README.md",
-      "sha256": "d615a80aa1f3e4bdf52ecb299b2d0dfa62137ab84f7bc2a9ee6ce8bc5fe810a6"
-    },
-    {
-      "bytes": 303,
-      "path": "studio/Slicer-Server/.dockerignore",
-      "sha256": "72fce1d9f32fbd4bc8badcf29ae336a1606e191901432237b3ee8bccf1e556df"
-    },
-    {
-      "bytes": 11393,
-      "path": "studio/Slicer-Server/CONTAINER_TESTING.md",
-      "sha256": "5a4d2e0410c1693b9536e7e2c17511c08fa3779bf15525a8a3f6914e0207c8c0"
-    },
-    {
-      "bytes": 2400,
-      "path": "studio/Slicer-Server/DATA_PERSISTENCE.md",
-      "sha256": "7ff5d2131672ff7418140a97def50d40c0488e5d2eef65985f8d35d80b727f14"
-    },
-    {
-      "bytes": 5292,
-      "path": "studio/Slicer-Server/DOCKER_QUICKSTART.md",
-      "sha256": "577c01ce297d86b041b4ff4f8542840e40e3f09b28563f6d30193bc0f6c4e126"
-    },
-    {
-      "bytes": 2440,
-      "path": "studio/Slicer-Server/Dockerfile",
-      "sha256": "14811aa51bd67616e13738f295e948d0cb81a36a404798abb1236e9295bb688b"
-    },
-    {
-      "bytes": 7745,
-      "path": "studio/Slicer-Server/ENGINE_CATALOG.md",
-      "sha256": "0ac269dc54a6b56eea2eaa6d7c92ceb0f48776a5b22d85b6899c8e1790f05118"
-    },
-    {
-      "bytes": 3485,
-      "path": "studio/Slicer-Server/ENGINE_LAYOUT.md",
-      "sha256": "6867deadb17ca3489935499e31e010fa61cd79968282f206e8eeb8d2f4818410"
-    },
-    {
-      "bytes": 6816,
-      "path": "studio/Slicer-Server/ENGINE_PROVENANCE.md",
-      "sha256": "4216eee8163b09fd6efd1400aa36d8e4858c63f78792160c05178726784cc483"
-    },
-    {
-      "bytes": 23417,
-      "path": "studio/Slicer-Server/HA_INSTALLATION_PLAN.md",
-      "sha256": "7381baf186f61d389f50c8187a4a88118b3d19b8e42a626b9d2d4f0d81e8fc61"
-    },
-    {
-      "bytes": 21420,
-      "path": "studio/Slicer-Server/HOST_LIFECYCLE.md",
-      "sha256": "1300ecf9d10ba3bed5e220bf50cf73b15a6f9718ca3a986a90ba0276f22b7604"
-    },
-    {
-      "bytes": 6540,
-      "path": "studio/Slicer-Server/HOST_PAIRING.md",
-      "sha256": "2cac0f8fbe81379047080be579e4ee193a80908d5156a59544ef91f74c3b3449"
-    },
-    {
-      "bytes": 5953,
-      "path": "studio/Slicer-Server/HOST_STORAGE.md",
-      "sha256": "f80f244f6d46c20c78123d1d50a37b05285ccaca2b424340cd4a79801f57d747"
-    },
-    {
-      "bytes": 5497,
-      "path": "studio/Slicer-Server/INSTALLATION.md",
-      "sha256": "3bf58488a60740cd84483cb475ca1daf9f143b771fafccc4b7bf6cb5f59ad4e4"
-    },
-    {
-      "bytes": 5376,
-      "path": "studio/Slicer-Server/INSTALLER_HOST_CHANNEL_DECISION.md",
-      "sha256": "897a7016e746d4f727b0661fbc64a09c5b1de423eedf0ba9af2c87fea9513450"
-    },
-    {
-      "bytes": 10441,
-      "path": "studio/Slicer-Server/INSTALLER_TRANSPORT.md",
-      "sha256": "387c4e98a55417c193d2c2dbb3f806d996d15d2b59995e2fbc18d9dcd54a42c3"
-    },
-    {
-      "bytes": 3644,
-      "path": "studio/Slicer-Server/LICENSE",
-      "sha256": "95d03e883439f45c32f83a772fcc7d9fe6f0c32e1098111567821a1b9a51c03f"
-    },
-    {
-      "bytes": 12944,
-      "path": "studio/Slicer-Server/LINUX_TEST_SERVER_RUNBOOK.md",
-      "sha256": "bc36f4155c527eb0c6df3f5e349ae465e0d4d2978b8ed5500b1300f3839e7218"
-    },
-    {
-      "bytes": 3766,
-      "path": "studio/Slicer-Server/LIVE_ENGINE_INVENTORY.md",
-      "sha256": "db9866d14fd1cfb70feb35a6c8e7386632bf6ad547d129e95ec419b0b87bdb5a"
-    },
-    {
-      "bytes": 5664,
-      "path": "studio/Slicer-Server/MAINTENANCE.md",
-      "sha256": "727ba39124c5d1511e437d09141b844fd935662f395432e082484912a7dd3c98"
-    },
-    {
-      "bytes": 6143,
-      "path": "studio/Slicer-Server/MIGRATION.md",
-      "sha256": "eab45209d9969ed31aab33e5cf12008484c40cf7d09a048fb186ee62d30de245"
-    },
-    {
-      "bytes": 4141,
-      "path": "studio/Slicer-Server/OPERATIONS.md",
-      "sha256": "1216edb987065152182299d4c49f9808b52e7e230321a58a7902e85d380151e1"
-    },
-    {
-      "bytes": 7487,
-      "path": "studio/Slicer-Server/PACKAGE_ACTIVATION.md",
-      "sha256": "9d2cb9e3f5350e332275fdf2b565fe5500c767d27ac7851403c221fd9336cd69"
-    },
-    {
-      "bytes": 10143,
-      "path": "studio/Slicer-Server/PACKAGE_STAGING.md",
-      "sha256": "4c4a1b007e1616913b62c47ff291a6a2a278e88b38bb2aaa10fd38ff8476eeac"
-    },
-    {
-      "bytes": 54602,
-      "path": "studio/Slicer-Server/PAYLOAD_PROVENANCE.json",
-      "sha256": "cc245a19cf17b84cfa93e2eb79833c034f37e9396f53456f78931b8b7b03c7bb"
-    },
-    {
-      "bytes": 4444,
-      "path": "studio/Slicer-Server/PERSISTENT_PROFILES.md",
-      "sha256": "d529185ee3871f4f4fec17447d0b6f8d32e7a6e3afabe19a34eeca4a5edc302c"
-    },
-    {
-      "bytes": 271594,
-      "path": "studio/Slicer-Server/PROFILE_SOURCE_BUNDLE.json",
-      "sha256": "b7ecec0be50f76e4bb4ed85df68f88f28bc34ff34f42a754a3cbdddf9796fa1f"
-    },
-    {
-      "bytes": 16547,
-      "path": "studio/Slicer-Server/README.md",
-      "sha256": "f3946fda309e48aba47617e34b8c3bc0f2b58b16dc24387325dd628fbe299030"
-    },
-    {
-      "bytes": 3715,
-      "path": "studio/Slicer-Server/REPOSITORY_CONTENTS.md",
-      "sha256": "f3d9ae269c623d0b2a21c2c34f008ade50afb16eb981084b82e84f33b7581d29"
-    },
-    {
-      "bytes": 1770,
-      "path": "studio/Slicer-Server/REPOSITORY_NOTICES.md",
-      "sha256": "82fb0583243006ffa48e423c056756e3f39f6b55ab302dbe5fce9e41625d148d"
-    },
-    {
-      "bytes": 8556,
-      "path": "studio/Slicer-Server/REPOSITORY_README.md",
-      "sha256": "619c2ca14fe24e8dfc1d2dde021e5ef5b9f5d5cc140b7017441188a88cbbf50d"
-    },
-    {
-      "bytes": 6728,
-      "path": "studio/Slicer-Server/RESOURCE_VALIDATION.md",
-      "sha256": "1e20cd91770fdcc487eb254b0b362ff2e89e9290d057de99e8146bf1e182c979"
-    },
-    {
-      "bytes": 15792,
-      "path": "studio/Slicer-Server/RESTRICTED_INSTALLER.md",
-      "sha256": "ab486a6ae99163822705bfaf6fd8b4062d909c4096fc6e79890167c2bfb51d15"
-    },
-    {
-      "bytes": 10189,
-      "path": "studio/Slicer-Server/RUNTIME_INSTALLATION.md",
-      "sha256": "f40744a68be2d1be0c24983749d2a822f125b22a8df7d3f3366b0e487c67ce98"
-    },
-    {
-      "bytes": 4941,
-      "path": "studio/Slicer-Server/RUNTIME_PERMISSIONS.md",
-      "sha256": "d3b1cba24335ed4aef47005854922bb563096e2ac4924bf5103d02c4350d57d7"
-    },
-    {
-      "bytes": 6729,
-      "path": "studio/Slicer-Server/THIRD_PARTY_NOTICES.md",
-      "sha256": "8ed5437eb26f52759ec5d09d7e2bf6db7b9c1cfe9c5dad49518c28e2ebbbc7dc"
-    },
-    {
-      "bytes": 14247,
-      "path": "studio/Slicer-Server/build_repository.py",
-      "sha256": "9c84432cb5b6300254a5ab627167f6138ad6f3265c0c4c5cf732d80518b2f239"
-    },
-    {
-      "bytes": 7489,
-      "path": "studio/Slicer-Server/clean_host_preflight.py",
-      "sha256": "75fdf40851ce8a1617ca4d4f8e190e34a6f6955b14df436c055dbd47ea31391f"
-    },
-    {
-      "bytes": 7147,
-      "path": "studio/Slicer-Server/compose.candidate.yaml",
-      "sha256": "a5293bd981976b646dc71cea50213349caef513c27318aebd43e251eb0f26797"
-    },
-    {
-      "bytes": 508,
-      "path": "studio/Slicer-Server/compose.preview.yaml",
-      "sha256": "855fb8957f5d0f517cec56aba1061ca36e005569f087778d85cbd21b3cb7327b"
-    },
-    {
-      "bytes": 2807,
-      "path": "studio/Slicer-Server/container_check.py",
-      "sha256": "62af8acefa2a259880b1424f4189bc79c06b46b21223d3011fd64a6e8cc533b5"
-    },
-    {
-      "bytes": 2988,
-      "path": "studio/Slicer-Server/container_engines.py",
-      "sha256": "201e323c36ada4ed13d99a90419aaace1e19e98168fc878e487020c5bc7c78e7"
-    },
-    {
-      "bytes": 10300,
-      "path": "studio/Slicer-Server/container_probe.py",
-      "sha256": "7296f6f512f3182ea594a5d9667d7346e671dd04c705c345b6dfdd9e00322187"
-    },
-    {
-      "bytes": 6755,
-      "path": "studio/Slicer-Server/container_runtime.py",
-      "sha256": "8553a88a780b0d927decaf9fee85481e2323ad15a5eeeafa628f4212e6c088cf"
-    },
-    {
-      "bytes": 25546,
-      "path": "studio/Slicer-Server/container_service.py",
-      "sha256": "e86332fc11be99ef54b7582cc5bb8e460f90abcd247c32b5e13059b1092b76bd"
-    },
-    {
-      "bytes": 8656,
-      "path": "studio/Slicer-Server/cura_definitions.py",
-      "sha256": "010e86bee8e45550d24980a3fa2f2308e62bdc85efb56c7f29a0daf38aa3f6c2"
-    },
-    {
-      "bytes": 34701,
-      "path": "studio/Slicer-Server/docker_host_adapter.py",
-      "sha256": "fb5eeb4872b9e84bb8b8c2c000b21901b1514f0509151a333169e307c453018b"
-    },
-    {
-      "bytes": 112,
-      "path": "studio/Slicer-Server/engine_catalog.json",
-      "sha256": "606a4415c016a6115800d467dfa98e45e52f73c7e11f9eb224c9939f1bfc5f09"
-    },
-    {
-      "bytes": 12540,
-      "path": "studio/Slicer-Server/engine_catalog.py",
-      "sha256": "e69e1364093bf10cd81ad6e92f9ebe198dc8dc5cf66c8bb265ea47db488ee2d1"
-    },
-    {
-      "bytes": 15932,
-      "path": "studio/Slicer-Server/first_install.py",
-      "sha256": "aa369ced7b75b314a6a677ce8117bf8ca21e23ec7066835136816d3a5938a092"
-    },
-    {
-      "bytes": 17047,
-      "path": "studio/Slicer-Server/host_lifecycle.py",
-      "sha256": "bb711962130e80015bb79c03ce544517a0b0cb4c83827c04d3b187df304cafdf"
-    },
-    {
-      "bytes": 17424,
-      "path": "studio/Slicer-Server/host_storage.py",
-      "sha256": "4ae166b246b1fb13a43fbf9a31504d4740ac9ebedeb61004025b5bef6b9a7781"
-    },
-    {
-      "bytes": 6164,
-      "path": "studio/Slicer-Server/installer_handoff.py",
-      "sha256": "e35bf59210fa4c1e421046a4d1bfdca398ce81ee15c7f7153ae1c04f738b64ae"
-    },
-    {
-      "bytes": 7903,
-      "path": "studio/Slicer-Server/installer_lifecycle.py",
-      "sha256": "3c7d9cf06cd5fb0eb03948b4d28404aae537fa42bc53f0d653bc98a2246beb5f"
-    },
-    {
-      "bytes": 12455,
-      "path": "studio/Slicer-Server/installer_transport.py",
-      "sha256": "6acc23ac82edd1459449c08f54794c68b043a43f167c559f3e264354faab22be"
-    },
-    {
-      "bytes": 34520,
-      "path": "studio/Slicer-Server/licenses/AGPL-BambuStudio.txt",
-      "sha256": "57c8ff33c9c0cfc3ef00e650a1cc910d7ee479a8bc509f6c9209a7c2a11399d6"
-    },
-    {
-      "bytes": 1066,
-      "path": "studio/Slicer-Server/licenses/MIT-Studio.txt",
-      "sha256": "2cd47d14537993c48a899d2a3e6b30cf764ea31e18a468b662263e1f14027708"
-    },
-    {
-      "bytes": 29222,
-      "path": "studio/Slicer-Server/linux_test_evidence.py",
-      "sha256": "38b9d9ef0ae19d8ef18a561a12add92367ab1521022cff724b1cbf16d4791852"
-    },
-    {
-      "bytes": 29146,
-      "path": "studio/Slicer-Server/package_activation.py",
-      "sha256": "728148043c5a4698922175e901de574f8612272ca597ca4ae323ed4fa50617ae"
-    },
-    {
-      "bytes": 21771,
-      "path": "studio/Slicer-Server/package_staging.py",
-      "sha256": "68df287e3bfff7a0a480845eddde39d4bc54b6978dcf869e39b63d7a8434a480"
-    },
-    {
-      "bytes": 9265,
-      "path": "studio/Slicer-Server/pairing_registry.py",
-      "sha256": "a783b8830662a008c7727eae8cb6deef78ee8ca90cc2386c2c50519da1cb3af6"
-    },
-    {
-      "bytes": 10449,
-      "path": "studio/Slicer-Server/prepare_context.py",
-      "sha256": "e97b4349b99ca084be752355e4b332e67956b9971e2c30b0684c40e2c42e19a4"
-    },
-    {
-      "bytes": 8071,
-      "path": "studio/Slicer-Server/prepare_test_server_package.py",
-      "sha256": "379456472e474f5259110eda5d239d2ab870d73f98e0b3fe5a3c32d20901c4b1"
-    },
-    {
-      "bytes": 545,
-      "path": "studio/Slicer-Server/requirements-test.txt",
-      "sha256": "910f1fc223afa479da3eae4b9d996fd8a0bfc3722897b958e82dca575622c653"
-    },
-    {
-      "bytes": 22859,
-      "path": "studio/Slicer-Server/restricted_installer.py",
-      "sha256": "e5c95f9b8f61a8d3b7bf7fb31cfb38816130f46014b9ea3bf2ba85ccf6a9d630"
-    },
-    {
-      "bytes": 1696,
-      "path": "studio/Slicer-Server/slicer-source-contract.yml",
-      "sha256": "e780726cf14262fcff61601927eb34542bdaf385b777d69088b0eb887b277fdd"
-    },
-    {
-      "bytes": 10658,
-      "path": "studio/Slicer-Server/verify_profile_sources.py",
-      "sha256": "10dfda0af122ba189d07fd592fb525ac5e02dbdd6b091e85143422c4693cb638"
-    },
-    {
-      "bytes": 18633,
-      "path": "studio/Slicer-Server/verify_test_server_package.py",
-      "sha256": "87080166db5d26a2fad2179a731fd42f969c4cd7c534a3c0bffbf172eaa0c48c"
-    },
-    {
-      "bytes": 1057,
-      "path": "studio/Slicer-Server/wiki/Architektur.md",
-      "sha256": "d3fb2c6aa1cbe5a7144951d2337b1638c35c22b38d9d2d64990117bf11330d15"
-    },
-    {
-      "bytes": 1196,
-      "path": "studio/Slicer-Server/wiki/Betrieb-und-Wiederherstellung.md",
-      "sha256": "7f8908fac1c9164f6c72bba60b9620e25fae9de6954fc8720590234b0e5d0ba3"
-    },
-    {
-      "bytes": 900,
-      "path": "studio/Slicer-Server/wiki/Build-und-Tests.md",
-      "sha256": "02b705948066da72a95d01234c4add04dee754c79f33803eb808f7207d01982c"
-    },
-    {
-      "bytes": 1282,
-      "path": "studio/Slicer-Server/wiki/Docker-Installation.md",
-      "sha256": "c775d04253fc00d16b492e15f8eb6cedbd2f3df95117500da1b2fdcfe449d9dc"
-    },
-    {
-      "bytes": 774,
-      "path": "studio/Slicer-Server/wiki/Engine-Bestand.md",
-      "sha256": "779e1c54a82927e965345437221bee564a7eb6a9462ed702405d11b59eab9e91"
-    },
-    {
-      "bytes": 1293,
-      "path": "studio/Slicer-Server/wiki/Fehlerdiagnose.md",
-      "sha256": "568c9efbb0f1b3fe80bbca01493f9523f9ab9fe09bc84a9f1fbf0060ff13f40f"
-    },
-    {
-      "bytes": 1188,
-      "path": "studio/Slicer-Server/wiki/Home-Assistant.md",
-      "sha256": "6c0b063a98ffa181221371966adce8d0e88a2acc46eb4ea9806165ec5342d0d3"
-    },
-    {
-      "bytes": 1399,
-      "path": "studio/Slicer-Server/wiki/Home.md",
-      "sha256": "0280712c5b3af0e5d4ae4ffe3e3ed5fe4726f1e5068c634f46fae7cb9b431bf1"
-    },
-    {
-      "bytes": 1256,
-      "path": "studio/Slicer-Server/wiki/Lizenz-und-Nutzung.md",
-      "sha256": "d0d4057b362cd15ec534894779354f87ece194f94c09ee146a3278936d523a51"
-    },
-    {
-      "bytes": 1130,
-      "path": "studio/Slicer-Server/wiki/Profile-und-Engines.md",
-      "sha256": "46ee130ea3a1b9acdead19e23e7caaea7a3804fe16a999e43e66d854380665da"
-    },
-    {
-      "bytes": 769,
-      "path": "studio/Slicer-Server/wiki/Quellumfang.md",
-      "sha256": "f957543edd9bdfefed434e957271df3f68ca4ab2dacd79ec1084bc1cf127625f"
-    },
-    {
-      "bytes": 5159,
-      "path": "studio/Slicer-Server/wiki/Release-Abnahme.md",
-      "sha256": "1a6f01fcf902f387b083a82f2326acf74e0bf1c6548f3df6bf78164af8a8d8dd"
-    },
-    {
-      "bytes": 510,
-      "path": "studio/Slicer-Server/wiki/_Sidebar.md",
-      "sha256": "b3699b7810d76e37404be024f0127dfe68de5c0b58457b382e1c138d9196b952"
+      "bytes": 6093,
+      "path": "SOURCE_NOTICES.md",
+      "sha256": "614a77ac7bdb7fa2e0121384e9f287a67d919edd6c0bdfe142e48c6ee42c355c"
     },
     {
       "bytes": 5598,
@@ -1406,6 +981,11 @@
       "sha256": "fd0b37fc76098405ce61406c5429b20f92133c82a65e1c59ac06057950211da9"
     },
     {
+      "bytes": 2883,
+      "path": "studio/ARCHITECTURE.md",
+      "sha256": "4180183de163466e4af833b8ea38595cfa9f79e270e23124cd2692f2a0c6effa"
+    },
+    {
       "bytes": 6132,
       "path": "studio/build_frontend.mjs",
       "sha256": "1f27f910c9079dc7ee8cc5f7961da358eabb81658b9d427b27e8116a9438d040"
@@ -1414,6 +994,21 @@
       "bytes": 4737,
       "path": "studio/build_studio_core.mjs",
       "sha256": "c849cc0a6111fdd641c7b404aa246dd86ba8699540b8df33da4cdf1960590bd3"
+    },
+    {
+      "bytes": 1937,
+      "path": "studio/CHANGELOG-DE.md",
+      "sha256": "d5829ea9e88d532c17a2114d9d0bfdcce8705215aa922540f6efbf5ec0a95876"
+    },
+    {
+      "bytes": 1898,
+      "path": "studio/CHANGELOG.md",
+      "sha256": "fa84afc77a62e1b5c074f2dfcc67e7e89220c57370f17820f1c058a90642dfba"
+    },
+    {
+      "bytes": 2380,
+      "path": "studio/CI_DEPENDENCIES.md",
+      "sha256": "6bc1bf52572a3f31e26788f35cc31843a034f5b9fc2f8caa12c8c6830eb5b95c"
     },
     {
       "bytes": 97,
@@ -1821,14 +1416,14 @@
       "sha256": "e507cf6ea2742316c4b606c01e32ddc7f1a9c8142d6f42d93b37bb3766fd2d26"
     },
     {
-      "bytes": 1451,
-      "path": "studio/deploy/homeassistant/custom_components/printer_slicing_server/frontend.py",
-      "sha256": "605bdb3facc8ef42eafa1dd6b9af05e953629ccaeb454565bc9cce44bc71b86e"
-    },
-    {
       "bytes": 11650,
       "path": "studio/deploy/homeassistant/custom_components/printer_slicing_server/frontend/panel.js",
       "sha256": "3f96f70f0b37251a6afbc3713b5f7bc651bd51bc2a335f696b25f8e36d3d9a1a"
+    },
+    {
+      "bytes": 1451,
+      "path": "studio/deploy/homeassistant/custom_components/printer_slicing_server/frontend.py",
+      "sha256": "605bdb3facc8ef42eafa1dd6b9af05e953629ccaeb454565bc9cce44bc71b86e"
     },
     {
       "bytes": 243,
@@ -2201,11 +1796,6 @@
       "sha256": "cbf628b9724e232bb17c31728e8b1cc390f9f9c920def036cc8ca1254a0109a1"
     },
     {
-      "bytes": 11856,
-      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/network_plugin.py",
-      "sha256": "516f26fcbd7813fe8d10fe17d5a661dcb9100fab0f763e4c1498c5519f9b2d41"
-    },
-    {
       "bytes": 605,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/network_plugin/__init__.py",
       "sha256": "305df3ac3f55332b6abd681a0fe8ceb14eba13502a3f6cd39b8438ada7fbbcc7"
@@ -2224,6 +1814,11 @@
       "bytes": 7573,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/network_plugin/plugin.py",
       "sha256": "1cd65038244e0bd2d03d42245957a33ae3ee54f95bd3db20922ecaaba17e21a0"
+    },
+    {
+      "bytes": 11856,
+      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/network_plugin.py",
+      "sha256": "516f26fcbd7813fe8d10fe17d5a661dcb9100fab0f763e4c1498c5519f9b2d41"
     },
     {
       "bytes": 6289,
@@ -2526,16 +2121,6 @@
       "sha256": "9ed33eb09c24c2b4f3f847c95c9f107fe2cea66b2c41d46719fb6e25d18e722a"
     },
     {
-      "bytes": 1026,
-      "path": "studio/deploy/homeassistant/host/3d-printer-slicing-server/DEPENDENCY-SHA256SUMS",
-      "sha256": "d8b04265ef96f9cebe6c72f051891d301c20c7c1caa024e73a9e6e098f440610"
-    },
-    {
-      "bytes": 1264,
-      "path": "studio/deploy/homeassistant/host/3d-printer-slicing-server/SHA256SUMS",
-      "sha256": "ed61d37d73d9ff1ed5e9f5206fac9ccb47a534bb6f9102ca0f0e08598e55c2d3"
-    },
-    {
       "bytes": 730,
       "path": "studio/deploy/homeassistant/host/3d-printer-slicing-server/append-slicing-journal.sh",
       "sha256": "9681d2081d85beaddcc7553fc151aa5f878d6c3d65a5c64c9ae0d85528e6f46f"
@@ -2544,6 +2129,11 @@
       "bytes": 523,
       "path": "studio/deploy/homeassistant/host/3d-printer-slicing-server/bambu_lab_h2s_04.json",
       "sha256": "22e0839d2cd43e262b28082cb05b1fec68f3692aafcb1193198d193e99118363"
+    },
+    {
+      "bytes": 1026,
+      "path": "studio/deploy/homeassistant/host/3d-printer-slicing-server/DEPENDENCY-SHA256SUMS",
+      "sha256": "d8b04265ef96f9cebe6c72f051891d301c20c7c1caa024e73a9e6e098f440610"
     },
     {
       "bytes": 20768,
@@ -2586,6 +2176,11 @@
       "sha256": "8851fa8dafc40e6994ddfff7b75dc2a43fc018456f78b9fb980e5472fd4bdb12"
     },
     {
+      "bytes": 1264,
+      "path": "studio/deploy/homeassistant/host/3d-printer-slicing-server/SHA256SUMS",
+      "sha256": "ed61d37d73d9ff1ed5e9f5206fac9ccb47a534bb6f9102ca0f0e08598e55c2d3"
+    },
+    {
       "bytes": 263,
       "path": "studio/deploy/homeassistant/host/3d-printer-slicing-server/systemd/3d-printer-slicing-dispatch.service",
       "sha256": "d7448af9596dddfcf7ea23a8cbb3049e019420303082d1e909efb459874faeed"
@@ -2618,7 +2213,7 @@
     {
       "bytes": 6835,
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "624925902f2fd540094b433762e738b7b581a9b54bdee21dfaebd29392d67307"
+      "sha256": "20bf15007016542e639f059b9664535187f036b3d6d883bd9934dcdc6347a568"
     },
     {
       "bytes": 801,
@@ -2629,171 +2224,6 @@
       "bytes": 673443,
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio.js",
       "sha256": "0a506544901467a2f7c70d48af0043d9c78b6578bd83ec4b21b85f659a3a881e"
-    },
-    {
-      "bytes": 29538,
-      "path": "studio/frontend-tests/cad-data-integrity.test.ts",
-      "sha256": "0ec8da5c0445f3070a135ee6a1c484babace47a1ec638c34103ca1409e19813b"
-    },
-    {
-      "bytes": 6571,
-      "path": "studio/frontend-tests/camera-panel-lifecycle.test.ts",
-      "sha256": "85d8d19a78d7971f8c6d265a3d394190d873c7475d63c4bcf57e72dcb4769c17"
-    },
-    {
-      "bytes": 6574,
-      "path": "studio/frontend-tests/element-contract-harness.ts",
-      "sha256": "96e464e9c966fc2ac10ffa468753d6bb9626904e13c8ee8ea91335a0a64f5516"
-    },
-    {
-      "bytes": 6814,
-      "path": "studio/frontend-tests/filament-view-state.test.ts",
-      "sha256": "d28b215a38cd10194437fc31eb333dd0456b149b091816778a4b4423686f1ebc"
-    },
-    {
-      "bytes": 3871,
-      "path": "studio/frontend-tests/first-layer.test.ts",
-      "sha256": "11a138be3c3677723900199286817634291231ce3f54a05db3239090eda49b41"
-    },
-    {
-      "bytes": 9121,
-      "path": "studio/frontend-tests/gallery-concurrency.test.ts",
-      "sha256": "5067e99935ab16a8c354353246aad68fe9c6c51a14195b55d0a2acbd68fcf45d"
-    },
-    {
-      "bytes": 3164,
-      "path": "studio/frontend-tests/gallery-detail-request.test.ts",
-      "sha256": "b55b56250b4403a122bbeaf4de3c39e60b324a1fef14de6b578798c37b57dff9"
-    },
-    {
-      "bytes": 17710,
-      "path": "studio/frontend-tests/gallery-duplicates.test.ts",
-      "sha256": "42280d0354c465380167dda49f8c8cfe51d633893a6f1eb45d44f2d7fafa2d90"
-    },
-    {
-      "bytes": 1560,
-      "path": "studio/frontend-tests/job-activity-store.test.ts",
-      "sha256": "e0551b1b57ab289765b74384925a81d6b5a1a60179efa7296ff302d3088ba012"
-    },
-    {
-      "bytes": 123624,
-      "path": "studio/frontend-tests/logic.test.ts",
-      "sha256": "1b749f07d36c914ec04574c63ab63431c9d29bf7b22a4c37992a47f679b2a75a"
-    },
-    {
-      "bytes": 1994,
-      "path": "studio/frontend-tests/makerworld-attribution.test.ts",
-      "sha256": "9421ada6bb3ab9c29398bcd0006390f375d21c42fe998ec4505a31d318538ca8"
-    },
-    {
-      "bytes": 3060,
-      "path": "studio/frontend-tests/makerworld-identity.test.ts",
-      "sha256": "aac05a889398f599c50658950c573201b963af7706325ba33feeb732d9da5484"
-    },
-    {
-      "bytes": 6098,
-      "path": "studio/frontend-tests/makerworld-resume.test.mjs",
-      "sha256": "499c012c974f93fa3cb64d1d67ad07f44020174b3a609ba63a4d02506f77dfd8"
-    },
-    {
-      "bytes": 9332,
-      "path": "studio/frontend-tests/makerworld-transfer-lifecycle.test.ts",
-      "sha256": "9fdd4aef668f236872639a4cc61cc0e020a05210f1664a70cdbd8472ce57e34b"
-    },
-    {
-      "bytes": 10129,
-      "path": "studio/frontend-tests/material-preview-colors.test.ts",
-      "sha256": "abd26a13c868a4dfbb6d13b76ea34b11c99ca46e0b9ad582046849f532ebfbc8"
-    },
-    {
-      "bytes": 2995,
-      "path": "studio/frontend-tests/mesh-cap.test.ts",
-      "sha256": "f02eea2a17c679aec671d7469422f858c6c45a807e9c43cb58c4eb3a4c74c160"
-    },
-    {
-      "bytes": 4200,
-      "path": "studio/frontend-tests/mesh-paint.test.ts",
-      "sha256": "7c80318aeddaa7ad0c2e01808af1eaaab20f215401c511a67045de8cee05c146"
-    },
-    {
-      "bytes": 6829,
-      "path": "studio/frontend-tests/mobile-contract-harness.ts",
-      "sha256": "d8055236d4ab84ca2943e83a6649898de3dd47d54ca7163c1ac82fd9017a3858"
-    },
-    {
-      "bytes": 6087,
-      "path": "studio/frontend-tests/mobile-dialog-lifecycle.test.ts",
-      "sha256": "b8fb906d04e4848390a7adbdea82c81b8a4ef424ffb5ed1c5aa8de03d3199f81"
-    },
-    {
-      "bytes": 1225,
-      "path": "studio/frontend-tests/mobile-navigation-layout.test.ts",
-      "sha256": "e7deebf7bb02a3f3a3d8f7745bc609c59ba6f2e393ca071a6996c1445f999d7e"
-    },
-    {
-      "bytes": 9197,
-      "path": "studio/frontend-tests/navigation-lifecycle.test.ts",
-      "sha256": "e97b51df73492d477418b4f8f318d5a22300cddfec92920e44c5ae864d8c4f02"
-    },
-    {
-      "bytes": 5825,
-      "path": "studio/frontend-tests/paint-regression.test.ts",
-      "sha256": "f83525597aa39f3a967d19d9911ae118ab9e78b4919c0303db22af03401557d8"
-    },
-    {
-      "bytes": 37091,
-      "path": "studio/frontend-tests/paint-tools-materialization.test.ts",
-      "sha256": "68ed111c3d786efe4493c5f142100b79ce1a088c26763b127ec64e70ad264ca9"
-    },
-    {
-      "bytes": 18717,
-      "path": "studio/frontend-tests/preview-context.test.ts",
-      "sha256": "7a314498999e2df0094bc2033acf9739cb05ddb6856c6907c096450ececd59f1"
-    },
-    {
-      "bytes": 13719,
-      "path": "studio/frontend-tests/preview-renderer.test.ts",
-      "sha256": "bab2adc274525d15195c36e9dd1e52287f67ebc6f752abe281b7045f503eee72"
-    },
-    {
-      "bytes": 2198,
-      "path": "studio/frontend-tests/profile-analysis-status.test.ts",
-      "sha256": "9481ad3a5051066b6a951e639d298637217193d40570bf1bc95c009e85bc016a"
-    },
-    {
-      "bytes": 7337,
-      "path": "studio/frontend-tests/profile-header.test.ts",
-      "sha256": "751d3f4a9c3681084267b8ed1903b42f25e04c9d722eff28d64f39daec13e813"
-    },
-    {
-      "bytes": 1817,
-      "path": "studio/frontend-tests/response-error.test.ts",
-      "sha256": "753dc15e4a4c6d07f6742044ed7fefb20bd265119937d4748e60a86b80b3a20b"
-    },
-    {
-      "bytes": 4872,
-      "path": "studio/frontend-tests/slicer-cancel.test.ts",
-      "sha256": "e69bc5642844be062f39bedb6c589f7fad73357ddd27098ab87c94935ca9edb2"
-    },
-    {
-      "bytes": 9035,
-      "path": "studio/frontend-tests/storage-upgrade.test.ts",
-      "sha256": "da06157de47f6e737b7bae3a03d1a52c4be5a99fb392d75bc224858ed4ef1b2b"
-    },
-    {
-      "bytes": 3774,
-      "path": "studio/frontend-tests/support-warning-lifecycle.test.ts",
-      "sha256": "3dac27903a35eac03cdd0d3f87bb79776721496d27741d4b439e66823ecffd9c"
-    },
-    {
-      "bytes": 11294,
-      "path": "studio/frontend-tests/system-runtime.test.ts",
-      "sha256": "d15a22fb5c4b048b60ad489edc5cadef004cdc92f4ed05e37b44732c7dc373e8"
-    },
-    {
-      "bytes": 12688,
-      "path": "studio/frontend-tests/viewer-modal-contract.test.mjs",
-      "sha256": "09ce17bb15c14673eeeda43f7c7fd0011e47cfd694761cde002fa060ad2f743f"
     },
     {
       "bytes": 31567,
@@ -3951,6 +3381,171 @@
       "sha256": "f64ddb72a0b2df30f9f562f71ebe6ee1244a8fdd8e642eb028764dbcafe869ed"
     },
     {
+      "bytes": 29538,
+      "path": "studio/frontend-tests/cad-data-integrity.test.ts",
+      "sha256": "0ec8da5c0445f3070a135ee6a1c484babace47a1ec638c34103ca1409e19813b"
+    },
+    {
+      "bytes": 6571,
+      "path": "studio/frontend-tests/camera-panel-lifecycle.test.ts",
+      "sha256": "85d8d19a78d7971f8c6d265a3d394190d873c7475d63c4bcf57e72dcb4769c17"
+    },
+    {
+      "bytes": 6574,
+      "path": "studio/frontend-tests/element-contract-harness.ts",
+      "sha256": "96e464e9c966fc2ac10ffa468753d6bb9626904e13c8ee8ea91335a0a64f5516"
+    },
+    {
+      "bytes": 6814,
+      "path": "studio/frontend-tests/filament-view-state.test.ts",
+      "sha256": "d28b215a38cd10194437fc31eb333dd0456b149b091816778a4b4423686f1ebc"
+    },
+    {
+      "bytes": 3871,
+      "path": "studio/frontend-tests/first-layer.test.ts",
+      "sha256": "11a138be3c3677723900199286817634291231ce3f54a05db3239090eda49b41"
+    },
+    {
+      "bytes": 9121,
+      "path": "studio/frontend-tests/gallery-concurrency.test.ts",
+      "sha256": "5067e99935ab16a8c354353246aad68fe9c6c51a14195b55d0a2acbd68fcf45d"
+    },
+    {
+      "bytes": 3164,
+      "path": "studio/frontend-tests/gallery-detail-request.test.ts",
+      "sha256": "b55b56250b4403a122bbeaf4de3c39e60b324a1fef14de6b578798c37b57dff9"
+    },
+    {
+      "bytes": 17710,
+      "path": "studio/frontend-tests/gallery-duplicates.test.ts",
+      "sha256": "42280d0354c465380167dda49f8c8cfe51d633893a6f1eb45d44f2d7fafa2d90"
+    },
+    {
+      "bytes": 1560,
+      "path": "studio/frontend-tests/job-activity-store.test.ts",
+      "sha256": "e0551b1b57ab289765b74384925a81d6b5a1a60179efa7296ff302d3088ba012"
+    },
+    {
+      "bytes": 123624,
+      "path": "studio/frontend-tests/logic.test.ts",
+      "sha256": "1b749f07d36c914ec04574c63ab63431c9d29bf7b22a4c37992a47f679b2a75a"
+    },
+    {
+      "bytes": 1994,
+      "path": "studio/frontend-tests/makerworld-attribution.test.ts",
+      "sha256": "9421ada6bb3ab9c29398bcd0006390f375d21c42fe998ec4505a31d318538ca8"
+    },
+    {
+      "bytes": 3060,
+      "path": "studio/frontend-tests/makerworld-identity.test.ts",
+      "sha256": "aac05a889398f599c50658950c573201b963af7706325ba33feeb732d9da5484"
+    },
+    {
+      "bytes": 6098,
+      "path": "studio/frontend-tests/makerworld-resume.test.mjs",
+      "sha256": "499c012c974f93fa3cb64d1d67ad07f44020174b3a609ba63a4d02506f77dfd8"
+    },
+    {
+      "bytes": 9332,
+      "path": "studio/frontend-tests/makerworld-transfer-lifecycle.test.ts",
+      "sha256": "9fdd4aef668f236872639a4cc61cc0e020a05210f1664a70cdbd8472ce57e34b"
+    },
+    {
+      "bytes": 10129,
+      "path": "studio/frontend-tests/material-preview-colors.test.ts",
+      "sha256": "abd26a13c868a4dfbb6d13b76ea34b11c99ca46e0b9ad582046849f532ebfbc8"
+    },
+    {
+      "bytes": 2995,
+      "path": "studio/frontend-tests/mesh-cap.test.ts",
+      "sha256": "f02eea2a17c679aec671d7469422f858c6c45a807e9c43cb58c4eb3a4c74c160"
+    },
+    {
+      "bytes": 4200,
+      "path": "studio/frontend-tests/mesh-paint.test.ts",
+      "sha256": "7c80318aeddaa7ad0c2e01808af1eaaab20f215401c511a67045de8cee05c146"
+    },
+    {
+      "bytes": 6829,
+      "path": "studio/frontend-tests/mobile-contract-harness.ts",
+      "sha256": "d8055236d4ab84ca2943e83a6649898de3dd47d54ca7163c1ac82fd9017a3858"
+    },
+    {
+      "bytes": 6087,
+      "path": "studio/frontend-tests/mobile-dialog-lifecycle.test.ts",
+      "sha256": "b8fb906d04e4848390a7adbdea82c81b8a4ef424ffb5ed1c5aa8de03d3199f81"
+    },
+    {
+      "bytes": 1225,
+      "path": "studio/frontend-tests/mobile-navigation-layout.test.ts",
+      "sha256": "e7deebf7bb02a3f3a3d8f7745bc609c59ba6f2e393ca071a6996c1445f999d7e"
+    },
+    {
+      "bytes": 9197,
+      "path": "studio/frontend-tests/navigation-lifecycle.test.ts",
+      "sha256": "e97b51df73492d477418b4f8f318d5a22300cddfec92920e44c5ae864d8c4f02"
+    },
+    {
+      "bytes": 5825,
+      "path": "studio/frontend-tests/paint-regression.test.ts",
+      "sha256": "f83525597aa39f3a967d19d9911ae118ab9e78b4919c0303db22af03401557d8"
+    },
+    {
+      "bytes": 37091,
+      "path": "studio/frontend-tests/paint-tools-materialization.test.ts",
+      "sha256": "68ed111c3d786efe4493c5f142100b79ce1a088c26763b127ec64e70ad264ca9"
+    },
+    {
+      "bytes": 18717,
+      "path": "studio/frontend-tests/preview-context.test.ts",
+      "sha256": "7a314498999e2df0094bc2033acf9739cb05ddb6856c6907c096450ececd59f1"
+    },
+    {
+      "bytes": 13719,
+      "path": "studio/frontend-tests/preview-renderer.test.ts",
+      "sha256": "bab2adc274525d15195c36e9dd1e52287f67ebc6f752abe281b7045f503eee72"
+    },
+    {
+      "bytes": 2198,
+      "path": "studio/frontend-tests/profile-analysis-status.test.ts",
+      "sha256": "9481ad3a5051066b6a951e639d298637217193d40570bf1bc95c009e85bc016a"
+    },
+    {
+      "bytes": 7337,
+      "path": "studio/frontend-tests/profile-header.test.ts",
+      "sha256": "751d3f4a9c3681084267b8ed1903b42f25e04c9d722eff28d64f39daec13e813"
+    },
+    {
+      "bytes": 1817,
+      "path": "studio/frontend-tests/response-error.test.ts",
+      "sha256": "753dc15e4a4c6d07f6742044ed7fefb20bd265119937d4748e60a86b80b3a20b"
+    },
+    {
+      "bytes": 4872,
+      "path": "studio/frontend-tests/slicer-cancel.test.ts",
+      "sha256": "e69bc5642844be062f39bedb6c589f7fad73357ddd27098ab87c94935ca9edb2"
+    },
+    {
+      "bytes": 9035,
+      "path": "studio/frontend-tests/storage-upgrade.test.ts",
+      "sha256": "da06157de47f6e737b7bae3a03d1a52c4be5a99fb392d75bc224858ed4ef1b2b"
+    },
+    {
+      "bytes": 3774,
+      "path": "studio/frontend-tests/support-warning-lifecycle.test.ts",
+      "sha256": "3dac27903a35eac03cdd0d3f87bb79776721496d27741d4b439e66823ecffd9c"
+    },
+    {
+      "bytes": 11294,
+      "path": "studio/frontend-tests/system-runtime.test.ts",
+      "sha256": "d15a22fb5c4b048b60ad489edc5cadef004cdc92f4ed05e37b44732c7dc373e8"
+    },
+    {
+      "bytes": 12688,
+      "path": "studio/frontend-tests/viewer-modal-contract.test.mjs",
+      "sha256": "09ce17bb15c14673eeeda43f7c7fd0011e47cfd694761cde002fa060ad2f743f"
+    },
+    {
       "bytes": 2685,
       "path": "studio/handbook/CAD_EXAMPLES.md",
       "sha256": "4a9977812727a19b62982c92f63f0f59898ef1e436f6e0bcf7ee58c081897090"
@@ -4006,16 +3601,6 @@
       "sha256": "d591821ab336683e0ec8db1c0151fdf9dcffb74d32dd220ba89c3fb57de500ff"
     },
     {
-      "bytes": 12157,
-      "path": "studio/packages/ultimate-slicer-server/README.md",
-      "sha256": "6a3cb19127c35468a083364a58fc715cf32fa92ed4f0c54ad41624f7a0827f3d"
-    },
-    {
-      "bytes": 3490,
-      "path": "studio/packages/ultimate-slicer-server/WORK_SERVER_TEST_GUIDE.md",
-      "sha256": "effc4ad58106838409749b7c5c017da6b4ba4018209acafcc283a841f5979f0f"
-    },
-    {
       "bytes": 8953,
       "path": "studio/packages/ultimate-slicer-server/build_native_package.py",
       "sha256": "39657fc1a6d4600f64263069c9ca7b76c41a5da8d8c8eb1d785faaf7c0a741b2"
@@ -4034,6 +3619,11 @@
       "bytes": 34450,
       "path": "studio/packages/ultimate-slicer-server/install_native.py",
       "sha256": "a0bf83b02937e94d111be172a9c6d7ac7e9a69c45ac845c430e011b78c46cbeb"
+    },
+    {
+      "bytes": 12157,
+      "path": "studio/packages/ultimate-slicer-server/README.md",
+      "sha256": "6a3cb19127c35468a083364a58fc715cf32fa92ed4f0c54ad41624f7a0827f3d"
     },
     {
       "bytes": 53,
@@ -4071,9 +3661,19 @@
       "sha256": "b63f5d52b3d73c1a63905fb832bcbd6ccfdb1ad71a8d754e1098cf42a4299745"
     },
     {
+      "bytes": 3490,
+      "path": "studio/packages/ultimate-slicer-server/WORK_SERVER_TEST_GUIDE.md",
+      "sha256": "effc4ad58106838409749b7c5c017da6b4ba4018209acafcc283a841f5979f0f"
+    },
+    {
       "bytes": 698,
       "path": "studio/pyproject.toml",
       "sha256": "252e250c4dd983e0da82cc7b374c5d5a7978f4cc9c7ae3d0ed5a0c8e1f6002d8"
+    },
+    {
+      "bytes": 24815,
+      "path": "studio/README.md",
+      "sha256": "d615a80aa1f3e4bdf52ecb299b2d0dfa62137ab84f7bc2a9ee6ce8bc5fe810a6"
     },
     {
       "bytes": 1770,
@@ -4104,6 +3704,416 @@
       "bytes": 1234,
       "path": "studio/scripts/rebuild-homeassist.sh",
       "sha256": "c34a65548032d1228b03b500fc410af53ed85cdd00ff944d7bfb7e7b84aa7bb1"
+    },
+    {
+      "bytes": 303,
+      "path": "studio/Slicer-Server/.dockerignore",
+      "sha256": "72fce1d9f32fbd4bc8badcf29ae336a1606e191901432237b3ee8bccf1e556df"
+    },
+    {
+      "bytes": 14387,
+      "path": "studio/Slicer-Server/build_repository.py",
+      "sha256": "062e65d8ebff39e76b06ce6fc7211a7689755f6ccebcc69b3c38e245e77bed96"
+    },
+    {
+      "bytes": 7489,
+      "path": "studio/Slicer-Server/clean_host_preflight.py",
+      "sha256": "75fdf40851ce8a1617ca4d4f8e190e34a6f6955b14df436c055dbd47ea31391f"
+    },
+    {
+      "bytes": 7147,
+      "path": "studio/Slicer-Server/compose.candidate.yaml",
+      "sha256": "a5293bd981976b646dc71cea50213349caef513c27318aebd43e251eb0f26797"
+    },
+    {
+      "bytes": 508,
+      "path": "studio/Slicer-Server/compose.preview.yaml",
+      "sha256": "855fb8957f5d0f517cec56aba1061ca36e005569f087778d85cbd21b3cb7327b"
+    },
+    {
+      "bytes": 2807,
+      "path": "studio/Slicer-Server/container_check.py",
+      "sha256": "62af8acefa2a259880b1424f4189bc79c06b46b21223d3011fd64a6e8cc533b5"
+    },
+    {
+      "bytes": 2988,
+      "path": "studio/Slicer-Server/container_engines.py",
+      "sha256": "201e323c36ada4ed13d99a90419aaace1e19e98168fc878e487020c5bc7c78e7"
+    },
+    {
+      "bytes": 10300,
+      "path": "studio/Slicer-Server/container_probe.py",
+      "sha256": "7296f6f512f3182ea594a5d9667d7346e671dd04c705c345b6dfdd9e00322187"
+    },
+    {
+      "bytes": 6755,
+      "path": "studio/Slicer-Server/container_runtime.py",
+      "sha256": "8553a88a780b0d927decaf9fee85481e2323ad15a5eeeafa628f4212e6c088cf"
+    },
+    {
+      "bytes": 25546,
+      "path": "studio/Slicer-Server/container_service.py",
+      "sha256": "e86332fc11be99ef54b7582cc5bb8e460f90abcd247c32b5e13059b1092b76bd"
+    },
+    {
+      "bytes": 11393,
+      "path": "studio/Slicer-Server/CONTAINER_TESTING.md",
+      "sha256": "5a4d2e0410c1693b9536e7e2c17511c08fa3779bf15525a8a3f6914e0207c8c0"
+    },
+    {
+      "bytes": 8656,
+      "path": "studio/Slicer-Server/cura_definitions.py",
+      "sha256": "010e86bee8e45550d24980a3fa2f2308e62bdc85efb56c7f29a0daf38aa3f6c2"
+    },
+    {
+      "bytes": 2400,
+      "path": "studio/Slicer-Server/DATA_PERSISTENCE.md",
+      "sha256": "7ff5d2131672ff7418140a97def50d40c0488e5d2eef65985f8d35d80b727f14"
+    },
+    {
+      "bytes": 34701,
+      "path": "studio/Slicer-Server/docker_host_adapter.py",
+      "sha256": "fb5eeb4872b9e84bb8b8c2c000b21901b1514f0509151a333169e307c453018b"
+    },
+    {
+      "bytes": 5292,
+      "path": "studio/Slicer-Server/DOCKER_QUICKSTART.md",
+      "sha256": "577c01ce297d86b041b4ff4f8542840e40e3f09b28563f6d30193bc0f6c4e126"
+    },
+    {
+      "bytes": 2527,
+      "path": "studio/Slicer-Server/Dockerfile",
+      "sha256": "8d2bade4aae4a95461dda874e0a5324371925d352fe9ad670a31c0f4c27e6aa1"
+    },
+    {
+      "bytes": 112,
+      "path": "studio/Slicer-Server/engine_catalog.json",
+      "sha256": "606a4415c016a6115800d467dfa98e45e52f73c7e11f9eb224c9939f1bfc5f09"
+    },
+    {
+      "bytes": 7745,
+      "path": "studio/Slicer-Server/ENGINE_CATALOG.md",
+      "sha256": "0ac269dc54a6b56eea2eaa6d7c92ceb0f48776a5b22d85b6899c8e1790f05118"
+    },
+    {
+      "bytes": 12540,
+      "path": "studio/Slicer-Server/engine_catalog.py",
+      "sha256": "e69e1364093bf10cd81ad6e92f9ebe198dc8dc5cf66c8bb265ea47db488ee2d1"
+    },
+    {
+      "bytes": 3485,
+      "path": "studio/Slicer-Server/ENGINE_LAYOUT.md",
+      "sha256": "6867deadb17ca3489935499e31e010fa61cd79968282f206e8eeb8d2f4818410"
+    },
+    {
+      "bytes": 8088,
+      "path": "studio/Slicer-Server/ENGINE_PROVENANCE.md",
+      "sha256": "5daf20d45e1a13fd7145d42040e95d81150a679edfe74b48fc02eaba58bdc2e3"
+    },
+    {
+      "bytes": 15932,
+      "path": "studio/Slicer-Server/first_install.py",
+      "sha256": "aa369ced7b75b314a6a677ce8117bf8ca21e23ec7066835136816d3a5938a092"
+    },
+    {
+      "bytes": 23417,
+      "path": "studio/Slicer-Server/HA_INSTALLATION_PLAN.md",
+      "sha256": "7381baf186f61d389f50c8187a4a88118b3d19b8e42a626b9d2d4f0d81e8fc61"
+    },
+    {
+      "bytes": 21420,
+      "path": "studio/Slicer-Server/HOST_LIFECYCLE.md",
+      "sha256": "1300ecf9d10ba3bed5e220bf50cf73b15a6f9718ca3a986a90ba0276f22b7604"
+    },
+    {
+      "bytes": 17047,
+      "path": "studio/Slicer-Server/host_lifecycle.py",
+      "sha256": "bb711962130e80015bb79c03ce544517a0b0cb4c83827c04d3b187df304cafdf"
+    },
+    {
+      "bytes": 6540,
+      "path": "studio/Slicer-Server/HOST_PAIRING.md",
+      "sha256": "2cac0f8fbe81379047080be579e4ee193a80908d5156a59544ef91f74c3b3449"
+    },
+    {
+      "bytes": 5953,
+      "path": "studio/Slicer-Server/HOST_STORAGE.md",
+      "sha256": "f80f244f6d46c20c78123d1d50a37b05285ccaca2b424340cd4a79801f57d747"
+    },
+    {
+      "bytes": 17424,
+      "path": "studio/Slicer-Server/host_storage.py",
+      "sha256": "4ae166b246b1fb13a43fbf9a31504d4740ac9ebedeb61004025b5bef6b9a7781"
+    },
+    {
+      "bytes": 5497,
+      "path": "studio/Slicer-Server/INSTALLATION.md",
+      "sha256": "3bf58488a60740cd84483cb475ca1daf9f143b771fafccc4b7bf6cb5f59ad4e4"
+    },
+    {
+      "bytes": 6164,
+      "path": "studio/Slicer-Server/installer_handoff.py",
+      "sha256": "e35bf59210fa4c1e421046a4d1bfdca398ce81ee15c7f7153ae1c04f738b64ae"
+    },
+    {
+      "bytes": 5376,
+      "path": "studio/Slicer-Server/INSTALLER_HOST_CHANNEL_DECISION.md",
+      "sha256": "897a7016e746d4f727b0661fbc64a09c5b1de423eedf0ba9af2c87fea9513450"
+    },
+    {
+      "bytes": 7903,
+      "path": "studio/Slicer-Server/installer_lifecycle.py",
+      "sha256": "3c7d9cf06cd5fb0eb03948b4d28404aae537fa42bc53f0d653bc98a2246beb5f"
+    },
+    {
+      "bytes": 10441,
+      "path": "studio/Slicer-Server/INSTALLER_TRANSPORT.md",
+      "sha256": "387c4e98a55417c193d2c2dbb3f806d996d15d2b59995e2fbc18d9dcd54a42c3"
+    },
+    {
+      "bytes": 12455,
+      "path": "studio/Slicer-Server/installer_transport.py",
+      "sha256": "6acc23ac82edd1459449c08f54794c68b043a43f167c559f3e264354faab22be"
+    },
+    {
+      "bytes": 3644,
+      "path": "studio/Slicer-Server/LICENSE",
+      "sha256": "95d03e883439f45c32f83a772fcc7d9fe6f0c32e1098111567821a1b9a51c03f"
+    },
+    {
+      "bytes": 34520,
+      "path": "studio/Slicer-Server/licenses/AGPL-BambuStudio.txt",
+      "sha256": "57c8ff33c9c0cfc3ef00e650a1cc910d7ee479a8bc509f6c9209a7c2a11399d6"
+    },
+    {
+      "bytes": 1066,
+      "path": "studio/Slicer-Server/licenses/MIT-Studio.txt",
+      "sha256": "2cd47d14537993c48a899d2a3e6b30cf764ea31e18a468b662263e1f14027708"
+    },
+    {
+      "bytes": 29222,
+      "path": "studio/Slicer-Server/linux_test_evidence.py",
+      "sha256": "38b9d9ef0ae19d8ef18a561a12add92367ab1521022cff724b1cbf16d4791852"
+    },
+    {
+      "bytes": 12944,
+      "path": "studio/Slicer-Server/LINUX_TEST_SERVER_RUNBOOK.md",
+      "sha256": "bc36f4155c527eb0c6df3f5e349ae465e0d4d2978b8ed5500b1300f3839e7218"
+    },
+    {
+      "bytes": 3766,
+      "path": "studio/Slicer-Server/LIVE_ENGINE_INVENTORY.md",
+      "sha256": "db9866d14fd1cfb70feb35a6c8e7386632bf6ad547d129e95ec419b0b87bdb5a"
+    },
+    {
+      "bytes": 5664,
+      "path": "studio/Slicer-Server/MAINTENANCE.md",
+      "sha256": "727ba39124c5d1511e437d09141b844fd935662f395432e082484912a7dd3c98"
+    },
+    {
+      "bytes": 6143,
+      "path": "studio/Slicer-Server/MIGRATION.md",
+      "sha256": "eab45209d9969ed31aab33e5cf12008484c40cf7d09a048fb186ee62d30de245"
+    },
+    {
+      "bytes": 4141,
+      "path": "studio/Slicer-Server/OPERATIONS.md",
+      "sha256": "1216edb987065152182299d4c49f9808b52e7e230321a58a7902e85d380151e1"
+    },
+    {
+      "bytes": 7487,
+      "path": "studio/Slicer-Server/PACKAGE_ACTIVATION.md",
+      "sha256": "9d2cb9e3f5350e332275fdf2b565fe5500c767d27ac7851403c221fd9336cd69"
+    },
+    {
+      "bytes": 29146,
+      "path": "studio/Slicer-Server/package_activation.py",
+      "sha256": "728148043c5a4698922175e901de574f8612272ca597ca4ae323ed4fa50617ae"
+    },
+    {
+      "bytes": 10143,
+      "path": "studio/Slicer-Server/PACKAGE_STAGING.md",
+      "sha256": "4c4a1b007e1616913b62c47ff291a6a2a278e88b38bb2aaa10fd38ff8476eeac"
+    },
+    {
+      "bytes": 21771,
+      "path": "studio/Slicer-Server/package_staging.py",
+      "sha256": "68df287e3bfff7a0a480845eddde39d4bc54b6978dcf869e39b63d7a8434a480"
+    },
+    {
+      "bytes": 9265,
+      "path": "studio/Slicer-Server/pairing_registry.py",
+      "sha256": "a783b8830662a008c7727eae8cb6deef78ee8ca90cc2386c2c50519da1cb3af6"
+    },
+    {
+      "bytes": 54602,
+      "path": "studio/Slicer-Server/PAYLOAD_PROVENANCE.json",
+      "sha256": "cc245a19cf17b84cfa93e2eb79833c034f37e9396f53456f78931b8b7b03c7bb"
+    },
+    {
+      "bytes": 4444,
+      "path": "studio/Slicer-Server/PERSISTENT_PROFILES.md",
+      "sha256": "d529185ee3871f4f4fec17447d0b6f8d32e7a6e3afabe19a34eeca4a5edc302c"
+    },
+    {
+      "bytes": 10504,
+      "path": "studio/Slicer-Server/prepare_context.py",
+      "sha256": "20f421c6b02d8f8f146079c556e9ac91916bc54752936c37ba6df6d0689462e9"
+    },
+    {
+      "bytes": 8071,
+      "path": "studio/Slicer-Server/prepare_test_server_package.py",
+      "sha256": "379456472e474f5259110eda5d239d2ab870d73f98e0b3fe5a3c32d20901c4b1"
+    },
+    {
+      "bytes": 271594,
+      "path": "studio/Slicer-Server/PROFILE_SOURCE_BUNDLE.json",
+      "sha256": "b7ecec0be50f76e4bb4ed85df68f88f28bc34ff34f42a754a3cbdddf9796fa1f"
+    },
+    {
+      "bytes": 17724,
+      "path": "studio/Slicer-Server/README.md",
+      "sha256": "9b4692a5ca029f3aeb7d69a741e1df3d2c05bec49734fbe4f02a78db383c04d4"
+    },
+    {
+      "bytes": 3715,
+      "path": "studio/Slicer-Server/REPOSITORY_CONTENTS.md",
+      "sha256": "f3d9ae269c623d0b2a21c2c34f008ade50afb16eb981084b82e84f33b7581d29"
+    },
+    {
+      "bytes": 1770,
+      "path": "studio/Slicer-Server/REPOSITORY_NOTICES.md",
+      "sha256": "82fb0583243006ffa48e423c056756e3f39f6b55ab302dbe5fce9e41625d148d"
+    },
+    {
+      "bytes": 8556,
+      "path": "studio/Slicer-Server/REPOSITORY_README.md",
+      "sha256": "619c2ca14fe24e8dfc1d2dde021e5ef5b9f5d5cc140b7017441188a88cbbf50d"
+    },
+    {
+      "bytes": 545,
+      "path": "studio/Slicer-Server/requirements-test.txt",
+      "sha256": "910f1fc223afa479da3eae4b9d996fd8a0bfc3722897b958e82dca575622c653"
+    },
+    {
+      "bytes": 6728,
+      "path": "studio/Slicer-Server/RESOURCE_VALIDATION.md",
+      "sha256": "1e20cd91770fdcc487eb254b0b362ff2e89e9290d057de99e8146bf1e182c979"
+    },
+    {
+      "bytes": 15792,
+      "path": "studio/Slicer-Server/RESTRICTED_INSTALLER.md",
+      "sha256": "ab486a6ae99163822705bfaf6fd8b4062d909c4096fc6e79890167c2bfb51d15"
+    },
+    {
+      "bytes": 22859,
+      "path": "studio/Slicer-Server/restricted_installer.py",
+      "sha256": "e5c95f9b8f61a8d3b7bf7fb31cfb38816130f46014b9ea3bf2ba85ccf6a9d630"
+    },
+    {
+      "bytes": 10189,
+      "path": "studio/Slicer-Server/RUNTIME_INSTALLATION.md",
+      "sha256": "f40744a68be2d1be0c24983749d2a822f125b22a8df7d3f3366b0e487c67ce98"
+    },
+    {
+      "bytes": 4941,
+      "path": "studio/Slicer-Server/RUNTIME_PERMISSIONS.md",
+      "sha256": "d3b1cba24335ed4aef47005854922bb563096e2ac4924bf5103d02c4350d57d7"
+    },
+    {
+      "bytes": 1696,
+      "path": "studio/Slicer-Server/slicer-source-contract.yml",
+      "sha256": "e780726cf14262fcff61601927eb34542bdaf385b777d69088b0eb887b277fdd"
+    },
+    {
+      "bytes": 1947,
+      "path": "studio/Slicer-Server/TARGET_IMAGE_REFERENCE.json",
+      "sha256": "f95eacf329e416472a5c54648735c2684f518e2e01372a11376ddcb3ce3d0adb"
+    },
+    {
+      "bytes": 12157,
+      "path": "studio/Slicer-Server/target_image_sbom.py",
+      "sha256": "472c99b309c37c01886543a53ec18305b0918348fbb51d214ff2d034390b33ec"
+    },
+    {
+      "bytes": 6729,
+      "path": "studio/Slicer-Server/THIRD_PARTY_NOTICES.md",
+      "sha256": "8ed5437eb26f52759ec5d09d7e2bf6db7b9c1cfe9c5dad49518c28e2ebbbc7dc"
+    },
+    {
+      "bytes": 10658,
+      "path": "studio/Slicer-Server/verify_profile_sources.py",
+      "sha256": "10dfda0af122ba189d07fd592fb525ac5e02dbdd6b091e85143422c4693cb638"
+    },
+    {
+      "bytes": 18633,
+      "path": "studio/Slicer-Server/verify_test_server_package.py",
+      "sha256": "87080166db5d26a2fad2179a731fd42f969c4cd7c534a3c0bffbf172eaa0c48c"
+    },
+    {
+      "bytes": 510,
+      "path": "studio/Slicer-Server/wiki/_Sidebar.md",
+      "sha256": "b3699b7810d76e37404be024f0127dfe68de5c0b58457b382e1c138d9196b952"
+    },
+    {
+      "bytes": 1057,
+      "path": "studio/Slicer-Server/wiki/Architektur.md",
+      "sha256": "d3fb2c6aa1cbe5a7144951d2337b1638c35c22b38d9d2d64990117bf11330d15"
+    },
+    {
+      "bytes": 1196,
+      "path": "studio/Slicer-Server/wiki/Betrieb-und-Wiederherstellung.md",
+      "sha256": "7f8908fac1c9164f6c72bba60b9620e25fae9de6954fc8720590234b0e5d0ba3"
+    },
+    {
+      "bytes": 900,
+      "path": "studio/Slicer-Server/wiki/Build-und-Tests.md",
+      "sha256": "02b705948066da72a95d01234c4add04dee754c79f33803eb808f7207d01982c"
+    },
+    {
+      "bytes": 1282,
+      "path": "studio/Slicer-Server/wiki/Docker-Installation.md",
+      "sha256": "c775d04253fc00d16b492e15f8eb6cedbd2f3df95117500da1b2fdcfe449d9dc"
+    },
+    {
+      "bytes": 774,
+      "path": "studio/Slicer-Server/wiki/Engine-Bestand.md",
+      "sha256": "779e1c54a82927e965345437221bee564a7eb6a9462ed702405d11b59eab9e91"
+    },
+    {
+      "bytes": 1293,
+      "path": "studio/Slicer-Server/wiki/Fehlerdiagnose.md",
+      "sha256": "568c9efbb0f1b3fe80bbca01493f9523f9ab9fe09bc84a9f1fbf0060ff13f40f"
+    },
+    {
+      "bytes": 1188,
+      "path": "studio/Slicer-Server/wiki/Home-Assistant.md",
+      "sha256": "6c0b063a98ffa181221371966adce8d0e88a2acc46eb4ea9806165ec5342d0d3"
+    },
+    {
+      "bytes": 1399,
+      "path": "studio/Slicer-Server/wiki/Home.md",
+      "sha256": "0280712c5b3af0e5d4ae4ffe3e3ed5fe4726f1e5068c634f46fae7cb9b431bf1"
+    },
+    {
+      "bytes": 1256,
+      "path": "studio/Slicer-Server/wiki/Lizenz-und-Nutzung.md",
+      "sha256": "d0d4057b362cd15ec534894779354f87ece194f94c09ee146a3278936d523a51"
+    },
+    {
+      "bytes": 1130,
+      "path": "studio/Slicer-Server/wiki/Profile-und-Engines.md",
+      "sha256": "46ee130ea3a1b9acdead19e23e7caaea7a3804fe16a999e43e66d854380665da"
+    },
+    {
+      "bytes": 769,
+      "path": "studio/Slicer-Server/wiki/Quellumfang.md",
+      "sha256": "f957543edd9bdfefed434e957271df3f68ca4ab2dacd79ec1084bc1cf127625f"
+    },
+    {
+      "bytes": 5333,
+      "path": "studio/Slicer-Server/wiki/Release-Abnahme.md",
+      "sha256": "b3676a394e21bef80e3bbb4e607f1b55db7aab886ab16dc3cdb919939a3cd90f"
     },
     {
       "bytes": 27,
@@ -4486,9 +4496,9 @@
       "sha256": "aeffe40f18e14366920688b27df6394974ed1274a40b9beac2a53539a22e39dc"
     },
     {
-      "bytes": 22942,
+      "bytes": 22945,
       "path": "studio/tests/test_studio_docker_context.py",
-      "sha256": "81aad8c06095b0294d290f306d3c37b29be414ee13a9d8d7222c204a7908f1fb"
+      "sha256": "aec4e0204e4d74b4c4557a93a06d0a0a1c90c5aeaec41dc7d367908eb797e83a"
     },
     {
       "bytes": 30214,
@@ -4924,6 +4934,11 @@
       "bytes": 1264,
       "path": "studio/tests/test_studio_studio_projects_contract.py",
       "sha256": "f68d0f5501a47b3f13faa0e057d9aab8224e024d83899a6616d1cd08510a000f"
+    },
+    {
+      "bytes": 6488,
+      "path": "studio/tests/test_studio_target_image_sbom.py",
+      "sha256": "9ccb4402f5ca51e33f77cb5734a7aeacbdfe211bf8d91f8d28d1f8ab4bb4a2c9"
     },
     {
       "bytes": 8072,
@@ -5370,19 +5385,19 @@
   "protected_component_tree": "83eee0b12ba828dd1de1e3c9ba83ca2af45e66df",
   "review_evidence": {
     "credentials": {
-      "sha256": "3c805721cb6b1f271b21c5eaefc1065aaf855bd84c65eddcf461f4b94b9f1a0e",
+      "sha256": "249e9ae57d603e2bdb51e03f7c9e29299126a43c01d910656874b1ab0e4b2388",
       "verified": true
     },
     "infrastructure": {
-      "sha256": "2a5d23d2069663b5bf836b48ea7b2b9b4c74cfc1f568ccfa57c8c42ee098987b",
+      "sha256": "917ac1b92b31a88b9ad0736ed48914199d94a7123fd9b820ab70070d6831e304",
       "verified": true
     },
     "isolated_candidate": {
-      "sha256": "84868360d2a68546554f8e860bdd099709572d38d9ff59bdf3d552c058788072",
+      "sha256": "984f910a5adc586711715e4d4ef1330e12a259378311d6e3586336021e1b5016",
       "verified": true
     },
     "licenses": {
-      "sha256": "1df785d332db598d3b8e61f29b1c45e6e31e4f099e7851bdf3ff5f76f2f0ba69",
+      "sha256": "a01f0c7ce23f49d41f39e7191e7ecd6ad793759d1effaba6bf0a7b3eb3a1cc31",
       "verified": true
     }
   },

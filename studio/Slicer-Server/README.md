@@ -47,6 +47,7 @@ Der Standardbefehl des Images bleibt der lesende Preflight.
 |---|---|
 | prepare_context.py | Stellt ausschliesslich erlaubte, SHA-gepruefte Quellen zusammen |
 | Dockerfile | Baut Quellpruefung und explizit startbaren Dienstkandidaten |
+| TARGET_IMAGE_REFERENCE.json / target_image_sbom.py | Bindet den expliziten Paketbedarf an ein unveraenderliches Zielimage-Inventar; keine Freigabe |
 | container_check.py | Prueft Paketintegritaet ohne Import oder Start des Workers |
 | container_runtime.py | Prueft Kernelisolation und ueberwacht einen eigenen Supervisor |
 | container_probe.py | Prueft ausschliesslich synthetische Prozesse in einem temporaeren Baum |
@@ -295,3 +296,21 @@ Die Bambu-AppImage ist einem offiziellen Release exakt zugeordnet; weitere
 native Bibliotheksidentitaeten sind erfasst. Details stehen in
 [ENGINE_PROVENANCE.md](ENGINE_PROVENANCE.md). Das ist weiterhin kein
 freigegebenes Engineimage oder fertiger Ein-Klick-Installationsweg.
+
+## Zielimage-Paket- und SBOM-Vertrag
+
+Der Docker-Kontext enthaelt jetzt eine fail-closed Referenz fuer alle 40 im
+Dockerfile ausdruecklich angeforderten Debian-Pakete sowie
+target_image_sbom.py. Das Werkzeug arbeitet offline: Es akzeptiert nur einen
+Basisnamen mit @sha256:..., eine konkrete lokale Image-ID, eine eindeutige
+fuenfspaltige dpkg-query-Inventur und fuer jedes installierte Paket eine
+begrenzte regulaere Copyright-Datei. Fehlende Pflichtpakete, Duplikate, Links,
+fremde Architekturen oder veraenderte Referenzen brechen ab.
+
+Die Referenz bindet den aktuellen Paketbedarf an den privaten lesenden
+Hostbefund, uebernimmt dessen Versionen aber absichtlich nicht als Zielimage-
+Lock. Erst die spaetere autorisierte Imageerzeugung liefert den tatsaechlichen
+vollstaendigen Paket-, Quellversions- und Copyright-Hashsatz. Auch ein
+erfolgreich verifiziertes Inventar setzt production_approved und
+runtime_approved weiterhin auf false; Engine-, Plugin-, Loader-, TLS-,
+Persistenz- und Restore-Abnahmen bleiben getrennt.

@@ -41,6 +41,7 @@ SOURCE_PATHS = (
     "Slicer-Server/RESTRICTED_INSTALLER.md",
     "Slicer-Server/RUNTIME_INSTALLATION.md",
     "Slicer-Server/RUNTIME_PERMISSIONS.md",
+    "Slicer-Server/TARGET_IMAGE_REFERENCE.json",
     "Slicer-Server/THIRD_PARTY_NOTICES.md",
     "Slicer-Server/build_repository.py",
     "Slicer-Server/clean_host_preflight.py",
@@ -72,6 +73,7 @@ SOURCE_PATHS = (
     "Slicer-Server/requirements-test.txt",
     "Slicer-Server/restricted_installer.py",
     "Slicer-Server/slicer-source-contract.yml",
+    "Slicer-Server/target_image_sbom.py",
     "Slicer-Server/verify_profile_sources.py",
     "Slicer-Server/verify_test_server_package.py",
     "Slicer-Server/wiki/Architektur.md",
@@ -157,6 +159,7 @@ SOURCE_PATHS = (
     "tests/test_studio_profile_sources.py",
     "tests/test_studio_restricted_installer.py",
     "tests/test_studio_slicer_repository.py",
+    "tests/test_studio_target_image_sbom.py",
     "tests/test_studio_testserver_package.py",
 )
 ALIASES = {

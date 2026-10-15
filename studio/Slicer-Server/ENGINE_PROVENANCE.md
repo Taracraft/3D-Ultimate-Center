@@ -105,3 +105,25 @@ ausgelieferten Dateien und Lizenzen, gebundene Ressourcen-/Profilketten,
 vollstaendiges Zielimage-Paketinventar, dynamische Pluginpfade und echte
 autorisierte Installations-/Laufzeit-/Restore-Ergebnisse. Alle drei
 Katalogfamilien bleiben bis zu diesem gemeinsamen Nachweis `pending`.
+
+## Zielimage-Inventarvertrag vom 15.10.2026
+
+TARGET_IMAGE_REFERENCE.json fuehrt die 40 expliziten Debian-Paketnamen des
+Dockerfiles sortiert und eindeutig. Die Referenz ist an den geprueften
+Dockerfile-Hash und den privaten nativen Bibliotheksbefund
+aff23c053edc6af1b325e4544d2b3100a86a11be6b676e4c25882a897f78d443
+gebunden. Fuer 39 Bibliothekspakete liegt darin die konkrete Hostzuordnung vor;
+jq 1.7.1-6+deb13u4 wurde separat lesend mit Copyright-SHA
+0640a24687148cb525f6e917f982846c7d6682ccb13b939383d7bb596e7b29f5
+belegt. Diese Angaben sind eine Vergleichsreferenz, kein Zielimage-Lock.
+
+target_image_sbom.py nimmt spaeter ausschliesslich ein unveraenderlich
+referenziertes Basisimage, eine konkrete Image-ID, die vollstaendige
+fuenfspaltige Debian-Inventur und die Copyright-Datei jedes installierten
+Pakets entgegen. Es speichert Binaer-/Quellpaketversion, Architektur und
+Copyright-SHA, lehnt Duplikate, Links, fehlende Pflichtpakete und unklare
+Identitaeten ab und kann den gespeicherten Beleg erneut pruefen. Das Werkzeug
+startet weder Docker noch eine Engine und greift nicht auf das Netzwerk zu.
+Ohne echte Zielimage-Ausgabe bleiben transitive Loader-/Plugin-Closure,
+Paketnotice-Auswertung und reproduzierbarer Imagebau not_run; alle Releases
+bleiben pending.

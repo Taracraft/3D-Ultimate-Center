@@ -1,6 +1,6 @@
 {
   "custom_terms_do_not_replace_inherited_or_third_party_rights": true,
-  "delivered_paths": 1073,
+  "delivered_paths": 1076,
   "derived_profile_modification_notice_date": "2026-10-15",
   "files": [
     {
@@ -2323,9 +2323,9 @@
     },
     {
       "identity": {
-        "excluded_field": "built_at",
-        "kind": "sha256-json-with-built_at-excluded",
-        "sha256": "75aee62a5c31c2d69a309b4f2ce944e813825f5f70dd4ed14f335a87e7dd72b8"
+        "bytes": 6835,
+        "kind": "sha256-raw-bytes",
+        "sha256": "20bf15007016542e639f059b9664535187f036b3d6d883bd9934dcdc6347a568"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -2509,9 +2509,9 @@
     },
     {
       "identity": {
-        "bytes": 2440,
+        "bytes": 2527,
         "kind": "sha256-raw-bytes",
-        "sha256": "14811aa51bd67616e13738f295e948d0cb81a36a404798abb1236e9295bb688b"
+        "sha256": "8d2bade4aae4a95461dda874e0a5324371925d352fe9ad670a31c0f4c27e6aa1"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/Dockerfile",
@@ -2551,9 +2551,9 @@
     },
     {
       "identity": {
-        "bytes": 6816,
+        "bytes": 8088,
         "kind": "sha256-raw-bytes",
-        "sha256": "4216eee8163b09fd6efd1400aa36d8e4858c63f78792160c05178726784cc483"
+        "sha256": "5daf20d45e1a13fd7145d42040e95d81150a679edfe74b48fc02eaba58bdc2e3"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/ENGINE_PROVENANCE.md",
@@ -2818,9 +2818,9 @@
     },
     {
       "identity": {
-        "bytes": 16547,
+        "bytes": 17724,
         "kind": "sha256-raw-bytes",
-        "sha256": "f3946fda309e48aba47617e34b8c3bc0f2b58b16dc24387325dd628fbe299030"
+        "sha256": "9b4692a5ca029f3aeb7d69a741e1df3d2c05bec49734fbe4f02a78db383c04d4"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/README.md",
@@ -2930,6 +2930,20 @@
     },
     {
       "identity": {
+        "bytes": 1947,
+        "kind": "sha256-raw-bytes",
+        "sha256": "f95eacf329e416472a5c54648735c2684f518e2e01372a11376ddcb3ce3d0adb"
+      },
+      "notice_class": "declared-new-original-slicer-scope",
+      "path": "studio/Slicer-Server/TARGET_IMAGE_REFERENCE.json",
+      "required_notice_paths": [
+        "studio/Slicer-Server/LICENSE",
+        "studio/Slicer-Server/THIRD_PARTY_NOTICES.md"
+      ],
+      "source_path": "Slicer-Server/TARGET_IMAGE_REFERENCE.json"
+    },
+    {
+      "identity": {
         "bytes": 6729,
         "kind": "sha256-raw-bytes",
         "sha256": "8ed5437eb26f52759ec5d09d7e2bf6db7b9c1cfe9c5dad49518c28e2ebbbc7dc"
@@ -2944,9 +2958,9 @@
     },
     {
       "identity": {
-        "bytes": 14247,
+        "bytes": 14387,
         "kind": "sha256-raw-bytes",
-        "sha256": "9c84432cb5b6300254a5ab627167f6138ad6f3265c0c4c5cf732d80518b2f239"
+        "sha256": "062e65d8ebff39e76b06ce6fc7211a7689755f6ccebcc69b3c38e245e77bed96"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/build_repository.py",
@@ -3292,9 +3306,9 @@
     },
     {
       "identity": {
-        "bytes": 10449,
+        "bytes": 10504,
         "kind": "sha256-raw-bytes",
-        "sha256": "e97b4349b99ca084be752355e4b332e67956b9971e2c30b0684c40e2c42e19a4"
+        "sha256": "20f421c6b02d8f8f146079c556e9ac91916bc54752936c37ba6df6d0689462e9"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/prepare_context.py",
@@ -3359,6 +3373,20 @@
         "studio/Slicer-Server/THIRD_PARTY_NOTICES.md"
       ],
       "source_path": "Slicer-Server/slicer-source-contract.yml"
+    },
+    {
+      "identity": {
+        "bytes": 12157,
+        "kind": "sha256-raw-bytes",
+        "sha256": "472c99b309c37c01886543a53ec18305b0918348fbb51d214ff2d034390b33ec"
+      },
+      "notice_class": "declared-new-original-slicer-scope",
+      "path": "studio/Slicer-Server/target_image_sbom.py",
+      "required_notice_paths": [
+        "studio/Slicer-Server/LICENSE",
+        "studio/Slicer-Server/THIRD_PARTY_NOTICES.md"
+      ],
+      "source_path": "Slicer-Server/target_image_sbom.py"
     },
     {
       "identity": {
@@ -3544,9 +3572,9 @@
     },
     {
       "identity": {
-        "bytes": 5159,
+        "bytes": 5333,
         "kind": "sha256-raw-bytes",
-        "sha256": "1a6f01fcf902f387b083a82f2326acf74e0bf1c6548f3df6bf78164af8a8d8dd"
+        "sha256": "b3676a394e21bef80e3bbb4e607f1b55db7aab886ab16dc3cdb919939a3cd90f"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/wiki/Release-Abnahme.md",
@@ -6891,9 +6919,9 @@
     },
     {
       "identity": {
-        "excluded_field": "built_at",
-        "kind": "sha256-json-with-built_at-excluded",
-        "sha256": "75aee62a5c31c2d69a309b4f2ce944e813825f5f70dd4ed14f335a87e7dd72b8"
+        "bytes": 6835,
+        "kind": "sha256-raw-bytes",
+        "sha256": "20bf15007016542e639f059b9664535187f036b3d6d883bd9934dcdc6347a568"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -11758,9 +11786,9 @@
     },
     {
       "identity": {
-        "bytes": 22942,
+        "bytes": 22945,
         "kind": "sha256-raw-bytes",
-        "sha256": "81aad8c06095b0294d290f306d3c37b29be414ee13a9d8d7222c204a7908f1fb"
+        "sha256": "aec4e0204e4d74b4c4557a93a06d0a0a1c90c5aeaec41dc7d367908eb797e83a"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/tests/test_studio_docker_context.py",
@@ -12899,6 +12927,19 @@
         "LICENSE"
       ],
       "source_path": "tests/test_studio_studio_projects_contract.py"
+    },
+    {
+      "identity": {
+        "bytes": 6488,
+        "kind": "sha256-raw-bytes",
+        "sha256": "9ccb4402f5ca51e33f77cb5734a7aeacbdfe211bf8d91f8d28d1f8ab4bb4a2c9"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "studio/tests/test_studio_target_image_sbom.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "tests/test_studio_target_image_sbom.py"
     },
     {
       "identity": {
@@ -14048,7 +14089,7 @@
   "production_approved": false,
   "schema": 2,
   "scope": "file-specific notice inventory for this source-only Git delivery; no engine/image or production approval",
-  "source_files": 891,
+  "source_files": 894,
   "upstream": {
     "commit": "42d319c6692fa8e64790fddf0cdaafd2a4254bcc",
     "derived_source_paths": [
