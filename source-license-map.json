@@ -44,9 +44,9 @@
     },
     {
       "identity": {
-        "bytes": 1761,
+        "bytes": 2048,
         "kind": "sha256-raw-bytes",
-        "sha256": "1a492af772ffcfab89555ae3bef8b8e50f709fc58eb1fdde3be2d7db7af06365"
+        "sha256": "20ac6875a9f83fe7f94329d432867a9d97e9405dc89605a84a46481e0a378fb6"
       },
       "notice_class": "new-repository-documentation-with-root-MIT-notice",
       "path": "README.md",
@@ -10481,9 +10481,9 @@
     },
     {
       "identity": {
-        "bytes": 4335,
+        "bytes": 4445,
         "kind": "sha256-raw-bytes",
-        "sha256": "071dab8e55239047b0350cdea4499b97ec3496facf5c2575c69abd5e7edfbfab"
+        "sha256": "39d25d33cb5223e35a1558165f9314e6857148ef56f4bf65126a0128bc13a27d"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/run_frontend_tests.mjs",

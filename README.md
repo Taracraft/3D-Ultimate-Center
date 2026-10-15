@@ -2,6 +2,13 @@
 
 Home Assistant Studio sources and a separate slicer server.
 
+## Working directory
+
+The Studio source root used by the component documentation is `studio/`.
+After cloning this repository, run `cd studio` before following its relative
+commands. Keep generated contexts and test packages outside the whole clone;
+use a new absolute output directory.
+
 ## Start here
 
 - [Studio overview](studio/README.md)

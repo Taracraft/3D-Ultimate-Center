@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { delimiter, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 
@@ -8,14 +8,18 @@ const root = dirname(fileURLToPath(import.meta.url));
 const resultDirectory = join(root, ".test-results");
 const resultFile = join(resultDirectory, "frontend-test-status.json");
 const nodeExecutable = process.execPath;
-const npmCli = join(dirname(nodeExecutable), "node_modules", "npm", "bin", "npm-cli.js");
+const npmCli = process.env.npm_execpath || join(
+  dirname(nodeExecutable),
+  ...(process.platform === "win32" ? [] : ["..", "lib"]),
+  "node_modules", "npm", "bin", "npm-cli.js",
+);
 const typescriptCli = join(root, "node_modules", "typescript", "bin", "tsc");
 const logicTestScript = join(root, "run_frontend_logic_tests.mjs");
 const buildScript = join(root, "build_frontend.mjs");
 const buildManifest = join(root, "dist", "frontend", "frontend-build-manifest.json");
 const packageFile = join(root, "package.json");
 function run(script, args) {
-  const result = spawnSync(nodeExecutable, [script, ...args], { cwd: root, encoding: "utf8", shell: false, env: { ...process.env, PATH: [dirname(nodeExecutable), process.env.PATH ?? ""].join(";") } });
+  const result = spawnSync(nodeExecutable, [script, ...args], { cwd: root, encoding: "utf8", shell: false, env: { ...process.env, PATH: [dirname(nodeExecutable), process.env.PATH ?? ""].join(delimiter) } });
   const stdout = result.stdout || ""; const stderr = result.stderr || "";
   if (stdout) process.stdout.write(stdout); if (stderr) process.stderr.write(stderr);
   return { code: typeof result.status === "number" ? result.status : 1, stdout, stderr, error: result.error instanceof Error ? `${result.error.name}: ${result.error.message}` : "" };
