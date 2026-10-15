@@ -1,4 +1,4 @@
-"""Build and verify the complete reviewed slicer source projection; no live actions."""
+﻿"""Build and verify the complete reviewed slicer source projection; no live actions."""
 from __future__ import annotations
 import argparse
 import hashlib
@@ -8,6 +8,7 @@ import stat
 
 SOURCE_PATHS = (
     "Slicer-Server/.dockerignore",
+    "Slicer-Server/BAMBU_BUILD_REFERENCE.json",
     "Slicer-Server/CONTAINER_TESTING.md",
     "Slicer-Server/DATA_PERSISTENCE.md",
     "Slicer-Server/DOCKER_QUICKSTART.md",

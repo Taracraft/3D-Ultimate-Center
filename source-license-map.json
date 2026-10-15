@@ -1,6 +1,6 @@
 {
   "custom_terms_do_not_replace_inherited_or_third_party_rights": true,
-  "delivered_paths": 1076,
+  "delivered_paths": 1077,
   "derived_profile_modification_notice_date": "2026-10-15",
   "files": [
     {
@@ -2325,7 +2325,7 @@
       "identity": {
         "bytes": 6835,
         "kind": "sha256-raw-bytes",
-        "sha256": "20bf15007016542e639f059b9664535187f036b3d6d883bd9934dcdc6347a568"
+        "sha256": "897f24eb9d1fd0175b17d3a18d56f2b134ca33d25eaad12b34747e416c9d8062"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -2467,6 +2467,20 @@
     },
     {
       "identity": {
+        "bytes": 3958,
+        "kind": "sha256-raw-bytes",
+        "sha256": "daa4d260a1fa0396bb776f282c80aac29580b9d70a2f2b158b439af236b1a482"
+      },
+      "notice_class": "declared-new-original-slicer-scope",
+      "path": "studio/Slicer-Server/BAMBU_BUILD_REFERENCE.json",
+      "required_notice_paths": [
+        "studio/Slicer-Server/LICENSE",
+        "studio/Slicer-Server/THIRD_PARTY_NOTICES.md"
+      ],
+      "source_path": "Slicer-Server/BAMBU_BUILD_REFERENCE.json"
+    },
+    {
+      "identity": {
         "bytes": 11393,
         "kind": "sha256-raw-bytes",
         "sha256": "5a4d2e0410c1693b9536e7e2c17511c08fa3779bf15525a8a3f6914e0207c8c0"
@@ -2551,9 +2565,9 @@
     },
     {
       "identity": {
-        "bytes": 8088,
+        "bytes": 9900,
         "kind": "sha256-raw-bytes",
-        "sha256": "5daf20d45e1a13fd7145d42040e95d81150a679edfe74b48fc02eaba58bdc2e3"
+        "sha256": "b18334242cae16daa797c6373594871b084f7c4708543b9dad4eff61aa2543ef"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/ENGINE_PROVENANCE.md",
@@ -2691,9 +2705,9 @@
     },
     {
       "identity": {
-        "bytes": 3766,
+        "bytes": 4357,
         "kind": "sha256-raw-bytes",
-        "sha256": "db9866d14fd1cfb70feb35a6c8e7386632bf6ad547d129e95ec419b0b87bdb5a"
+        "sha256": "f630ac0de8760b0635c15b10f65a27e4c05589803a4b60190fc2a347583fe566"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/LIVE_ENGINE_INVENTORY.md",
@@ -2818,9 +2832,9 @@
     },
     {
       "identity": {
-        "bytes": 17724,
+        "bytes": 17889,
         "kind": "sha256-raw-bytes",
-        "sha256": "9b4692a5ca029f3aeb7d69a741e1df3d2c05bec49734fbe4f02a78db383c04d4"
+        "sha256": "92c863d81b766950c6b584818022b54a488e0a3b83cbfada40fa241ce596ece4"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/README.md",
@@ -2958,9 +2972,9 @@
     },
     {
       "identity": {
-        "bytes": 14387,
+        "bytes": 14439,
         "kind": "sha256-raw-bytes",
-        "sha256": "062e65d8ebff39e76b06ce6fc7211a7689755f6ccebcc69b3c38e245e77bed96"
+        "sha256": "213f9cbf492088eef5d47718c7062b7a31c3182917171e3c98fbecbe05f52d7c"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/build_repository.py",
@@ -3572,9 +3586,9 @@
     },
     {
       "identity": {
-        "bytes": 5333,
+        "bytes": 5605,
         "kind": "sha256-raw-bytes",
-        "sha256": "b3676a394e21bef80e3bbb4e607f1b55db7aab886ab16dc3cdb919939a3cd90f"
+        "sha256": "909e1dc8d244c43242db777f1a281c3c8a26635e8eb0a337a9fec3e4ea404285"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/wiki/Release-Abnahme.md",
@@ -6921,7 +6935,7 @@
       "identity": {
         "bytes": 6835,
         "kind": "sha256-raw-bytes",
-        "sha256": "20bf15007016542e639f059b9664535187f036b3d6d883bd9934dcdc6347a568"
+        "sha256": "897f24eb9d1fd0175b17d3a18d56f2b134ca33d25eaad12b34747e416c9d8062"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -11838,9 +11852,9 @@
     },
     {
       "identity": {
-        "bytes": 3054,
+        "bytes": 4846,
         "kind": "sha256-raw-bytes",
-        "sha256": "04b6301890b2e3d3c1c1713ae61956891d4d25bda13ba1ec1e6cbed8173c4530"
+        "sha256": "9597f8208790e7543112c8b3349b426bc2ec387a78c12272f73e944f31120f08"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/tests/test_studio_engine_provenance.py",
@@ -14089,7 +14103,7 @@
   "production_approved": false,
   "schema": 2,
   "scope": "file-specific notice inventory for this source-only Git delivery; no engine/image or production approval",
-  "source_files": 894,
+  "source_files": 895,
   "upstream": {
     "commit": "42d319c6692fa8e64790fddf0cdaafd2a4254bcc",
     "derived_source_paths": [

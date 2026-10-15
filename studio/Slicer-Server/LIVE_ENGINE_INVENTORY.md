@@ -1,4 +1,4 @@
-# Betriebsgröße und Engine-Bestand – Beobachtung vom 15.10.2026
+﻿# Betriebsgröße und Engine-Bestand – Beobachtung vom 15.10.2026
 
 Diese Bestandsaufnahme ist rein lesend. Sie beschreibt eine existierende
 native Installation, nicht den Inhalt eines Git-Klons und nicht den Nachweis
@@ -56,3 +56,14 @@ wurde für diese Inventur gestartet; es wurde kein Modell geslicet.
 Bis dahin bleibt `engine_catalog.json` mit leeren freigegebenen Releases
 korrekt. Die nun verifizierte AppImage-Zuordnung ist kein Anlass, die offenen
 Lizenz-, SBOM-, Laufzeit- und Freigabenachweise zu überspringen.
+
+## Buildreferenz ohne Betriebsfreigabe
+
+Der beobachtete Bambu-Bestand ist nun zusaetzlich an den Hersteller-CI-Lauf
+`27620769802`, dessen unveraenderten `deps`-Tree und den daraus abgeleiteten
+wxWidgets-Commit `a9d946902685b9946d8775f07d2a73a9b5bef394` gebunden.
+Die maschinenlesbaren Einzelheiten stehen in
+`BAMBU_BUILD_REFERENCE.json`. Wegen fehlender historischer Cachebytes,
+abgelaufener Joblogs und unversionierter Runner-/Compiler-/apt-Werkzeuge ist
+dies keine reproduzierte Herstellerbinaerdatei. Am beobachteten Live-Bestand
+wurde nichts geaendert; keine Engine wurde gestartet.

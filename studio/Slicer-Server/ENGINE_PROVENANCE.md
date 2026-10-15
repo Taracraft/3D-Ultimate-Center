@@ -1,4 +1,4 @@
-# Gepruefter Engine-Provenienzstand
+﻿# Gepruefter Engine-Provenienzstand
 
 Stand: 15.10.2026. Diese Datei dokumentiert ausschliesslich den statisch
 geprueften Paket- und Lizenzstand. Sie ist keine Rechtsberatung, keine
@@ -127,3 +127,36 @@ startet weder Docker noch eine Engine und greift nicht auf das Netzwerk zu.
 Ohne echte Zielimage-Ausgabe bleiben transitive Loader-/Plugin-Closure,
 Paketnotice-Auswertung und reproduzierbarer Imagebau not_run; alle Releases
 bleiben pending.
+
+## Releasebuild-Referenz fuer Bambu Studio vom 15.10.2026
+
+`BAMBU_BUILD_REFERENCE.json` bindet das beobachtete Ubuntu-24.04-Asset
+zusätzlich an die oeffentliche Hersteller-CI. Der Release-Lauf
+`27620769802` fuer Commit
+`42d319c6692fa8e64790fddf0cdaafd2a4254bcc` verwendete den erfolgreichen
+Ubuntu-24.04-Abhaengigkeitscache aus Lauf `26758993674`. Dessen Quellcommit
+`3f126b717ed1f10fee0f32f05ed9731808d0c8bb` und der Releasecommit besitzen
+denselben Git-Tree `deps`:
+`55fa5b72f8b4e210516fe623cc204a4236a2b6a7`.
+
+Das wxWidgets-Rezept ist Git-Blob
+`c47db9b6b3d0ec245a45fd62dad9c8306bcf841c` und nennt beweglich
+`GIT_TAG master`. Fuer den Zeitraum vom letzten vorherigen wxWidgets-Commit
+bis zum Ende des Herstellerlaufs enthaelt die oeffentliche Master-Historie nur
+den signaturverifizierten Commit
+`a9d946902685b9946d8775f07d2a73a9b5bef394` mit Tree
+`2e0f6c33ecbc235fccbbe54d3deb4e5e8e0aa2ee`. Die historische Auswahl ist
+deshalb eng begruendet, bleibt aber als Ableitung gekennzeichnet: Cachebytes
+und Joblogs sind nicht mehr abrufbar. Der zugehoerige Lizenztext ist
+`docs/licence.txt`, Git-Blob
+`0a25857e6c88e66a3c92e9db5573efb8c9d27a58` (wxWindows Library Licence 3.1).
+
+Belegt sind Runner-Label `ubuntu-24.04`, Ninja, die Aufrufe
+`BuildLinux.sh -ur`, `-dfr` und `-isfr`, GTK3, statische Studio-Bindung
+und Releaseflags. Nicht belegt sind dagegen die konkrete Runner-Imageversion,
+Compiler-/CMake-/Ninja-Versionen und apt-Paketversionen; das Debian-Paketrezept
+ist zwar durch Blob `f76d5e0acc3e6ad5933dd7683c2292bf16ff4493` gebunden,
+pinnt aber keine Versionen. Damit ist die Herstellerbinaerdatei weiterhin
+nicht reproduziert. Zielimage-, Loader-, Plugin-, Ressourcen-, Notice-,
+Lizenz- und reale Linuxabnahme bleiben offen. Katalog und
+`container_deploy_ready=false` bleiben unveraendert fail closed.

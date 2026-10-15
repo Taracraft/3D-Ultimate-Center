@@ -1,4 +1,4 @@
-# Gemeinsame Abschluss- und Release-Abnahme
+﻿# Gemeinsame Abschluss- und Release-Abnahme
 
 Stand: 15.10.2026. Diese Matrix fasst den gesamten verbleibenden Abschluss
 zusammen. Sie ist keine Produktivfreigabe. Quelllieferung, reales Zielsystem,
@@ -7,7 +7,7 @@ geladene HA-Oberflaeche und veroeffentlichtes Release sind getrennte Staende.
 | Bereich | Bereits belegt | Noch erforderlicher Abschluss |
 | --- | --- | --- |
 | Vollstaendige Quellen | Eigenstaendige Komponentenprojektion, Manifest, eigene Linux-CI, native/Docker-/Testpaketbauer und Offline-Profilquellen | Aktuelle Commit-/Manifestidentitaet bei jeder neuen Lieferung erneut pruefen |
-| Herkunft und Rechte | Offizielle Bambu-AppImage exakt zugeordnet; 118 Profilquelldateien bytegleich; Debian-Paketarchive statisch untersucht | Vollstaendige Quellen-/Lizenz-/Notice-/SBOM-Pflichten fuer die konkrete Auslieferung schliessen |
+| Herkunft und Rechte | Offizielle Bambu-AppImage exakt zugeordnet; voller Bambu-Quellcommit und externe Rezeptarchive privat hashgeprueft; 118 Profilquelldateien bytegleich; Hersteller-CI und unveraenderter deps-Tree an den abgeleiteten wxWidgets-Commit gebunden; Debian-Paketarchive statisch untersucht | Historische Cachebytes und Werkzeugversionen fehlen; Herstellerbinaerdatei reproduzieren und vollstaendige dateibezogene Quellen-/Lizenz-/Notice-/SBOM-Pflichten fuer die konkrete Auslieferung schliessen |
 | Bibliotheken und Plugins | Native Hostinventur: 292 ELF-Dateien, 216 genaue Debian-Pakete und Copyright-Dateihashes; fail-closed Zielimage-Inventarvertrag fuer 40 explizite Docker-Pakete | Tatsaechliches vollstaendiges Zielimage-Inventar erfassen und Loader-/Plugin-/Ressourcenumfang messen; Referenz und Hostinventur genuegen nicht |
 | Frisches Linux und Docker | Kontext-/Integritaets-/Clean-Host-/Compose-Vertraege, synthetische Tests und offline pruefbarer SBOM-Erfasser | Neuer unabhaengiger Host ohne nativen Altbestand; fester Basisdigest, Image-ID und kompletter Paket-/Copyright-Beleg; echter Imagebuild/Erststart |
 | Rechte und Isolation | Fail-closed Pruefcode fuer Benutzer, Mounts, Prozesse, Netzwerk und Wartung | Laufende Zielcontainer, Image-ID, UID65532, Mountrechte, Read-only-Root, CapDrop und NoNewPrivileges messen |

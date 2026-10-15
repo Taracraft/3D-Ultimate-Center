@@ -9,6 +9,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "Slicer-Server" / "engine_catalog.json"
+BUILD_REFERENCE = ROOT / "Slicer-Server" / "BAMBU_BUILD_REFERENCE.json"
 PROVENANCE = ROOT / "Slicer-Server" / "ENGINE_PROVENANCE.md"
 NOTICES = ROOT / "Slicer-Server" / "THIRD_PARTY_NOTICES.md"
 
@@ -48,6 +49,40 @@ class EngineProvenanceContractTests(unittest.TestCase):
         self.assertIn("118 ausgewaehlte", document)
         self.assertIn("unsigniert", document)
         self.assertIn("beweist weder eine unabhaengige", document)
+
+    def test_bambu_release_build_reference_fails_closed(self):
+        value = json.loads(BUILD_REFERENCE.read_text(encoding="utf-8-sig"))
+        self.assertEqual(value["schema"], 1)
+        self.assertEqual(value["status"], "reference_only_non_reproducible")
+        self.assertEqual(
+            value["release"]["source_commit"],
+            "42d319c6692fa8e64790fddf0cdaafd2a4254bcc",
+        )
+        self.assertEqual(value["release"]["asset_id"], 449304146)
+        actions = value["github_actions"]
+        self.assertEqual(actions["release_run_id"], 27620769802)
+        self.assertEqual(actions["dependency_build_run_id"], 26758993674)
+        self.assertEqual(
+            actions["deps_tree_sha1_at_dependency_build"],
+            actions["deps_tree_sha1_at_release"],
+        )
+        wx = value["wxwidgets"]
+        self.assertEqual(
+            wx["resolved_commit_at_dependency_build"],
+            "a9d946902685b9946d8775f07d2a73a9b5bef394",
+        )
+        self.assertTrue(wx["commit_signature_verified_by_github"])
+        self.assertTrue(wx["selection_is_inference"])
+        recipe = value["build_recipe"]
+        self.assertEqual(recipe["runner_label"], "ubuntu-24.04")
+        self.assertFalse(recipe["package_versions_pinned"])
+        self.assertFalse(recipe["compiler_version_known"])
+        closure = value["closure"]
+        self.assertTrue(closure["historical_wxwidgets_commit_inferred_from_official_history"])
+        self.assertFalse(closure["manufacturer_binary_reproduced"])
+        self.assertFalse(closure["complete_target_image_loader_plugin_resource_sbom"])
+        self.assertFalse(closure["engine_release_approved"])
+        self.assertFalse(closure["production_approved"])
 
     def test_upstream_license_boundaries_are_explicit(self):
         document = " ".join(PROVENANCE.read_text(encoding="utf-8-sig").split())

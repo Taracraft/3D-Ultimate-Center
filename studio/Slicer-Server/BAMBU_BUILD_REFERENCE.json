@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "status": "reference_only_non_reproducible",
+  "reviewed_at": "2026-10-15",
+  "purpose": "Fail-closed public build-reference evidence for the observed Bambu Studio Ubuntu 24.04 AppImage; no engine approval.",
+  "release": {
+    "repository": "https://github.com/bambulab/BambuStudio",
+    "tag": "v02.07.01.62",
+    "source_commit": "42d319c6692fa8e64790fddf0cdaafd2a4254bcc",
+    "source_tree": "f7625831c443c6ee79c16cd17ecad3ff7bfe9888",
+    "asset_id": 449304146,
+    "asset_name": "BambuStudio_ubuntu24.04-v02.07.01.62-20260616195227.AppImage",
+    "asset_bytes": 227047928,
+    "asset_sha256": "fa98b608532dfbbbb2b0931483aac41e57fb19c175a2cc7bd7d528d5e0fbb287"
+  },
+  "github_actions": {
+    "release_run_id": 27620769802,
+    "release_run_url": "https://github.com/bambulab/BambuStudio/actions/runs/27620769802",
+    "release_ubuntu_24_job_id": 81668809948,
+    "release_deps_job_result": "skipped_cache_hit",
+    "dependency_build_run_id": 26758993674,
+    "dependency_build_run_url": "https://github.com/bambulab/BambuStudio/actions/runs/26758993674",
+    "dependency_build_commit": "3f126b717ed1f10fee0f32f05ed9731808d0c8bb",
+    "dependency_build_ubuntu_24_job_id": 78866851194,
+    "dependency_build_job_result": "success",
+    "deps_tree_sha1_at_dependency_build": "55fa5b72f8b4e210516fe623cc204a4236a2b6a7",
+    "deps_tree_sha1_at_release": "55fa5b72f8b4e210516fe623cc204a4236a2b6a7",
+    "cache_key_expression": "ubuntu-24.04-cache-bambustudio_deps-build-${{ hashFiles('deps/**') }}",
+    "cache_archive_retained": false,
+    "job_logs_retained": false
+  },
+  "wxwidgets": {
+    "recipe_path": "deps/wxWidgets/wxWidgets.cmake",
+    "recipe_blob_sha1": "c47db9b6b3d0ec245a45fd62dad9c8306bcf841c",
+    "repository": "https://github.com/bambulab/wxWidgets",
+    "recipe_git_tag": "master",
+    "resolved_commit_at_dependency_build": "a9d946902685b9946d8775f07d2a73a9b5bef394",
+    "resolved_tree": "2e0f6c33ecbc235fccbbe54d3deb4e5e8e0aa2ee",
+    "commit_signature_verified_by_github": true,
+    "license_path": "docs/licence.txt",
+    "license_blob_sha1": "0a25857e6c88e66a3c92e9db5573efb8c9d27a58",
+    "license_name": "wxWindows Library Licence, Version 3.1",
+    "selection_basis": [
+      "The Ubuntu 24.04 dependency cache was rebuilt successfully by run 26758993674.",
+      "The dependency-build and release commits have the identical deps Git tree.",
+      "The wxWidgets master history contains only a9d946902685b9946d8775f07d2a73a9b5bef394 from 2025-03-31 through release-run completion."
+    ],
+    "selection_is_inference": true
+  },
+  "build_recipe": {
+    "runner_label": "ubuntu-24.04",
+    "dependency_install_command": "sudo ./BuildLinux.sh -ur",
+    "dependency_build_command": "./BuildLinux.sh -dfr",
+    "application_build_command": "./BuildLinux.sh -isfr",
+    "generator": "Ninja",
+    "dependency_configure_flags": [
+      "-DDEP_WX_GTK3=ON"
+    ],
+    "application_configure_flags": [
+      "-DSLIC3R_GTK=3",
+      "-DSLIC3R_STATIC=1",
+      "-DBBL_RELEASE_TO_PUBLIC=1",
+      "-DBBL_INTERNAL_TESTING=0"
+    ],
+    "linux_package_recipe_path": "linux.d/debian",
+    "linux_package_recipe_blob_sha1": "f76d5e0acc3e6ad5933dd7683c2292bf16ff4493",
+    "package_versions_pinned": false,
+    "runner_image_version_known": false,
+    "compiler_version_known": false,
+    "cmake_version_known": false,
+    "ninja_version_known": false
+  },
+  "closure": {
+    "full_upstream_source_commit_present": true,
+    "official_asset_identity_verified": true,
+    "dependency_recipe_identity_verified": true,
+    "historical_wxwidgets_commit_inferred_from_official_history": true,
+    "historical_dependency_cache_bytes_present": false,
+    "manufacturer_binary_reproduced": false,
+    "complete_target_image_loader_plugin_resource_sbom": false,
+    "complete_file_by_file_notice_and_license_review": false,
+    "engine_release_approved": false,
+    "container_deploy_ready": false,
+    "production_approved": false
+  }
+}

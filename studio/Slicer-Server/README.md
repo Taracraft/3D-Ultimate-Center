@@ -47,6 +47,7 @@ Der Standardbefehl des Images bleibt der lesende Preflight.
 |---|---|
 | prepare_context.py | Stellt ausschliesslich erlaubte, SHA-gepruefte Quellen zusammen |
 | Dockerfile | Baut Quellpruefung und explizit startbaren Dienstkandidaten |
+| BAMBU_BUILD_REFERENCE.json | Bindet Release, Hersteller-CI, Abhaengigkeits-Tree und die abgeleitete wxWidgets-Revision; kennzeichnet fehlende Reproduzierbarkeit |
 | TARGET_IMAGE_REFERENCE.json / target_image_sbom.py | Bindet den expliziten Paketbedarf an ein unveraenderliches Zielimage-Inventar; keine Freigabe |
 | container_check.py | Prueft Paketintegritaet ohne Import oder Start des Workers |
 | container_runtime.py | Prueft Kernelisolation und ueberwacht einen eigenen Supervisor |
