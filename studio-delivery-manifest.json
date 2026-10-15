@@ -16,14 +16,14 @@
       "sha256": "2cd47d14537993c48a899d2a3e6b30cf764ea31e18a468b662263e1f14027708"
     },
     {
-      "bytes": 2048,
+      "bytes": 5083,
       "path": "README.md",
-      "sha256": "20ac6875a9f83fe7f94329d432867a9d97e9405dc89605a84a46481e0a378fb6"
+      "sha256": "862ae7609d475a3519045f838876c73cd8c95e2ac72fd9e6ed358ba9603b4974"
     },
     {
-      "bytes": 4465,
+      "bytes": 5149,
       "path": "SOURCE_NOTICES.md",
-      "sha256": "0e373ac3389e077dadaee1a114f0c13c1bd67cb719b480e5fe3d49e501feafbb"
+      "sha256": "136cedd81302d124af5372661ee249e93b3e47e782ed5d64fd457dc5c3352a41"
     },
     {
       "bytes": 3589,
@@ -893,7 +893,7 @@
     {
       "bytes": 6835,
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "57ff962a3c5714c77e082abc30836dc8f95f8cca155e4c63169be2145d9c4d5b"
+      "sha256": "001fbb86919d246e73caf2e3d1699f87da2dd12ab1ac2840bbd0e9c128240e67"
     },
     {
       "bytes": 801,
@@ -911,9 +911,9 @@
       "sha256": "c34a65548032d1228b03b500fc410af53ed85cdd00ff944d7bfb7e7b84aa7bb1"
     },
     {
-      "bytes": 496686,
+      "bytes": 484247,
       "path": "source-license-map.json",
-      "sha256": "353db685331bc326098d6505aa05d168a6809bc2448b462a04954ddb79939912"
+      "sha256": "8bd3c0d7b24a16558af3c46bcdb04abe2fb74db644134258e2cbfc96ca5f0995"
     },
     {
       "bytes": 2883,
@@ -936,9 +936,9 @@
       "sha256": "6bc1bf52572a3f31e26788f35cc31843a034f5b9fc2f8caa12c8c6830eb5b95c"
     },
     {
-      "bytes": 7880,
+      "bytes": 24134,
       "path": "studio/README.md",
-      "sha256": "7393b31207b2c319b9b6c035bfba4659fe7657b5b1d53c2996bb6fe241cd582d"
+      "sha256": "d1a5bc17ad858017c2d92a825dc95a36b5f5fb274649ef800a8885026814146d"
     },
     {
       "bytes": 303,
@@ -2563,7 +2563,7 @@
     {
       "bytes": 6835,
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "57ff962a3c5714c77e082abc30836dc8f95f8cca155e4c63169be2145d9c4d5b"
+      "sha256": "001fbb86919d246e73caf2e3d1699f87da2dd12ab1ac2840bbd0e9c128240e67"
     },
     {
       "bytes": 801,
@@ -3894,6 +3894,21 @@
       "bytes": 828,
       "path": "studio/frontend/workspace-source-request.ts",
       "sha256": "f64ddb72a0b2df30f9f562f71ebe6ee1244a8fdd8e642eb028764dbcafe869ed"
+    },
+    {
+      "bytes": 117986,
+      "path": "studio/handbook/images/materials.png",
+      "sha256": "53e5d4e3d0517b298cc98cda09fe39579bef438db568eb9bcf46005f4c1725e5"
+    },
+    {
+      "bytes": 73408,
+      "path": "studio/handbook/images/profiles.png",
+      "sha256": "8e325b99ad520f03594755703ef3828edf59c429ed892b68d766d87dbc025503"
+    },
+    {
+      "bytes": 203289,
+      "path": "studio/handbook/images/studio.png",
+      "sha256": "f9161d237e502f1440387c4b15a8e05ea7e01fb29bb35b462e084435dcb15792"
     },
     {
       "bytes": 15139,
@@ -5275,19 +5290,19 @@
   "protected_component_tree": "83eee0b12ba828dd1de1e3c9ba83ca2af45e66df",
   "review_evidence": {
     "credentials": {
-      "sha256": "c0c62784cd99a9d3044070a5e6a05455666ec92a6d9854b26429ff927ab53bee",
+      "sha256": "127ff22f695fe6c196e8d3917afb5adaa7648d1356b41716cd205965f168734b",
       "verified": true
     },
     "infrastructure": {
-      "sha256": "adac018e3a958b2755a69c03ef1105d2f4ea3d1ac15ce7e4496c79b33ecc2d1f",
+      "sha256": "1d4378e7ec2aeef848b24e1b5c31b5a73fd8a2b1bef837426eb4da9febd1e28f",
       "verified": true
     },
     "isolated_candidate": {
-      "sha256": "59d5482e92a13bc45e7f54ea186b75f27efb9870e3f95a59cc863b55af03b3b9",
+      "sha256": "ac15805701d4d30a0f7d2e00f8f212b502bf40e32d9630fc8513efbb312af462",
       "verified": true
     },
     "licenses": {
-      "sha256": "6afa96a7ebcbbf33fa0eb5de763ccc2a2b5fab5e947fd2769838e5c12b241386",
+      "sha256": "65d8ca2682fcf89cacb4888a322769306f1383bc33f9f3f02d393c8c001877e8",
       "verified": true
     }
   },

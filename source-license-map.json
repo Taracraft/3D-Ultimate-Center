@@ -1,6 +1,6 @@
 {
   "custom_terms_do_not_replace_inherited_or_third_party_rights": true,
-  "delivered_paths": 1054,
+  "delivered_paths": 1057,
   "derived_profile_modification_notice_date": "2026-10-15",
   "files": [
     {
@@ -44,9 +44,9 @@
     },
     {
       "identity": {
-        "bytes": 2048,
+        "bytes": 5083,
         "kind": "sha256-raw-bytes",
-        "sha256": "20ac6875a9f83fe7f94329d432867a9d97e9405dc89605a84a46481e0a378fb6"
+        "sha256": "862ae7609d475a3519045f838876c73cd8c95e2ac72fd9e6ed358ba9603b4974"
       },
       "notice_class": "new-repository-documentation-with-root-MIT-notice",
       "path": "README.md",
@@ -57,9 +57,9 @@
     },
     {
       "identity": {
-        "bytes": 4465,
+        "bytes": 5149,
         "kind": "sha256-raw-bytes",
-        "sha256": "0e373ac3389e077dadaee1a114f0c13c1bd67cb719b480e5fe3d49e501feafbb"
+        "sha256": "136cedd81302d124af5372661ee249e93b3e47e782ed5d64fd457dc5c3352a41"
       },
       "notice_class": "new-repository-documentation-with-root-MIT-notice",
       "path": "SOURCE_NOTICES.md",
@@ -2440,9 +2440,9 @@
     },
     {
       "identity": {
-        "bytes": 7880,
+        "bytes": 24134,
         "kind": "sha256-raw-bytes",
-        "sha256": "7393b31207b2c319b9b6c035bfba4659fe7657b5b1d53c2996bb6fe241cd582d"
+        "sha256": "d1a5bc17ad858017c2d92a825dc95a36b5f5fb274649ef800a8885026814146d"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/README.md",
@@ -10208,6 +10208,48 @@
     },
     {
       "identity": {
+        "bytes": 117986,
+        "kind": "sha256-raw-bytes",
+        "sha256": "53e5d4e3d0517b298cc98cda09fe39579bef438db568eb9bcf46005f4c1725e5"
+      },
+      "notice_class": "rendered-Studio-UI-screenshot-with-inherited-notices",
+      "path": "studio/handbook/images/materials.png",
+      "required_notice_paths": [
+        "LICENSE",
+        "SOURCE_NOTICES.md"
+      ],
+      "source_path": "handbook/images/materials.png"
+    },
+    {
+      "identity": {
+        "bytes": 73408,
+        "kind": "sha256-raw-bytes",
+        "sha256": "8e325b99ad520f03594755703ef3828edf59c429ed892b68d766d87dbc025503"
+      },
+      "notice_class": "rendered-Studio-UI-screenshot-with-inherited-notices",
+      "path": "studio/handbook/images/profiles.png",
+      "required_notice_paths": [
+        "LICENSE",
+        "SOURCE_NOTICES.md"
+      ],
+      "source_path": "handbook/images/profiles.png"
+    },
+    {
+      "identity": {
+        "bytes": 203289,
+        "kind": "sha256-raw-bytes",
+        "sha256": "f9161d237e502f1440387c4b15a8e05ea7e01fb29bb35b462e084435dcb15792"
+      },
+      "notice_class": "rendered-Studio-UI-screenshot-with-inherited-notices",
+      "path": "studio/handbook/images/studio.png",
+      "required_notice_paths": [
+        "LICENSE",
+        "SOURCE_NOTICES.md"
+      ],
+      "source_path": "handbook/images/studio.png"
+    },
+    {
+      "identity": {
         "bytes": 15139,
         "kind": "sha256-raw-bytes",
         "sha256": "7f9b7413a3d183a64f4b5a2efe8b8073e4e8e4b7d12d97eacb2d8eedb5184cab"
@@ -13785,7 +13827,7 @@
   "production_approved": false,
   "schema": 2,
   "scope": "file-specific notice inventory for this source-only Git delivery; no engine/image or production approval",
-  "source_files": 872,
+  "source_files": 875,
   "upstream": {
     "commit": "42d319c6692fa8e64790fddf0cdaafd2a4254bcc",
     "derived_source_paths": [

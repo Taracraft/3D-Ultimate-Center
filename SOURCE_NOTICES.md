@@ -83,3 +83,17 @@ Primary references:
 - https://github.com/bambulab/BambuStudio/blob/42d319c6692fa8e64790fddf0cdaafd2a4254bcc/LICENSE
 - https://github.com/bambulab/BambuStudio/blob/42d319c6692fa8e64790fddf0cdaafd2a4254bcc/README.md
 - https://www.gnu.org/licenses/agpl-3.0.html
+
+
+## Documentation screenshots
+
+The three PNG files under studio/handbook/images were captured on 2026-10-15
+using the existing Puppet add-on from a running Home Assistant installation.
+They document the rendered Studio interface and are not evidence that the
+installed runtime is identical to the current repository source or approved
+for a new production deployment. The screenshots are unedited and contain
+no private models, job files, credentials or site addresses.
+
+The rendered interface retains its applicable inherited source notices.
+Depicted third-party product names and marks retain their respective rights;
+this documentation grants no additional rights in those marks.
