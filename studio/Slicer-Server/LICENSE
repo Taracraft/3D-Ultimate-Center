@@ -1,0 +1,64 @@
+Ultimate Studio Private Use - No Modification License
+Copyright (c) 2026 Taracraft
+
+1. Scope
+This license applies only to new original material authored for Taracraft in
+Slicer-Server, excluding imported/generated payloads, third-party components,
+and material previously made available under another license. It does not
+relicense the existing Studio source tree. THIRD_PARTY_NOTICES.md identifies
+these boundaries. Permissions validly granted under an earlier license remain
+unaffected. Where applicable law grants rights that cannot be excluded, those
+rights remain unaffected.
+
+2. Private use
+Subject to this license, a natural person may inspect, download, make personal
+backup copies of, build without source changes, install and run the covered
+material solely for that person's private, non-commercial purposes. Use within
+the same private household is permitted. The permission does not include use
+for employment, business, professional services, paid hosting, a print service,
+resale, or any other commercial purpose, whether or not a fee is charged.
+
+3. No source modifications
+You may not modify, adapt, translate into another programming language, create
+derivative works of, or distribute modified versions of the covered program
+source, except with prior written permission from the rights holder or where
+mandatory law permits. This condition does not restrict the rights holder or
+developers expressly authorized by the rights holder.
+
+4. Configuration and user data
+You may change documented configuration values, environment files, documented
+Compose deployment parameters, connection settings, and your own printer,
+material and process profiles as necessary for permitted private use. You may
+create and edit your own models, projects and job data. These actions are not
+treated as modifications of program source under this license. Ownership and
+licensing of user-created content are not transferred to Taracraft.
+
+5. Copies, notices and platform rights
+Keep this license and applicable copyright and third-party notices with copies.
+No redistribution, sublicensing, sale, rental or public hosting of the covered
+software is granted, except platform-native viewing and forking rights granted
+under the applicable GitHub terms for a public repository. Such platform rights
+do not by themselves grant commercial use or permission to modify the covered
+software outside the rights granted by those terms or mandatory law.
+
+6. Third-party and previously licensed material
+Third-party software, engines, libraries, base images and earlier licensed
+material retain their own licenses. This license imposes no additional
+restriction on rights granted for those components. A container image is a
+collection of components and must not be described as entirely governed by
+this license. No claim is made that packaging separate programs in a container
+alone resolves questions about derivative or combined works.
+
+7. Warranty and liability
+To the extent permitted by applicable law, the covered material is provided
+without warranties of fitness, uninterrupted operation or error-free results.
+Liability that cannot lawfully be excluded, including applicable mandatory
+consumer rights and liability for intent or gross negligence, is unaffected.
+
+8. Additional permissions
+Any use beyond this license requires the rights holder's prior written
+permission unless independently authorized by another applicable license or
+mandatory law. No patent or trademark license is granted.
+
+This is a custom source-available license, not an Open Source license.
+Legal scope, ownership and compatibility require review before public release.

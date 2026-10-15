@@ -1,1 +1,0 @@
-print("connector write test")

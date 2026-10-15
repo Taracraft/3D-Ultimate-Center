@@ -1,0 +1,11 @@
+[Unit]
+Description=Dispatch native slicing jobs
+
+[Timer]
+OnBootSec=5s
+OnUnitActiveSec=5s
+AccuracySec=1s
+Unit=ultimate-slicer-dispatch.service
+
+[Install]
+WantedBy=timers.target

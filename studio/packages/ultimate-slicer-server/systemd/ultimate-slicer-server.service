@@ -1,0 +1,30 @@
+[Unit]
+Description=Ultimate Slicer Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment=STUDIO_WORKER_BASE=/var/lib/ultimate-slicer-server
+Environment=STUDIO_WORKER_SOURCE_ROOT=/opt/ultimate-slicer-server
+Environment=STUDIO_WORKER_PROFILE_ROOT=/opt/ultimate-slicer-server/profiles/printers
+Environment=STUDIO_BAMBU_ROOT=/opt/ultimate-slicer-server/engines/bambu-studio/squashfs-root
+EnvironmentFile=-/etc/ultimate-slicer-server/runtime.env
+User=ultimate-slicer
+Group=ultimate-slicer
+UMask=0027
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+StateDirectory=ultimate-slicer-server
+StateDirectoryMode=0750
+CacheDirectory=ultimate-slicer-server
+CacheDirectoryMode=0750
+WorkingDirectory=/opt/ultimate-slicer-server
+ExecStart=/usr/bin/python3 /opt/ultimate-slicer-server/server.py /etc/ultimate-slicer-server/config.json
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

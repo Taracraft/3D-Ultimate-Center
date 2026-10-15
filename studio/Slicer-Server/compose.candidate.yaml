@@ -1,0 +1,272 @@
+{
+  "name": "ultimate-slicer-server",
+  "services": {
+    "api": {
+      "image": "${SLICER_IMAGE:?Set a locally built candidate image}",
+      "pull_policy": "never",
+      "read_only": true,
+      "user": "65532:65532",
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "pids_limit": 128,
+      "mem_limit": "2g",
+      "restart": "no",
+      "stop_grace_period": "60s",
+      "tmpfs": [
+        "/tmp:rw,nosuid,nodev,noexec,size=32m,mode=1777"
+      ],
+      "entrypoint": [
+        "python3",
+        "/opt/ultimate-slicer-server/container_service.py"
+      ],
+      "init": true,
+      "command": [
+        "api"
+      ],
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "${SLICER_DATA:?Set an initialized data directory}",
+          "target": "/var/lib/ultimate-slicer",
+          "read_only": false,
+          "bind": {
+            "create_host_path": false
+          }
+        },
+        {
+          "type": "bind",
+          "source": "${SLICER_ENGINE:?Set an engine directory; an empty directory is allowed for idle tests}",
+          "target": "/engine",
+          "read_only": true,
+          "bind": {
+            "create_host_path": false
+          }
+        },
+        {
+          "type": "bind",
+          "source": "${SLICER_TOKEN:?Set an API token file}",
+          "target": "/run/secrets/api-token",
+          "read_only": true,
+          "bind": {
+            "create_host_path": false
+          }
+        },
+        {
+          "type": "bind",
+          "source": "${SLICER_TLS:?Set TLS directory}",
+          "target": "/run/tls",
+          "read_only": true,
+          "bind": {
+            "create_host_path": false
+          }
+        },
+        {
+          "type": "bind",
+          "source": "${SLICER_PROFILES:?Set the provisioned persistent profiles directory}",
+          "target": "/var/lib/ultimate-slicer-profiles",
+          "read_only": true,
+          "bind": {
+            "create_host_path": false
+          }
+        }
+      ],
+      "ports": [
+        "${SLICER_BIND:-127.0.0.1}:${SLICER_PORT:-8099}:8099"
+      ],
+      "depends_on": {
+        "data-init": {
+          "condition": "service_completed_successfully"
+        },
+        "profile-init": {
+          "condition": "service_completed_successfully"
+        }
+      }
+    },
+    "worker": {
+      "image": "${SLICER_IMAGE:?Set a locally built candidate image}",
+      "pull_policy": "never",
+      "read_only": true,
+      "user": "65532:65532",
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "pids_limit": 128,
+      "mem_limit": "2g",
+      "restart": "no",
+      "stop_grace_period": "60s",
+      "tmpfs": [
+        "/tmp:rw,nosuid,nodev,noexec,size=32m,mode=1777"
+      ],
+      "entrypoint": [
+        "python3",
+        "/opt/ultimate-slicer-server/container_service.py"
+      ],
+      "command": [
+        "worker"
+      ],
+      "network_mode": "none",
+      "pid": "service:api",
+      "depends_on": {
+        "api": {
+          "condition": "service_started",
+          "restart": true
+        }
+      },
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "${SLICER_DATA:?Set an initialized data directory}",
+          "target": "/var/lib/ultimate-slicer",
+          "read_only": false,
+          "bind": {
+            "create_host_path": false
+          }
+        },
+        {
+          "type": "bind",
+          "source": "${SLICER_ENGINE:?Set an engine directory; an empty directory is allowed for idle tests}",
+          "target": "/engine",
+          "read_only": true,
+          "bind": {
+            "create_host_path": false
+          }
+        },
+        {
+          "type": "bind",
+          "source": "${SLICER_PROFILES:?Set the provisioned persistent profiles directory}",
+          "target": "/var/lib/ultimate-slicer-profiles",
+          "read_only": true,
+          "bind": {
+            "create_host_path": false
+          }
+        }
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python3",
+          "/opt/ultimate-slicer-server/container_service.py",
+          "worker-check"
+        ],
+        "interval": "15s",
+        "timeout": "5s",
+        "start_period": "15s",
+        "retries": 3
+      }
+    },
+    "data-init": {
+      "image": "${SLICER_IMAGE:?Set a locally built candidate image}",
+      "pull_policy": "never",
+      "entrypoint": [
+        "python3",
+        "/opt/ultimate-slicer-server/container_service.py"
+      ],
+      "command": [
+        "init-data"
+      ],
+      "environment": {
+        "STUDIO_BOOTSTRAP_REQUEST_ID": "${SLICER_BOOTSTRAP_REQUEST_ID:-}"
+      },
+      "user": "65532:65532",
+      "read_only": true,
+      "network_mode": "none",
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "pids_limit": 16,
+      "mem_limit": "128m",
+      "restart": "no",
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "${SLICER_DATA:?Set an initialized data directory}",
+          "target": "/var/lib/ultimate-slicer",
+          "read_only": false,
+          "bind": {
+            "create_host_path": false
+          }
+        }
+      ]
+    },
+    "profile-init": {
+      "image": "${SLICER_IMAGE:?Set a locally built candidate image}",
+      "pull_policy": "never",
+      "entrypoint": [
+        "python3",
+        "/opt/ultimate-slicer-server/container_service.py"
+      ],
+      "command": [
+        "init-profiles"
+      ],
+      "user": "65532:65532",
+      "read_only": true,
+      "network_mode": "none",
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "pids_limit": 16,
+      "mem_limit": "128m",
+      "restart": "no",
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "${SLICER_PROFILES:?Set the provisioned persistent profiles directory}",
+          "target": "/var/lib/ultimate-slicer-profiles",
+          "read_only": false,
+          "bind": {
+            "create_host_path": false
+          }
+        }
+      ]
+    },
+    "maintenance-clear": {
+      "image": "${SLICER_IMAGE:?Set a locally built candidate image}",
+      "pull_policy": "never",
+      "entrypoint": [
+        "python3",
+        "/opt/ultimate-slicer-server/container_service.py"
+      ],
+      "command": [
+        "maintenance-end",
+        "--request-id",
+        "${SLICER_BOOTSTRAP_REQUEST_ID:?Set the owned bootstrap request ID}"
+      ],
+      "user": "65532:65532",
+      "read_only": true,
+      "network_mode": "none",
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "pids_limit": 16,
+      "mem_limit": "128m",
+      "restart": "no",
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "${SLICER_DATA:?Set an initialized data directory}",
+          "target": "/var/lib/ultimate-slicer",
+          "read_only": false,
+          "bind": {
+            "create_host_path": false
+          }
+        }
+      ]
+    }
+  }
+}

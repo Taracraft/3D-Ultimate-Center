@@ -1,0 +1,74 @@
+{
+  "title": "Ultimate 3D Studio",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Ultimate 3D Studio",
+        "description": "Creates a fully isolated Studio test runtime.",
+        "data": {
+          "instance_name": "Test instance name"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "The Studio test integration is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure printer and Bambu account",
+        "description": "The LAN provider connects directly to the printer. Optional account sign-in makes your filament, print and machine profiles and MakerWorld available in Studio. Start cloud profile synchronization manually under Profiles. The password is used only for this sign-in and is not stored. If a token already exists, password and email remain optional. Current token status: {cloud_token_status}. LAN access code: {lan_code_status}. Slicer key status: {slicer_secret_status}. Connection check: {slicer_connection_status}.",
+        "data": {
+          "lan_enabled": "Enable Bambu LAN provider",
+          "printer_name": "Printer display name",
+          "host": "IP address or hostname",
+          "serial": "Serial number",
+          "access_code": "LAN access code",
+          "tls_insecure": "Accept self-signed printer certificate",
+          "cloud_enabled": "Enable Bambu account access",
+          "cloud_profile_sync": "Allow cloud profile synchronization under Profiles",
+          "cloud_region": "Bambu account region",
+          "cloud_email": "Bambu account email address",
+          "password": "Bambu account password for one-time sign-in",
+          "slicer_enabled": "Use separate Linux slicer",
+          "slicer_base_url": "Slicer server address (HTTPS)",
+          "slicer_api_secret": "Slicer API secret (will not be shown again)",
+          "slicer_connection_test": "Check slicer connection (without saving)"
+        }
+      },
+      "cloud_code": {
+        "title": "Bambu email verification",
+        "description": "Bambu sent a verification code to the account email address. The code is used only for this sign-in.",
+        "data": {
+          "verification_code": "Verification code"
+        }
+      }
+    },
+    "error": {
+      "required": "This field is required for the enabled feature.",
+      "invalid_auth": "Bambu sign-in or verification code was rejected.",
+      "cannot_connect": "Bambu Cloud is currently unavailable.",
+      "invalid_slicer_url": "Invalid slicer server address. Do not enter credentials in the URL.",
+      "slicer_https_required": "Remote slicer servers require HTTPS; HTTP is allowed only on loopback.",
+      "invalid_slicer_secret": "The slicer key must contain at least 32 valid characters.",
+      "slicer_not_configured": "Enable the slicer and enter its connection details first.",
+      "slicer_auth_required": "The slicer rejected the API key.",
+      "slicer_incompatible": "The slicer info API is incompatible or incomplete.",
+      "slicer_redirect_refused": "The slicer returned an unsafe redirect.",
+      "slicer_unavailable": "The slicer is unavailable or returned an invalid response.",
+      "slicer_certificate_error": "The slicer TLS certificate could not be verified."
+    },
+    "abort": {
+      "cloud_login_expired": "Bambu sign-in has expired. Open the options again."
+    }
+  },
+  "selector": {
+    "cloud_region": {
+      "options": {
+        "global": "Global / Europe",
+        "china": "China"
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+[Unit]
+Description=Ultimate Slicer native job supervisor
+After=ultimate-slicer-server.service
+Requires=ultimate-slicer-server.service
+
+[Service]
+Type=oneshot
+Environment=STUDIO_WORKER_BASE=/var/lib/ultimate-slicer-server
+Environment=STUDIO_WORKER_SOURCE_ROOT=/opt/ultimate-slicer-server
+Environment=STUDIO_WORKER_PROFILE_ROOT=/opt/ultimate-slicer-server/profiles/printers
+# Match the AppImage CLI launcher's bundled FFmpeg library and locale contract.
+Environment=LD_LIBRARY_PATH=/opt/ultimate-slicer-server/engines/bambu-studio/squashfs-root/bin
+Environment=LC_ALL=C
+Environment=STUDIO_BAMBU_ROOT=/opt/ultimate-slicer-server/engines/bambu-studio/squashfs-root
+EnvironmentFile=-/etc/ultimate-slicer-server/runtime.env
+User=ultimate-slicer
+Group=ultimate-slicer
+UMask=0027
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+StateDirectory=ultimate-slicer-server
+StateDirectoryMode=0750
+CacheDirectory=ultimate-slicer-server
+CacheDirectoryMode=0750
+WorkingDirectory=/opt/ultimate-slicer-server
+ExecStartPre=/usr/bin/unshare --user --map-root-user --net -- /usr/bin/true
+ExecStart=/usr/bin/python3 /opt/ultimate-slicer-server/job_control.py dispatch --base /var/lib/ultimate-slicer-server

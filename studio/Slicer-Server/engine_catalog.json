@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "releases": [],
+  "pending": [
+    "bambu_studio",
+    "prusaslicer",
+    "curaengine"
+  ]
+}

@@ -1,0 +1,11 @@
+[Unit]
+Description=Refresh Ultimate Slicer native status
+
+[Timer]
+OnBootSec=10s
+OnUnitActiveSec=10s
+AccuracySec=1s
+Unit=ultimate-slicer-refresh.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,62 @@
+name: Studio source contract
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verified-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONUTF8: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Verify complete reviewed Git delivery and protected component
+        run: python studio/tools/studio_delivery_contract.py --root .
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: studio/package-lock.json
+      - name: Install frontend dependencies from lockfile
+        working-directory: studio
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install hashed Linux Python CI wheels without dependency expansion
+        run: python -m pip install --disable-pip-version-check --only-binary=:all: --no-deps --require-hashes -r studio/requirements-ci-linux.txt
+      - name: Verify installed dependency versions and closure
+        working-directory: studio
+        run: python tools/studio_ci_dependencies.py --root .
+      - name: Install local project without unpinned build dependencies
+        run: python -m pip install --disable-pip-version-check --no-deps --no-build-isolation -e './studio[test]'
+      - name: Check Python dependency consistency
+        run: python -m pip check
+      - name: Test Python and worker contracts
+        working-directory: studio
+        run: python -m pytest -q
+      - name: Compile reviewed Python sources
+        working-directory: studio
+        run: python -m compileall -q api core tools Slicer-Server packages deploy/homeassistant/custom_components/ultimate_3d_studio
+      - name: Check TypeScript
+        working-directory: studio
+        run: npm run typecheck
+      - name: Test frontend contracts
+        working-directory: studio
+        run: npm test
+      - name: Build frontend in isolated output
+        working-directory: studio
+        run: npm run build
+      - name: Verify source identities remain unchanged after tests
+        run: python studio/tools/studio_delivery_contract.py --root .

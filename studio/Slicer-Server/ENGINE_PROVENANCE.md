@@ -1,0 +1,69 @@
+# Gepruefter Engine-Provenienzstand
+
+Stand: 14.10.2026. Diese Datei dokumentiert ausschliesslich den statisch
+geprueften Paket- und Lizenzstand. Sie ist keine Rechtsberatung, keine
+Enginefreigabe und keine Betriebsabnahme. Keine Engine wurde fuer diese
+Pruefung gestartet. Alle drei Familien bleiben im ausgelieferten Katalog
+`pending`; `container_deploy_ready=false`.
+
+## Gepruefte Paketbasis
+
+| Familie / Bestandteil | Paket und Plattform | Archiv SHA-256 | Gepruefter Umfang | Status |
+| --- | --- | --- | --- | --- |
+| CuraEngine | Debian trixie `cura-engine 1:5.0.0-5`, amd64 | `0b0f7c53ea506001c7b56e83d4f1a2a72e73cd960886622462a1ffb5acb78379` | Programmdatei SHA `fe5de064a0d405135c97d1c1e86c33028c6d5f55956f4dbc9168d406625b10d7`; 8 direkte DT_NEEDED-Eintraege | pending |
+| Cura-Ressourcen | Debian trixie `cura 5.0.0-6`, all | `ac3650ec34a5a5023a33775b6b8ac9e9ee27aa783550fededa6db171e523cc99` | 862 ausgewaehlte Dateien, Manifest SHA `1976698ffa7eb6efb9a8fd093238e4a81441bef859e80c456dd8180c0348101e` | pending |
+| PrusaSlicer | Debian trixie `prusa-slicer 2.9.2+dfsg-1`, amd64 | `4ff3972a868621f48adee0e1d6848ce27ada765a2fdc1d0cb87e81026f6c5392` | 40 ausgewaehlte Dateien, Manifest SHA `8bd2336dfc66c4a7934ca77c39c2220a9658888d7df866ddd98e0094363d962a`; 42 direkte DT_NEEDED-Eintraege; OCCTWrapper 11 | pending |
+| Bambu Studio | noch kein ausgewaehltes Paket | - | keine Binaer-, Ressourcen- oder Profilauswahl | pending |
+
+Archiv- und Dateihashes belegen Integritaet der untersuchten Bytes, nicht ihre
+Herkunft oder Freigabe. Der GUI-Umfang des Debian-Pakets `cura` wird nicht
+installiert; daraus werden nur begrenzte Datenressourcen untersucht. Der
+Prusa-Satz ist trotz CLI-Einstieg nicht headless abgenommen: GUI-Bibliotheken,
+OCCT-Ladepfad und Profilrechte bleiben offen.
+
+## Lizenzbelege und Grenzen
+
+- Bambu Studio nennt upstream GNU AGPL Version 3. Das optionale
+  Bambu-Netzwerkplugin wird nicht ausgewaehlt oder beigefuegt.
+- PrusaSlicer nennt upstream GNU AGPL Version 3. Das Debian-Copyright des
+  geprueften Pakets fuehrt daneben mehrere Lizenzen fuer mitgelieferte
+  Bestandteile und Profile. Der vollstaendige Notice-Satz muss bei einer
+  spaeteren Weitergabe erhalten bleiben.
+- CuraEngine deklariert upstream AGPL-3.0. Das Debian-Copyright des konkreten
+  Pakets wurde bytegenau gesichert; die komponentenweise Pflichtauswertung ist
+  noch nicht rechtlich freigegeben.
+- Die ausgewaehlten Cura-Ressourcen enthalten einen Notice-Satz mit Apache-2.0,
+  BSD-3-Clause, CC0-1.0 und LGPL-3+-Deklarationen. Rechte einzelner
+  Drucker-, Material-, Varianten- und Intentprofile sind weiter zu pruefen.
+- Die eigene Lizenz in diesem Verzeichnis gilt nicht fuer diese fremden
+  Programme, Bibliotheken oder Profile und schraenkt bestehende MIT-,
+  AGPL- oder sonstige Fremdrechte nicht ein.
+
+Offizielle Quellen:
+
+- https://github.com/bambulab/BambuStudio/blob/master/LICENSE
+- https://github.com/prusa3d/PrusaSlicer/blob/master/LICENSE
+- https://github.com/Ultimaker/CuraEngine
+- https://packages.debian.org/trixie/cura-engine
+- https://packages.debian.org/trixie/cura
+- https://packages.debian.org/trixie/prusa-slicer
+
+## Fail-closed Abschlusskriterien
+
+Eine Familie darf erst aus `pending` wechseln, wenn fuer genau einen
+unveraenderlichen linux/amd64-Paketsatz alle folgenden Punkte belegt sind:
+
+1. Quellrevision und Paketursprung unabhaengig verifiziert; Signatur- oder
+   gleichwertiger vertrauenswuerdiger Herkunftsnachweis dokumentiert.
+2. Vollstaendige Lizenztexte, Copyright-Hinweise, Quellbereitstellungspflichten
+   und SBOM fuer Programme, Bibliotheken, Ressourcen und Profile abgeschlossen.
+3. Vollstaendige transitive Bibliotheks- und ABI-Closure im Zielimage,
+   einschliesslich Prusa-OCCTWrapper-Ladepfad.
+4. Ressourcen-, Material-, Varianten-, Intent- und Profilkompatibilitaet fuer
+   die beworbenen Druckermodelle geprueft; ausgeschlossene Cura-Definitionen
+   bleiben ausgeschlossen.
+5. Reproduzierbarer Paketbau mit festem Manifest sowie autorisierte reale
+   Linux-Start-, Profil- und Slice-Abnahme.
+
+Bis dahin bleiben Downloadfreigabe, Katalogrelease, Imagefreigabe und
+Produktivbetrieb gesperrt.

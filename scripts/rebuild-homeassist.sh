@@ -2,11 +2,11 @@
 # Compatibility entry point: source validation/staging only, never live rebuild.
 set -euo pipefail
 ROOT_DIR="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-if [[ -f "$ROOT_DIR/studio-v6/tools/studio_linux_preflight.py" && -f "$ROOT_DIR/tools/studio_linux_preflight.py" ]]; then
+if [[ -f "$ROOT_DIR/studio/tools/studio_linux_preflight.py" && -f "$ROOT_DIR/tools/studio_linux_preflight.py" ]]; then
   printf '%s\n' 'Mehrdeutiges Quelllayout. Kein Neuaufbau wurde ausgefuehrt.' >&2
   exit 2
-elif [[ -f "$ROOT_DIR/studio-v6/tools/studio_linux_preflight.py" ]]; then
-  TOOL="$ROOT_DIR/studio-v6/tools/studio_linux_preflight.py"
+elif [[ -f "$ROOT_DIR/studio/tools/studio_linux_preflight.py" ]]; then
+  TOOL="$ROOT_DIR/studio/tools/studio_linux_preflight.py"
   LAYOUT=public
 elif [[ -f "$ROOT_DIR/tools/studio_linux_preflight.py" ]]; then
   TOOL="$ROOT_DIR/tools/studio_linux_preflight.py"

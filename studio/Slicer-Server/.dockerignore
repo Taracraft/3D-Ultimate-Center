@@ -1,0 +1,17 @@
+**
+!Dockerfile
+!context-manifest.json
+!container_check.py
+!LICENSE
+!THIRD_PARTY_NOTICES.md
+!payload/
+!payload/**
+!container_runtime.py
+!container_probe.py
+!container_service.py
+!container_engines.py
+!licenses/
+!licenses/**
+!PAYLOAD_PROVENANCE.json
+!verify_profile_sources.py
+!PROFILE_SOURCE_BUNDLE.json

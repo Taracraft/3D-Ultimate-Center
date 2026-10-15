@@ -1,0 +1,24 @@
+{
+  "name": "ultimate-slicer-server-check",
+  "services": {
+    "preflight": {
+      "image": "${SLICER_CHECK_IMAGE:?Set a locally built preflight image}",
+      "pull_policy": "never",
+      "network_mode": "none",
+      "read_only": true,
+      "user": "65532:65532",
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "pids_limit": 32,
+      "mem_limit": "128m",
+      "restart": "no",
+      "command": [
+        "check"
+      ]
+    }
+  }
+}

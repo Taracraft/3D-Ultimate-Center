@@ -1,0 +1,1134 @@
+{
+  "license_texts": {
+    "licenses/AGPL-BambuStudio.txt": "57c8ff33c9c0cfc3ef00e650a1cc910d7ee479a8bc509f6c9209a7c2a11399d6",
+    "licenses/MIT-Studio.txt": "2cd47d14537993c48a899d2a3e6b30cf764ea31e18a468b662263e1f14027708"
+  },
+  "open_acceptance": [
+    "Complete corresponding-source and license-compatibility review before redistribution",
+    "Engine, base-image, library, plugin and profile rights closure",
+    "Actual Linux container, TLS, upgrade and restore acceptance"
+  ],
+  "payload_files": [
+    {
+      "historical_bytes_exact": false,
+      "historical_git_blob": "4ad76a3b467bab29752fe7ec4e850b7685866ed4",
+      "kind": "project_runtime_code",
+      "license_approved": false,
+      "path": "payload/server.py",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "8851fa8dafc40e6994ddfff7b75dc2a43fc018456f78b9fb980e5472fd4bdb12",
+      "source": "deploy/homeassistant/host/3d-printer-slicing-server/server.py"
+    },
+    {
+      "historical_bytes_exact": false,
+      "historical_git_blob": "9a5be267922a8bf675ae0c05c0ae5689a9500c4e",
+      "kind": "project_runtime_code",
+      "license_approved": false,
+      "path": "payload/job_control.py",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "922f905306aa33268416e1ca79628b0c3731c9fbe8fad50bbb4c04d7e232702a",
+      "source": "deploy/homeassistant/host/3d-printer-slicing-server/job_control.py"
+    },
+    {
+      "historical_bytes_exact": false,
+      "historical_git_blob": "00f90e46454602a491d86d4d793b4b445a05ad57",
+      "kind": "project_runtime_code",
+      "license_approved": false,
+      "path": "payload/dispatch-job.sh",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "33c164b2badde2055cb29cbb7feadd04ce07b9fb27f325e522bf263032b207ef",
+      "source": "deploy/homeassistant/host/3d-printer-slicing-server/dispatch-job.sh"
+    },
+    {
+      "historical_bytes_exact": true,
+      "historical_git_blob": "6457bf046a10ad6d137b4771078228f002bb9e8b",
+      "kind": "project_runtime_code",
+      "license_approved": false,
+      "path": "payload/progress-pipe-reader.py",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "f5e46d2ffb866d8864b153045eb251982340e502c32ef9339eee1f0a5cee3bad",
+      "source": "deploy/homeassistant/host/3d-printer-slicing-server/progress-pipe-reader.py"
+    },
+    {
+      "historical_bytes_exact": false,
+      "historical_git_blob": "9a2b2b1d4bc801da40f4f434eeeb07a96ece5cf5",
+      "kind": "project_runtime_code",
+      "license_approved": false,
+      "path": "payload/refresh-state.sh",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "d0d1c3301e33d1aecb02928ea491bedd03b68ca22bbf2d495659af07af17523e",
+      "source": "deploy/homeassistant/host/3d-printer-slicing-server/refresh-state.sh"
+    },
+    {
+      "historical_bytes_exact": false,
+      "historical_git_blob": "c43c0427c0d39f1b7ae6a20e93e5789f5a9b7004",
+      "kind": "project_runtime_code",
+      "license_approved": false,
+      "path": "payload/append-slicing-journal.sh",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "9681d2081d85beaddcc7553fc151aa5f878d6c3d65a5c64c9ae0d85528e6f46f",
+      "source": "deploy/homeassistant/host/3d-printer-slicing-server/append-slicing-journal.sh"
+    },
+    {
+      "historical_bytes_exact": true,
+      "historical_git_blob": "eb0641246203f42a01cc699e86ddf40fca05b63e",
+      "kind": "project_engine_reference_descriptor",
+      "license_approved": false,
+      "path": "payload/bambu_lab_h2s_04.json",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "22e0839d2cd43e262b28082cb05b1fec68f3692aafcb1193198d193e99118363",
+      "source": "deploy/homeassistant/host/3d-printer-slicing-server/bambu_lab_h2s_04.json"
+    },
+    {
+      "historical_bytes_exact": true,
+      "historical_git_blob": "59f16f52891a68ddaffdbee533f00ee2d9d216a2",
+      "kind": "project_engine_reference_descriptor",
+      "license_approved": false,
+      "path": "payload/profiles/printers/bambu_lab_a1_04.json",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "6e14440bb058ea99f252f967210333ca06287a2dd0be390e855929fc305a9ed5",
+      "source": "deploy/homeassistant/host/3d-printer-slicing-server/profiles/printers/bambu_lab_a1_04.json"
+    },
+    {
+      "historical_bytes_exact": true,
+      "historical_git_blob": "eb0641246203f42a01cc699e86ddf40fca05b63e",
+      "kind": "project_engine_reference_descriptor",
+      "license_approved": false,
+      "path": "payload/profiles/printers/bambu_lab_h2s_04.json",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "22e0839d2cd43e262b28082cb05b1fec68f3692aafcb1193198d193e99118363",
+      "source": "deploy/homeassistant/host/3d-printer-slicing-server/profiles/printers/bambu_lab_h2s_04.json"
+    },
+    {
+      "historical_bytes_exact": true,
+      "historical_git_blob": "c038f4bc77f03be5d7a3fdd56d5925f0e7b37804",
+      "kind": "project_runtime_code",
+      "license_approved": false,
+      "path": "payload/bed-temperature-contract.sh",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "f753aac8c0223c6bd69a51107d5b5300d00e11e9f0a90c7d9904cf37dcc69b7d",
+      "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/bed-temperature-contract.sh"
+    },
+    {
+      "historical_bytes_exact": true,
+      "historical_git_blob": "bb7e78bc7b0eb8d61c41a53276758be2d1fe055f",
+      "kind": "project_runtime_code",
+      "license_approved": false,
+      "path": "payload/materialize-bambu-machine.py",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "74540729dc4dded0f8ad750b7690199a0da53fdba3f091b5c4361eb2cc2429d1",
+      "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/materialize-bambu-machine.py"
+    },
+    {
+      "historical_bytes_exact": false,
+      "historical_git_blob": "28d324573d0aa87026284cd6fe3cf41aee098a9d",
+      "kind": "project_runtime_code",
+      "license_approved": false,
+      "path": "payload/materialize-bambu-multimaterial.py",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "821ac3f47d2c589d11f3678f40435c3398059de213da0507402a7bbb2f9fd4b4",
+      "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/materialize-bambu-multimaterial.py"
+    },
+    {
+      "historical_bytes_exact": true,
+      "historical_git_blob": "599d5d4161258412c83436706d43b8383c4e22e7",
+      "kind": "project_runtime_code",
+      "license_approved": false,
+      "path": "payload/three_mf_mesh_graph.py",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "5169c8b0dcc95e0b3f200d4b0b394caa15d16e7cebacda6a7fcb029416d7c969",
+      "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/three_mf_mesh_graph.py"
+    },
+    {
+      "historical_bytes_exact": true,
+      "historical_git_blob": "f1325a42c850e945abd4066b2835c11a14580671",
+      "kind": "project_runtime_code",
+      "license_approved": false,
+      "path": "payload/filament_parameter_contract.py",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "3ff4b0cc265105e8c3e3ec46c74e2db9ca3665d75c64c55682fe9f14ad0d63f9",
+      "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/filament_parameter_contract.py"
+    },
+    {
+      "historical_bytes_exact": true,
+      "historical_git_blob": "d0e7a525ee450fe70afe8659b834fcb5f5adbbb8",
+      "kind": "upstream_profile_derived_defaults",
+      "license_approved": false,
+      "path": "payload/native_filament_defaults.json",
+      "required_notice": "Preserve upstream license/source and transformation evidence; do not assert MIT-only or own restricted license for these derived defaults.",
+      "sha256": "cbf628b9724e232bb17c31728e8b1cc390f9f9c920def036cc8ca1254a0109a1",
+      "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/native_filament_defaults.json"
+    },
+    {
+      "historical_bytes_exact": false,
+      "historical_git_blob": "7adadc94bef7036de1debdaea149861add61c9ed",
+      "kind": "project_runtime_code",
+      "license_approved": false,
+      "path": "payload/slicer_execution_contract.py",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "377ed6077f594758a803459e0729588f32ba0c7f6de4c60ce93015998278a12c",
+      "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_execution_contract.py"
+    },
+    {
+      "historical_bytes_exact": true,
+      "historical_git_blob": "e999ff2ef6f97affc5d2cb0c0941dc310a161be4",
+      "kind": "project_runtime_code",
+      "license_approved": false,
+      "path": "payload/gcode_artifact_validation.py",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "07042f237cb303f52f106274ccc66927ba96464c985516bec90becd635de74d7",
+      "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/gcode_artifact_validation.py"
+    },
+    {
+      "historical_bytes_exact": true,
+      "historical_git_blob": "0569104ced871dc4a70ccd37afdb19422f5e0020",
+      "kind": "project_runtime_code",
+      "license_approved": false,
+      "path": "payload/printer_model_contract.py",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "bf63acf05d232316e9ddcb436b3121ec4d18d4ea031e06fa420f1abe61404a27",
+      "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/printer_model_contract.py"
+    },
+    {
+      "historical_bytes_exact": true,
+      "historical_git_blob": "c172e8e33bb475f47100cc39dec4e580acb4e69e",
+      "kind": "upstream_profile_derived_defaults",
+      "license_approved": false,
+      "path": "payload/h2s_native_defaults.json",
+      "required_notice": "Preserve upstream license/source and transformation evidence; do not assert MIT-only or own restricted license for these derived defaults.",
+      "sha256": "959caa3c4a15c9f28aa0cd0a7397686153fccd641037644d6ef27aea60236ee4",
+      "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/h2s_native_defaults.json"
+    }
+  ],
+  "profiles": [
+    {
+      "name": "Generic ABS @BBL A1",
+      "path": "resources/profiles/BBL/filament/Generic ABS @BBL A1.json",
+      "resolved_sha256": "1bfee356901b7821d09142351ee847fea1d882788928228df3a4cf946642e5be",
+      "section": "a1_filaments"
+    },
+    {
+      "name": "Generic ASA @BBL A1",
+      "path": "resources/profiles/BBL/filament/Generic ASA @BBL A1.json",
+      "resolved_sha256": "d11f5767de6ce4571e5fa6c5a6dcd79a2cdba422077fd8207c6bd2bed7889041",
+      "section": "a1_filaments"
+    },
+    {
+      "name": "Generic PA @BBL A1",
+      "path": "resources/profiles/BBL/filament/Generic PA @BBL A1.json",
+      "resolved_sha256": "0e8c67d10107e80955d4aea576a448905ac93fdebcc7a2c651fcac324118f327",
+      "section": "a1_filaments"
+    },
+    {
+      "name": "Generic PC @BBL A1",
+      "path": "resources/profiles/BBL/filament/Generic PC @BBL A1.json",
+      "resolved_sha256": "ab87a8a717a6f9f40082bbda2cc245184694f4c8bd9946ae1139c96c970b4b97",
+      "section": "a1_filaments"
+    },
+    {
+      "name": "Generic PETG HF @BBL A1",
+      "path": "resources/profiles/BBL/filament/Generic PETG HF @BBL A1.json",
+      "resolved_sha256": "a5508ec932697c6ac549626527bad68b51d2c3255bc42a0d2e4e34577033032a",
+      "section": "a1_filaments"
+    },
+    {
+      "name": "Generic PLA @BBL A1",
+      "path": "resources/profiles/BBL/filament/Generic PLA @BBL A1.json",
+      "resolved_sha256": "d05ad1e9c539d65fc89699051a0bff9e724a58bd2a40b2177783aa9b7b2177f8",
+      "section": "a1_filaments"
+    },
+    {
+      "name": "Generic PP @BBL A1",
+      "path": "resources/profiles/BBL/filament/Generic PP @BBL A1.json",
+      "resolved_sha256": "bc6cfd4d7a4e0c86ddda6553e3b46135a47a82962afe1d70d1bb6a70eaac6506",
+      "section": "a1_filaments"
+    },
+    {
+      "name": "Generic PVA @BBL A1",
+      "path": "resources/profiles/BBL/filament/Generic PVA @BBL A1.json",
+      "resolved_sha256": "45c16aa93d4da02668de8dd33e482bb5cbdae0b68ad968739bb05bbfd7f5e2ec",
+      "section": "a1_filaments"
+    },
+    {
+      "name": "Generic TPU @BBL A1",
+      "path": "resources/profiles/BBL/filament/Generic TPU @BBL A1.json",
+      "resolved_sha256": "2c5c057af194560ffc466b12b2cb40a2bdd06026b4aafcedb3c0aa85880a9b13",
+      "section": "a1_filaments"
+    },
+    {
+      "name": "Generic ABS @BBL H2S 0.2 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic ABS @BBL H2S 0.2 nozzle.json",
+      "resolved_sha256": "2fbd587762dec1b9714f29fdae9c53821add3edd9cea2d1bf8d8da73af5dd61b",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic ABS @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic ABS @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "4b2d0bff10d48072eb5cc780c08e5d7d0a7b760f14cbbe6cdfb6a444bcc0c809",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic ASA @BBL H2S 0.2 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic ASA @BBL H2S 0.2 nozzle.json",
+      "resolved_sha256": "1010b7c270f5678eed6e1e9975964f87da060bcccd3c64c94a38c701c107cdbf",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic ASA @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic ASA @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "8e8564dc3b4bd16b915d3e02035ea1bc97294bf7a937fde2fae799146027a99f",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic BVOH @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic BVOH @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "92b927a39e33ae00b9fce780249add9de18d059a7c873bc4ef7914bdb95714dc",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic EVA @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic EVA @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "d716c909bfa6730da945afb1028929073617a97b7fa1b462a9b130027a68a3e3",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic HIPS @BBL H2S 0.2 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic HIPS @BBL H2S 0.2 nozzle.json",
+      "resolved_sha256": "05d71fb2699a22561b8635f6eca123132b674df5cf63140d05425412de37a14a",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic HIPS @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic HIPS @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "24ab7d5ac2a6b3a4576ad139297b766a0cb25e5e03d93fbbacb2ea39ab728d2b",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PA @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PA @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "ac828dced8a6575b857791e3abedbbf89862cb1edf7c1856e561107736997d8a",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PA-CF @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PA-CF @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "4856bee6e2b7fcf1261f2cbd6d272ebe85dff76582de9fb7e71e1ebc83ab6343",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PC @BBL H2S 0.2 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PC @BBL H2S 0.2 nozzle.json",
+      "resolved_sha256": "4a2c25ab3c0d4e79d7cd0adff358b7bc9af343c2eb676ec4e420ac134bfb63f8",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PC @BBL H2S",
+      "path": "resources/profiles/BBL/filament/Generic PC @BBL H2S.json",
+      "resolved_sha256": "333109b29e38924e27425e4e28eb850255ed7f58791e1a214b3f09d5e25ec16d",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PCTG @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PCTG @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "963ad5f58b63964f3dff7ce6134b1657d655344ac5b0c415255d5d734e9ae980",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PE @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PE @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "a8ad925452d720373e4c3657186e438ebd6c0c7409f8d803e831b371ba65bcd8",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PE-CF @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PE-CF @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "09ba78a9448398995ca2322af994388bb8bc21ef062d84861598119acce4ebac",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PETG @BBL H2S 0.2 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PETG @BBL H2S 0.2 nozzle.json",
+      "resolved_sha256": "5c85e53eb0ca03f61e9e47ddc2e7d4e4e9d5d7c8749b0faad7feb30504a46c1c",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PETG @BBL H2S",
+      "path": "resources/profiles/BBL/filament/Generic PETG @BBL H2S.json",
+      "resolved_sha256": "9fb2c2aaa10fa01a2f0aa01d2a27da8b23f351e6f99baaea71662218441115a7",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PETG HF @BBL H2S 0.2 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PETG HF @BBL H2S 0.2 nozzle.json",
+      "resolved_sha256": "2f304263d8ea0f9cc2a119a66c32c021010ccc63583a124e14bb31cef6f60df0",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PETG HF @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PETG HF @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "fcb86f78492d768d337fcbb32f83079969d5a5657bc694a939069f805392546e",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PETG-CF @BBL H2S",
+      "path": "resources/profiles/BBL/filament/Generic PETG-CF @BBL H2S.json",
+      "resolved_sha256": "24e1c0c11fe8b5ca30986c2d0b5099706c3979390c17ddd7e43b2879619568b8",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PHA @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PHA @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "51d6d357128ea03a66d968f953b7ab28132e12d3daf876e01c14ed21faa03996",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PLA @BBL H2S 0.2 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PLA @BBL H2S 0.2 nozzle.json",
+      "resolved_sha256": "58c62b3610ec39562b8fbf9ef0730ed2ecd5252df29076a665594df2b3b999bb",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PLA @BBL H2S",
+      "path": "resources/profiles/BBL/filament/Generic PLA @BBL H2S.json",
+      "resolved_sha256": "284b41e0323984d6cfb7192f3489a40414e5df88d34cd68aa9397db6de9078b1",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PLA High Speed @BBL H2S 0.2 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PLA High Speed @BBL H2S 0.2 nozzle.json",
+      "resolved_sha256": "105ba793843a28b4cf76ff1c83f50ede9a229931e7ea6742c84bf9b10be89ce2",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PLA High Speed @BBL H2S",
+      "path": "resources/profiles/BBL/filament/Generic PLA High Speed @BBL H2S.json",
+      "resolved_sha256": "d2059ecd02ed570d9841b697a2cda278892d0f9f4c3a9226616c509b8db5b457",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PLA Silk @BBL H2S",
+      "path": "resources/profiles/BBL/filament/Generic PLA Silk @BBL H2S.json",
+      "resolved_sha256": "a99b4c3b0c1e9d196c66447a5d6857a0ed6cef2c372a6e0827c9342cbbe39f86",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PLA-CF @BBL H2S",
+      "path": "resources/profiles/BBL/filament/Generic PLA-CF @BBL H2S.json",
+      "resolved_sha256": "2e1984a31fbf8340c9c5587221f55a889e925caa88c6eb105da4962ddcbe08e4",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PP @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PP @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "245e6b14e4b67ed1944fac252a1a885878871599dfec241b2855f23b92dfe424",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PP-CF @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PP-CF @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "5be85a9ce7c487c4a1dd9267df78637ea16e6a9b91bfb542f4f7756f87dc2da9",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PP-GF @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PP-GF @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "bd02e04bac55db530364766caaf77285540e53519f3b1bffad8cc3797b3b74f4",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PPA-CF @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PPA-CF @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "ca03556b3870f7c96725b21090fa17ac36cb36938785bbbbf506cbab878a6b76",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PPA-GF @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PPA-GF @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "74f15ea8bfd2118200aa935655fa215bcf70055ca11c276429bd72597ac40d4a",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PPS @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PPS @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "16ec5b98a87739c61f943c2abc818b790e3cc4bf77927b25d88f3dac182ac144",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PPS-CF @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PPS-CF @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "b8d20a5a9a66e228081a33721a8d194a9004eb2e484871753f932ee364bdccbc",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic PVA @BBL H2S 0.4 nozzle",
+      "path": "resources/profiles/BBL/filament/Generic PVA @BBL H2S 0.4 nozzle.json",
+      "resolved_sha256": "00beced42af8a387f27f4a307f7c2de8257dc38432bf234b85987fddabdb0f9e",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic TPU @BBL H2S",
+      "path": "resources/profiles/BBL/filament/Generic TPU @BBL H2S.json",
+      "resolved_sha256": "72317fc220b73c3b9244406476a8b5be155c39a90f841ce0f0a0837aef81eddd",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "Generic TPU for AMS @BBL H2S",
+      "path": "resources/profiles/BBL/filament/Generic TPU for AMS @BBL H2S.json",
+      "resolved_sha256": "c989777dc2ce57a0b8e8bbf64a64b4ddd82c4286b599f037a533d3b8c85be0f6",
+      "section": "h2s_filaments"
+    },
+    {
+      "name": "0.2",
+      "path": "resources/profiles/BBL/machine/Bambu Lab H2S 0.2 nozzle.json",
+      "resolved_sha256": "4d8031e33ddb7909724161f612102c8692fa07c4f286352b64605cd728019858",
+      "section": "h2s_machines"
+    },
+    {
+      "name": "0.4",
+      "path": "resources/profiles/BBL/machine/Bambu Lab H2S 0.4 nozzle.json",
+      "resolved_sha256": "8482026441366e5f699365203701a80da0d161c8803b84bafa0094d87a17616d",
+      "section": "h2s_machines"
+    },
+    {
+      "name": "0.6",
+      "path": "resources/profiles/BBL/machine/Bambu Lab H2S 0.6 nozzle.json",
+      "resolved_sha256": "561765d0b0d4116512b9aea4d8d64ebe55e6f72cd03eb8d2c3808d86ea189c2c",
+      "section": "h2s_machines"
+    },
+    {
+      "name": "0.8",
+      "path": "resources/profiles/BBL/machine/Bambu Lab H2S 0.8 nozzle.json",
+      "resolved_sha256": "1e4daac4e9347fe3fea6c93a4cbe15848550d50a2af28ccce8cc6b2756026a40",
+      "section": "h2s_machines"
+    },
+    {
+      "name": "0.2",
+      "path": "resources/profiles/BBL/process/0.10mm Standard @BBL H2S 0.2 nozzle.json",
+      "resolved_sha256": "ae884bc9567e4e6e290aa88d1fa59441e9bdb129ae401f5716b75da341fa9bfb",
+      "section": "h2s_processes"
+    },
+    {
+      "name": "0.4",
+      "path": "resources/profiles/BBL/process/0.20mm Standard @BBL H2S.json",
+      "resolved_sha256": "ea06b1890cf9461ca4b579127d76a1e323681a21fbb926384de7715fe0fd291a",
+      "section": "h2s_processes"
+    },
+    {
+      "name": "0.6",
+      "path": "resources/profiles/BBL/process/0.30mm Standard @BBL H2S 0.6 nozzle.json",
+      "resolved_sha256": "008e529fe5628a5f98f2d0e8324e40e0016d42425fba390987afbcbde3c78878",
+      "section": "h2s_processes"
+    },
+    {
+      "name": "0.8",
+      "path": "resources/profiles/BBL/process/0.40mm Standard @BBL H2S 0.8 nozzle.json",
+      "resolved_sha256": "2c6c85b0ff332eef082bee03b1cc72f3532a067a4f5604fbe875ebe850fe0819",
+      "section": "h2s_processes"
+    }
+  ],
+  "publication_approved": false,
+  "review_date": "2026-10-14",
+  "schema": 1,
+  "sources_are_not_relicensed": true,
+  "transformations": {
+    "filament_fields": "Selected fields preserve resolved upstream values; all 46 selections verified.",
+    "machine_gcode": "Start/end sound sections replaced by sound markers; reinserting stored sound reconstructs both full upstream templates byte for byte. No G-code execution.",
+    "process_fields": "Selected scalar fields use the first upstream vector element; all 12 projections verified."
+  },
+  "upstream_commit": "42d319c6692fa8e64790fddf0cdaafd2a4254bcc",
+  "upstream_files": [
+    {
+      "git_blob": "4c9b38b183e0af411b0591b28de9793ae1d6db08",
+      "path": "resources/profiles/BBL/filament/Generic ABS @BBL A1.json",
+      "sha256": "a67e18f4618d92aad3c96d37eca4a8d02cc93655fcaf808f38864f95c6bfceb1"
+    },
+    {
+      "git_blob": "e412d22e80253826c0afa4d72911f22878878462",
+      "path": "resources/profiles/BBL/filament/Generic ABS @BBL H2S 0.2 nozzle.json",
+      "sha256": "1bc494ad0eb21f49ca6ca98bb280d9f389801b8c8c7a1bfd4849719a80c2d847"
+    },
+    {
+      "git_blob": "eb30e6b6ae1b10ad89ca11e1d8c9f36e7300f66f",
+      "path": "resources/profiles/BBL/filament/Generic ABS @BBL H2S 0.4 nozzle.json",
+      "sha256": "71e02d0fb06e115c2ccdc10b0a98ce90905093444172beca34edb076fe5677c4"
+    },
+    {
+      "git_blob": "80a90af99366ae1f485da083f759ba5fd9ae7bb2",
+      "path": "resources/profiles/BBL/filament/Generic ABS @base.json",
+      "sha256": "8fef064fe35857b6dabeab9c1fca4c2afffd620e34bd541abe2541c75679f5c1"
+    },
+    {
+      "git_blob": "282fab276337768fee2f467ee8df9bfd7fff40bd",
+      "path": "resources/profiles/BBL/filament/Generic ASA @BBL A1.json",
+      "sha256": "d0658595fddfb6c2ffb94d42977b56c5c9f7af62b19f14f9162bdfb3f28fb52b"
+    },
+    {
+      "git_blob": "600499309edb95cf3d5cfa216e58d17a6eb707b7",
+      "path": "resources/profiles/BBL/filament/Generic ASA @BBL H2S 0.2 nozzle.json",
+      "sha256": "446f8bc985b3a586749e47f4d5e545c27a000b03905a17c7c968dc5310fea7cc"
+    },
+    {
+      "git_blob": "02e74fc96efa1ab355486be59b80b8fbea24df9e",
+      "path": "resources/profiles/BBL/filament/Generic ASA @BBL H2S 0.4 nozzle.json",
+      "sha256": "2c514cdadf114880f0cbff76c35e5ea1fb3af101a0e011ba6b892ecb3f81c265"
+    },
+    {
+      "git_blob": "15ffd21e2a5f78ddb7e822620d8e997bef1ad167",
+      "path": "resources/profiles/BBL/filament/Generic ASA @base.json",
+      "sha256": "a83bc6eff69a9f93f5707d6c48872244e9b0b8263c5e8fb105bf56837571f3e1"
+    },
+    {
+      "git_blob": "d3b67fb1c592a6d2b14b06273ad76ca9cfda13e7",
+      "path": "resources/profiles/BBL/filament/Generic BVOH @BBL H2S 0.4 nozzle.json",
+      "sha256": "98328a5f005ab1ebcb8e27533c4d31ac6eb105d52579781a4cb0a20b1d53fa49"
+    },
+    {
+      "git_blob": "551976dd3f8a8a18cb4d2ae8bc4395eb3b35326d",
+      "path": "resources/profiles/BBL/filament/Generic BVOH @base.json",
+      "sha256": "f6f8c80eda83d819b671f57b4191733fefc8c4852df2008dcd33c1167bbee4ef"
+    },
+    {
+      "git_blob": "9287f92ab88475aaed512e03718d3b36aaa19aba",
+      "path": "resources/profiles/BBL/filament/Generic EVA @BBL H2S 0.4 nozzle.json",
+      "sha256": "21afbaadb6635de5c2f9f905b9ad6c8cde303d8cf47d796da63731f8138703b0"
+    },
+    {
+      "git_blob": "eb96c088042d7b4e641a9091d810f47547406821",
+      "path": "resources/profiles/BBL/filament/Generic EVA @base.json",
+      "sha256": "9a3a5b0c6f3317ce3ff4963c392121c072eeadd23eef01adb8ef45d17774c3b6"
+    },
+    {
+      "git_blob": "4f7a78c954c5bb025a173dc3057813a185fad0ee",
+      "path": "resources/profiles/BBL/filament/Generic HIPS @BBL H2S 0.2 nozzle.json",
+      "sha256": "b8c3a6852b9b6a3d2485e15fd8c1f05235fcb8de3e126865ede32bac78678cf6"
+    },
+    {
+      "git_blob": "95b75e1eaf0cfbf68c3471f8ba76879729db091d",
+      "path": "resources/profiles/BBL/filament/Generic HIPS @BBL H2S 0.4 nozzle.json",
+      "sha256": "661952a6f808d49254840f36529d9763e38e4172a674e4820ec5196bd0880f5f"
+    },
+    {
+      "git_blob": "9ffe6a8598e28b717a118bbd859e33c6605239f7",
+      "path": "resources/profiles/BBL/filament/Generic HIPS @base.json",
+      "sha256": "b029acd12ad6e5f4963c29858506d86edc36b7dd434de5fad4ada2ab1e38c10d"
+    },
+    {
+      "git_blob": "a995a42b312a7889bd29285c73c599427fd49b22",
+      "path": "resources/profiles/BBL/filament/Generic PA @BBL A1.json",
+      "sha256": "fa425dcf9c8ba69de40a90152b994e490d63482f7199b1ad242be19b5ac69bc1"
+    },
+    {
+      "git_blob": "660c1970f6cef279dfa49da1078a10109fe2ae83",
+      "path": "resources/profiles/BBL/filament/Generic PA @BBL H2S 0.4 nozzle.json",
+      "sha256": "3dfa5cdd404bd3324f4de7073bf750208ce894e331746cad3dfb5e1886e65242"
+    },
+    {
+      "git_blob": "1cd04681fb2c4982e48d0ad1b050f0180718540d",
+      "path": "resources/profiles/BBL/filament/Generic PA @base.json",
+      "sha256": "06149de0fe91f9174ffeecf3f3a3157308902d20b36497d369f203fed21034df"
+    },
+    {
+      "git_blob": "fe746d795e8a7614c52ccb5830a3666c451abcb0",
+      "path": "resources/profiles/BBL/filament/Generic PA-CF @BBL H2S 0.4 nozzle.json",
+      "sha256": "acd8e186b20a22fab1b6c444ad04529e9630d0c0e3ec6831497789d7d1a2db01"
+    },
+    {
+      "git_blob": "566f84fe7fcc857d4cc585dfb58b163557b8c2b1",
+      "path": "resources/profiles/BBL/filament/Generic PA-CF @base.json",
+      "sha256": "c0f9cf8f61ca795242766e9f269e579beaa0e296353db4e984a0c913f5945173"
+    },
+    {
+      "git_blob": "ef3aa6526b262ac314ffc9210bc85edcbe99ec38",
+      "path": "resources/profiles/BBL/filament/Generic PA.json",
+      "sha256": "15865abe315299437fdd401940020a242bd63c1781ca77326d3527b805b8bd03"
+    },
+    {
+      "git_blob": "8da1f258850b90974ea9927c3873824c13b66297",
+      "path": "resources/profiles/BBL/filament/Generic PC @BBL A1.json",
+      "sha256": "c0ef5273523980e8c29e72d927c467b0a5cd2bfd4b99a3f066cd8ca5c73f2802"
+    },
+    {
+      "git_blob": "c50fc3489bf42eda416c27238729a2193802361c",
+      "path": "resources/profiles/BBL/filament/Generic PC @BBL H2S 0.2 nozzle.json",
+      "sha256": "37dcb7a08b2a639d159c1a08262b7ab174b70b0e7e230173c14b85cf9756e386"
+    },
+    {
+      "git_blob": "092dd14a3dfe96f468d4ab0cb26c7b19510c1c72",
+      "path": "resources/profiles/BBL/filament/Generic PC @BBL H2S.json",
+      "sha256": "433cdb820426434f8e7f866ed12769e919df814c8a3b9b26eeb1eb20088291cd"
+    },
+    {
+      "git_blob": "c2a9975e37128b2d5d94e9a1fa2b6939548da03e",
+      "path": "resources/profiles/BBL/filament/Generic PC @base.json",
+      "sha256": "dcdef41759d96736888a2451cb3d7735fc6406715ce95b96d862bfd72f0125d7"
+    },
+    {
+      "git_blob": "03d79862fe19a879737fe740983bd2819bf483c5",
+      "path": "resources/profiles/BBL/filament/Generic PCTG @BBL H2S 0.4 nozzle.json",
+      "sha256": "055b94786449edbe1b185e2ccf05c2fa86f9aa5c48fdf2095f3a40d515f10c33"
+    },
+    {
+      "git_blob": "1216af3173c7a32048d2adb2e8b561cab39316b3",
+      "path": "resources/profiles/BBL/filament/Generic PCTG @base.json",
+      "sha256": "aec49aa9cbcffdd93c8db1ae025de8932473d3c1d1a302505db6738d0ebf7516"
+    },
+    {
+      "git_blob": "53a83b4fab5930bc44bb163300a96fa44c8893cd",
+      "path": "resources/profiles/BBL/filament/Generic PE @BBL H2S 0.4 nozzle.json",
+      "sha256": "b2aa65ab87af5614d8a92642127ed991498ddcbd367fd1a4882464c13a5f49d5"
+    },
+    {
+      "git_blob": "c868cb7133333aebdf36ba58dc34456f5f47aa0a",
+      "path": "resources/profiles/BBL/filament/Generic PE @base.json",
+      "sha256": "51e674effa590b9f0cefe4290ee6b5ef324ad835c38a042efb5da74e3243ebbf"
+    },
+    {
+      "git_blob": "a4b1f45c58ec624c48841810926640e650cba9b7",
+      "path": "resources/profiles/BBL/filament/Generic PE-CF @BBL H2S 0.4 nozzle.json",
+      "sha256": "789808cd7166aac879a1b5741d546b40468c69846482bcaeacb9cec1254f22ee"
+    },
+    {
+      "git_blob": "b5329152db67e8c13a1621dead1996a5da8674e7",
+      "path": "resources/profiles/BBL/filament/Generic PE-CF @base.json",
+      "sha256": "8f588f2b09ab625c271a0d2c045cca648bb4025adcbac70ba9167abf25d4c523"
+    },
+    {
+      "git_blob": "94c8446116e4f0e5272653400704c61ec75e8ee9",
+      "path": "resources/profiles/BBL/filament/Generic PETG @BBL H2S 0.2 nozzle.json",
+      "sha256": "27743c62e5e66c6ef1d6402ace1898c113bfe311e2b33b2ba4bc432e56af1546"
+    },
+    {
+      "git_blob": "1939ff6eb2234d431eeef7dae101cdce04e6e556",
+      "path": "resources/profiles/BBL/filament/Generic PETG @BBL H2S.json",
+      "sha256": "d365c4caac4afd3f121c34036e8c548a779ba896c4d6d2ffc7d1d098d5a55ad7"
+    },
+    {
+      "git_blob": "29734e7a95bd8e1ac73099ea9fa9856c2397440b",
+      "path": "resources/profiles/BBL/filament/Generic PETG @base.json",
+      "sha256": "6f6c6f213537cf75ab87f5eae7454a876ca268208d70f6b241c5396224a95b1a"
+    },
+    {
+      "git_blob": "5f7c2112c065bc163ab6c0cc2c5b91899d452c0c",
+      "path": "resources/profiles/BBL/filament/Generic PETG HF @BBL A1.json",
+      "sha256": "6c0a0290bda30d1c2fcded42e5fd90d08970105010993a993c763b2ee34c771a"
+    },
+    {
+      "git_blob": "30bf4eb540cf58fa0da3e1f91b9685c7841ba0d8",
+      "path": "resources/profiles/BBL/filament/Generic PETG HF @BBL H2S 0.2 nozzle.json",
+      "sha256": "1dc323e5d7997f2d13213dd399ceebcace6c83135098a9da1fcd569cf2e3eb96"
+    },
+    {
+      "git_blob": "6a144066c2efc8b56835ee78fc9a4ee1cbd20544",
+      "path": "resources/profiles/BBL/filament/Generic PETG HF @BBL H2S 0.4 nozzle.json",
+      "sha256": "300e4b16e6df787871472eb3cce1036ff9c616a0607b3e9aef8da02a331dbc29"
+    },
+    {
+      "git_blob": "7c27e61eb4d8f591db5bf7297962528ebb156c90",
+      "path": "resources/profiles/BBL/filament/Generic PETG HF @base.json",
+      "sha256": "d37ebcd9ec3a1fd8e5d0c61f7f115489eaccd8a229ea06ed3de3e1afd248046e"
+    },
+    {
+      "git_blob": "45a826dffe9934a143359a0e4e02534a50e9ebab",
+      "path": "resources/profiles/BBL/filament/Generic PETG-CF @BBL H2S.json",
+      "sha256": "b7c3b53f6197855f935b760bcca07fa0f4c20b309e12d8ae2d8663b4d87c1bf2"
+    },
+    {
+      "git_blob": "3287772f6b5c72961ca08f1d2bbd94d6870a1a99",
+      "path": "resources/profiles/BBL/filament/Generic PETG-CF @base.json",
+      "sha256": "9e4dec0a085da8f5fa66ce6945d5bfb0803e4c78f1d7e70aa192d9086cc69b2e"
+    },
+    {
+      "git_blob": "9cd97d03ebde4f2457797ac9ac997e067567db56",
+      "path": "resources/profiles/BBL/filament/Generic PHA @BBL H2S 0.4 nozzle.json",
+      "sha256": "7158637a1c3f8cec6009139f3e01d1b3c2a385d96b52516d93ce31e11d407480"
+    },
+    {
+      "git_blob": "f91285ad4919aa0378fdb0bcb4d9effbbc987801",
+      "path": "resources/profiles/BBL/filament/Generic PHA @base.json",
+      "sha256": "bb1f87718ba43b1ff6892e2342d90f5403ca9c7c8f1fa328f7a8a057e92881ae"
+    },
+    {
+      "git_blob": "864344b169b321ce893768ce055871aeb1246397",
+      "path": "resources/profiles/BBL/filament/Generic PLA @BBL A1.json",
+      "sha256": "23c1aa2ebb152191ebc45b73ff997e0d91d8a2d4408f133e2dbb65560e014a6d"
+    },
+    {
+      "git_blob": "c04a5a7f1d5ddeb549f7976ae06ce415898ba80e",
+      "path": "resources/profiles/BBL/filament/Generic PLA @BBL H2S 0.2 nozzle.json",
+      "sha256": "65225610f5de342631f429ab415938ac39ece33aa03c2ce2312d6af66cc36290"
+    },
+    {
+      "git_blob": "acdd0dfc70df48136d451f0b7ac5f54a3e1dcab9",
+      "path": "resources/profiles/BBL/filament/Generic PLA @BBL H2S.json",
+      "sha256": "3633e2cb09547852005f36e1738559f2b7c1bdfe1d643a6125dd2333b6038c5a"
+    },
+    {
+      "git_blob": "bf37d0917e21abbbc6ae94f6dbad7ff9063deb1f",
+      "path": "resources/profiles/BBL/filament/Generic PLA @base.json",
+      "sha256": "530b745e2062c4c577d7acce3601ac7586fc65de394726252354bec0ade3e4c5"
+    },
+    {
+      "git_blob": "23633f4ce44225e1505333bd16811a32e92df8ea",
+      "path": "resources/profiles/BBL/filament/Generic PLA High Speed @BBL H2S 0.2 nozzle.json",
+      "sha256": "bea3cef9ea580fb4bc52aceeabb2f55ebcea39bcf68217f466a1fe43e680bf04"
+    },
+    {
+      "git_blob": "580dbcec3dd7a2f4c8535388284aef63b36cbec3",
+      "path": "resources/profiles/BBL/filament/Generic PLA High Speed @BBL H2S.json",
+      "sha256": "19863f7aba490e339d4d268dbfba8c93a2e4c317dbb5a9995d7cd6269aa34edb"
+    },
+    {
+      "git_blob": "e3672f689ebcbb3a692cde75b7bfac6624cd8f2b",
+      "path": "resources/profiles/BBL/filament/Generic PLA High Speed @base.json",
+      "sha256": "edd1c3bf34842f92f8f900df14d9608a975cebe81453ed0a00a57ff02cda2677"
+    },
+    {
+      "git_blob": "3106e39da4b095c0bd6a6b687f357984f9dcfe2a",
+      "path": "resources/profiles/BBL/filament/Generic PLA Silk @BBL H2S.json",
+      "sha256": "b785fc1ce0a28232975ea3fbcec72c28f3be26286ee38ee69571571ddecc768b"
+    },
+    {
+      "git_blob": "03f0c0edcd0106785af97987b6bdb3cd551431c4",
+      "path": "resources/profiles/BBL/filament/Generic PLA Silk @base.json",
+      "sha256": "7ddd21e201715b58f1b1e5855568e266298a05bb54443938f5bd5b89ad69199a"
+    },
+    {
+      "git_blob": "8bd3e413df1be39bc0c1b2cef7fa5f912777b7aa",
+      "path": "resources/profiles/BBL/filament/Generic PLA-CF @BBL H2S.json",
+      "sha256": "96266a461a4c6fca6e5a5f595eba038941fbf84d33a410dfe387752caeae0cf1"
+    },
+    {
+      "git_blob": "8bb1564a4cec913cccc8dc449a4d18f694b2a2c5",
+      "path": "resources/profiles/BBL/filament/Generic PLA-CF @base.json",
+      "sha256": "26d27dee40797adfc7ef160cefe385438d0a3a091cb3d04828ef89de79a01ae0"
+    },
+    {
+      "git_blob": "4c4b6c1710b18bd68a366d9d565126b9e42b5f78",
+      "path": "resources/profiles/BBL/filament/Generic PP @BBL A1.json",
+      "sha256": "3635a8e0630003e1e821deb719921afe97ad39c7e4cf343c11f0698c9cf47cfc"
+    },
+    {
+      "git_blob": "86c72f480edca9258d0db6c8830699b24c17d2aa",
+      "path": "resources/profiles/BBL/filament/Generic PP @BBL H2S 0.4 nozzle.json",
+      "sha256": "c2c9c7168385e42857505f43c79b721be36833aea001003472daf8d78831d244"
+    },
+    {
+      "git_blob": "faf0a211fa67a909fb25ea6e015fdc3cdfb53a9b",
+      "path": "resources/profiles/BBL/filament/Generic PP @base.json",
+      "sha256": "db84267596851f6de4d62205d730a80387e116665cd8c580c495866e19554fb2"
+    },
+    {
+      "git_blob": "39d91f37fb7cd3f772f0164d68a9aa7d7e1a1657",
+      "path": "resources/profiles/BBL/filament/Generic PP-CF @BBL H2S 0.4 nozzle.json",
+      "sha256": "1970aa85d068d1edd2563ee17e80ba10209ce6b7ca3ce45a2dc15b154f4a1d4e"
+    },
+    {
+      "git_blob": "c131f9587894123925f7e4e9661e69f99cc54437",
+      "path": "resources/profiles/BBL/filament/Generic PP-CF @base.json",
+      "sha256": "10e03acd2a1d737c0af8acc8f3ec258318ca6fc74dc4327e843e4d4834f32189"
+    },
+    {
+      "git_blob": "d525074be3d6b584af42006629506007661bd425",
+      "path": "resources/profiles/BBL/filament/Generic PP-GF @BBL H2S 0.4 nozzle.json",
+      "sha256": "b26a5fb1895df693434fb82c1da64ae86f47bf3c980430816f8e7c11e8217f13"
+    },
+    {
+      "git_blob": "b58eace53c47494f86dd551eef6e01c0b2c265db",
+      "path": "resources/profiles/BBL/filament/Generic PP-GF @base.json",
+      "sha256": "eeebb060cfb901eb955a613049508b56173d44516f643bf8a33f2a688a8603da"
+    },
+    {
+      "git_blob": "4c86237bb0ab9ab2283b9d7a36619e914f0d6db7",
+      "path": "resources/profiles/BBL/filament/Generic PPA-CF @BBL H2S 0.4 nozzle.json",
+      "sha256": "5f4b02b677616e292eab9ac40c3f58cac59ac196dfb51c8485e8e4cee9694ae4"
+    },
+    {
+      "git_blob": "8c6a9c9b8dce2d231dbcaa5f4a983495199e476e",
+      "path": "resources/profiles/BBL/filament/Generic PPA-CF @base.json",
+      "sha256": "377686c36c7700e10ed940eb294a87fb5e926242e6ca1862488ffc7b220ffba3"
+    },
+    {
+      "git_blob": "e224c69e98c85173e5d8498a8bd4eb14596a2720",
+      "path": "resources/profiles/BBL/filament/Generic PPA-GF @BBL H2S 0.4 nozzle.json",
+      "sha256": "73baa5e9565ed0a2deacd901cf42a7d12bf637f0fd5154eec4a8024afcc98fc9"
+    },
+    {
+      "git_blob": "2d95e3f5c026fa723f535bbe384cba069c4be5a9",
+      "path": "resources/profiles/BBL/filament/Generic PPA-GF @base.json",
+      "sha256": "79d3c4834c65139213bf8f88dbdf5dd2766f8af2b63f74f1a26363e14cb16632"
+    },
+    {
+      "git_blob": "ff58bebc7912817e499035bd8fdd71b71682a49d",
+      "path": "resources/profiles/BBL/filament/Generic PPS @BBL H2S 0.4 nozzle.json",
+      "sha256": "a410d5f42603f3f6f56b277015b7da90f0657a2e9775452f81b5661bf21a769b"
+    },
+    {
+      "git_blob": "598b111406cbc470544fdbcff09ef68cab05b282",
+      "path": "resources/profiles/BBL/filament/Generic PPS @base.json",
+      "sha256": "a7625c7e047a0e953b3e982f464e3ad344871baea351e38e720e9c614f48b855"
+    },
+    {
+      "git_blob": "36e4a6e4dc324b14c37b006fbd2a39973bf9f1da",
+      "path": "resources/profiles/BBL/filament/Generic PPS-CF @BBL H2S 0.4 nozzle.json",
+      "sha256": "67400ba475e949a9e301316c3548c63b0c3cc25a3082e450d181e395f8f5ccdf"
+    },
+    {
+      "git_blob": "1ed5c1fd4c1b9ee7446489039e6da1698df2c257",
+      "path": "resources/profiles/BBL/filament/Generic PPS-CF @base.json",
+      "sha256": "f8113f343fe3a81a7e83ea5a35a340de116a9d59e797a147c39ae660f6b26d82"
+    },
+    {
+      "git_blob": "5e02d05a2ea6be1aa62f8e024b53e218a6626f15",
+      "path": "resources/profiles/BBL/filament/Generic PVA @BBL A1.json",
+      "sha256": "c47407310cb34e8d21705ff90190e413714999f4755e175203043a7bbb400671"
+    },
+    {
+      "git_blob": "01d71a330443b6b2ca5a2b0e15f5e218487167cc",
+      "path": "resources/profiles/BBL/filament/Generic PVA @BBL H2S 0.4 nozzle.json",
+      "sha256": "0e74b7e1f46c20265b7089147d1d92e8131303676008cf5f537a33c45bbbfb01"
+    },
+    {
+      "git_blob": "c394eaeb9754073331f609f6e25402207eb7912c",
+      "path": "resources/profiles/BBL/filament/Generic PVA @base.json",
+      "sha256": "205f265b6423f4dd039cbca8a8f883ea4af5dcda2ac1d72d6b0ccc24344c4cb1"
+    },
+    {
+      "git_blob": "9fbe338a57595c6f25ea806a289e3ee6b9722b81",
+      "path": "resources/profiles/BBL/filament/Generic TPU @BBL A1.json",
+      "sha256": "18fddfa1a3658dde7e6d04190ce1832e3a59ec5e372b3cf49c42bdf32605794d"
+    },
+    {
+      "git_blob": "2b3909db14202e5ea6286569c7a9ee36df56183b",
+      "path": "resources/profiles/BBL/filament/Generic TPU @BBL H2S.json",
+      "sha256": "34d9c50ebc3114a997b5fb82dd711d990782f54726b165e40b7c7b3238efa712"
+    },
+    {
+      "git_blob": "626b0c4cb86bd7cd88dbe75edc2acc2af44bdfa9",
+      "path": "resources/profiles/BBL/filament/Generic TPU @base.json",
+      "sha256": "f17274cec89cd75aee576ec02c3fbd6e34bcacc452e673547b171fbac844fb53"
+    },
+    {
+      "git_blob": "b802e17e60954ec928142efd32aae1b6b2f96b9b",
+      "path": "resources/profiles/BBL/filament/Generic TPU for AMS @BBL H2S.json",
+      "sha256": "6f3343dd8b2aa28e0cf38c7f9a14fd0244165c409f5f0991330982862aa4b6c5"
+    },
+    {
+      "git_blob": "c214ba1c27217c64544bf13fc79e5b0df8567598",
+      "path": "resources/profiles/BBL/filament/Generic TPU for AMS @base.json",
+      "sha256": "63889a5408836e51bfb946de26fa3955f4123f4ca63a6e5a299714993b3fca96"
+    },
+    {
+      "git_blob": "0b2303da69601dc45267b94fd8edc73b87ba7a59",
+      "path": "resources/profiles/BBL/filament/Generic TPU.json",
+      "sha256": "d88044c664414ce28c49d22f6248cfdf038973c9354508a1ea94cd68e9dba74c"
+    },
+    {
+      "git_blob": "4b8086b8364865b81bc9940adc16ac52a8f68000",
+      "path": "resources/profiles/BBL/filament/fdm_filament_abs.json",
+      "sha256": "2b63aa6e570c00088b94ab67901b19b65eb441132ed868864d37bb397943f361"
+    },
+    {
+      "git_blob": "b3d8d48b547d6049d9b8219f3046c51ebae0fade",
+      "path": "resources/profiles/BBL/filament/fdm_filament_asa.json",
+      "sha256": "f6afac86caf40a28530fe3594e733c92bd0fa9e5027ca8eb001fef03b3400e06"
+    },
+    {
+      "git_blob": "5755e3bdbb87c031424d711b27f7d8cf3013631a",
+      "path": "resources/profiles/BBL/filament/fdm_filament_bvoh.json",
+      "sha256": "caf6a77d4e5fb17d629bab6632de1db7095656b4bc0c64766d3554636c70f22a"
+    },
+    {
+      "git_blob": "29f0d6a5297dca6f451dd98e4d406b61328c1670",
+      "path": "resources/profiles/BBL/filament/fdm_filament_common.json",
+      "sha256": "8c7105b7d59a28f600c43a946f067b8b4d707b9711c0bf6b88e9166e48878548"
+    },
+    {
+      "git_blob": "8edbe3f6fff43369572510cf6e2bdb0287f2522f",
+      "path": "resources/profiles/BBL/filament/fdm_filament_eva.json",
+      "sha256": "ef1cd93dcc04e2b446f29d23a2cf3f2378907a39c6430ba22368c71edd5d7c03"
+    },
+    {
+      "git_blob": "ff43b5f174c3db64d1fea32d6df370fb5a718083",
+      "path": "resources/profiles/BBL/filament/fdm_filament_hips.json",
+      "sha256": "e1ac4740c98ef060cf930a146ca2b07c846cacb99ea33756d81ee3bd8bb93080"
+    },
+    {
+      "git_blob": "361b84bf3bb03dc530ce6a96a8f57128ed719473",
+      "path": "resources/profiles/BBL/filament/fdm_filament_pa.json",
+      "sha256": "8b9745795aecf73476837299eff1fbcaee51ba16878ff258978b67b2d4fbe545"
+    },
+    {
+      "git_blob": "7a61e458cc3580cf044d8be2538974fcd61ae27b",
+      "path": "resources/profiles/BBL/filament/fdm_filament_pc.json",
+      "sha256": "cd629556851a71a0e15af49ae837f115145f10beb48890d9b8a30a6e399b0e75"
+    },
+    {
+      "git_blob": "0f6e163ba08c7ae6c9514ddbd59aecb5d6cb76fa",
+      "path": "resources/profiles/BBL/filament/fdm_filament_pctg.json",
+      "sha256": "8d4c1c77f23ed389bcc209c58775210e08951bae1a4bfee1532c20a3c67d774a"
+    },
+    {
+      "git_blob": "0de7d887a77372ae4ce118a52d6f0c08312a33d7",
+      "path": "resources/profiles/BBL/filament/fdm_filament_pe.json",
+      "sha256": "03ef103378b6f1d3940c5c3582f9299753becab920148814969f01343f8cb017"
+    },
+    {
+      "git_blob": "fe1d01694a54123a5f9fcf236e53a7aa440179cb",
+      "path": "resources/profiles/BBL/filament/fdm_filament_pet.json",
+      "sha256": "3ed1b36367fe6df800103a9deaaa036f9d79c7afda3f3a17514dff23aa96c7d8"
+    },
+    {
+      "git_blob": "8edb5389bede1b171c41f3f08debd073bbbff8b6",
+      "path": "resources/profiles/BBL/filament/fdm_filament_pha.json",
+      "sha256": "02bd4ab615a9b11cc920707a7f85072239cc61a921af85cbff435d924298c7d8"
+    },
+    {
+      "git_blob": "eb0ee310d12701483a701161476d9736ce6adb3b",
+      "path": "resources/profiles/BBL/filament/fdm_filament_pla.json",
+      "sha256": "670d21ea6bdf1cd4b0a2bfddc743612ffd896cd6e5dbe767c25d2c4165c49a30"
+    },
+    {
+      "git_blob": "ce6b887c8a9f3236de419ab937d65242e46fa444",
+      "path": "resources/profiles/BBL/filament/fdm_filament_pp.json",
+      "sha256": "12624cef24d7b03617f925f2b90774c3a2b345b4ac17da1ca086609acb5dc1ad"
+    },
+    {
+      "git_blob": "f14397aa6e759e769b73dced9f05811102cf1250",
+      "path": "resources/profiles/BBL/filament/fdm_filament_ppa.json",
+      "sha256": "e98704b0122c3ddec43fa0568183a574713457974ce56a94b4b102a9ff52200f"
+    },
+    {
+      "git_blob": "6df9a8f8d746281b740065e2e01f0931e6591b7d",
+      "path": "resources/profiles/BBL/filament/fdm_filament_pps.json",
+      "sha256": "c9ea814bcfd7422bc7fbdf10cae9504481ad133aca9d1e21ee407639cf5586e0"
+    },
+    {
+      "git_blob": "55801ab222a1bb9ee2035799e629bd9427ae4124",
+      "path": "resources/profiles/BBL/filament/fdm_filament_pva.json",
+      "sha256": "b6ec56f01fc2b8069d31adf6acb1aeabaa19a0c8b3bdacaef587a8475e58892b"
+    },
+    {
+      "git_blob": "45a531cdbb54ee92bfe28a521945e52ca6c2e683",
+      "path": "resources/profiles/BBL/filament/fdm_filament_template_direct_dual.json",
+      "sha256": "e0f564b83f3ef70cce4de1401dd7cd855d6fbd834343cb8f4292f2a1ac3efc51"
+    },
+    {
+      "git_blob": "6c37a7873d0c4adda7438dfc3be634f2c7bf9658",
+      "path": "resources/profiles/BBL/filament/fdm_filament_tpu.json",
+      "sha256": "8fc12ed3883ae4419cad7300c28b7d9492c32c20831a820b4c030670fa1bdb49"
+    },
+    {
+      "git_blob": "a2b4a939286d77daf5051dcc583b8a60ab49524b",
+      "path": "resources/profiles/BBL/machine/Bambu Lab H2S 0.2 nozzle.json",
+      "sha256": "a858d5475765dec0f2d04dc1470a5619ab4f4f0d059da4f8f5afdb064fa9900d"
+    },
+    {
+      "git_blob": "75df4e906d745f4bfba460bb9216d14b8412fb90",
+      "path": "resources/profiles/BBL/machine/Bambu Lab H2S 0.4 nozzle template change_filament_gcode.json",
+      "sha256": "36fa2fc1718e91af7cead5a227e297577d6fde82ad99d8652fa4ba570bda4ab6"
+    },
+    {
+      "git_blob": "8ec529b300ee55515bcb2b993eee04ccff31f54c",
+      "path": "resources/profiles/BBL/machine/Bambu Lab H2S 0.4 nozzle template layer_change_gcode.json",
+      "sha256": "c19a9de924405facfe9092a0f7eac3cb3c0cc86e005469b3e61b587f7d1cfc35"
+    },
+    {
+      "git_blob": "a9d613e4cc37bd23be5f3e9aba92065f3995e14f",
+      "path": "resources/profiles/BBL/machine/Bambu Lab H2S 0.4 nozzle template machine_end_gcode.json",
+      "sha256": "c182b61c58bc070d36673482e456b12ec9ef96af8eaab407e2890b6665e51a09"
+    },
+    {
+      "git_blob": "0a0e8f3233c6676550290507a1dd4060aa780e60",
+      "path": "resources/profiles/BBL/machine/Bambu Lab H2S 0.4 nozzle template machine_start_gcode.json",
+      "sha256": "744d2759861465a8a9e2a27c59ebd9f6f486fd0d3c0ce8e7be29fcc904b4cc81"
+    },
+    {
+      "git_blob": "a362ff4bb3a1c11c387fbfdcfa29ffdb35019395",
+      "path": "resources/profiles/BBL/machine/Bambu Lab H2S 0.4 nozzle template time_lapse_gcode.json",
+      "sha256": "17ee06f9f0941b2034eec855974533cdd4ffd05a7a21b52792d30713958a40b0"
+    },
+    {
+      "git_blob": "869b3b8af5b25fe41ef1687674d0302a500694da",
+      "path": "resources/profiles/BBL/machine/Bambu Lab H2S 0.4 nozzle template wrapping_detection_gcode.json",
+      "sha256": "f55b64d5e3f8513c6e984e36dc884b99f890e4a0bd3843f192b1772580283a02"
+    },
+    {
+      "git_blob": "d532700999f5f903343b44f0126c9f039c3eb56d",
+      "path": "resources/profiles/BBL/machine/Bambu Lab H2S 0.4 nozzle.json",
+      "sha256": "748989fc4432b02ae7724dc6f50fda6e38109b4dc4b2645adfad9354fbeec2b8"
+    },
+    {
+      "git_blob": "b0f1fda902b225553b822e91400758c56124b18b",
+      "path": "resources/profiles/BBL/machine/Bambu Lab H2S 0.6 nozzle.json",
+      "sha256": "a599bf1c31b3854d0f3b03c66122e02f32fba3f7ce32523d659ac33be276b5a0"
+    },
+    {
+      "git_blob": "9691465ba43c776659b403fe17fc843d6dc818ab",
+      "path": "resources/profiles/BBL/machine/Bambu Lab H2S 0.8 nozzle.json",
+      "sha256": "9b99dc97d2b7f20d0479b63314b9f745fd88f6fd52161814eb70485b42b9af45"
+    },
+    {
+      "git_blob": "9ccd5c9c6a45e0450d9b4c41725da5e0d4d254c6",
+      "path": "resources/profiles/BBL/machine/fdm_bbl_3dp_001_common.json",
+      "sha256": "2ca207f457c1f9b3eb25a1801adb2eaa8ddc5620f5a8945abb51a3fcddab5e47"
+    },
+    {
+      "git_blob": "5516e8c10c6aab4a94408db29b11a112b9078b77",
+      "path": "resources/profiles/BBL/machine/fdm_machine_common.json",
+      "sha256": "26ef8ee697849323e67d8e1a9026c175cebe3397e38c5091dddb5cd3fc52e94c"
+    },
+    {
+      "git_blob": "fbcc4cd920ee764b03a922372295ff066e44f168",
+      "path": "resources/profiles/BBL/process/0.10mm Standard @BBL H2S 0.2 nozzle.json",
+      "sha256": "616437f27f3ab9680b60bf7d12d9723b2bdac71928fa5f7f8f3da063510ea4f8"
+    },
+    {
+      "git_blob": "513e398ba405f9d733ec5496a9e063bd9670d05d",
+      "path": "resources/profiles/BBL/process/0.20mm Standard @BBL H2S.json",
+      "sha256": "459f41d0b607c37d94da900fb865f4a7061c4960820bb78a956d1df9356c6d94"
+    },
+    {
+      "git_blob": "620adde0c53d2a790c00b990300fb05dea25a863",
+      "path": "resources/profiles/BBL/process/0.30mm Standard @BBL H2S 0.6 nozzle.json",
+      "sha256": "1737eca42a6f643adee2942b532c8ed5b9ac096d04fa32c03a7ce3e497dbaea0"
+    },
+    {
+      "git_blob": "a2f233f133c7bd1a7a4cb14b0085a45e59142a3f",
+      "path": "resources/profiles/BBL/process/0.40mm Standard @BBL H2S 0.8 nozzle.json",
+      "sha256": "5667652d7c5b6302133815dabfe78aff3c422848826ae98832ad042d318d37c8"
+    },
+    {
+      "git_blob": "92669d52f2994ce539cb5e0278a7c268712f15fb",
+      "path": "resources/profiles/BBL/process/fdm_process_common.json",
+      "sha256": "d7981c4b92854f251b8697e1bb621c63fe393f263fb8024ab63c401525d543d7"
+    },
+    {
+      "git_blob": "2f5d5fae2c5ed5b8675055d5beb417ec709c344d",
+      "path": "resources/profiles/BBL/process/fdm_process_single_0.10_nozzle_0.2.json",
+      "sha256": "9f2a228dc394cf2c3c4b0fbeb14d0693843513ddaadf97c037c7775ebaaa6a3d"
+    },
+    {
+      "git_blob": "7be86d5e24c39c417526926c7aa8ea6116f17121",
+      "path": "resources/profiles/BBL/process/fdm_process_single_0.20.json",
+      "sha256": "cdda8d56d67f62a0faa892cb6efc605ebb5c745bf742f6ead4daaeb6627c182a"
+    },
+    {
+      "git_blob": "6e651516ccb39dcb5d28188c154f599c3e23c53f",
+      "path": "resources/profiles/BBL/process/fdm_process_single_0.30_nozzle_0.6.json",
+      "sha256": "5f5b723f4cceed4a8f1d3b53ee9a381593c1dddaab9c9fcef93a16b7723d20c6"
+    },
+    {
+      "git_blob": "162301b7ec44cb07161fa6ef4ab2f1a09a7eed26",
+      "path": "resources/profiles/BBL/process/fdm_process_single_0.40_nozzle_0.8.json",
+      "sha256": "f39b70704caa6c8c6c9800a469afab4eb464e1172fa9342e277ff2b6d15d50f9"
+    },
+    {
+      "git_blob": "12aee1948882751b57e6a9d8c06fce6c67b785ef",
+      "path": "resources/profiles/BBL/process/fdm_process_single_common.json",
+      "sha256": "05b38ac1318e465e817978b36da51754f928da0172738a20bb3a8d4a69eb4769"
+    }
+  ],
+  "upstream_repository": "bambulab/BambuStudio",
+  "upstream_tag": "v02.07.01.62",
+  "upstream_tag_signature_verified": false
+}
