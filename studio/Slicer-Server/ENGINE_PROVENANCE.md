@@ -1,6 +1,6 @@
 # Gepruefter Engine-Provenienzstand
 
-Stand: 14.10.2026. Diese Datei dokumentiert ausschliesslich den statisch
+Stand: 15.10.2026. Diese Datei dokumentiert ausschliesslich den statisch
 geprueften Paket- und Lizenzstand. Sie ist keine Rechtsberatung, keine
 Enginefreigabe und keine Betriebsabnahme. Keine Engine wurde fuer diese
 Pruefung gestartet. Alle drei Familien bleiben im ausgelieferten Katalog
@@ -78,3 +78,30 @@ unveraenderlichen linux/amd64-Paketsatz alle folgenden Punkte belegt sind:
 
 Bis dahin bleiben Downloadfreigabe, Katalogrelease, Imagefreigabe und
 Produktivbetrieb gesperrt.
+
+## Ergaenzende native Bibliotheksinventur vom 15.10.2026
+
+Rein lesend wurden CuraEngine, PrusaSlicer, dessen OCCTWrapper und das
+entpackte Bambu-Programm als vier ELF-Einstiege untersucht. `readelf -d`
+liefert die direkten DT_NEEDED-/RPATH-/RUNPATH-Angaben; der vorhandene
+linux/amd64-Hostcache von `ldconfig -p` liefert moegliche Bibliotheksdateien.
+Der rekursiv untersuchte Host-Kandidatengraph umfasst **292 ELF-Dateien**,
+**216 Debian-Pakete** mit exakten Binaer-/Quellpaketversionen und **216
+Copyright-Dateien** mit Dateigroesse und SHA-256. Fuer diesen Graph wurden
+keine fehlenden oder mehrfachen Hostcache-Kandidaten gefunden.
+Der private strukturierte Inventarnachweis hat SHA-256
+`aff23c053edc6af1b325e4544d2b3100a86a11be6b676e4c25882a897f78d443`.
+
+Dieser Befund ist eine native Bestandsaufnahme, **keine vollstaendige
+Zielimage-SBOM oder Loaderabnahme**. RPATH/RUNPATH sind erfasst, aber ihre
+tatsaechliche Aufloesung, AppImage-eigene Bibliotheksauswahl und per dlopen
+geladene Plugins sind damit nicht bewiesen. Ebenso sind die Copyright-
+Dateihashes keine komponentenweise abgeschlossene Lizenzpflichtenpruefung.
+Es wurde keine Engine gestartet und nichts installiert oder aktualisiert.
+
+Fuer die noch offene Engine-Gesamtclosure werden in einem gemeinsamen Satz
+benoetigt: unveraenderliche Archiv-/Quellreferenzen, alle tatsaechlich
+ausgelieferten Dateien und Lizenzen, gebundene Ressourcen-/Profilketten,
+vollstaendiges Zielimage-Paketinventar, dynamische Pluginpfade und echte
+autorisierte Installations-/Laufzeit-/Restore-Ergebnisse. Alle drei
+Katalogfamilien bleiben bis zu diesem gemeinsamen Nachweis `pending`.

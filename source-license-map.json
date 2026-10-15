@@ -2551,9 +2551,9 @@
     },
     {
       "identity": {
-        "bytes": 5182,
+        "bytes": 6816,
         "kind": "sha256-raw-bytes",
-        "sha256": "c5ebc145315ebb36338725ce75d43f29cbcba220a9f50591143e6da53f19ed1f"
+        "sha256": "4216eee8163b09fd6efd1400aa36d8e4858c63f78792160c05178726784cc483"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/ENGINE_PROVENANCE.md",
@@ -2818,9 +2818,9 @@
     },
     {
       "identity": {
-        "bytes": 15471,
+        "bytes": 16547,
         "kind": "sha256-raw-bytes",
-        "sha256": "baa7ea575af70b5213d8026329f472353783e0059a9f24bf2e09358ff1a274fe"
+        "sha256": "f3946fda309e48aba47617e34b8c3bc0f2b58b16dc24387325dd628fbe299030"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/README.md",
@@ -2860,9 +2860,9 @@
     },
     {
       "identity": {
-        "bytes": 7316,
+        "bytes": 8556,
         "kind": "sha256-raw-bytes",
-        "sha256": "a96ef8b391b83e9f9ebbf01be31c4fedc6277aa1d6a4c5dcc12205f7b470ba41"
+        "sha256": "619c2ca14fe24e8dfc1d2dde021e5ef5b9f5d5cc140b7017441188a88cbbf50d"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/REPOSITORY_README.md",
@@ -3544,9 +3544,9 @@
     },
     {
       "identity": {
-        "bytes": 1372,
+        "bytes": 5159,
         "kind": "sha256-raw-bytes",
-        "sha256": "76d52f4259f07204ff0061ced9f9de2a99f40f1ca8194574a7f295fca78af98b"
+        "sha256": "1a6f01fcf902f387b083a82f2326acf74e0bf1c6548f3df6bf78164af8a8d8dd"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/wiki/Release-Abnahme.md",

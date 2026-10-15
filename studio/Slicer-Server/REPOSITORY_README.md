@@ -2,7 +2,7 @@
 
 Der eigenständige Slicer-Dienst für **Ultimate 3D Studio**: HTTP-API, kontrollierter Worker, native Linux-Pakete und Docker-Compose-Kandidat – mit den vollständigen zugehörigen Quellen, Profilnachweisen, Tests und Betriebsanleitungen.
 
-[Anleitung](Slicer-Server/README.md) · [Docker-Schnellstart](Slicer-Server/DOCKER_QUICKSTART.md) · [Natives Linux-Paket](packages/ultimate-slicer-server/README.md) · [Wiki-Dateien](Slicer-Server/wiki/Home.md) · [Quellumfang](Slicer-Server/REPOSITORY_CONTENTS.md) · [Lizenzen](SOURCE_NOTICES.md)
+[Anleitung](Slicer-Server/README.md) · [Docker-Schnellstart](Slicer-Server/DOCKER_QUICKSTART.md) · [Natives Linux-Paket](packages/ultimate-slicer-server/README.md) · [Wiki-Dateien](Slicer-Server/wiki/Home.md) · [Quellumfang](Slicer-Server/REPOSITORY_CONTENTS.md) · [Lizenzen](SOURCE_NOTICES.md) · [Gemeinsame Abschlussmatrix](Slicer-Server/wiki/Release-Abnahme.md)
 
 > Entwicklungs- und Prüfkandidat. Vollständige Komponentenauslieferung bedeutet nicht Produktivfreigabe. Engine-Binärdateien und private Betriebsdaten sind nicht enthalten. Die echte unabhängige Linux-/Engine-/TLS-/Upgrade-/Restore-Abnahme bleibt Voraussetzung für eine neue Installation.
 
@@ -72,3 +72,24 @@ Ein Build prüft Quellen, nicht reale Maschinen. Der native Installer bleibt mit
 ## Lizenz und Nutzung
 
 Es gibt **keine einheitliche neue Lizenz für alle Dateien**. Frühere Studio-Quellen behalten ihre bisherigen Bedingungen; neues ursprüngliches Slicer-Material unterliegt dem abgegrenzten [Slicer-Lizenztext](Slicer-Server/LICENSE). Importierte Profile und Drittanbieterkomponenten behalten ihre eigenen Rechte. [SOURCE_NOTICES.md](SOURCE_NOTICES.md) und [THIRD_PARTY_NOTICES.md](Slicer-Server/THIRD_PARTY_NOTICES.md) sind Bestandteil der Lieferung. Repository-Sichtbarkeit und Lizenzfreigabe wurden durch diese Aktualisierung nicht erweitert.
+
+
+## Ein gemeinsamer Abschlussblock
+
+Der Quellstand, die Engine-Artefakte und die Betriebsabnahme werden gemeinsam
+geschlossen. Die [Abnahmematrix](Slicer-Server/wiki/Release-Abnahme.md) nennt
+je Bereich den vorhandenen Nachweis und das noch benoetigte reale Ergebnis.
+Die gesamte Komponente kann aus diesem Repo geprueft und als Paket gebaut
+werden; die automatische Erstinstallation ist noch kein fertiges Produkt.
+
+Die offizielle Bambu-Releasezuordnung und 118 ausgewaehlte Profilquelldateien
+sind belegt. Eine zusaetzliche native Inventur erfasst 292 ELF-Dateien und
+216 Debian-Pakete samt Copyright-Dateihashes. Diese Hostdaten ersetzen weder
+die vollstaendige Zielimage-/Plugin-/Lizenzclosure noch eine echte Linux-
+Abnahme. [Genauer Provenienzumfang](Slicer-Server/ENGINE_PROVENANCE.md).
+
+Der naechste externe Ablauf ist zusammenhaengend: sauberer Testhost und
+unveraenderliches Image/Engine-Paket; dann Rechte und Isolation, TLS, Neustart
+und Persistenz, Upgrade/Rollback/Backup/Restore, Hostkanal und HA/HACS,
+anschliessend privater Pilot und Release. Ein fehlender Nachweis bleibt
+`not_run` oder `blocked`. Ein gruener Quelltest setzt keine Betriebsfreigabe.

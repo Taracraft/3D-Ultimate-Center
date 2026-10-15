@@ -22,8 +22,9 @@ Gesamtfreigabe. Ein vollständiges Quellrepo enthält keine privaten 10-GB-Laufd
 und keine ungeprüft weiterverteilten Engine-Binärdateien.
 
 **Aktueller Stand: Docker-Dienstkandidat mit API, Worker und Telemetrie.**
-Compose-Start, TLS/Authentifizierung, Stop/Neustart sowie synthetischer
-Anchor-Ausfall und Backup/Restore sind geprueft. Eine Engine ist noch nicht
+Fruehere isolierte Kandidatenpruefungen umfassen Compose-Start,
+TLS/Authentifizierung, Stop/Neustart und synthetische Ausfall-/Restorefaelle.
+Sie sind keine Abnahme einer frischen Zielinstallation oder echter Engines. Eine Engine ist noch nicht
 enthalten; reale Engine-Abnahme und produktive Datenmigration bleiben offen.
 Der Standardbefehl des Images bleibt der lesende Preflight.
 `container_deploy_ready=false` kennzeichnet die fehlende Betriebsfreigabe.
@@ -275,3 +276,22 @@ blockiert ein read-only Clean-Host-Preflight bekannte native Units, Marker,
 Prozesse und vorhandene Slicer-Container. Er bereinigt oder migriert nichts.
 Die HAOS-Migration bleibt ein separater Plan und wird nicht ausgefuehrt.
 
+
+
+## Gemeinsamer aktueller Abschlussstand
+
+Die [gemeinsame Abnahmematrix](wiki/Release-Abnahme.md) ist der aktuelle
+Einstieg fuer die verbleibende Gesamtarbeit. Die oben datierten
+Entwicklungsabschnitte dokumentieren ihren jeweiligen Verlauf; Aussagen
+wie noch fehlender Dockeradapter oder Erstbootstrap werden durch die
+spaeteren Implementierungsnachweise ersetzt. Der lokale Installationskern,
+Dockeradapter, Generationsspeicher, Wartungs- und Wiederanlaufvertrag sind
+quellseitig und synthetisch verbunden. Die echte Hostprovisionierung und
+sichtbare gefuehrte HA-Erstinstallation bleiben bis zum Hostkanalnachweis
+offen.
+
+Die vollstaendige Slicer-Quelllieferung samt eigener Linux-CI ist vorhanden.
+Die Bambu-AppImage ist einem offiziellen Release exakt zugeordnet; weitere
+native Bibliotheksidentitaeten sind erfasst. Details stehen in
+[ENGINE_PROVENANCE.md](ENGINE_PROVENANCE.md). Das ist weiterhin kein
+freigegebenes Engineimage oder fertiger Ein-Klick-Installationsweg.
