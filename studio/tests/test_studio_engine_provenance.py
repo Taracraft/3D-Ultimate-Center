@@ -1,4 +1,4 @@
-"""Fail-closed documentation contract for reviewed engine provenance.
+﻿"""Fail-closed documentation contract for reviewed engine provenance.
 
 No network, package installation, archive extraction, engine execution or service
 operation occurs in this test.
