@@ -1,4 +1,4 @@
-﻿"""Fail-closed documentation contract for reviewed engine provenance.
+"""Fail-closed documentation contract for reviewed engine provenance.
 
 No network, package installation, archive extraction, engine execution or service
 operation occurs in this test.
@@ -19,6 +19,9 @@ TOKENS = {
     "4ff3972a868621f48adee0e1d6848ce27ada765a2fdc1d0cb87e81026f6c5392",
     "1976698ffa7eb6efb9a8fd093238e4a81441bef859e80c456dd8180c0348101e",
     "8bd2336dfc66c4a7934ca77c39c2220a9658888d7df866ddd98e0094363d962a",
+    "fa98b608532dfbbbb2b0931483aac41e57fb19c175a2cc7bd7d528d5e0fbb287",
+    "c1b3547ae00b03412e4ba8e7b053481167acdf6a",
+    "42d319c6692fa8e64790fddf0cdaafd2a4254bcc",
 }
 
 
@@ -40,6 +43,11 @@ class EngineProvenanceContractTests(unittest.TestCase):
         self.assertIn("keine Enginefreigabe", document)
         self.assertIn("Alle drei Familien bleiben", document)
         self.assertIn("container_deploy_ready=false", document)
+        self.assertIn("v02.07.01.62", document)
+        self.assertIn("449304146", document)
+        self.assertIn("118 ausgewaehlte", document)
+        self.assertIn("unsigniert", document)
+        self.assertIn("beweist weder eine unabhaengige", document)
 
     def test_upstream_license_boundaries_are_explicit(self):
         document = " ".join(PROVENANCE.read_text(encoding="utf-8-sig").split())

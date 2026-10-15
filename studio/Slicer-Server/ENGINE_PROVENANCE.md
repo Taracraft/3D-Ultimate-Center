@@ -13,13 +13,22 @@ Pruefung gestartet. Alle drei Familien bleiben im ausgelieferten Katalog
 | CuraEngine | Debian trixie `cura-engine 1:5.0.0-5`, amd64 | `0b0f7c53ea506001c7b56e83d4f1a2a72e73cd960886622462a1ffb5acb78379` | Programmdatei SHA `fe5de064a0d405135c97d1c1e86c33028c6d5f55956f4dbc9168d406625b10d7`; 8 direkte DT_NEEDED-Eintraege | pending |
 | Cura-Ressourcen | Debian trixie `cura 5.0.0-6`, all | `ac3650ec34a5a5023a33775b6b8ac9e9ee27aa783550fededa6db171e523cc99` | 862 ausgewaehlte Dateien, Manifest SHA `1976698ffa7eb6efb9a8fd093238e4a81441bef859e80c456dd8180c0348101e` | pending |
 | PrusaSlicer | Debian trixie `prusa-slicer 2.9.2+dfsg-1`, amd64 | `4ff3972a868621f48adee0e1d6848ce27ada765a2fdc1d0cb87e81026f6c5392` | 40 ausgewaehlte Dateien, Manifest SHA `8bd2336dfc66c4a7934ca77c39c2220a9658888d7df866ddd98e0094363d962a`; 42 direkte DT_NEEDED-Eintraege; OCCTWrapper 11 | pending |
-| Bambu Studio | noch kein ausgewaehltes Paket | - | keine Binaer-, Ressourcen- oder Profilauswahl | pending |
+| Bambu Studio | offizielles GitHub-Release `v02.07.01.62`, Ubuntu-24.04-AppImage, amd64 | `fa98b608532dfbbbb2b0931483aac41e57fb19c175a2cc7bd7d528d5e0fbb287` | Asset-ID `449304146`, 227047928 Bytes; annotierter Tag `c1b3547ae00b03412e4ba8e7b053481167acdf6a` verweist auf Commit `42d319c6692fa8e64790fddf0cdaafd2a4254bcc`; 118 ausgewaehlte Profilquellen bytegleich zum entpackten Ressourcenbaum | pending |
 
 Archiv- und Dateihashes belegen Integritaet der untersuchten Bytes, nicht ihre
 Herkunft oder Freigabe. Der GUI-Umfang des Debian-Pakets `cura` wird nicht
 installiert; daraus werden nur begrenzte Datenressourcen untersucht. Der
 Prusa-Satz ist trotz CLI-Einstieg nicht headless abgenommen: GUI-Bibliotheken,
 OCCT-Ladepfad und Profilrechte bleiben offen.
+
+Die vorhandene Bambu-AppImage ist nun exakt dem offiziellen GitHub-Release
+`v02.07.01.62` zugeordnet: Asset-ID, Groesse und SHA-256 stimmen ueberein.
+Der offizielle annotierte Tag verweist auf den bereits fuer die Profilquellen
+gepinnten Commit; der Tag ist jedoch unsigniert. Die 118 ausgewaehlten
+Profilquelldateien stimmen bytegenau mit dem entpackten Ressourcenbaum
+ueberein. Dieser Herkunftsschritt beweist weder eine unabhaengige
+Herstellersignatur oder reproduzierbare Binaeridentitaet noch die vollstaendige
+Bibliotheks-, Plugin-, Notice-, SBOM-, Lizenz- oder Laufzeitclosure.
 
 ## Lizenzbelege und Grenzen
 
@@ -41,6 +50,8 @@ OCCT-Ladepfad und Profilrechte bleiben offen.
 
 Offizielle Quellen:
 
+- https://github.com/bambulab/BambuStudio/releases/tag/v02.07.01.62
+- https://github.com/bambulab/BambuStudio/blob/42d319c6692fa8e64790fddf0cdaafd2a4254bcc/LICENSE
 - https://github.com/bambulab/BambuStudio/blob/master/LICENSE
 - https://github.com/prusa3d/PrusaSlicer/blob/master/LICENSE
 - https://github.com/Ultimaker/CuraEngine
