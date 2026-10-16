@@ -437,3 +437,6 @@ test("portable export preserves unassigned geometry while rejecting contradictor
   assert.throws(() => localExportMaterialPlan([source], [region, { ...region, color: "#0000ff" }], new Map(), []), /widersprüchliche Farben/);
   assert.throws(() => localExportMaterialPlan([source], [{ ...region, materialKey: "" }], new Map(), []), /Materialkennung/);
 });
+
+// Include the focused plate workflows in the existing canonical CAD test entrypoint.
+import "./studio-plate-workflows.test.js";

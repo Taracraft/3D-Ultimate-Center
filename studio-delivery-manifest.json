@@ -908,7 +908,7 @@
     {
       "bytes": 6875,
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "722d24268f8d2a6efefcef43dd922beafe0bdfadcde8d6eca14a417e756a5b98"
+      "sha256": "4aa0b99f45c706c647a445f1f4738e34edf60075a75d6ab43b62be2e8552e2da"
     },
     {
       "bytes": 801,
@@ -928,7 +928,7 @@
     {
       "bytes": 504947,
       "path": "source-license-map.json",
-      "sha256": "1f4bcb3de5db594919ed6b48379939fa5d657885f37a8ee1dc0b8a1eb7cd0e09"
+      "sha256": "2e5d25e0c552f6818e85bfd0b11d11a11490508ffec7cad242ca75b3892f2cac"
     },
     {
       "bytes": 2883,
@@ -2698,7 +2698,7 @@
     {
       "bytes": 6875,
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "722d24268f8d2a6efefcef43dd922beafe0bdfadcde8d6eca14a417e756a5b98"
+      "sha256": "4aa0b99f45c706c647a445f1f4738e34edf60075a75d6ab43b62be2e8552e2da"
     },
     {
       "bytes": 801,
@@ -2711,9 +2711,9 @@
       "sha256": "3cfb1b2c67458726fa537f501fc0187175340a8042578a84b84ec4cf661a01f9"
     },
     {
-      "bytes": 29538,
+      "bytes": 29668,
       "path": "studio/frontend-tests/cad-data-integrity.test.ts",
-      "sha256": "0ec8da5c0445f3070a135ee6a1c484babace47a1ec638c34103ca1409e19813b"
+      "sha256": "d940bb4c3e7e83ac67527d55f0b94a6b7d781d07caf7df548ca78fde271e2dfc"
     },
     {
       "bytes": 6571,
@@ -5509,15 +5509,15 @@
       "verified": true
     },
     "infrastructure": {
-      "sha256": "9612459bc05a7951b9dbc657e894ca916db8f2fd4117c449b6905541b0a0ee15",
+      "sha256": "0e99d21545110640c89ad224550d7943a1dff4a3b6d6104d4b30eb24bc18d9a6",
       "verified": true
     },
     "isolated_candidate": {
-      "sha256": "e7748d00ffee56042dbc2b0b06ffbdc47d4a0e801463581717a2a515e6b0d692",
+      "sha256": "f2461f49d1d7d068190bd90c81a36c733ba23b484dec9dee194888c05a3a138d",
       "verified": true
     },
     "licenses": {
-      "sha256": "4d2e2d92bca06dfd175192087c08e2b4c1e5f4cd3efa8200b4aba38fc9d88b0b",
+      "sha256": "08506f7968be4f4e948514e8932bf7bf779a80ce2df9f5b9a829e599734760d0",
       "verified": true
     }
   },

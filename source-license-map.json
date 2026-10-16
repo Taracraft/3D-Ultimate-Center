@@ -2364,7 +2364,7 @@
       "identity": {
         "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "722d24268f8d2a6efefcef43dd922beafe0bdfadcde8d6eca14a417e756a5b98"
+        "sha256": "4aa0b99f45c706c647a445f1f4738e34edf60075a75d6ab43b62be2e8552e2da"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -7111,7 +7111,7 @@
       "identity": {
         "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "722d24268f8d2a6efefcef43dd922beafe0bdfadcde8d6eca14a417e756a5b98"
+        "sha256": "4aa0b99f45c706c647a445f1f4738e34edf60075a75d6ab43b62be2e8552e2da"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -7148,9 +7148,9 @@
     },
     {
       "identity": {
-        "bytes": 29538,
+        "bytes": 29668,
         "kind": "sha256-raw-bytes",
-        "sha256": "0ec8da5c0445f3070a135ee6a1c484babace47a1ec638c34103ca1409e19813b"
+        "sha256": "d940bb4c3e7e83ac67527d55f0b94a6b7d781d07caf7df548ca78fde271e2dfc"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/frontend-tests/cad-data-integrity.test.ts",
