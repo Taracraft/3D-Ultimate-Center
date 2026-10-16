@@ -908,7 +908,7 @@
     {
       "bytes": 6875,
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "4aa0b99f45c706c647a445f1f4738e34edf60075a75d6ab43b62be2e8552e2da"
+      "sha256": "f70063c928a0b837aa1f73009b9d64e49bb88d662683b93b2c5de2039c0876bd"
     },
     {
       "bytes": 801,
@@ -916,9 +916,9 @@
       "sha256": "0ec340b2b24dca9bdcd9bb5528e9aa7f72e64acf6b83d82f2c81871c0a03901c"
     },
     {
-      "bytes": 677078,
+      "bytes": 677152,
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio.js",
-      "sha256": "3cfb1b2c67458726fa537f501fc0187175340a8042578a84b84ec4cf661a01f9"
+      "sha256": "e5c34a611cd880d6471d1b3ea0f778de61b7a384c64056e157826f8ebfb75321"
     },
     {
       "bytes": 1234,
@@ -926,9 +926,9 @@
       "sha256": "c34a65548032d1228b03b500fc410af53ed85cdd00ff944d7bfb7e7b84aa7bb1"
     },
     {
-      "bytes": 504947,
+      "bytes": 505407,
       "path": "source-license-map.json",
-      "sha256": "2e5d25e0c552f6818e85bfd0b11d11a11490508ffec7cad242ca75b3892f2cac"
+      "sha256": "8fd5eb074ebf3f715ff41551b7acfcd85c9f8077fc3107eeb1f9122dcf4c4a53"
     },
     {
       "bytes": 2883,
@@ -2698,7 +2698,7 @@
     {
       "bytes": 6875,
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "4aa0b99f45c706c647a445f1f4738e34edf60075a75d6ab43b62be2e8552e2da"
+      "sha256": "f70063c928a0b837aa1f73009b9d64e49bb88d662683b93b2c5de2039c0876bd"
     },
     {
       "bytes": 801,
@@ -2706,14 +2706,14 @@
       "sha256": "0ec340b2b24dca9bdcd9bb5528e9aa7f72e64acf6b83d82f2c81871c0a03901c"
     },
     {
-      "bytes": 677078,
+      "bytes": 677152,
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio.js",
-      "sha256": "3cfb1b2c67458726fa537f501fc0187175340a8042578a84b84ec4cf661a01f9"
+      "sha256": "e5c34a611cd880d6471d1b3ea0f778de61b7a384c64056e157826f8ebfb75321"
     },
     {
-      "bytes": 29668,
+      "bytes": 29715,
       "path": "studio/frontend-tests/cad-data-integrity.test.ts",
-      "sha256": "d940bb4c3e7e83ac67527d55f0b94a6b7d781d07caf7df548ca78fde271e2dfc"
+      "sha256": "156c840ebdf34d86f5cd70868fb4603b64bf45ca6bd3d73e3f7f961a7d82732f"
     },
     {
       "bytes": 6571,
@@ -2811,9 +2811,9 @@
       "sha256": "e7deebf7bb02a3f3a3d8f7745bc609c59ba6f2e393ca071a6996c1445f999d7e"
     },
     {
-      "bytes": 9197,
+      "bytes": 9746,
       "path": "studio/frontend-tests/navigation-lifecycle.test.ts",
-      "sha256": "e97b51df73492d477418b4f8f318d5a22300cddfec92920e44c5ae864d8c4f02"
+      "sha256": "c09be8d1fb147b90ba2023fe40d959ba40f1d7fc28f8549635e55048b0127128"
     },
     {
       "bytes": 5825,
@@ -2861,6 +2861,11 @@
       "sha256": "da06157de47f6e737b7bae3a03d1a52c4be5a99fb392d75bc224858ed4ef1b2b"
     },
     {
+      "bytes": 22756,
+      "path": "studio/frontend-tests/studio-import-transactions.test.ts",
+      "sha256": "ce3dc7c12f3e3731c039f74f302c959a5181064eac29b4bc56e4b708809efbb5"
+    },
+    {
       "bytes": 25730,
       "path": "studio/frontend-tests/studio-plate-workflows.test.ts",
       "sha256": "3e040d41422b9aa7e6977bc7515496546963c2994393fae2178e4b75ca9d6ab8"
@@ -2901,9 +2906,9 @@
       "sha256": "1a95e198512a6148adf5dd28f53659bc2d0b93fd3ca9389c9a0f49ae1f4b2a8c"
     },
     {
-      "bytes": 11478,
+      "bytes": 11226,
       "path": "studio/frontend/app-shell-v4.ts",
-      "sha256": "86269d533321572aeff89af55f4ec343634dc550f3117c83946d33e85736d2b9"
+      "sha256": "a13ef83caea20bfd9146f6b9f3f0f70f1b75caefc108024657aa1d2c68f69ec0"
     },
     {
       "bytes": 3590,
@@ -3706,9 +3711,9 @@
       "sha256": "d0e79684a4e8425b692448ef44b71dcb2d65db49cff9488ad4d9c11a9ec0e9c0"
     },
     {
-      "bytes": 245354,
+      "bytes": 252615,
       "path": "studio/frontend/studio-mega-workspace-v2.ts",
-      "sha256": "e21785741cdebba1c6194a49b386b02bbdc2fa4fad87cdc7ab0d54bb69b2d3d0"
+      "sha256": "afa4c4f216a484d1b0969fcc5becca90f5ad0fb2abdd80251d38166de5fbe620"
     },
     {
       "bytes": 42808,
@@ -4651,9 +4656,9 @@
       "sha256": "3988d4b2889f730a3512f7fc25d9a69b17f80bae9279817ffb365096cd231554"
     },
     {
-      "bytes": 1855,
+      "bytes": 2352,
       "path": "studio/tests/test_studio_gallery_project_regression_contract.py",
-      "sha256": "bf94ff3924b34b8af20a1850e90d8566f256028bb21f5058c58c72314bec875e"
+      "sha256": "b2057f2b59e0c928088a9d4833582360ef634468c9b5a35a11844014f81b6367"
     },
     {
       "bytes": 8660,
@@ -5509,15 +5514,15 @@
       "verified": true
     },
     "infrastructure": {
-      "sha256": "0e99d21545110640c89ad224550d7943a1dff4a3b6d6104d4b30eb24bc18d9a6",
+      "sha256": "da1497b2b3ac5ad7dc0eefb2abab7a0b2acf5da71868b39640c73e67573218fc",
       "verified": true
     },
     "isolated_candidate": {
-      "sha256": "f2461f49d1d7d068190bd90c81a36c733ba23b484dec9dee194888c05a3a138d",
+      "sha256": "05e21ebd171573f777c83aaa11b02f1d12297d5f27dbae4ad5a87782d91e8023",
       "verified": true
     },
     "licenses": {
-      "sha256": "08506f7968be4f4e948514e8932bf7bf779a80ce2df9f5b9a829e599734760d0",
+      "sha256": "00effe5f38113c690fef6b1603cca47125d68d8103eb4edcca3df1d2d2111640",
       "verified": true
     }
   },

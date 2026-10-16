@@ -628,9 +628,12 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
   #error = "";
   #loading = false;
   #generation = 0;
+  #importing = false;
+  #projectGeneration = 0;
   #nextId = 1;
   #recentImportKey = "";
   #recentImportAt = 0;
+  #recentImportFile: File | null = null;
   #initialized = false;
   #cleanupTimer: number | null = null;
   #persistTimer: number | null = null;
@@ -766,70 +769,44 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     this.#requestImport(placeholder, options.replaceWorkspace !== false, normalizedAssetId);
   }
 
-  #resetWorkspaceForProjectOpen(fileName: string, galleryAssetId: string): void {
-    const previous = this.#plate();
-    const selection = {
-      ...previous.selection,
-      filament_profile_ids: [...previous.selection.filament_profile_ids],
-    };
-    for (const plate of this.#plates) {
-      plate.jobId = "";
-      plate.stage = "prepared";
-      plate.lastError = "";
-      plate.layers = [];
-      plate.layerCount = 0;
-      plate.visibleLayer = 0;
-      plate.toolColors = [];
-    }
-    jobActivityStore.dismissSlicerJob();
+  // Called only after every scene and geometry has been prepared successfully.
+  // Do not mutate the old plates: pending readers/history may still own them.
+  #resetWorkspaceForProjectOpen(_fileName: string, _galleryAssetId: string): void {
+    const paint = createPaintSession();
+    this.#projectGeneration += 1;
+    if (this.#slicePreparationId) this.#setSlicePreparation(false);
+    const activeJob = jobActivityStore.snapshot.slicer;
+    if (activeJob && !ACTIVE.has(activeJob.status)) jobActivityStore.dismissSlicerJob(activeJob.id);
     this.#reconcilingJobs.clear();
     this.#sliceTraceByJob.clear();
-    if (this.#slicePreparationId) this.#setSlicePreparation(false);
-    this.#plates = [newPlate(0, "Druckplatte 1", selection, previous.width, previous.depth, previous.materialSource, previous.externalFilamentProfileId)];
-    this.#activePlate = 0;
-    this.#selected.clear();
+    this.#selected = new Set();
     this.#selectionAnchor = null;
-    this.#assignments.clear();
-    this.#paintSession = createPaintSession();
-    this.#paintLayers.clear();
-    this.#paintLegacyAmbiguousObjectIds.clear();
+    this.#assignments = new Map();
+    this.#paintSession = paint;
+    this.#paintLayers = new Map();
+    this.#paintLegacyAmbiguousObjectIds = new Set();
     this.#clipboard = null;
     this.#projectId = "";
     this.#projectName = "";
     this.#projectRevision = 0;
     this.#modelMaterials = [];
     this.#inspection = null;
-    this.#file = null;
-    this.#mode = "prepare";
     this.#previewColorMode = "material";
     this.#previewCumulative = true;
     this.#previewSupportOnly = false;
     this.#previewVisibleFeatures = new Set(PREVIEW_FEATURE_KEYS);
     this.#previewMaterialOpen = true;
-    this.#error = "";
     this.#modalError = "";
     this.#amsError = "";
-    this.#loading = true;
-    this.#status = `${fileName} wird als neues Projekt geöffnet …`;
-    this.#viewport?.setPreviewMode(false);
-    this.#viewport?.setInstances([]);
-    this.#audit("project_workspace_reset", "success", {
-      filename: fileName,
-      source: galleryAssetId ? "gallery_server_asset" : "browser_file",
-    });
-    this.#renderFull();
-    this.#schedulePersist(700);
   }
 
   #requestImport(value: File, replaceWorkspace: boolean, galleryAssetId: string): void {
-    const key = galleryAssetId || `${value.name}:${value.size}:${value.lastModified}`;
-    const now = Date.now();
-    if (key === this.#recentImportKey && now - this.#recentImportAt < 2500) return;
+    const key = `${replaceWorkspace ? "replace" : "append"}:${galleryAssetId || `${value.name}:${value.size}:${value.lastModified}`}`;
+    if (this.#importing && key === this.#recentImportKey
+      && (galleryAssetId !== "" || value === this.#recentImportFile)) return;
     this.#recentImportKey = key;
-    this.#recentImportAt = now;
-    if (replaceWorkspace) this.#resetWorkspaceForProjectOpen(value.name, galleryAssetId);
-    this.#file = value;
-    this.#mode = "prepare";
+    this.#recentImportAt = Date.now();
+    this.#recentImportFile = value;
     this.#operationTraceId = `studio-import-${Date.now()}-${this.#nextId}`;
     this.#traceStudioOperation("import", "import_requested", "Import gestartet", {
       traceId: this.#operationTraceId,
@@ -960,9 +937,9 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     this.#history.reset(this.#workspaceSnapshot());
     this.#historyReady = true;
     this.#workspaceReady = true;
-    this.#loading = false;
+    this.#loading = this.#importing;
     this.#renderFull();
-    void this.#activatePlateJob(this.#plate());
+    if (!this.#importing) void this.#activatePlateJob(this.#plate());
     void this.#loadEnvironment();
   }
 
@@ -1012,9 +989,11 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
   }
 
   async #restoreWorkspace(): Promise<void> {
+    const generation = this.#generation;
+    if (this.#importing) return;
     try {
       const snapshot = await loadStudioWorkspace();
-      if (!snapshot?.plates.length) return;
+      if (generation !== this.#generation || this.#importing || !snapshot?.plates.length) return;
       const plates: Plate[] = snapshot.plates.map((plate, index) => ({
         id: index,
         uid: plate.uid || newPlateUid(),
@@ -1367,6 +1346,8 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
 
   async #activatePlateJob(plate: Plate): Promise<void> {
     const jobId = String(plate.jobId || "").trim();
+    const projectGeneration = this.#projectGeneration;
+    const ownsJob = (): boolean => projectGeneration === this.#projectGeneration && plate.jobId === jobId;
     if (!jobId) {
       const current = jobActivityStore.snapshot.slicer;
       if (current && !ACTIVE.has(current.status)) jobActivityStore.dismissSlicerJob(current.id);
@@ -1459,23 +1440,26 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     };
     try {
       let job = await fetchSliceJob(jobId);
+      if (!ownsJob()) return;
       reportJobState(job);
       if (ACTIVE.has(job.status)) {
         plate.stage = "slicing";
         jobActivityStore.registerSlicerJob(job);
-        if (this.#plate() === plate) {
+        if (this.#plate() === plate && !this.#importing) {
           this.#loading = true;
           this.#status = plate.name + " wird weiter verarbeitet …";
           this.#renderStatus();
         }
-        while (plate.jobId === jobId && ACTIVE.has(job.status)) {
+        while (ownsJob() && ACTIVE.has(job.status)) {
           await new Promise((resolve) => globalThis.setTimeout(resolve, 700));
+          if (!ownsJob()) return;
           job = await fetchSliceJob(jobId);
+          if (!ownsJob()) return;
           jobActivityStore.registerSlicerJob(job);
           reportJobState(job);
         }
       }
-      if (plate.jobId !== jobId) return;
+      if (!ownsJob()) return;
       reportJobState(job);
       if (job.status !== "succeeded") throw new Error(job.error || "Slicing fehlgeschlagen");
 
@@ -1499,7 +1483,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
 
       plate.stage = "sliced";
       plate.lastError = "";
-      if (this.#plate() === plate) {
+      if (this.#plate() === plate && !this.#importing) {
         this.#loading = false;
         this.#status = plate.name + ": Slicing abgeschlossen · Vorschau wird geladen …";
         this.#renderAfterSliceReconcile();
@@ -1513,7 +1497,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
           status: "running",
         });
         const summary = await fetchToolpath(jobId);
-        if (plate.jobId !== jobId) return;
+        if (!ownsJob()) return;
         plate.toolColors = normalizeToolpathPalette(summary.filament_colors);
         plate.layerCount = summary.layer_count;
         plate.visibleLayer = Math.max(0, plate.layerCount - 1);
@@ -1543,10 +1527,10 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
         let loadedSegments = 0;
         const seenFeatureLabels = new Set<string>();
         for (let offset = 0; offset < ranges.length; offset += parallelRequests) {
-          if (plate.jobId !== jobId) return;
+          if (!ownsJob()) return;
           const batch = ranges.slice(offset, offset + parallelRequests);
           const chunks = await Promise.all(batch.map(([start, end]) => fetchToolpath(jobId, start, end)));
-          if (plate.jobId !== jobId) return;
+          if (!ownsJob()) return;
           let batchSegments = 0;
           for (const chunk of chunks) {
             const chunkLayers = chunk.chunk?.layers ?? [];
@@ -1558,7 +1542,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
           }
           loadedSegments += batchSegments;
           const loaded = Math.min(summary.layer_count, (offset + batch.length) * 35);
-          if (this.#plate() === plate) {
+          if (this.#plate() === plate && !this.#importing) {
             this.#status = plate.name + ": Slicing abgeschlossen · Vorschau " + loaded + " / " + summary.layer_count + " Layer";
             this.#renderStatus();
           }
@@ -1616,9 +1600,9 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
         });
       }
       job = await fetchSliceJob(jobId);
-      if (plate.jobId !== jobId) return;
+      if (!ownsJob()) return;
       reportJobState(job);
-      if (this.#plate() === plate) {
+      if (this.#plate() === plate && !this.#importing) {
         this.#mode = "preview";
         // Preserve the user-selected view; new sessions and projects start in material mode.
         this.#status = plate.name + ": " + plate.layerCount + " Layer erfolgreich geladen.";
@@ -1626,6 +1610,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       jobActivityStore.registerSlicerJob(job);
       this.#audit("slice_completed", "success", { job_id: job.id, layer_count: plate.layerCount });
       await this.#persistNow();
+      if (!ownsJob()) return;
       this.#traceSliceActivity("preview_ready", "Vorschaudaten vollständig bereit", {
         traceId,
         jobId,
@@ -1640,7 +1625,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
         },
       });
     } catch (error) {
-      if (plate.jobId === jobId) {
+      if (ownsJob()) {
         plate.stage = "error";
         plate.lastError = error instanceof Error ? error.message : String(error);
         this.#audit("slice_reconcile_failed", "error", { job_id: jobId, plate_id: plate.id, error: plate.lastError });
@@ -1655,9 +1640,13 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       }
       console.warn("Plattengebundener Slicerauftrag konnte nicht aktiviert werden", error);
     } finally {
-      this.#reconcilingJobs.delete(jobId);
-      if (ownedLoadingState) this.#loading = false;
-      this.#renderAfterSliceReconcile();
+      // A retired project's completion must not unlock a new owner of the same
+      // job ID, clear an import spinner or redraw the replacement workspace.
+      if (projectGeneration === this.#projectGeneration) {
+        this.#reconcilingJobs.delete(jobId);
+        if (ownedLoadingState && this.#plate() === plate && !this.#importing) this.#loading = false;
+        if (!this.#importing) this.#renderAfterSliceReconcile();
+      }
     }
   }
 
@@ -1935,14 +1924,26 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
 
   async #load(file: File, replaceWorkspace = false, galleryAssetId = ""): Promise<void> {
     const generation = ++this.#generation;
-    const importNumber = this.#nextId++;
+    const importNumber = generation;
+    let nextId = this.#nextId;
+    const originalPlates = this.#plates;
+    const originalPlateOrder = [...originalPlates];
+    const originPlate = this.#plate();
+    const sourceSelection = {
+      ...originPlate.selection,
+      filament_profile_ids: [...originPlate.selection.filament_profile_ids],
+      ...(originPlate.selection.gcode_preset_ids ? { gcode_preset_ids: { ...originPlate.selection.gcode_preset_ids } } : {}),
+    };
+    const stagedAssignments = new Map<string, string>();
+    const preparedPlates: Plate[] = [];
+    let committed = false;
+    this.#importing = true;
     const traceId = this.#operationTraceId || `studio-import-${Date.now()}-${importNumber}`;
     const source = galleryAssetId ? "Galerie / Server-Asset" : "Lokale Datei";
     this.#operationTraceId = traceId;
     this.#loading = true;
     this.#error = "";
     this.#status = `${file.name} wird analysiert …`;
-    this.#mode = "prepare";
     this.#traceStudioOperation("import", "inspection_started", "Datei und Projektstruktur werden analysiert", {
       traceId,
       fileName: file.name,
@@ -1958,7 +1959,14 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
         ? await inspectGallerySliceModel(galleryAssetId)
         : await inspectSliceModel(file);
       if (generation !== this.#generation) return;
-      const inspectedPlateCount = inspection.format === "3mf" ? Math.max(1, inspection.plate_count || inspection.plates.length || 1) : 1;
+      if (!inspection || !["3mf", "stl"].includes(inspection.format)
+        || !Array.isArray(inspection.plates) || !Array.isArray(inspection.objects) || !Array.isArray(inspection.filaments)) {
+        throw new Error("Die Modellanalyse enthält keine gültige STL-/3MF-Projektstruktur.");
+      }
+      const inspectedPlateCount = inspection.format === "3mf" ? (inspection.plate_count ?? (inspection.plates.length || 1)) : 1;
+      if (!Number.isSafeInteger(inspectedPlateCount) || inspectedPlateCount < 1 || inspectedPlateCount > 1000) {
+        throw new Error("Die Modellanalyse enthält eine ungültige oder zu große Plattenanzahl.");
+      }
       this.#traceStudioOperation("import", "inspection_ready", "Projektanalyse abgeschlossen", {
         traceId,
         fileName: file.name,
@@ -1973,51 +1981,21 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
           inputSizeBytes: file.size || undefined,
         },
       });
-      if (replaceWorkspace) {
-        const previous = this.#plate();
-        const selection = {
-          ...previous.selection,
-          filament_profile_ids: [...previous.selection.filament_profile_ids],
-        };
-        for (const plate of this.#plates) plate.jobId = "";
-        const activeJob = jobActivityStore.snapshot.slicer;
-        if (activeJob && !ACTIVE.has(activeJob.status)) jobActivityStore.dismissSlicerJob(activeJob.id);
-        this.#plates = [newPlate(0, "Druckplatte 1", selection, previous.width, previous.depth, previous.materialSource, previous.externalFilamentProfileId)];
-        this.#activePlate = 0;
-        this.#selected.clear();
-        this.#selectionAnchor = null;
-        this.#assignments.clear();
-        this.#paintSession = createPaintSession();
-        this.#paintLayers.clear();
-        this.#paintLegacyAmbiguousObjectIds.clear();
-        this.#clipboard = null;
-        this.#projectId = "";
-        this.#projectName = "";
-        this.#projectRevision = 0;
-        this.#modelMaterials = [];
-        this.#inspection = null;
-        this.#previewSupportOnly = false;
-        this.#audit("project_workspace_replaced", "success", {
-          filename: file.name,
-          source: galleryAssetId ? "gallery_server_asset" : "browser_file",
-        });
-        this.#traceStudioOperation("import", "workspace_ready", "Studio-Arbeitsbereich für das Projekt vorbereitet", {
-          traceId,
-          fileName: file.name,
-          source,
-          detail: "Vorherige Projektinhalte wurden kontrolliert aus dem Arbeitsbereich entfernt.",
-          progress: 16,
-          status: "success",
-        });
-      }
-      this.#inspection = inspection;
-      this.#modelMaterials = inspection.filaments.map((filament) => ({
-        key: `model:${filament.extruder}`,
-        name: filament.name || `Modellfarbe ${filament.extruder}`,
-        material: filament.material || "unknown",
-        color: normalizeColor(filament.color),
-        source: "model",
-      }));
+      // Material keys are workspace-wide. Scope only a conflicting incoming
+      // extruder key, preserving every pre-existing model's identity and color.
+      const existingMaterials = replaceWorkspace ? [] : (this.#modelMaterials ?? []);
+      const materialKeys = new Map<number, string>();
+      const incomingMaterials = inspection.filaments.map((filament) => {
+        const originalKey = `model:${filament.extruder}`;
+        const color = normalizeColor(filament.color);
+        const existing = existingMaterials.find((item) => item.key === originalKey);
+        const key = existing && (existing.color !== color || existing.material !== (filament.material || "unknown") || existing.name !== (filament.name || `Modellfarbe ${filament.extruder}`))
+          ? `model:${importNumber}:${nextId}:${filament.extruder}` : originalKey;
+        if (materialKeys.has(filament.extruder)) throw new Error("Die Modellanalyse enthält mehrdeutige Materialkanäle.");
+        materialKeys.set(filament.extruder, key);
+        return { key, name: filament.name || `Modellfarbe ${filament.extruder}`,
+          material: filament.material || "unknown", color, source: "model" as const };
+      });
       const originalExtruders = new Map<string, number>();
       for (const object of inspection.objects as readonly InspectNode[]) this.#collectExtruders(object, originalExtruders);
       const importedIds: string[] = [];
@@ -2025,8 +2003,8 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       let importedTriangles = 0;
 
       if (inspection.format === "3mf") {
-        const count = Math.max(1, inspection.plate_count || inspection.plates.length || 1);
-        const importedPlates: Plate[] = [];
+        const count = inspectedPlateCount;
+        const importedPlates = preparedPlates;
         for (let index = 0; index < count; index += 1) {
           this.#traceStudioOperation("import", `plate_${index + 1}_load`, `Druckplatte ${index + 1} / ${count} wird geladen`, {
             traceId,
@@ -2048,7 +2026,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
             status: "success",
             metrics: { plateCount: count, loadedPlates: index, objectCount: data.instances.length, loadedObjects: processedObjects },
           });
-          const selection = { ...this.#plate().selection, filament_profile_ids: [...this.#plate().selection.filament_profile_ids] };
+          const selection = sourceSelection;
           const width = data.plate_size[0] || 256;
           const depth = data.plate_size[1] || 256;
           const rawInstances: MeshInstance[] = [];
@@ -2080,13 +2058,13 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
               status: "success",
               metrics: { plateCount: count, loadedPlates: index, objectCount: data.instances.length, loadedObjects: processedObjects, triangleCount: importedTriangles },
             });
-            const id = `import-${importNumber}-${this.#nextId++}`;
+            const id = `import-${importNumber}-${nextId++}`;
             const extruder = originalExtruders.get(part.part_id)
               ?? originalExtruders.get(part.object_id)
               ?? part.extruder
               ?? 1;
-            const key = `model:${extruder}`;
-            this.#assignments.set(id, key);
+            const key = materialKeys.get(extruder) ?? `model:${importNumber}:${nextId}:${extruder}`;
+            stagedAssignments.set(id, key);
             importedIds.push(id);
             rawInstances.push({
               id,
@@ -2095,7 +2073,9 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
               position: [0,0,0] as Vec3,
               rotation: [0,0,0] as Vec3,
               scale: [1,1,1] as Vec3,
-              color: this.#materialColor(key),
+              color: originPlate.materialSource === "external_spool"
+                ? this.#materialColor(key, originPlate)
+                : incomingMaterials.find((material) => material.key === key)?.color ?? NEUTRAL_COLOR,
               visible: part.visible,
             });
           }
@@ -2105,8 +2085,8 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
             selection,
             width,
             depth,
-            this.#plate().materialSource,
-            this.#plate().externalFilamentProfileId,
+            originPlate.materialSource,
+            originPlate.externalFilamentProfileId,
           );
           plate.instances = fitImportedGroup(rawInstances, width, depth);
           importedPlates.push(plate);
@@ -2120,15 +2100,6 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
             metrics: { plateCount: count, loadedPlates: index + 1, loadedObjects: processedObjects, triangleCount: importedTriangles },
           });
         }
-        const onlyEmptyStartPlate = this.#plates.length === 1 && this.#plates[0]!.instances.length === 0;
-        const startIndex = onlyEmptyStartPlate ? 0 : this.#plates.length;
-        if (onlyEmptyStartPlate) this.#plates = importedPlates;
-        else this.#plates.push(...importedPlates);
-        this.#plates.forEach((plate, index) => {
-          plate.id = index;
-          if (!plate.name.trim()) plate.name = `Druckplatte ${index + 1}`;
-        });
-        this.#activePlate = startIndex;
       } else {
         this.#traceStudioOperation("import", "stl_read", "STL-Geometrie wird gelesen", {
           traceId,
@@ -2151,8 +2122,9 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
           status: "success",
           metrics: { objectCount: 1, loadedObjects: 1, triangleCount: mesh.triangleCount, inputSizeBytes: file.size || undefined },
         });
-        const plate = this.#plate();
-        const id = `import-${importNumber}-${this.#nextId++}`;
+        const plate = newPlate(0, replaceWorkspace ? "Druckplatte 1" : originPlate.name,
+          sourceSelection, originPlate.width, originPlate.depth, originPlate.materialSource, originPlate.externalFilamentProfileId);
+        const id = `import-${importNumber}-${nextId++}`;
         const base: MeshInstance = {
           id,
           name: file.name.replace(/\.stl$/i, ""),
@@ -2166,6 +2138,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
         const position = positionCenteredOnPlate(mesh, base, plate.width, plate.depth);
         plate.instances.push({ ...base, position: positionOnBed(mesh, { ...base, position }) });
         plate.stage = "prepared";
+        preparedPlates.push(plate);
         importedIds.push(id);
         this.#traceStudioOperation("import", "stl_placed", "STL auf der aktiven Druckplatte positioniert", {
           traceId,
@@ -2177,6 +2150,42 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
           metrics: { plateCount: 1, loadedPlates: 1, objectCount: 1, loadedObjects: 1, triangleCount: mesh.triangleCount },
         });
       }
+      if (generation !== this.#generation) return;
+      if (this.#plates !== originalPlates || originalPlateOrder.length !== this.#plates.length
+        || originalPlateOrder.some((plate, index) => this.#plates[index] !== plate)) {
+        throw new Error("Der Arbeitsbereich wurde inzwischen gewechselt. Der Import wurde nicht übernommen.");
+      }
+      // Prepare all derived containers before changing any live workspace state.
+      const assignments = new Map(replaceWorkspace ? [] : this.#assignments);
+      for (const [id, key] of stagedAssignments) assignments.set(id, key);
+      const materials = new Map(existingMaterials.map((item) => [item.key, item]));
+      for (const item of incomingMaterials) materials.set(item.key, item);
+      const palette = [...materials.values()];
+      const replaceEmpty = originalPlates.length === 1 && originPlate.instances.length === 0;
+      const newPlates = replaceWorkspace || replaceEmpty ? preparedPlates : [...originalPlates, ...preparedPlates];
+      const activePlate = replaceWorkspace || replaceEmpty ? 0 : originalPlates.length;
+      preparedPlates.forEach((plate, index) => { plate.id = activePlate + index; });
+      // No await, persistence or render is permitted inside this commit section.
+      if (replaceWorkspace) this.#resetWorkspaceForProjectOpen(file.name, galleryAssetId);
+      if (inspection.format === "stl" && !replaceWorkspace && !replaceEmpty) {
+        originPlate.instances = [...originPlate.instances, ...preparedPlates[0]!.instances];
+        this.#invalidatePlate(originPlate);
+        this.#activePlate = this.#plates.indexOf(originPlate);
+      } else {
+        this.#plates = newPlates;
+        this.#activePlate = activePlate;
+      }
+      this.#assignments = assignments;
+      this.#modelMaterials = palette;
+      this.#inspection = inspection;
+      this.#file = file;
+      this.#nextId = Math.max(this.#nextId, nextId);
+      this.#mode = "prepare";
+      committed = true;
+      if (replaceWorkspace) this.#audit("project_workspace_replaced", "success", {
+        filename: file.name, source: galleryAssetId ? "gallery_server_asset" : "browser_file",
+        plate_count: this.#plates.length,
+      });
       this.#selected = new Set(this.#plate().instances.filter((item) => importedIds.includes(item.id)).map((item) => item.id));
       if (!this.#selected.size && this.#plate().instances[0]) this.#selected.add(this.#plate().instances[0]!.id);
       const importAction = replaceWorkspace ? "geöffnet" : "hinzugefügt";
@@ -2199,6 +2208,9 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
         metrics: { plateCount: this.#plates.length, loadedPlates: this.#plates.length, objectCount: importedIds.length, loadedObjects: importedIds.length, triangleCount: importedTriangles, materialCount: inspection.filaments.length },
       });
     } catch (error) {
+      if (generation !== this.#generation) return;
+      this.#recentImportKey = "";
+      this.#recentImportFile = null;
       this.#error = error instanceof Error ? error.message : String(error);
       this.#audit("model_import_failed", "error", { filename: file.name, error: this.#error });
       this.#traceStudioOperation("import", "import_failed", "Import fehlgeschlagen", {
@@ -2213,9 +2225,10 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
     } finally {
       if (generation === this.#generation) {
         if (this.#operationTraceId === traceId) this.#operationTraceId = "";
+        this.#importing = false;
         this.#loading = false;
         this.#renderFull();
-        this.#schedulePersist(700);
+        if (committed) this.#schedulePersist(700);
       }
     }
   }

@@ -9,7 +9,6 @@ import { APP_NAV, mountAppShell } from "./app-shell-view.js";
 import { parseRoute, routeToHash, type WorkspaceRoute } from "./router.js";
 import { writeFrontendAudit } from "./ha-api-transport.js";
 import { consumeWorkspaceFiles } from "./workspace-file-handoff.js";
-import { clearStudioWorkspace } from "./studio-persistence.js";
 import { readStudioPreference } from "./studio-storage-upgrade.js";
 import { jobActivityStore, type JobActivitySnapshot } from "./job-activity-store.js";
 import { printLayerLabel, printSpeedLabel } from "./print-live-telemetry.js";
@@ -142,39 +141,24 @@ export class Ultimate3DStudioShellV4 extends HTMLElement {
   async #openStudioProject(detail: GalleryOpenDetail): Promise<void> {
     const generation = ++this.#projectOpenGeneration;
     const replaceWorkspace = detail.replaceWorkspace !== false;
+    const gallery = Boolean(detail.assetId && detail.fileName);
+    if (detail.assetId && !gallery && !detail.file) return;
+    // Explicit handoffs own their file. Do not consume an unrelated queued file.
+    const file = detail.file ?? (gallery ? null : consumeWorkspaceFiles("slicer")[0] ?? consumeWorkspaceFiles("studio")[0]);
+    if (!gallery && !file) return;
     this.#source = null;
-
-    if (replaceWorkspace) {
-      await clearStudioWorkspace();
-      if (generation !== this.#projectOpenGeneration) return;
-      this.#studio?.remove();
-      this.#studio = null;
-      writeFrontendAudit({
-        category: "Lifecycle",
-        component: "app-shell",
-        event: "studio_project_session_reset",
-        status: "success",
-        details: {
-          source: detail.assetId ? "gallery_server_asset" : "browser_file",
-          filename: detail.fileName || detail.file?.name || null,
-        },
-      });
-    }
-
+    // Keep the existing workspace and its saved snapshot until the Studio loader
+    // has successfully prepared the entire replacement. It owns the commit.
     this.navigate({ name: "studio" });
     await new Promise<void>((resolve) => queueMicrotask(resolve));
     if (generation !== this.#projectOpenGeneration) return;
-
     const studio = this.#studioNode();
-    if (detail.assetId && detail.fileName && studio.openGalleryProject) {
-      studio.openGalleryProject(detail.assetId, detail.fileName, { replaceWorkspace });
-      return;
+    if (gallery && studio.openGalleryProject) {
+      studio.openGalleryProject(detail.assetId!, detail.fileName!, { replaceWorkspace });
+    } else if (file) {
+      if (replaceWorkspace && studio.openProject) studio.openProject(file, { replaceWorkspace: true });
+      else studio.file = file;
     }
-    const queuedFile = consumeWorkspaceFiles("slicer")[0] ?? consumeWorkspaceFiles("studio")[0];
-    const file = detail.file ?? queuedFile;
-    if (!file) return;
-    if (replaceWorkspace && studio.openProject) studio.openProject(file, { replaceWorkspace: true });
-    else studio.file = file;
   }
 
   #mountNavigation(): void {

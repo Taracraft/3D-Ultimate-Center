@@ -1,6 +1,6 @@
 {
   "custom_terms_do_not_replace_inherited_or_third_party_rights": true,
-  "delivered_paths": 1100,
+  "delivered_paths": 1101,
   "derived_profile_modification_notice_date": "2026-10-15",
   "files": [
     {
@@ -2364,7 +2364,7 @@
       "identity": {
         "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "4aa0b99f45c706c647a445f1f4738e34edf60075a75d6ab43b62be2e8552e2da"
+        "sha256": "f70063c928a0b837aa1f73009b9d64e49bb88d662683b93b2c5de2039c0876bd"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -2388,9 +2388,9 @@
     },
     {
       "identity": {
-        "bytes": 677078,
+        "bytes": 677152,
         "kind": "sha256-raw-bytes",
-        "sha256": "3cfb1b2c67458726fa537f501fc0187175340a8042578a84b84ec4cf661a01f9"
+        "sha256": "e5c34a611cd880d6471d1b3ea0f778de61b7a384c64056e157826f8ebfb75321"
       },
       "notice_class": "generated-frontend-bundle",
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio.js",
@@ -7111,7 +7111,7 @@
       "identity": {
         "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "4aa0b99f45c706c647a445f1f4738e34edf60075a75d6ab43b62be2e8552e2da"
+        "sha256": "f70063c928a0b837aa1f73009b9d64e49bb88d662683b93b2c5de2039c0876bd"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -7135,9 +7135,9 @@
     },
     {
       "identity": {
-        "bytes": 677078,
+        "bytes": 677152,
         "kind": "sha256-raw-bytes",
-        "sha256": "3cfb1b2c67458726fa537f501fc0187175340a8042578a84b84ec4cf661a01f9"
+        "sha256": "e5c34a611cd880d6471d1b3ea0f778de61b7a384c64056e157826f8ebfb75321"
       },
       "notice_class": "generated-frontend-bundle",
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio.js",
@@ -7148,9 +7148,9 @@
     },
     {
       "identity": {
-        "bytes": 29668,
+        "bytes": 29715,
         "kind": "sha256-raw-bytes",
-        "sha256": "d940bb4c3e7e83ac67527d55f0b94a6b7d781d07caf7df548ca78fde271e2dfc"
+        "sha256": "156c840ebdf34d86f5cd70868fb4603b64bf45ca6bd3d73e3f7f961a7d82732f"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/frontend-tests/cad-data-integrity.test.ts",
@@ -7408,9 +7408,9 @@
     },
     {
       "identity": {
-        "bytes": 9197,
+        "bytes": 9746,
         "kind": "sha256-raw-bytes",
-        "sha256": "e97b51df73492d477418b4f8f318d5a22300cddfec92920e44c5ae864d8c4f02"
+        "sha256": "c09be8d1fb147b90ba2023fe40d959ba40f1d7fc28f8549635e55048b0127128"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/frontend-tests/navigation-lifecycle.test.ts",
@@ -7538,6 +7538,19 @@
     },
     {
       "identity": {
+        "bytes": 22756,
+        "kind": "sha256-raw-bytes",
+        "sha256": "ce3dc7c12f3e3731c039f74f302c959a5181064eac29b4bc56e4b708809efbb5"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "studio/frontend-tests/studio-import-transactions.test.ts",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "frontend-tests/studio-import-transactions.test.ts"
+    },
+    {
+      "identity": {
         "bytes": 25730,
         "kind": "sha256-raw-bytes",
         "sha256": "3e040d41422b9aa7e6977bc7515496546963c2994393fae2178e4b75ca9d6ab8"
@@ -7642,9 +7655,9 @@
     },
     {
       "identity": {
-        "bytes": 11478,
+        "bytes": 11226,
         "kind": "sha256-raw-bytes",
-        "sha256": "86269d533321572aeff89af55f4ec343634dc550f3117c83946d33e85736d2b9"
+        "sha256": "a13ef83caea20bfd9146f6b9f3f0f70f1b75caefc108024657aa1d2c68f69ec0"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/frontend/app-shell-v4.ts",
@@ -9735,9 +9748,9 @@
     },
     {
       "identity": {
-        "bytes": 245354,
+        "bytes": 252615,
         "kind": "sha256-raw-bytes",
-        "sha256": "e21785741cdebba1c6194a49b386b02bbdc2fa4fad87cdc7ab0d54bb69b2d3d0"
+        "sha256": "afa4c4f216a484d1b0969fcc5becca90f5ad0fb2abdd80251d38166de5fbe620"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/frontend/studio-mega-workspace-v2.ts",
@@ -12197,9 +12210,9 @@
     },
     {
       "identity": {
-        "bytes": 1855,
+        "bytes": 2352,
         "kind": "sha256-raw-bytes",
-        "sha256": "bf94ff3924b34b8af20a1850e90d8566f256028bb21f5058c58c72314bec875e"
+        "sha256": "b2057f2b59e0c928088a9d4833582360ef634468c9b5a35a11844014f81b6367"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/tests/test_studio_gallery_project_regression_contract.py",
@@ -14409,7 +14422,7 @@
   "production_approved": false,
   "schema": 2,
   "scope": "file-specific notice inventory for this source-only Git delivery; no engine/image or production approval",
-  "source_files": 915,
+  "source_files": 916,
   "upstream": {
     "commit": "42d319c6692fa8e64790fddf0cdaafd2a4254bcc",
     "derived_source_paths": [

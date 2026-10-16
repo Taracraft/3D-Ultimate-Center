@@ -76,10 +76,12 @@ test("reconnected persistent shell restores hash and gallery listeners exactly o
   app.location.hash = "#/profile";
   app.flushHashes();
   assert.equal(app.content.children[0].tagName, "ultimate-3d-profile-workspace");
-  app.shell.dispatchEvent(Object.assign(new Event("gallery-open-studio"), { detail: {} }));
+  const file = new File(["project"], "selected.3mf");
+  app.shell.dispatchEvent(Object.assign(new Event("gallery-open-studio"), { detail: { file } }));
   await new Promise<void>((resolve) => setImmediate(resolve));
-  assert.equal(app.workspaceClears(), 1, "reconnection must not duplicate the open-project listener");
+  assert.equal(app.workspaceClears(), 0, "the shell must not destroy the saved session before import");
   assert.equal(app.content.children[0].tagName, "ultimate-3d-unified-studio");
+  assert.equal((app.content.children[0] as ContractElement & { file?: File }).file, file);
   app.disconnect();
 });
 
@@ -183,14 +185,20 @@ test("source requests can switch tabs inside an already mounted gallery", () => 
 });
 
 
-test("replacing a project while already in Studio mounts the new workspace", async () => {
+test("replacing a project while already in Studio preserves the workspace until transactional import", async () => {
   const app = setup(); app.shell.navigate({ name: "studio" }); app.flushHashes();
   const old = app.content.children[0];
-  app.shell.dispatchEvent(Object.assign(new Event("gallery-open-studio"), { detail: {} }));
+  const file = new File(["replacement"], "new.3mf");
+  const calls: unknown[][] = [];
+  (old as ContractElement & { openProject: (...args: unknown[]) => void }).openProject = (...args) => { calls.push(args); };
+  app.shell.dispatchEvent(Object.assign(new Event("gallery-open-studio"), { detail: { file } }));
   await new Promise<void>((resolve) => setImmediate(resolve));
-  assert.equal(app.workspaceClears(), 1);
+  assert.equal(app.workspaceClears(), 0);
   assert.equal(app.content.children.length, 1);
-  assert.notEqual(app.content.children[0], old);
+  assert.equal(app.content.children[0], old);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0]![0], file);
+  assert.equal((calls[0]![1] as { replaceWorkspace: boolean }).replaceWorkspace, true);
   assert.equal(app.content.children[0].tagName, "ultimate-3d-unified-studio");
   app.disconnect();
 });

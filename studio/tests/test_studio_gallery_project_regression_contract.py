@@ -7,15 +7,19 @@ FRONTEND = ROOT / "frontend"
 BACKEND = ROOT / "deploy" / "homeassistant" / "custom_components" / "ultimate_3d_studio"
 
 
-def test_gallery_project_reset_happens_before_async_model_inspection() -> None:
+def test_gallery_project_replacement_commits_only_after_complete_preparation() -> None:
     source = (FRONTEND / "studio-mega-workspace-v2.ts").read_text(encoding="utf-8-sig")
-    reset_call = source.index("if (replaceWorkspace) this.#resetWorkspaceForProjectOpen")
-    load_call = source.index("void this.#load(value, replaceWorkspace, galleryAssetId)")
-    assert reset_call < load_call
-    assert "jobActivityStore.dismissSlicerJob();" in source
+    request = source[source.index("  #requestImport("):source.index("  connectedCallback()", source.index("  #requestImport("))]
+    load = source[source.index("  async #load(file:"):source.index("  #collectExtruders(")]
+    assert "#resetWorkspaceForProjectOpen" not in request
+    assert load.index("await fetchScene(") < load.index("if (replaceWorkspace) this.#resetWorkspaceForProjectOpen")
+    assert load.index("await buildMeshGeometryAsync(") < load.index("if (replaceWorkspace) this.#resetWorkspaceForProjectOpen")
+    assert "if (generation !== this.#generation) return;" in load[load.index("} catch (error)"):]
+    assert "if (committed) this.#schedulePersist(700)" in load
     assert "this.#reconcilingJobs.clear();" in source
-    assert "this.#plates = [newPlate(0" in source
-    assert 'this.#mode = "prepare";' in source
+    assert "!ACTIVE.has(activeJob.status)" in source
+    shell = (FRONTEND / "app-shell-v4.ts").read_text(encoding="utf-8-sig")
+    assert "clearStudioWorkspace" not in shell
 
 
 def test_direct_print_strip_requires_the_active_plate_job_id() -> None:
