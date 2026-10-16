@@ -1,6 +1,6 @@
 {
   "custom_terms_do_not_replace_inherited_or_third_party_rights": true,
-  "delivered_paths": 1103,
+  "delivered_paths": 1109,
   "derived_profile_modification_notice_date": "2026-10-15",
   "files": [
     {
@@ -837,9 +837,9 @@
     },
     {
       "identity": {
-        "bytes": 17219,
+        "bytes": 17324,
         "kind": "sha256-raw-bytes",
-        "sha256": "5dc2a64a3cf427145b6755395d0f7e938a25f7b3deb5b658b786a030c47e1e6a"
+        "sha256": "b275811deb2cc081b6100b1328fc41ff3eca2b43445a451b00106ef77af00389"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/custom_components/ultimate_3d_studio/config_flow.py",
@@ -1385,9 +1385,9 @@
     },
     {
       "identity": {
-        "bytes": 231,
+        "bytes": 291,
         "kind": "sha256-raw-bytes",
-        "sha256": "78b00bc6520572281aa5e74768e8b8337d11925a79d63c0d4e87d3ff63429d0f"
+        "sha256": "979776953a4e1cc8659d968fb08da95a80d3385b6957989aa5a4653f6d25e5a7"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/custom_components/ultimate_3d_studio/manifest.json",
@@ -1920,6 +1920,19 @@
     },
     {
       "identity": {
+        "bytes": 5795,
+        "kind": "sha256-raw-bytes",
+        "sha256": "62551ce68ec3ec86e5aafa4db3ba0f54db41285df76f0ab93cd5646dff83bea7"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "homeassistant/custom_components/ultimate_3d_studio/slicer_installation_flow.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_installation_flow.py"
+    },
+    {
+      "identity": {
         "bytes": 13845,
         "kind": "sha256-raw-bytes",
         "sha256": "4deb6d93796e1f4d7be52285c09dc17c4e011a4d486634be1701b6bae22468d8"
@@ -2167,6 +2180,19 @@
     },
     {
       "identity": {
+        "bytes": 12668,
+        "kind": "sha256-raw-bytes",
+        "sha256": "c49718d56607f2daeb8071a578d25da265a2d8226ecd24dc125573b34d53ad12"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "homeassistant/custom_components/ultimate_3d_studio/slicer_supervisor_app.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_supervisor_app.py"
+    },
+    {
+      "identity": {
         "bytes": 5655,
         "kind": "sha256-raw-bytes",
         "sha256": "4c76b782255350867695aeaa14ced11fb48ba52f2d7e2e8219f6e0838b8b9f2d"
@@ -2206,9 +2232,9 @@
     },
     {
       "identity": {
-        "bytes": 6660,
+        "bytes": 10586,
         "kind": "sha256-raw-bytes",
-        "sha256": "b3e6bdda87b794557523d9a7ef8bdda8518518ebace662612a762dedc7444208"
+        "sha256": "f2553d53e19c355b96f23f01ed1d575c553adb53bfbd063116e2ee417b2ff527"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/custom_components/ultimate_3d_studio/strings.json",
@@ -2323,9 +2349,9 @@
     },
     {
       "identity": {
-        "bytes": 6660,
+        "bytes": 10586,
         "kind": "sha256-raw-bytes",
-        "sha256": "b3e6bdda87b794557523d9a7ef8bdda8518518ebace662612a762dedc7444208"
+        "sha256": "f2553d53e19c355b96f23f01ed1d575c553adb53bfbd063116e2ee417b2ff527"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/custom_components/ultimate_3d_studio/translations/de.json",
@@ -2336,9 +2362,9 @@
     },
     {
       "identity": {
-        "bytes": 6105,
+        "bytes": 9735,
         "kind": "sha256-raw-bytes",
-        "sha256": "128a34ea7ba55786401fe7aa6d667dca52e8228ae421b9aacb1417b6f3f96d66"
+        "sha256": "caa2c82fb77186d5ca92d58762740adced4064637453e5db6b2d06ae652ebe98"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/custom_components/ultimate_3d_studio/translations/en.json",
@@ -2364,7 +2390,7 @@
       "identity": {
         "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "4fa49a61da1791caa6c9f8d447b66451d6d31f6696b7bfc9e7a19533302045a7"
+        "sha256": "5c3aa4289fa2d83f882b5549b4524efd34d139807f29392f6573a39898e70dfa"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -2730,9 +2756,9 @@
     },
     {
       "identity": {
-        "bytes": 5376,
+        "bytes": 5902,
         "kind": "sha256-raw-bytes",
-        "sha256": "897a7016e746d4f727b0661fbc64a09c5b1de423eedf0ba9af2c87fea9513450"
+        "sha256": "d334da3c05c0e79241f7da8ab84a70b8997bef8a4275ba50c9d7f71012d293ff"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/INSTALLER_HOST_CHANNEL_DECISION.md",
@@ -3039,6 +3065,20 @@
     },
     {
       "identity": {
+        "bytes": 9217,
+        "kind": "sha256-raw-bytes",
+        "sha256": "a892bab019a12860afc4e3715a3a8e30a86bc8ccabf0a87b74b26a9b8cd6038c"
+      },
+      "notice_class": "declared-new-original-slicer-scope",
+      "path": "studio/Slicer-Server/SUPERVISOR_APP_SETUP.md",
+      "required_notice_paths": [
+        "studio/Slicer-Server/LICENSE",
+        "studio/Slicer-Server/THIRD_PARTY_NOTICES.md"
+      ],
+      "source_path": "Slicer-Server/SUPERVISOR_APP_SETUP.md"
+    },
+    {
+      "identity": {
         "bytes": 744,
         "kind": "sha256-raw-bytes",
         "sha256": "3947bf10b1527c55b48a5640bd3f5c035ae8cd990789fa99408c8b68e05a880c"
@@ -3095,9 +3135,9 @@
     },
     {
       "identity": {
-        "bytes": 15077,
+        "bytes": 15122,
         "kind": "sha256-raw-bytes",
-        "sha256": "be385b2673dbe15f25368fdfce1f2dffd4d6c88759efdebbc0e1870e02c2c034"
+        "sha256": "b79d257a30a1579f7262d732b1960253f03fde1459df0b3712d91cf48459e20f"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/build_repository.py",
@@ -5364,9 +5404,9 @@
     },
     {
       "identity": {
-        "bytes": 17219,
+        "bytes": 17324,
         "kind": "sha256-raw-bytes",
-        "sha256": "5dc2a64a3cf427145b6755395d0f7e938a25f7b3deb5b658b786a030c47e1e6a"
+        "sha256": "b275811deb2cc081b6100b1328fc41ff3eca2b43445a451b00106ef77af00389"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/config_flow.py",
@@ -5912,9 +5952,9 @@
     },
     {
       "identity": {
-        "bytes": 231,
+        "bytes": 291,
         "kind": "sha256-raw-bytes",
-        "sha256": "78b00bc6520572281aa5e74768e8b8337d11925a79d63c0d4e87d3ff63429d0f"
+        "sha256": "979776953a4e1cc8659d968fb08da95a80d3385b6957989aa5a4653f6d25e5a7"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/manifest.json",
@@ -6447,6 +6487,19 @@
     },
     {
       "identity": {
+        "bytes": 5795,
+        "kind": "sha256-raw-bytes",
+        "sha256": "62551ce68ec3ec86e5aafa4db3ba0f54db41285df76f0ab93cd5646dff83bea7"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_installation_flow.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_installation_flow.py"
+    },
+    {
+      "identity": {
         "bytes": 13845,
         "kind": "sha256-raw-bytes",
         "sha256": "4deb6d93796e1f4d7be52285c09dc17c4e011a4d486634be1701b6bae22468d8"
@@ -6694,6 +6747,19 @@
     },
     {
       "identity": {
+        "bytes": 12668,
+        "kind": "sha256-raw-bytes",
+        "sha256": "c49718d56607f2daeb8071a578d25da265a2d8226ecd24dc125573b34d53ad12"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_supervisor_app.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_supervisor_app.py"
+    },
+    {
+      "identity": {
         "bytes": 5655,
         "kind": "sha256-raw-bytes",
         "sha256": "4c76b782255350867695aeaa14ced11fb48ba52f2d7e2e8219f6e0838b8b9f2d"
@@ -6733,9 +6799,9 @@
     },
     {
       "identity": {
-        "bytes": 6660,
+        "bytes": 10586,
         "kind": "sha256-raw-bytes",
-        "sha256": "b3e6bdda87b794557523d9a7ef8bdda8518518ebace662612a762dedc7444208"
+        "sha256": "f2553d53e19c355b96f23f01ed1d575c553adb53bfbd063116e2ee417b2ff527"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/strings.json",
@@ -6850,9 +6916,9 @@
     },
     {
       "identity": {
-        "bytes": 6660,
+        "bytes": 10586,
         "kind": "sha256-raw-bytes",
-        "sha256": "b3e6bdda87b794557523d9a7ef8bdda8518518ebace662612a762dedc7444208"
+        "sha256": "f2553d53e19c355b96f23f01ed1d575c553adb53bfbd063116e2ee417b2ff527"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/translations/de.json",
@@ -6863,9 +6929,9 @@
     },
     {
       "identity": {
-        "bytes": 6105,
+        "bytes": 9735,
         "kind": "sha256-raw-bytes",
-        "sha256": "128a34ea7ba55786401fe7aa6d667dca52e8228ae421b9aacb1417b6f3f96d66"
+        "sha256": "caa2c82fb77186d5ca92d58762740adced4064637453e5db6b2d06ae652ebe98"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/translations/en.json",
@@ -7125,7 +7191,7 @@
       "identity": {
         "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "4fa49a61da1791caa6c9f8d447b66451d6d31f6696b7bfc9e7a19533302045a7"
+        "sha256": "5c3aa4289fa2d83f882b5549b4524efd34d139807f29392f6573a39898e70dfa"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -12497,9 +12563,9 @@
     },
     {
       "identity": {
-        "bytes": 24688,
+        "bytes": 24853,
         "kind": "sha256-raw-bytes",
-        "sha256": "70769ebb93bf1d3f8675fdb63c59f63e0cbefa72dc873690b3e15df8a8642893"
+        "sha256": "52932cf0185d3f6636f5d3aef5cb00afafd4bf44bd44892f3a4bac20aca4d119"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/tests/test_studio_installer_ha_binding.py",
@@ -13186,9 +13252,9 @@
     },
     {
       "identity": {
-        "bytes": 12694,
+        "bytes": 14367,
         "kind": "sha256-raw-bytes",
-        "sha256": "da2f16dae002c81de5ca66b421cc3dc3d0c88671623457617b7a1a2f7263d326"
+        "sha256": "cd3f6871a67fbcd67d9f48e2b3758a32c3efd132339601eeac24f1ba61c5f647"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/tests/test_studio_slicer_options_flow.py",
@@ -13287,6 +13353,19 @@
         "LICENSE"
       ],
       "source_path": "tests/test_studio_studio_projects_contract.py"
+    },
+    {
+      "identity": {
+        "bytes": 31588,
+        "kind": "sha256-raw-bytes",
+        "sha256": "4e56d271560c6adb6b3ceebcc3a834feb80cd9d6cb00607afeb8811bc759ecc7"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "studio/tests/test_studio_supervisor_app_setup.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "tests/test_studio_supervisor_app_setup.py"
     },
     {
       "identity": {
@@ -14449,7 +14528,7 @@
   "production_approved": false,
   "schema": 2,
   "scope": "file-specific notice inventory for this source-only Git delivery; no engine/image or production approval",
-  "source_files": 919,
+  "source_files": 923,
   "upstream": {
     "commit": "42d319c6692fa8e64790fddf0cdaafd2a4254bcc",
     "derived_source_paths": [

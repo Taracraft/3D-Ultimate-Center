@@ -1,5 +1,14 @@
 ﻿# Installer Host Channel Decision
 
+> Aktualisierung 16.10.2026: Die folgenden festen Core-Mountanforderungen
+> beschreiben den bisherigen provisionierten Hostkanal, nicht eine allgemeine
+> Voraussetzung des neuen Supervisor-App-Einrichtungswegs. Dieser wird über
+> den HA-eigenen Supervisor-Client getrennt umgesetzt; Compose bleibt unabhängig.
+> Keine frühere Schutzgrenze und kein zuvor abgewiesener Helfer wird dadurch
+> umgangen. App-Laufzeit/Workerisolation bleiben separat nachzuweisen.
+> Siehe [Supervisor-App-Einrichtung](SUPERVISOR_APP_SETUP.md).
+
+
 Status: W41 design decision, source/documentation only. No host provisioning,
 HA source sync, runtime change, installation or migration was performed.
 

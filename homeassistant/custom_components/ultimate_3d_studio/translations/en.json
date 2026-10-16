@@ -35,7 +35,7 @@
           "slicer_base_url": "Slicer server address (HTTPS)",
           "slicer_api_secret": "Slicer API secret (will not be shown again)",
           "slicer_connection_test": "Check slicer connection (without saving)",
-          "slicer_installer_setup": "Open Slicer installer (without saving other changes)"
+          "slicer_installer_setup": "Set up slicer: Supervisor app or external server (do not save other changes)"
         }
       },
       "cloud_code": {
@@ -58,6 +58,35 @@
         "data": {
           "confirm": "Execute this action"
         }
+      },
+      "slicer_installation": {
+        "title": "Choose slicer installation route",
+        "description": "Supervisor manages the app package. An independent Compose slicer remains usable through its secure server connection. The old host installer is only for explicitly provisioned hosts.",
+        "menu_options": {
+          "slicer_supervisor": "Inspect and install Supervisor app",
+          "slicer_external": "Connect external slicer (Docker Compose)",
+          "slicer_host_legacy": "Open existing provisioned host installer"
+        }
+      },
+      "slicer_external": {
+        "title": "Connect external slicer"
+      },
+      "slicer_host_legacy": {
+        "title": "Provisioned host installer"
+      },
+      "slicer_supervisor": {
+        "title": "Provision Supervisor app",
+        "description": "Verified management state: {state}. Installation and startup are separate. This flow does not start an app, show credentials or replace existing settings. A running container alone proves neither connectivity nor slicing.",
+        "data": {
+          "operation": "Action"
+        }
+      },
+      "slicer_supervisor_confirm": {
+        "title": "Confirm app installation",
+        "description": "Install only the server-owned reviewed app package. No startup, update, removal or print job. Closing this dialog does not stop an operation already sent to Supervisor.",
+        "data": {
+          "confirm": "Explicitly perform installation"
+        }
       }
     },
     "error": {
@@ -76,14 +105,31 @@
       "installer_invalid_action": "Invalid installer action.",
       "installer_busy": "An installer mutation is still running. Status and Cancel remain available.",
       "installer_operation_failed": "The operation was not confirmed. Check the displayed reason; no automatic retry was started.",
-      "installer_host_blocked": "Host prerequisites or engine releases are not ready."
+      "installer_host_blocked": "Host prerequisites or engine releases are not ready.",
+      "supervisor_forbidden": "Only an active Home Assistant administrator may perform this operation.",
+      "supervisor_supervisor_unavailable": "Supervisor is unavailable. Use the external connection route for an independent Compose slicer.",
+      "supervisor_app_release_unavailable": "No reviewed Supervisor app package is configured yet. Nothing was installed. Engine and isolation evidence is still required.",
+      "supervisor_app_release_changed": "The reviewed app reference changed during the operation.",
+      "supervisor_app_reference_invalid": "The server-owned app reference is invalid.",
+      "supervisor_app_not_available": "The reviewed app package is unavailable on this platform.",
+      "supervisor_app_identity_changed": "The app or repository does not match the reviewed identity.",
+      "supervisor_app_policy_mismatch": "The app configuration does not meet the required safeguards. No fallback was used.",
+      "supervisor_app_version_mismatch": "The app or store version differs from the reviewed release.",
+      "supervisor_app_response_invalid": "The app state could not be verified unambiguously.",
+      "supervisor_app_confirmation_required": "Installation requires explicit confirmation.",
+      "supervisor_app_busy": "An app operation is already running. Do not repeat installation.",
+      "supervisor_app_closed": "This setup session belongs to an unloaded integration.",
+      "supervisor_app_operation_failed": "The Supervisor operation could not be confirmed.",
+      "supervisor_app_reconciliation_required": "Installation state is uncertain or inconsistent. Inspect the Supervisor operation and existing app first. No automatic retry or removal.",
+      "supervisor_app_storage_failed": "The private operation state could not be reliably saved or read."
     },
     "abort": {
       "cloud_login_expired": "Bambu sign-in has expired. Open the options again.",
       "installer_integration_unavailable": "The Studio integration is not loaded. Existing settings were not changed."
     },
     "progress": {
-      "installer_working": "Checking or processing the selected installer operation. No duplicate request is started on page refresh."
+      "installer_working": "Checking or processing the selected installer operation. No duplicate request is started on page refresh.",
+      "supervisor_app_working": "Inspecting or provisioning Supervisor app. An uncertain outcome is not automatically retried."
     }
   },
   "selector": {
@@ -109,6 +155,13 @@
         "recover_rollback": "Roll back uncertain activation",
         "finish": "Return to unchanged settings",
         "configure_connection": "Apply the protected slicer connection"
+      }
+    },
+    "supervisor_app_operation": {
+      "options": {
+        "status": "Inspect status",
+        "install": "Install without starting",
+        "back": "Back to route selection"
       }
     }
   }

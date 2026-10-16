@@ -263,6 +263,7 @@ class FakeFlow(Mixin):
     def async_show_progress(self,**kwargs):return {'type':'progress',**kwargs}
     def async_show_progress_done(self,**kwargs):return {'type':'progress_done',**kwargs}
     async def async_step_init(self,user_input=None):return {'type':'form','step_id':'init'}
+    async def async_step_slicer_installation(self,user_input=None):return {'type':'menu','step_id':'slicer_installation'}
 
 
 class FlowTests(_BindingFixture):
@@ -324,8 +325,8 @@ class FlowTests(_BindingFixture):
         env={'CONF_INSTALLER_SETUP':'slicer_installer_setup'}
         exec(compile(ast.fix_missing_locations(module),'<actual options init>','exec'),env)
         result=await env['async_step_init'](self.flow,{'slicer_installer_setup':True})
-        self.assertEqual(result['type'],'progress')
-        await result['progress_task']
+        self.assertEqual(result,{'type':'menu','step_id':'slicer_installation'})
+        self.assertEqual(self.controller.calls,[])
 
     async def test_translations_cover_all_native_flow_choices(self):
         schemas=[]

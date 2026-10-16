@@ -35,7 +35,7 @@
           "slicer_base_url": "Slicer-Serveradresse (HTTPS)",
           "slicer_api_secret": "Slicer-API-Secret (wird nicht wieder angezeigt)",
           "slicer_connection_test": "Slicer-Verbindung prüfen (ohne Speichern)",
-          "slicer_installer_setup": "Slicer-Einrichtung oeffnen (ohne andere Aenderungen zu speichern)"
+          "slicer_installer_setup": "Slicer einrichten: Supervisor-App oder externer Server (andere Änderungen nicht speichern)"
         }
       },
       "cloud_code": {
@@ -58,6 +58,35 @@
         "data": {
           "confirm": "Diese Aktion ausfuehren"
         }
+      },
+      "slicer_installation": {
+        "title": "Slicer-Installationsweg wählen",
+        "description": "Supervisor verwaltet das App-Paket. Ein unabhängiger Compose-Slicer bleibt über seine sichere Serververbindung nutzbar. Der alte Host-Installer ist nur für ausdrücklich provisionierte Hosts vorgesehen.",
+        "menu_options": {
+          "slicer_supervisor": "Supervisor-App prüfen und installieren",
+          "slicer_external": "Externen Slicer verbinden (Docker Compose)",
+          "slicer_host_legacy": "Vorhandenen provisionierten Host-Installer öffnen"
+        }
+      },
+      "slicer_external": {
+        "title": "Externen Slicer verbinden"
+      },
+      "slicer_host_legacy": {
+        "title": "Provisionierter Host-Installer"
+      },
+      "slicer_supervisor": {
+        "title": "Supervisor-App bereitstellen",
+        "description": "Geprüfter Verwaltungszustand: {state}. Installation und Start sind getrennt. Hier werden keine App gestartet, Zugangsdaten angezeigt oder vorhandenen Einstellungen ersetzt. Ein laufender Container allein bestätigt weder Verbindung noch Slicing.",
+        "data": {
+          "operation": "Aktion"
+        }
+      },
+      "slicer_supervisor_confirm": {
+        "title": "App-Installation bestätigen",
+        "description": "Nur das serverseitig festgelegte, freigegebene App-Paket installieren. Kein Start, Update, Entfernen oder Druckauftrag. Das Schließen des Dialogs beendet keinen bereits gesendeten Supervisor-Vorgang.",
+        "data": {
+          "confirm": "Installation ausdrücklich ausführen"
+        }
       }
     },
     "error": {
@@ -76,14 +105,31 @@
       "installer_invalid_action": "Ungueltige Installer-Aktion.",
       "installer_busy": "Eine Installer-Aenderung laeuft noch. Status und Abbrechen bleiben verfuegbar.",
       "installer_operation_failed": "Der Vorgang wurde nicht bestaetigt. Angezeigten Grund pruefen; keine automatische Wiederholung gestartet.",
-      "installer_host_blocked": "Hostvoraussetzungen oder Engine-Freigaben sind noch nicht erfuellt."
+      "installer_host_blocked": "Hostvoraussetzungen oder Engine-Freigaben sind noch nicht erfuellt.",
+      "supervisor_forbidden": "Nur ein aktiver Home-Assistant-Administrator darf diesen Vorgang ausführen.",
+      "supervisor_supervisor_unavailable": "Supervisor ist nicht verfügbar. Für einen unabhängigen Compose-Slicer den externen Verbindungsweg wählen.",
+      "supervisor_app_release_unavailable": "Noch kein freigegebenes Supervisor-App-Paket hinterlegt. Es wurde nichts installiert. Engine- und Isolationsnachweise sind weiterhin erforderlich.",
+      "supervisor_app_release_changed": "Die freigegebene App-Referenz wurde während des Vorgangs geändert.",
+      "supervisor_app_reference_invalid": "Die serverseitige App-Referenz ist ungültig.",
+      "supervisor_app_not_available": "Das geprüfte App-Paket ist auf dieser Plattform nicht verfügbar.",
+      "supervisor_app_identity_changed": "App oder Repository stimmen nicht mit der freigegebenen Zuordnung überein.",
+      "supervisor_app_policy_mismatch": "Die App-Konfiguration erfüllt die erforderlichen Schutzvorgaben nicht. Es wurde kein Ersatzweg verwendet.",
+      "supervisor_app_version_mismatch": "App- oder Store-Version weicht vom freigegebenen Stand ab.",
+      "supervisor_app_response_invalid": "Der App-Zustand konnte nicht eindeutig verifiziert werden.",
+      "supervisor_app_confirmation_required": "Die Installation muss ausdrücklich bestätigt werden.",
+      "supervisor_app_busy": "Ein App-Vorgang läuft bereits. Nicht erneut installieren.",
+      "supervisor_app_closed": "Dieser Einrichtungsdialog gehört zu einer beendeten Integration.",
+      "supervisor_app_operation_failed": "Der Supervisor-Vorgang konnte nicht bestätigt werden.",
+      "supervisor_app_reconciliation_required": "Unklarer oder abweichender Installationszustand: zuerst den Supervisor-Vorgang und die vorhandene App prüfen. Keine automatische Wiederholung oder Löschung.",
+      "supervisor_app_storage_failed": "Der private Vorgangsstatus konnte nicht zuverlässig gespeichert oder gelesen werden."
     },
     "abort": {
       "cloud_login_expired": "Der Bambu-Anmeldevorgang ist abgelaufen. Öffne die Optionen erneut.",
       "installer_integration_unavailable": "Die Studio-Integration ist nicht geladen. Bestehende Einstellungen wurden nicht veraendert."
     },
     "progress": {
-      "installer_working": "Die ausgewaehlte Installer-Aktion wird geprueft oder bearbeitet. Neuladen startet keinen zweiten Vorgang."
+      "installer_working": "Die ausgewaehlte Installer-Aktion wird geprueft oder bearbeitet. Neuladen startet keinen zweiten Vorgang.",
+      "supervisor_app_working": "Supervisor-App prüfen oder bereitstellen. Ein unklarer Ausgang wird nicht automatisch wiederholt."
     }
   },
   "selector": {
@@ -109,6 +155,13 @@
         "recover_rollback": "Unklaren Aktivierungsstand zuruecksetzen",
         "finish": "Zurueck zu den unveraenderten Einstellungen",
         "configure_connection": "Slicer-Verbindung sicher übernehmen"
+      }
+    },
+    "supervisor_app_operation": {
+      "options": {
+        "status": "Status prüfen",
+        "install": "Installieren, nicht starten",
+        "back": "Zurück zur Auswahl"
       }
     }
   }

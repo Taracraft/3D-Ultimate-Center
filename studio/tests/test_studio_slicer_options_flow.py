@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+from contextvars import ContextVar
 import importlib.util
 from pathlib import Path
 import sys
@@ -40,6 +41,10 @@ def flow_module(monkeypatch):
     helpers.__path__ = []
     selectors = types.ModuleType("homeassistant.helpers.selector")
     aiohttp_client = types.ModuleType("homeassistant.helpers.aiohttp_client")
+    # Explicit HA request boundary. No authenticated actor is fabricated.
+    http_context = types.ModuleType("homeassistant.helpers.http")
+    http_context.KEY_AUTHENTICATED = "ha_authenticated"
+    http_context.current_request = ContextVar("test_ha_current_request", default=None)
 
     class ConfigFlow:
         def __init_subclass__(cls, **kwargs):
@@ -50,6 +55,9 @@ def flow_module(monkeypatch):
 
         def async_show_form(self, **kwargs):
             return {"type": "form", **kwargs}
+
+        def async_show_menu(self, **kwargs):
+            return {"type": "menu", **kwargs}
 
         def async_create_entry(self, *, title, data):
             return {"type": "entry", "title": title, "data": data}
@@ -83,6 +91,7 @@ def flow_module(monkeypatch):
         ("homeassistant.helpers", helpers),
         ("homeassistant.helpers.selector", selectors),
         ("homeassistant.helpers.aiohttp_client", aiohttp_client),
+        ("homeassistant.helpers.http", http_context),
     ):
         monkeypatch.setitem(sys.modules, name, obj)
     ha.config_entries = entries
@@ -340,3 +349,25 @@ def test_connection_probe_disabled_slicer_never_starts_request(flow_module):
     assert result["type"] == "form"
     assert result["errors"]["base"] == "slicer_not_configured"
     assert session.calls == []
+
+
+def test_native_installer_menu_does_not_use_runtime_or_expose_saved_secret(flow_module):
+    current = {"slicer_enabled": True, "slicer_base_url": "https://slicer.example.org", "slicer_api_secret": DEMO_SECRET}
+    flow = _flow(flow_module, current)
+    flow.hass = object()  # Any runtime/config/Supervisor access would fail.
+    result = asyncio.run(flow.async_step_init({"slicer_installer_setup": True}))
+    assert result["type"] == "menu"
+    assert result["menu_options"] == ["slicer_supervisor", "slicer_external", "slicer_host_legacy"]
+    assert flow.config_entry.options == current
+    assert DEMO_SECRET not in str(result)
+
+
+def test_native_external_route_retains_the_existing_connection_form(flow_module):
+    current = {"slicer_enabled": True, "slicer_base_url": "https://slicer.example.org", "slicer_api_secret": DEMO_SECRET}
+    flow = _flow(flow_module, current)
+    flow.hass = object()
+    result = asyncio.run(flow.async_step_slicer_external())
+    assert result["type"] == "form" and result["step_id"] == "init"
+    assert result["description_placeholders"]["slicer_secret_status"] == "vorhanden"
+    assert flow.config_entry.options == current
+    assert DEMO_SECRET not in str(result)

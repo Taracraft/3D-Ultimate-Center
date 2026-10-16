@@ -56,6 +56,7 @@ from .slicer_connection_settings import (
 )
 
 from .slicer_installer_flow import CONF_INSTALLER_SETUP, InstallerOptionsFlowMixin
+from .slicer_installation_flow import SlicerInstallationFlowMixin
 
 _LOGGER = logging.getLogger(__name__)
 CONF_VERIFICATION_CODE = "verification_code"
@@ -99,7 +100,7 @@ class Ultimate3DStudioConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return Ultimate3DStudioOptionsFlow()
 
 
-class Ultimate3DStudioOptionsFlow(InstallerOptionsFlowMixin, config_entries.OptionsFlow):
+class Ultimate3DStudioOptionsFlow(SlicerInstallationFlowMixin, InstallerOptionsFlowMixin, config_entries.OptionsFlow):
     """Configure direct printer and Bambu account access."""
 
     def __init__(self) -> None:
@@ -187,7 +188,7 @@ class Ultimate3DStudioOptionsFlow(InstallerOptionsFlowMixin, config_entries.Opti
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:
         if type(user_input) is dict and user_input.get(CONF_INSTALLER_SETUP) is True:
-            return await self.async_step_installer()
+            return await self.async_step_slicer_installation()
         current = self._tested_slicer_options or self._current()
         errors: dict[str, str] = {}
         connection_test_requested = bool(
