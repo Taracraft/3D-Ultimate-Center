@@ -6,10 +6,13 @@ LABEL org.opencontainers.image.title="Ultimate Slicer Server"
 LABEL org.opencontainers.image.description="Source preflight; runtime installation is not yet approved"
 LABEL org.opencontainers.image.licenses="SEE-LICENSES-IN-IMAGE"
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+ENV CURA_ENGINE_SEARCH_PATH=/engine/curaengine/resources/definitions:/engine/curaengine/resources/extruders
 # Runtime libraries for Linux/amd64 Bambu, Prusa and Cura headless engines.
 # Shared GTK/wx libraries satisfy CLI linkage; no desktop application is installed.
 # Record resolved versions; publication still requires a reviewed package lock/SBOM.
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    fonts-noto-core \
+    fonts-noto-cjk \
     jq \
     libarcus5 \
     libboost-chrono1.83.0t64 \
@@ -58,7 +61,10 @@ WORKDIR /opt/ultimate-slicer-server
 COPY --chown=65532:65532 payload/ ./payload/
 COPY --chown=65532:65532 context-manifest.json verify_profile_sources.py PROFILE_SOURCE_BUNDLE.json target_image_sbom.py TARGET_IMAGE_REFERENCE.json container_check.py container_runtime.py container_probe.py container_service.py container_engines.py LICENSE THIRD_PARTY_NOTICES.md PAYLOAD_PROVENANCE.json ./
 COPY --chown=65532:65532 licenses/ ./licenses/
-RUN chmod 0555 payload/progress-pipe-reader.py
+# Fixed FHS paths for reviewed Prusa/Cura archives; no engine executed here.
+RUN python3 container_engines.py prepare-image \
+    && python3 container_engines.py verify-image \
+    && chmod 0555 payload/progress-pipe-reader.py
 USER 65532:65532
 ENTRYPOINT ["python3", "/opt/ultimate-slicer-server/container_check.py"]
 CMD ["check"]

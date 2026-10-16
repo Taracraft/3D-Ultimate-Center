@@ -184,3 +184,35 @@ wurden erneut auf Laenge und SHA-256 geprueft. Ein gesicherter Notice-Text
 beweist noch keine vollstaendige komponentenbezogene Lizenzpruefung. Keine
 Archive neu bezogen, keine Engine ausgefuehrt, keine Laufzeit geaendert.
 Freigaben fuer alle drei Enginefamilien und den Container bleiben pending.
+
+
+## Passive FFmpeg-Binaerkonstanten (15.10.2026)
+
+Der vorstehende reine CMake-Rezeptbefund wurde fuer vier bereits vorhandene
+Bibliotheksdateien um einen direkten, nicht ausfuehrenden ELF-Nachweis
+ergaenzt. Die exportierten configuration- und license-Funktionen bestehen
+hier aus endbr64, einer RIP-relativen Konstantenadresse und ret. Die
+Instruktionsbytes und Zieladressen wurden gegen schreibgeschuetzte
+ELF-Loadsegmente geprueft; keine Bibliothek wurde geladen oder aufgerufen.
+
+| Datei | SHA-256 | Eingebettete Lizenzkennung |
+| --- | --- | --- |
+| libavcodec.so.61.3.100 | f5e8fb0b4208462effa72c82d1677553644d48e5cb7ea46b15f0ee700c395c0e | LGPL version 2.1 or later |
+| libavutil.so.59.8.100 | e5d5a8aa04b7be4c27e09d291f10dc2cb079fb5213dc664c1cddf1f4d86705c0 | LGPL version 2.1 or later |
+| libswresample.so.5.1.100 | 29e0796b98164f08d5834e135655b9e072cbf2ac6663b4b63ba0ca8fa68622d7 | LGPL version 2.1 or later |
+| libswscale.so.8.1.100 | c5629713bef50b5aae69ea63b546dece3a742a38e3679a2cfccc96573b1e03ca | LGPL version 2.1 or later |
+
+Alle vier eingebetteten Konfigurationszeichenketten sind identisch. Sie
+enthalten --enable-shared, aber weder --enable-gpl noch --enable-nonfree.
+Damit ist die bisher offene Selbstauskunft dieser vier konkreten Dateien
+belegt; unbekannte Compiler-/Cacheversionen werden dadurch nicht erfunden.
+Die Bedeutung der Exporte beschreibt die offizielle FFmpeg-Dokumentation:
+https://ffmpeg.org/doxygen/7.0/group__lavu__ver.html
+
+Der bytegebundene private Ergebnisnachweis hat SHA-256
+26fb2c2fa4ea4d4bd74ef189d99c31a70cb623afe88946bfe78f53511e047d1c.
+Er belegt nicht automatisch die Herkunft jeder extrahierten Bibliothek aus
+dem gepinnten AppImage, vollstaendige korrespondierende Quellen,
+Lizenzpflichtenerfuellung, Plugin-/Loaderauswahl im Zielimage oder reale
+Slicing-Funktion. Keine Gesamt-Lizenz- oder Laufzeitfreigabe; die drei
+Engine-Releases bleiben vor ihrer vollstaendigen Paketfreigabe pending.

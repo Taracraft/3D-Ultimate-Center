@@ -171,3 +171,21 @@ HTTP-Status/Encoding/Laengenfehler, abgeschnittene/zusätzliche/falsche Bytes,
 Abbruch, durchgehendes Zeitbudget und bereinigte Fehler. Bestehende Tests
 werden nicht entfernt. Die echte Linux-/TLS-/Engine-/Lizenz-/Hostkanal-
 und Betriebsabnahme bleibt hiervon unabhaengig offen.
+
+
+## Durchgehender Bezug aus dem Slicer-Repository (15.10.2026)
+
+Das dedizierte Taracraft/3D-Ultimate-Slicer-Server-Releaseverzeichnis nutzt
+den bestehenden Katalog-, TLS- und Ein-Hop-Assetvertrag. Zusaetzlich zum
+Studio-Repository ist der Ablauf fuer alle drei synthetischen Enginefamilien
+geprueft: strikte Katalogvalidierung, echter Downloadcode mit ersetzter
+HTTP-Grenze, Archiv-/Dateihashes, Staging, Store-Aktivierung, Neustart des
+Installerobjekts und idempotente Wiederholung. Die synthetische
+Worker-Stillstandsquittung ersetzt keine reale Containerabnahme.
+
+TAR, GZip, XZ, ZIP und Debian-Staging werden erreicht. Cookie- und
+Authorization-Weitergabe, falsche Assethosts, Redirectketten und manipulierte
+Archivbytes bleiben gesperrt; Abbruch nach der ersten Antwort verhindert die
+zweite Verbindung. Kein Netzwerkdownload, Docker- oder Engineprozess wird
+durch diese Regressionen gestartet. Der reale Installationstest folgt
+gemaess Releaseplanung zuletzt.

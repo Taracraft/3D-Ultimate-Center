@@ -107,7 +107,8 @@
         "recover_retry": "Reconcile interrupted retry",
         "recover_activation": "Adopt uncertain activation",
         "recover_rollback": "Roll back uncertain activation",
-        "finish": "Return to unchanged settings"
+        "finish": "Return to unchanged settings",
+        "configure_connection": "Apply the protected slicer connection"
       }
     }
   }

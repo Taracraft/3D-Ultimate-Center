@@ -107,7 +107,8 @@
         "recover_retry": "Unterbrochene Wiederholung abschliessen",
         "recover_activation": "Unklaren Aktivierungsstand uebernehmen",
         "recover_rollback": "Unklaren Aktivierungsstand zuruecksetzen",
-        "finish": "Zurueck zu den unveraenderten Einstellungen"
+        "finish": "Zurueck zu den unveraenderten Einstellungen",
+        "configure_connection": "Slicer-Verbindung sicher übernehmen"
       }
     }
   }

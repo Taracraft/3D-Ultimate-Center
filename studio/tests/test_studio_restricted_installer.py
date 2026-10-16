@@ -206,10 +206,16 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(set(self.downloads), set(self.archives))
 
     def test_github_download_three_engine_stage_activate_and_restart(self):
+        self._repository_download_three_engine_roundtrip("3D-Ultimate-Center")
+
+    def test_slicer_repository_download_three_engine_stage_activate_and_restart(self):
+        self._repository_download_three_engine_roundtrip("3D-Ultimate-Slicer-Server")
+
+    def _repository_download_three_engine_roundtrip(self, repository):
         value = json.loads(self.data)
         for row in value["releases"]:
             row["artifacts"][0]["url"] = (
-                "https://github.com/Taracraft/3D-Ultimate-Center/releases/download/"
+                f"https://github.com/Taracraft/{repository}/releases/download/"
                 "synthetic/" + row["artifacts"][0]["id"] + ".zip")
         self.data = json.dumps(value).encode()
         self.service = self.make()
@@ -231,6 +237,7 @@ class InstallerTests(unittest.TestCase):
                 self.assertEqual(method, "GET")
                 self.assertEqual(set(headers), {"Accept-Encoding", "User-Agent", "Connection"})
                 if host == "github.com":
+                    self.assertTrue(path.startswith(f"/Taracraft/{repository}/releases/download/synthetic/"))
                     ident = path.rsplit("/", 1)[1][:-4]
                     index = ids.index(ident) + 1
                     location = ("https://release-assets.githubusercontent.com/"

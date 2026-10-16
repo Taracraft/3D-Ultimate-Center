@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "observed_date": "2026-10-15",
+  "status": "concrete_archives_verified_not_released",
+  "producer": "Native GNU tar and Python gzip using reviewed source inventories; separate canonical archive-builder tests run on Windows",
+  "project_builder_transferred_to_linux": false,
+  "system_packages_installed": false,
+  "engine_executed": false,
+  "linux_installation_performed": false,
+  "release_approved": false,
+  "bundles": [
+    {
+      "engine": "bambu_studio",
+      "version": "2.7.1.62",
+      "archive_bytes": 243826575,
+      "archive_sha256": "02f662a02e6ae1a8dc5f073a4ac1d40fa81a500ba920bd318bbac1682c20daa0",
+      "manifest_sha256": "dc6c51f80947e816e9c9b608c02da177b5810e7efda4e6ada2fa14a1c04b5986",
+      "payload_files": 6468,
+      "payload_bytes": 539764604,
+      "upstream_archive_sha256": "fa98b608532dfbbbb2b0931483aac41e57fb19c175a2cc7bd7d528d5e0fbb287",
+      "original_bin_resource_files_verified": 6445,
+      "original_bin_resource_bytes": 539379773,
+      "two_archives_byte_equal": true,
+      "all_archive_members_sha256_verified": true,
+      "network_plugin_included": false,
+      "runtime_approved": false,
+      "license_review_complete": false,
+      "archive_proof_sha256": "c84907b769cc40d9d156436b22bdda6fd95b527b140a9e6eca723c291c054cf8"
+    },
+    {
+      "engine": "prusaslicer",
+      "version": "2.9.2+dfsg-1",
+      "archive_bytes": 62371162,
+      "archive_sha256": "94d44dbd9c00b0505d79186d7ea21335500f2fc13a40759220908eebcfb74ea2",
+      "manifest_sha256": "0e960de252e738af0d8c4bca249da6eb12b75c3b75e231c8f25bff73624dd5cf",
+      "payload_files": 1132,
+      "payload_bytes": 165839002,
+      "upstream_archive_sha256": "4ff3972a868621f48adee0e1d6848ce27ada765a2fdc1d0cb87e81026f6c5392",
+      "all_upstream_regular_prusa_resource_files_included": true,
+      "occt_wrapper_included": true,
+      "external_resource_links_not_materialized": [
+        "resources/fonts/NotoSans-Regular.ttf",
+        "resources/fonts/NotoSansCJK-Regular.ttc"
+      ],
+      "two_archives_byte_equal": true,
+      "all_archive_members_sha256_verified": true,
+      "runtime_approved": false,
+      "license_review_complete": false,
+      "archive_proof_sha256": "001206cee4d54cbc97ea393a2136ca59210d5dc52bbbd91c04cc322c84ab7de2"
+    },
+    {
+      "engine": "curaengine",
+      "version": "1:5.0.0-5",
+      "resource_version": "5.0.0-6",
+      "archive_bytes": 1444879,
+      "archive_sha256": "63fed309958b24d1d66bd5a6bd5140cdf538b0ef5a3bc040894131fd14f0aa00",
+      "manifest_sha256": "250ca66a93dbdb0daa1cc2257804e8affffd16347cd9010db7328a8686af7d70",
+      "payload_files": 887,
+      "payload_bytes": 4747086,
+      "upstream_archive_sha256": "0b0f7c53ea506001c7b56e83d4f1a2a72e73cd960886622462a1ffb5acb78379",
+      "upstream_resources_sha256": "ac3650ec34a5a5023a33775b6b8ac9e9ee27aa783550fededa6db171e523cc99",
+      "previous_curated_resource_files_preserved": 862,
+      "two_archives_byte_equal": true,
+      "all_archive_members_sha256_verified": true,
+      "desktop_application_included": false,
+      "runtime_approved": false,
+      "license_review_complete": false,
+      "archive_proof_sha256": "cba6aafed69a2c76ed3d5d4efb2172cbc8bb0a7890f7c971108fb6b6d6dcd989"
+    }
+  ],
+  "remaining": [
+    "Complete distribution-specific corresponding sources and component license obligations.",
+    "Resolve Prusa external resource files and all target-image runtime and plugin dependencies.",
+    "Bind the final reviewed archive set to the installable engine catalog and publication assets.",
+    "Complete the independent host-channel and supported Home Assistant provisioning integration.",
+    "Perform the separate fresh Linux installation as final verification after the other release work."
+  ]
+}

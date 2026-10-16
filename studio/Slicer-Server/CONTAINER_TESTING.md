@@ -227,3 +227,54 @@ als Ruecksprung, Laufwerksangabe oder NTFS-Datenstrom umgedeutet werden.
 Auch zueinander passende Manifest-/Archivhashes erteilen keine Ausnahme.
 Die Ablehnung erfolgt vor dem Anlegen des aeusseren Zielverzeichnisses.
 Dies ersetzt keine reale Linux-/Windows-Rechte-, ACL- oder Betriebsabnahme.
+
+
+## 16.10.2026 - Echter Imagebau als getrennter CI-Nachweis
+
+Nach erfolgreicher Quell-/Testsuite auf main baut die Slicer-CI nun das
+vorbereitete Docker-Image auf einem temporaeren GitHub-gehosteten
+Ubuntu24.04-Runner. Pull-Request-Ausfuehrungen starten diesen Zusatzjob nicht.
+Das offizielle Python-Basisimage ist ueber den geprueften linux/amd64-
+Manifestdigest in TARGET_BASE_REFERENCE.json und im Workflow fest gebunden.
+Die oeffentlichen Index-/Manifestbytes wurden separat gehasht; die dort
+referenzierte Configidentitaet ist keine bereits erfolgte Imageausfuehrung.
+
+Nach dem expliziten Dockerbuild wird genau die ermittelte Image-ID verwendet,
+nicht ein veraenderlicher Tag. Drei kurzlebige Pruefcontainer sind non-root,
+netzlos, read-only und ohne Capabilities/Hostmounts; sie lesen Quellintegritaet,
+Ressourcenlinks und das vorhandene target_image_sbom-Paketinventar. Kein
+Worker/Server, keine Engine und keine Installation auf dem Arbeitsplatz-
+Testserver werden gestartet. Der Dienst- und Hostkanal-Kandidat bleibt
+unveraendert. Der Docker-Daemon wird ausschliesslich im eigenen CI-Runner
+verwendet, nicht auf einem privaten Live-Host.
+
+Die JSON-Nachweise binden Image-ID, unveraenderliches Basisimage, Commit,
+Workflowlauf, Dockerfile, Quell-/Kontextmanifest, Paketversionen und
+Copyright-Pruefsummen. Das bestehende SBOM-Modul prueft sie nochmals
+ausserhalb des Containers. Erst bei vollstaendig erfolgreichem Job werden
+ausschliesslich vier JSON-Dateien als benanntes CI-Artefakt fuer30Tage
+aufbewahrt; kein Imagearchiv, keine Fontdateien, keine Secrets/Rohlogs.
+Die Upload-Aktion ist auf einen geprueften offiziellen Commit gepinnt.
+
+Eine ausgefuehrte Pipeline und ein erfolgreiches Image werden erst nach
+konkretem Run-/Artefakt-Readback als solche gemeldet. Das Image enthaelt noch
+keine Slicing-Engines. Ein Build-/Paketinventarnachweis ist keine
+Engine-/Lizenz-/TLS-/Restore- oder Produktivfreigabe. Die eigentliche
+Linux-Neuinstallation bleibt der allerletzte Verifikationstest nach dem
+ansonsten abgeschlossenen Release. Pipeline-Artefakte sind keine
+veroeffentlichten GitHub-Releases.
+
+
+### Reale Buildkorrektur: Docker-Kontextfilter
+
+Der erste echte Imagebau (Commit112e003f, CI38850858897) wurde vor der
+Imagefertigstellung durch den COPY-Schritt gestoppt: Die schon vorhandenen
+Dateien TARGET_IMAGE_REFERENCE.json und target_image_sbom.py fehlten in den
+Ausnahmen der restriktiven .dockerignore-Datei. Der normale Kontextverifikator
+sah sie auf der Festplatte; Docker filterte sie vor COPY aus. Beide exakten
+Dateien sind jetzt zusaetzlich erlaubt. Der deny-all-Standard und alle
+Secret-/Nachbarpfadgrenzen bleiben bestehen. Neue Tests vergleichen alle
+Dockerfile-COPY-Eingaben mit dem bewusst eingeschraenkten Filterdialekt und
+pruefen, dass keine pauschale JSON-/Verzeichnisfreigabe hinzugekommen ist.
+Der fehlgeschlagene Lauf bleibt als solcher erhalten; nur ein nachfolgender
+erfolgreicher Imagebau darf den Bild-/Inventarnachweis abschliessen.

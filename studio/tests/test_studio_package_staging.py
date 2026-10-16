@@ -614,6 +614,78 @@ class StagingTests(unittest.TestCase):
         self.assertEqual(set(parsed.pending), set(catalog.ENTRYPOINTS))
 
 
+    SLICER_RELEASE_URL = ("https://github.com/Taracraft/3D-Ultimate-Slicer-Server/"
+                          "releases/download/synthetic/engine.tar")
+
+    def test_slicer_repository_asset_hop_reaches_all_archive_adapters(self):
+        raw = tar_bytes()
+        for form, data in [("tar", raw), ("tar.gz", gzip.compress(raw)),
+                           ("tar.xz", lzma.compress(raw)), ("zip", zip_bytes()),
+                           ("deb", deb_bytes(lzma.compress(raw)))]:
+            with self.subTest(form=form):
+                art = replace(artifact(data, form), url=self.SLICER_RELEASE_URL)
+                work = self.github_network(second=Response(data), art=art)
+                self.assert_payload(work)
+                factory, origin, asset = self.last_hops
+                self.assertEqual(factory.call_count, 2)
+                self.assertEqual(origin.request.call_args.args,
+                    ("GET", "/Taracraft/3D-Ultimate-Slicer-Server/releases/download/synthetic/engine.tar"))
+                self.assertTrue(factory.call_args.kwargs["context"].check_hostname)
+                self.assertEqual(factory.call_args.kwargs["context"].verify_mode, ssl.CERT_REQUIRED)
+                self.assertNotIn("signature", (work / "READY.json").read_text())
+                shutil.rmtree(work)
+
+    def test_slicer_repository_direct_download_and_header_isolation(self):
+        art = replace(artifact(tar_bytes()), url=self.SLICER_RELEASE_URL)
+        self.assert_payload(self.network(Response(tar_bytes()), art=art))
+        work = self.github_network(art=art, first=Response(b"", status=302,
+            headers=[("Location", self.ASSET_LOCATION), ("Set-Cookie", "synthetic=discard"),
+                     ("Authorization", "Bearer synthetic-discard")]))
+        self.assert_payload(work)
+        for conn in self.last_hops[1:]:
+            self.assertEqual(set(conn.request.call_args.kwargs["headers"]),
+                             {"Accept-Encoding", "User-Agent", "Connection"})
+            conn.close.assert_called_once()
+
+    def test_slicer_repository_still_rejects_redirect_chains(self):
+        art = replace(artifact(tar_bytes()), url=self.SLICER_RELEASE_URL)
+        with self.assertRaisesRegex(staging.StagingError, "^redirect_denied$"):
+            self.github_network(art=art, second=Response(b"", status=302,
+                headers=[("Location", self.ASSET_LOCATION)]))
+        self.assertEqual(self.last_hops[0].call_count, 2)
+        self.assert_clean()
+
+    def test_slicer_repository_still_rejects_bad_asset_hosts(self):
+        art = replace(artifact(tar_bytes()), url=self.SLICER_RELEASE_URL)
+        with self.assertRaisesRegex(staging.StagingError, "^redirect_denied$"):
+            self.github_network(art=art, first=Response(b"", status=302,
+                headers=[("Location", self.ASSET_LOCATION.replace(
+                    "release-assets.githubusercontent.com", "127.0.0.1"))]))
+        self.assertEqual(self.last_hops[0].call_count, 1)
+        self.assert_clean()
+
+    def test_slicer_repository_asset_digest_cannot_be_bypassed(self):
+        art = replace(artifact(tar_bytes()), url=self.SLICER_RELEASE_URL)
+        with self.assertRaisesRegex(staging.StagingError, "^file_digest_mismatch$"):
+            self.github_network(art=art, second=Response(bytes(len(tar_bytes()))))
+        self.assert_clean()
+
+    def test_slicer_repository_cancel_after_origin_prevents_second_connection(self):
+        art = replace(artifact(tar_bytes()), url=self.SLICER_RELEASE_URL)
+        cancelled = False
+        response = Response(b"", status=302, headers=[("Location", self.ASSET_LOCATION)])
+        saved_headers = response.getheaders
+        def cancel_after_headers():
+            nonlocal cancelled
+            cancelled = True
+            return saved_headers()
+        response.getheaders = cancel_after_headers
+        with self.assertRaisesRegex(staging.StagingError, "^cancelled$"):
+            self.github_network(art=art, first=response, cancelled=lambda: cancelled)
+        self.assertEqual(self.last_hops[0].call_count, 1)
+        self.assert_clean()
+
+
 if __name__ == "__main__":
     unittest.main()
 

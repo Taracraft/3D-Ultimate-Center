@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "platform": "linux/amd64",
+  "base_image": "docker.io/library/python@sha256:8fb4cfa1a2616d7b8e0c2175cc6ad68f5729c34ea8488c0b360d2934b7be9024",
+  "source_tag": "3.13-slim-trixie",
+  "registry_index_sha256": "70729b46c69b4f1e97c4822c1af3df53a1476cf5ddc6c087c0c10bc3a5678c2f",
+  "platform_manifest_sha256": "8fb4cfa1a2616d7b8e0c2175cc6ad68f5729c34ea8488c0b360d2934b7be9024",
+  "image_config_sha256": "ce3ff9524414289fc922d9d5dc1de87abc77a39ff2ff5007435839f2af1d7569",
+  "observation": "Official public Docker registry index and platform-manifest bytes matched their SHA-256 identities; config digest is referenced by that manifest, not independently fetched.",
+  "target_image_verified": false,
+  "production_approved": false
+}

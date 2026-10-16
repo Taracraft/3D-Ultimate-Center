@@ -390,3 +390,55 @@ Die vorbereitete Abnahmefolge und Stop-Kriterien stehen in
 [LINUX_TEST_SERVER_RUNBOOK.md](LINUX_TEST_SERVER_RUNBOOK.md). Dies ist noch
 keine Installations- oder Supervisor-Abnahme. HAOS-Migration, Live-System,
 HACS-Pilot und Public Release bleiben getrennt.
+
+
+## 15.10.2026 - Implementierter HA-Dialog und geschuetzte Serververbindung
+
+Der native HA-Optionendialog ist jetzt an den vorhandenen Installerkern
+angebunden. Lazy ConfigEntry-Sitzung, blockierungsfreie Datei-/Socketarbeit,
+Fortschritt, Bestaetigung, Status/Abbruch, Wiederaufnahme und Rueckweg sind
+quellseitig vorhanden. Die automatische Installationsfolge endet pausiert;
+Resume ist eine gesonderte Entscheidung, keine automatische Auftragsfreigabe.
+Diese Einordnung ersetzt die oben dokumentierten historischen Aussagen,
+dass der HA-Client und die Dialoganbindung noch vollstaendig fehlen.
+
+Der neue bestaetigte Dialogschritt "Slicer-Verbindung sicher uebernehmen"
+verwendet ausschliesslich das bereits gepinnte lokale Handoff-Verzeichnis.
+Die Datei slicer-connection.json enthaelt Schema1, host_id, principal,
+transfer_id, base_url und api_secret. Host-ID und Principal muessen zur
+bereits bestaetigten Hostkopplung passen. Das Schema akzeptiert nur eine
+kanonische HTTPS-Basisadresse und einen gueltigen Header-Schluessel; keine
+URL-Zugangsdaten, Query/Fragment, beliebigen Pfade oder Remote-Enrollment.
+Datei-, Owner-, Modus-, Link-, Groessen- und Identitaetspruefungen erfolgen
+vor und nach der vorhandenen authentifizierten info.json-Verbindungsprobe.
+
+URL und Schluessel werden nie in Formularfelder, Fortschritt, Fehlermeldungen
+oder Sitzungsstatus uebernommen. Erst der native OptionsFlow-Abschluss
+bekommt sie serverseitig als neue Optionen. Gleichzeitige manuelle Aenderungen
+der Verbindung verhindern ein Ueberschreiben; andere aktuelle Optionen
+bleiben erhalten. Die Host-Uebergabedatei bleibt bis zu einer gesonderten,
+dauerhaft bestaetigten Bereinigung bestehen. Eine fluechtige Speicherzusage
+wird nicht mit einem gesicherten Persistenznachweis gleichgesetzt.
+
+Der neutrale Baustein slicer_connection_handoff.py stellt fuer einen spaeteren
+vertrauenswuerdigen lokalen Linux-Root-Provisionierer einen passenden Producer
+bereit. Er erstellt nur in einem bereits provisionierten Verzeichnis,
+serialisiert, setzt die Empfaengerrechte und veroeffentlicht atomar ohne eine
+vorhandene andere Uebergabe zu ueberschreiben. Ein identischer erneuter Aufruf
+ist idempotent. Dies ist kein neuer Netzwerkendpunkt; der echte Hostbootstrap
+muss den Producer noch anbinden. Reale Root-/Mount-/Peer- und Zielsystemtests
+bleiben bis zu ihrer Ausfuehrung offen.
+
+Nachweis: isolierter Kandidat130Faelle,122PASS/8plattformbedingteSkips;
+kanonische gezielte Pruefung126PASS/8Skips/77Untertests. Vier Sprach- und
+Platzhalterpruefungen enthalten. Echte Host-/HTTPS-Gegenstellen sind in diesen
+Faellen synthetisch; daraus folgt keine praktische Neuinstallationsabnahme.
+
+Aktuelle Release-Reihenfolge: Implementierung, gepruefte Pakete, Dokumentation
+und Veroeffentlichung zuerst; die separate saubere Linux-Neuinstallation ist
+der letzte Verifikationstest. Sobald alle anderen Release-Arbeiten wirklich
+abgeschlossen sind, darf der Release mit offen ausgewiesenem abschliessendem
+Installationstest abgeschlossen werden. Fehlende Laufzeit-/Installations-
+Nachweise bleiben not_run. Noch offene Enginepakete, Katalogfreigaben und
+Hostprovisionierung werden dadurch weder als implementiert noch getestet
+behauptet. Live-System und HAOS-Migration bleiben getrennte Auftraege.

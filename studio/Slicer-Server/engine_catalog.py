@@ -29,6 +29,7 @@ UPSTREAMS = {
 }
 DOWNLOAD_PREFIXES = (
     "https://github.com/Taracraft/3D-Ultimate-Center/releases/download/",
+    "https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/",
     "https://github.com/bambulab/BambuStudio/releases/download/",
     "https://github.com/prusa3d/PrusaSlicer/releases/download/",
     "https://github.com/Ultimaker/CuraEngine/releases/download/",

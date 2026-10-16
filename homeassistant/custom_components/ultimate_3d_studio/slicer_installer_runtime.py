@@ -16,6 +16,7 @@ from .const import DOMAIN
 from .slicer_installer_backend import InstallerBackend, InstallerCredentialStore
 from .slicer_installer_endpoint import load_provisioned_installer_endpoint
 from .slicer_installer_setup import GuidedInstallerSetup
+from .slicer_connection_handoff import ConnectionHandoffError, read_connection_offer
 
 DATA_INSTALLERS = "installer_sessions"
 CONTROL_ACTIONS = frozenset(("connect", "preflight", "status", "cancel"))
@@ -26,12 +27,12 @@ RECOVERY_ACTIONS = {
     "recover_rollback": ("activate", "rollback"),
 }
 MUTATION_ACTIONS = frozenset(("install", "initialize", "stage", "retry", "activate",
-                             "rollback", "resume", *RECOVERY_ACTIONS))
+                             "rollback", "resume", "configure_connection", *RECOVERY_ACTIONS))
 ACTIONS = CONTROL_ACTIONS | MUTATION_ACTIONS
 STATES = frozenset(("paired", "available", "blocked", "initialized", "running", "prepared",
                     "activated", "ready_paused", "restored_paused", "complete", "cancel_requested",
                     "cancelled", "failed", "aborted", "adopted", "recovered", "rolled_back",
-                    "rolled_back_absent", "busy", "unknown"))
+                    "rolled_back_absent", "busy", "unknown", "connection_verified"))
 ERRORS = frozenset(("installer_unavailable", "installer_not_provisioned", "installer_busy",
                    "installer_closed", "installer_pairing_required", "endpoint_changed",
                    "unknown_setup_action", "setup_step_missing", "invalid_setup_state",
@@ -41,7 +42,12 @@ ERRORS = frozenset(("installer_unavailable", "installer_not_provisioned", "insta
                    "response_unavailable", "operation_failed", "installer_failed",
                    "runtime_adapter_required", "runtime_rollback_or_resume_required",
                    "host_reconciliation_required", "persistent_volume_unverified",
-                   "unsupported_platform", "unsupported_host", "unexpected_installer_state"))
+                   "unsupported_platform", "unsupported_host", "unexpected_installer_state",
+                   "connection_handoff_missing", "invalid_connection_handoff",
+                   "unsafe_connection_handoff", "connection_handoff_changed",
+                   "connection_configuration_changed", "connection_not_verified",
+                   "slicer_certificate_error", "slicer_auth_required", "slicer_unavailable",
+                   "slicer_incompatible", "slicer_redirect_refused"))
 
 
 def safe_result(value):
@@ -97,11 +103,14 @@ class InstallerSession:
     """One lazy session per ConfigEntry; RPC work is never run on HA's event loop."""
 
     def __init__(self, hass, storage, *, endpoint_loader=load_provisioned_installer_endpoint,
-                 controller_factory=_create_controller):
+                 controller_factory=_create_controller, entry=None, connection_probe=None):
         self.hass = hass
         self.storage = Path(storage)
         self._endpoint_loader = endpoint_loader
         self._controller_factory = controller_factory
+        self._entry = entry
+        self._connection_probe = connection_probe
+        self._pending_connection = None
         self._endpoint = None
         self._controller = None
         self._connecting = asyncio.Lock()
@@ -145,11 +154,89 @@ class InstallerSession:
     async def _request(self, action, **kwargs):
         return await self.hass.async_add_executor_job(partial(self._request_checked, action, kwargs))
 
+    def _connection_fingerprint(self):
+        if self._entry is None:
+            raise ConnectionHandoffError("connection_not_verified")
+        # Only conflicting changes to the connection itself block application;
+        # other current options are merged at the final native OptionsFlow step.
+        import json
+        values = {**self._entry.data, **self._entry.options}
+        selected = {key: values.get(key) for key in
+                    ("slicer_enabled", "slicer_base_url", "slicer_api_secret")}
+        raw = json.dumps(selected, sort_keys=True, allow_nan=False).encode("utf-8")
+        return hashlib.sha256(raw).hexdigest()
+
+    def _read_connection_checked(self):
+        if self._endpoint_loader() != self._endpoint:
+            raise ConnectionHandoffError("endpoint_changed")
+        credential = self._controller.backend.credential_status()
+        if (credential.get("credential_stored") is not True
+                or credential.get("host_id") != self._endpoint.host_id):
+            raise ConnectionHandoffError("installer_pairing_required")
+        offer = read_connection_offer(
+            self._endpoint.handoff_directory, server_uid=self._endpoint.server_uid,
+            expected_host_id=self._endpoint.host_id, expected_principal=credential.get("principal"))
+        if self._endpoint_loader() != self._endpoint:
+            raise ConnectionHandoffError("endpoint_changed")
+        return offer
+
+    async def _prepare_connection(self):
+        self._pending_connection = None
+        fingerprint = self._connection_fingerprint()
+        offer = await self.hass.async_add_executor_job(self._read_connection_checked)
+        if self._connection_probe is None:
+            # These modules are already loaded by the integration's config flow.
+            from homeassistant.helpers.aiohttp_client import async_get_clientsession
+            from .slicer_connection_probe import async_probe_slicer_connection
+            checked = await async_probe_slicer_connection(
+                async_get_clientsession(self.hass), offer.base_url, offer.api_secret)
+        else:
+            checked = await self._connection_probe(self.hass, offer.base_url, offer.api_secret)
+        if type(checked) is not dict or checked.get("status") != "ready":
+            raise ConnectionHandoffError("slicer_incompatible")
+        after = await self.hass.async_add_executor_job(self._read_connection_checked)
+        if not offer.same_file(after):
+            raise ConnectionHandoffError("connection_handoff_changed")
+        if self._closed or self._connection_fingerprint() != fingerprint:
+            raise ConnectionHandoffError("connection_configuration_changed")
+        self._pending_connection = (offer, fingerprint)
+        return {"ok": True, "state": "connection_verified"}
+
+    async def async_connection_options(self, entry):
+        """Private result for OptionsFlow only; no secret is returned by async_run/snapshot.
+
+        Home Assistant persists options via the native flow completion. The
+        protected host offer is retained, not deleted on an in-memory acknowledgement.
+        """
+        pending = self._pending_connection
+        try:
+            if (self._closed or entry is not self._entry or pending is None
+                    or self._active is not None and not self._active.done()):
+                raise ConnectionHandoffError("connection_not_verified")
+            offer, fingerprint = pending
+            after = await self.hass.async_add_executor_job(self._read_connection_checked)
+            if self._closed or self._pending_connection is not pending or not offer.same_file(after):
+                raise ConnectionHandoffError("connection_handoff_changed")
+            if self._connection_fingerprint() != fingerprint:
+                raise ConnectionHandoffError("connection_configuration_changed")
+            result = {**entry.options, "slicer_enabled": True,
+                      "slicer_base_url": offer.base_url, "slicer_api_secret": offer.api_secret}
+            self._pending_connection = None
+            return result
+        except Exception as error:
+            self._pending_connection = None
+            key = str(error)
+            self._last = {"ok": False, "state": "unknown",
+                          "error": key if key in ERRORS else "connection_not_verified"}
+            return None
+
     async def _perform(self, action):
         try:
             await self._connect()
             if action == "connect":
                 result = {"ok": True, "state": "paired"}
+            elif action == "configure_connection":
+                result = await self._prepare_connection()
             elif action == "install":
                 result = await self._request("preflight")
                 if result.get("ok") is True and result.get("state") == "available":
@@ -187,6 +274,8 @@ class InstallerSession:
             return {"ok": False, "state": "unknown", "error": "installer_closed"}
         if action in MUTATION_ACTIONS and self._active is not None and not self._active.done():
             return {"ok": False, "state": "busy", "error": "installer_busy"}
+        if action in MUTATION_ACTIONS:
+            self._pending_connection = None
         task = self.hass.async_create_task(self._perform(action))
         self._tasks.add(task)
         if action in MUTATION_ACTIONS:
@@ -198,6 +287,7 @@ class InstallerSession:
 
     async def async_close(self):
         self._closed = True
+        self._pending_connection = None
         tasks = tuple(self._tasks)
         if tasks:
             await asyncio.shield(asyncio.gather(*tasks, return_exceptions=True))
@@ -210,7 +300,7 @@ def register_installer_session(hass, entry):
     if entry.entry_id not in sessions:
         identity = hashlib.sha256(entry.entry_id.encode("utf-8")).hexdigest()
         sessions[entry.entry_id] = InstallerSession(
-            hass, hass.config.path(DOMAIN + "_installer", identity))
+            hass, hass.config.path(DOMAIN + "_installer", identity), entry=entry)
     return sessions[entry.entry_id]
 
 

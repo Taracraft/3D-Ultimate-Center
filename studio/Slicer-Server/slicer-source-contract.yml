@@ -38,3 +38,135 @@ jobs:
           python Slicer-Server/prepare_test_server_package.py --source-root "$PWD" --output "$SLICER_BUILD_ROOT/testserver"
       - name: Verify source identities after tests and builds
         run: python Slicer-Server/build_repository.py --verify .
+
+  build-target-image:
+    name: Target image build and inventory
+    needs: verified-slicer-source
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHON_BASE: docker.io/library/python@sha256:8fb4cfa1a2616d7b8e0c2175cc6ad68f5729c34ea8488c0b360d2934b7be9024
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Verify reviewed inputs before image build
+        run: python Slicer-Server/build_repository.py --verify .
+      - name: Build immutable-input image without engines or host mounts
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILD_ROOT="$(mktemp -d "$RUNNER_TEMP/slicer-image-XXXXXX")"
+          export IMAGE_BUILD_ROOT="$BUILD_ROOT"
+          echo "IMAGE_BUILD_ROOT=$BUILD_ROOT" >> "$GITHUB_ENV"
+          mkdir "$BUILD_ROOT/evidence"
+          python Slicer-Server/prepare_context.py --source-root "$PWD" --output "$BUILD_ROOT/context"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          ref = json.loads(Path('Slicer-Server/TARGET_BASE_REFERENCE.json').read_bytes())
+          assert ref['schema'] == 1 and ref['platform'] == 'linux/amd64'
+          assert ref['base_image'] == os.environ['PYTHON_BASE']
+          assert ref['base_image'].endswith('@sha256:' + ref['platform_manifest_sha256'])
+          assert ref['production_approved'] is False
+          PY
+          docker build --pull --no-cache --platform linux/amd64 \
+            --build-arg "PYTHON_BASE=$PYTHON_BASE" \
+            --iidfile "$BUILD_ROOT/image-id.txt" "$BUILD_ROOT/context"
+          python - <<'PY'
+          import re, os
+          from pathlib import Path
+          image = Path(os.environ['IMAGE_BUILD_ROOT']).joinpath('image-id.txt').read_text().strip()
+          assert re.fullmatch(r'sha256:[0-9a-f]{64}', image)
+          PY
+      - name: Inspect isolated image and capture actual package inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          IMAGE_ID="$(cat "$IMAGE_BUILD_ROOT/image-id.txt")"
+          docker image inspect "$IMAGE_ID" > "$IMAGE_BUILD_ROOT/image-inspect.json"
+          ISOLATION=(--rm --pull never --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true --pids-limit 128 --memory 512m --user 65532:65532)
+          docker run "${ISOLATION[@]}" --entrypoint python3 "$IMAGE_ID" \
+            /opt/ultimate-slicer-server/container_check.py check > "$IMAGE_BUILD_ROOT/evidence/source-check.json"
+          docker run "${ISOLATION[@]}" --entrypoint python3 "$IMAGE_ID" \
+            /opt/ultimate-slicer-server/container_engines.py verify-image > "$IMAGE_BUILD_ROOT/evidence/resource-layout.json"
+          docker run "${ISOLATION[@]}" --entrypoint python3 "$IMAGE_ID" -c \
+            'import json,sys; from pathlib import Path; import target_image_sbom as s; r=s.capture(reference_path=Path("TARGET_IMAGE_REFERENCE.json"),packages_tsv=Path("/usr/share/ultimate-slicer-server/debian-packages.tsv"),copyright_root=Path("/usr/share/doc"),base_image=sys.argv[1],image_id=sys.argv[2]); s.verify(r,Path("TARGET_IMAGE_REFERENCE.json")); print(json.dumps(r,sort_keys=True))' \
+            "$PYTHON_BASE" "$IMAGE_ID" > "$IMAGE_BUILD_ROOT/evidence/target-image-sbom.json"
+          python Slicer-Server/target_image_sbom.py verify \
+            --reference Slicer-Server/TARGET_IMAGE_REFERENCE.json \
+            --evidence "$IMAGE_BUILD_ROOT/evidence/target-image-sbom.json"
+      - name: Bind evidence to source and built image
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          root = Path(os.environ['IMAGE_BUILD_ROOT'])
+          sha = lambda data: hashlib.sha256(data).hexdigest()
+          image = root.joinpath('image-id.txt').read_text().strip()
+          inspection = json.loads(root.joinpath('image-inspect.json').read_bytes())
+          assert len(inspection) == 1 and inspection[0]['Id'] == image
+          info = inspection[0]
+          assert info['Os'] == 'linux' and info['Architecture'] == 'amd64'
+          assert info['Config']['User'] == '65532:65532'
+          assert info['Config']['Entrypoint'] == ['python3', '/opt/ultimate-slicer-server/container_check.py']
+          assert info['Config']['Cmd'] == ['check']
+          assert not info['Config'].get('Volumes')
+          evidence = root / 'evidence'
+          sbom = json.loads((evidence / 'target-image-sbom.json').read_bytes())
+          layout = json.loads((evidence / 'resource-layout.json').read_bytes())
+          check = json.loads((evidence / 'source-check.json').read_bytes())
+          assert sbom['image_id'] == image and sbom['base_image'] == os.environ['PYTHON_BASE']
+          assert sbom['target_inventory_complete'] is True and sbom['production_approved'] is False
+          assert layout['links_verified'] == 12 and layout['engine_executed'] is False
+          assert check['source_integrity'] == 'verified' and check['worker_started'] is False
+          files = [{"path": p.name, "bytes": p.stat().st_size, "sha256": sha(p.read_bytes())}
+                   for p in sorted(evidence.iterdir())]
+          result = {'schema': 1, 'source_commit': os.environ['GITHUB_SHA'],
+                    'run_id': os.environ['GITHUB_RUN_ID'], 'image_id': image,
+                    'base_image': os.environ['PYTHON_BASE'], 'platform': 'linux/amd64',
+                    'base_reference_sha256': sha(Path('Slicer-Server/TARGET_BASE_REFERENCE.json').read_bytes()),
+                    'dockerfile_sha256': sha(Path('Slicer-Server/Dockerfile').read_bytes()),
+                    'source_manifest_sha256': sha(Path('slicer-source-manifest.json').read_bytes()),
+                    'context_manifest_sha256': sha((root / 'context/context-manifest.json').read_bytes()),
+                    'image_build_passed': True, 'target_inventory_complete': True,
+                    'package_count': sbom['package_count'], 'required_package_count': len(sbom['required_packages']),
+                    'resource_links_verified': layout['links_verified'], 'evidence_files': files,
+                    'engine_binaries_included': False, 'engine_executed': False,
+                    'services_started': False, 'host_mounts_used': False, 'image_pushed': False,
+                    'clean_linux_installation_verified': False, 'production_approved': False}
+          (evidence / 'image-build-result.json').write_text(json.dumps(result, sort_keys=True, indent=2) + '\n')
+          print(json.dumps(result, sort_keys=True))
+          PY
+          python Slicer-Server/build_repository.py --verify .
+      - name: Verify aggregate image and source binding before upload
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_MANIFEST="$(sha256sum slicer-source-manifest.json)"
+          python Slicer-Server/verify_image_evidence.py \
+            --source-root "$PWD" \
+            --evidence "$IMAGE_BUILD_ROOT/evidence" \
+            --expected-commit "$GITHUB_SHA" \
+            --expected-manifest-sha256 "${EXPECTED_MANIFEST%% *}" \
+            > "$IMAGE_BUILD_ROOT/image-evidence-verification.json"
+          cat "$IMAGE_BUILD_ROOT/image-evidence-verification.json"
+      - name: Retain source-bound image evidence only
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7, reviewed immutable commit
+        with:
+          name: target-image-evidence-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.IMAGE_BUILD_ROOT }}/evidence/*.json
+          if-no-files-found: error
+          retention-days: 30
+          overwrite: false
+          include-hidden-files: false

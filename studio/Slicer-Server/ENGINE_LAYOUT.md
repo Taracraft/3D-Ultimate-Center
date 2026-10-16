@@ -59,3 +59,45 @@ Container-Engineaufruf durchlaeuft weiterhin die unabhaengige Kernelpruefung.
 
 Die Einrichtung beginnt spaeter im [HA-Assistenten](HA_INSTALLATION_PLAN.md).
 Der Pfadvertrag ist eine Grundlage dafuer, keine fertige Installation.
+
+
+## 16.10.2026 - Enginearchive an die festen Container-Ressourcenpfade gebunden
+
+Die geprueften Debianquellen von PrusaSlicer 2.9.2 setzen Ressourcen auf
+/usr/share/PrusaSlicer und das OCCT-Modul auf einen FHS-Libpfad. Der gepackte
+Baum unter /engine/prusaslicer wird durch Verschieben des Programms allein
+nicht automatisch gefunden. Die originale CLI-Setupquelle ist SHA256
+20d84887cf8c26fb39464e53326efab3e103b3c6ce78987fed717984585ccc77;
+der zugehoerige Debian-OCCT-Patch ist SHA256
+16ee540e5de01db21e89b78696d8e8a24a7d18c122c1441a8a9398338aeabcb2.
+
+container_engines.py erzeugt deshalb ausschliesslich beim expliziten Imagebau
+zwoelf feste relative Pfadverbindungen: sieben Prusa-Ressourcenverzeichnisse,
+Font-README, zwei Systemfont-Verweise, OCCTWrapper und Cura-Ressourcen.
+Die Enginegeneration bleibt unveraendert read-only unter /engine. Keine
+Programmdatei wird nach /usr/bin verlinkt; kein nativer Slicer wird installiert.
+Vorhandene andere Dateien/Verzeichnisse/Links werden nie ersetzt. Wiederholte
+Vorbereitung akzeptiert nur exakt passende Verbindungen. Import und normaler
+Engine-Lookup erzeugen keine Pfade. Der Dockerfile baut und prueft diese
+Verbindungen vor USER65532; keine Engine wird dabei ausgefuehrt.
+
+Die beiden bisher fehlenden Prusa-Fontverweise werden im Image auf die
+Debianpakete fonts-noto-core und fonts-noto-cjk gerichtet. Es werden keine
+Schriftdateien vom privaten Host kopiert, in Quellarchive aufgenommen oder
+angehaengt. Die real aufgeloesten Zielpakete bleiben durch das Bildinventar zu
+belegen. Der SBOM-Referenzvertrag umfasst nun42 Pflichtpakete und ist an den
+neuen Dockerfile-Hash gebunden, weiterhin keine Version-/Imagefreigabe.
+
+CuraEngine 5.0.0 liest CURA_ENGINE_SEARCH_PATH (gepruefte Originalquelle
+src/communication/CommandLine.cpp SHA256
+f5729d67bfcd9a2db3e9bddfc7ad36250ecf52b7ff3109284354427895ac32a7).
+Der Dockerfile setzt diesen Pfad fest auf die definitions-/extruders-Bereiche
+der gewaelten Cura-Enginegeneration, ohne geerbten Suchpfad anzuhaengen.
+Die bestehende kernelgepruefte Netzwerkisolation bleibt unveraendert.
+
+Quelle, Imagebauvertrag, Dateisystemtests und Paketreferenz bilden einen
+zusammenhaengenden Block. Eine erfolgreiche Linkpruefung ist KEIN Nachweis
+eines gebauten Images, geladenen Plugins, vollstaendigen ABI oder Slices.
+Drei urspruengliche Enginearchive und Hostkanalkandidat bleiben unveraendert;
+Katalogfreigabe und Hostintegration werden dadurch nicht behauptet. Kein
+Live-/Docker-/Engine-/Druckereingriff; Linux-Neuinstallation weiterhin zuletzt.

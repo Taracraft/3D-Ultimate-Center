@@ -246,5 +246,67 @@ class CatalogTests(unittest.TestCase):
             catalog.verify_artifact(io.BytesIO(PAYLOAD), replace(artifact, size_bytes=True))
 
 
+    def test_dedicated_slicer_repository_downloads_for_all_families(self):
+        for engine in catalog.ENTRYPOINTS:
+            with self.subTest(engine=engine):
+                value = document(engine)
+                url = ("https://github.com/Taracraft/3D-Ultimate-Slicer-Server/"
+                       "releases/download/synthetic/" + engine + ".tar.xz")
+                value["releases"][0]["artifacts"][0]["url"] = url
+                plan = parse(value).select(engine, system="linux", architecture="amd64")
+                self.assertEqual(plan.artifacts[0].url, url)
+                self.assertEqual(plan.artifacts[0].source_url,
+                                 catalog.UPSTREAMS[engine] + "tree/" + "a" * 40)
+                self.assertEqual(plan.artifacts[0].sha256, SHA)
+
+    def test_dedicated_slicer_repository_rejects_lookalikes_and_url_overrides(self):
+        good = "https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/synthetic/bundle.tar.xz"
+        bad = [
+            good.replace("github.com/", "github.com.evil.invalid/"),
+            good.replace("github.com/", "user:secret@github.com/"),
+            good.replace("github.com/", "github.com:443/"),
+            good.replace("github.com/", "github.com:8443/"),
+            good.replace("Taracraft/", "OtherOwner/"),
+            good.replace("Slicer-Server/", "Slicer-Server-other/"),
+            good.replace("releases/download/", "releases/downloads/"),
+            good.replace("releases/download/", "releases/latest/download/"),
+            good.replace("/synthetic/", "/latest/"),
+            good.replace("/synthetic/", "/../"),
+            good.replace("/synthetic/", "/%2e%2e/"),
+            good.replace("https:", "http:"),
+            good + "?access_token=synthetic", good + "#fragment",
+            good.replace("/bundle.tar.xz", "\\bundle.tar.xz"),
+            good.split("synthetic")[0],
+        ]
+        for url in bad:
+            with self.subTest(url=url):
+                value = document()
+                value["releases"][0]["artifacts"][0]["url"] = url
+                self.reject(value, "untrusted_url")
+
+    def test_dedicated_repository_does_not_replace_independent_source_identity(self):
+        value = document()
+        artifact = value["releases"][0]["artifacts"][0]
+        artifact["url"] = "https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/synthetic/bundle.tar.xz"
+        artifact["source_url"] = "https://github.com/Taracraft/3D-Ultimate-Slicer-Server/tree/" + "a" * 40
+        self.reject(value, "untrusted_url")
+
+    def test_dedicated_repository_keeps_license_and_digest_requirements(self):
+        for case, expected in [("notice", "missing_license_file"),
+                               ("digest", "invalid_digest"),
+                               ("size", "invalid_size"),
+                               ("revision", "unfixed_source")]:
+            with self.subTest(case=case):
+                value = document()
+                item = value["releases"][0]["artifacts"][0]
+                item["url"] = "https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/synthetic/bundle.tar.xz"
+                if case == "notice":
+                    item["files"] = [f for f in item["files"] if f["role"] != "license"]
+                elif case == "digest": item["sha256"] = "unknown"
+                elif case == "size": item["size_bytes"] = True
+                else: item["source_revision"] = "main"
+                self.reject(value, expected)
+
+
 if __name__ == "__main__":
     unittest.main()

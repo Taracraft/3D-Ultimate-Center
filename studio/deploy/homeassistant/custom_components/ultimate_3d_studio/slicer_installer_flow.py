@@ -8,7 +8,7 @@ from .slicer_installer_runtime import ACTIONS, MUTATION_ACTIONS, get_installer_s
 
 CONF_INSTALLER_SETUP = "slicer_installer_setup"
 CHOICES = ("install", "preflight", "status", "cancel", "retry", "activate", "rollback", "resume",
-           "recover_stage", "recover_retry", "recover_activation", "recover_rollback", "finish")
+           "recover_stage", "recover_retry", "recover_activation", "recover_rollback", "configure_connection", "finish")
 
 
 class InstallerOptionsFlowMixin:
@@ -96,4 +96,16 @@ class InstallerOptionsFlowMixin:
             )
         if not task.cancelled():
             task.result()
-        return self.async_show_progress_done(next_step_id="installer_action")
+        next_step = "installer_connection_finish" if operation == "configure_connection" else "installer_action"
+        return self.async_show_progress_done(next_step_id=next_step)
+
+    async def async_step_installer_connection_finish(self, user_input=None):
+        # The browser submits no address or key; only the pinned, verified offer
+        # supplies them. This native flow completion persists and reloads options.
+        session = getattr(self, "_installer_session", None)
+        if session is None:
+            return self.async_abort(reason="installer_integration_unavailable")
+        options = await session.async_connection_options(self.config_entry)
+        if options is None:
+            return await self.async_step_installer_action()
+        return self.async_create_entry(title="", data=options)
