@@ -1,6 +1,6 @@
 {
   "custom_terms_do_not_replace_inherited_or_third_party_rights": true,
-  "delivered_paths": 1109,
+  "delivered_paths": 1110,
   "derived_profile_modification_notice_date": "2026-10-15",
   "files": [
     {
@@ -1920,9 +1920,9 @@
     },
     {
       "identity": {
-        "bytes": 5795,
+        "bytes": 6811,
         "kind": "sha256-raw-bytes",
-        "sha256": "62551ce68ec3ec86e5aafa4db3ba0f54db41285df76f0ab93cd5646dff83bea7"
+        "sha256": "6c75af3331def0aed32b02daa2f2bcf5e77aa13cf00a149b8eac33496ba980e4"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/custom_components/ultimate_3d_studio/slicer_installation_flow.py",
@@ -2180,9 +2180,9 @@
     },
     {
       "identity": {
-        "bytes": 12668,
+        "bytes": 17660,
         "kind": "sha256-raw-bytes",
-        "sha256": "c49718d56607f2daeb8071a578d25da265a2d8226ecd24dc125573b34d53ad12"
+        "sha256": "b6cb7f89b0e5a0fa1e7cfb69d9091cb33e24ed72daf9d57fe80b1ccb710e9795"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/custom_components/ultimate_3d_studio/slicer_supervisor_app.py",
@@ -2232,9 +2232,9 @@
     },
     {
       "identity": {
-        "bytes": 10586,
+        "bytes": 11640,
         "kind": "sha256-raw-bytes",
-        "sha256": "f2553d53e19c355b96f23f01ed1d575c553adb53bfbd063116e2ee417b2ff527"
+        "sha256": "30bc3d5b93416ef48bd2341f458ee0eb06467f6001d4cca5b09cb30bb079f99c"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/custom_components/ultimate_3d_studio/strings.json",
@@ -2349,9 +2349,9 @@
     },
     {
       "identity": {
-        "bytes": 10586,
+        "bytes": 11640,
         "kind": "sha256-raw-bytes",
-        "sha256": "f2553d53e19c355b96f23f01ed1d575c553adb53bfbd063116e2ee417b2ff527"
+        "sha256": "30bc3d5b93416ef48bd2341f458ee0eb06467f6001d4cca5b09cb30bb079f99c"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/custom_components/ultimate_3d_studio/translations/de.json",
@@ -2362,9 +2362,9 @@
     },
     {
       "identity": {
-        "bytes": 9735,
+        "bytes": 10621,
         "kind": "sha256-raw-bytes",
-        "sha256": "caa2c82fb77186d5ca92d58762740adced4064637453e5db6b2d06ae652ebe98"
+        "sha256": "1f4465aab0954191d6946fc9dcfe95fb4cd0624169fe4f72cfdc4e2fd6fb6055"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/custom_components/ultimate_3d_studio/translations/en.json",
@@ -2390,7 +2390,7 @@
       "identity": {
         "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "5c3aa4289fa2d83f882b5549b4524efd34d139807f29392f6573a39898e70dfa"
+        "sha256": "18569ef66e7d0ca68d00715ffe84105961ff39fd09d9adeb79f63db6035cc372"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -3065,9 +3065,9 @@
     },
     {
       "identity": {
-        "bytes": 9217,
+        "bytes": 14193,
         "kind": "sha256-raw-bytes",
-        "sha256": "a892bab019a12860afc4e3715a3a8e30a86bc8ccabf0a87b74b26a9b8cd6038c"
+        "sha256": "82a3c61d324ad081d5a967106473c9553d5490ea5681c1266291c02df5da08c8"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/SUPERVISOR_APP_SETUP.md",
@@ -6487,9 +6487,9 @@
     },
     {
       "identity": {
-        "bytes": 5795,
+        "bytes": 6811,
         "kind": "sha256-raw-bytes",
-        "sha256": "62551ce68ec3ec86e5aafa4db3ba0f54db41285df76f0ab93cd5646dff83bea7"
+        "sha256": "6c75af3331def0aed32b02daa2f2bcf5e77aa13cf00a149b8eac33496ba980e4"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_installation_flow.py",
@@ -6747,9 +6747,9 @@
     },
     {
       "identity": {
-        "bytes": 12668,
+        "bytes": 17660,
         "kind": "sha256-raw-bytes",
-        "sha256": "c49718d56607f2daeb8071a578d25da265a2d8226ecd24dc125573b34d53ad12"
+        "sha256": "b6cb7f89b0e5a0fa1e7cfb69d9091cb33e24ed72daf9d57fe80b1ccb710e9795"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_supervisor_app.py",
@@ -6799,9 +6799,9 @@
     },
     {
       "identity": {
-        "bytes": 10586,
+        "bytes": 11640,
         "kind": "sha256-raw-bytes",
-        "sha256": "f2553d53e19c355b96f23f01ed1d575c553adb53bfbd063116e2ee417b2ff527"
+        "sha256": "30bc3d5b93416ef48bd2341f458ee0eb06467f6001d4cca5b09cb30bb079f99c"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/strings.json",
@@ -6916,9 +6916,9 @@
     },
     {
       "identity": {
-        "bytes": 10586,
+        "bytes": 11640,
         "kind": "sha256-raw-bytes",
-        "sha256": "f2553d53e19c355b96f23f01ed1d575c553adb53bfbd063116e2ee417b2ff527"
+        "sha256": "30bc3d5b93416ef48bd2341f458ee0eb06467f6001d4cca5b09cb30bb079f99c"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/translations/de.json",
@@ -6929,9 +6929,9 @@
     },
     {
       "identity": {
-        "bytes": 9735,
+        "bytes": 10621,
         "kind": "sha256-raw-bytes",
-        "sha256": "caa2c82fb77186d5ca92d58762740adced4064637453e5db6b2d06ae652ebe98"
+        "sha256": "1f4465aab0954191d6946fc9dcfe95fb4cd0624169fe4f72cfdc4e2fd6fb6055"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/translations/en.json",
@@ -7191,7 +7191,7 @@
       "identity": {
         "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "5c3aa4289fa2d83f882b5549b4524efd34d139807f29392f6573a39898e70dfa"
+        "sha256": "18569ef66e7d0ca68d00715ffe84105961ff39fd09d9adeb79f63db6035cc372"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -13356,9 +13356,9 @@
     },
     {
       "identity": {
-        "bytes": 31588,
+        "bytes": 31600,
         "kind": "sha256-raw-bytes",
-        "sha256": "4e56d271560c6adb6b3ceebcc3a834feb80cd9d6cb00607afeb8811bc759ecc7"
+        "sha256": "d828db1a537ebf2cfe79fb5da55f6e05e2a7e653a020ee3a48032ae2163250ee"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/tests/test_studio_supervisor_app_setup.py",
@@ -13366,6 +13366,19 @@
         "LICENSE"
       ],
       "source_path": "tests/test_studio_supervisor_app_setup.py"
+    },
+    {
+      "identity": {
+        "bytes": 17759,
+        "kind": "sha256-raw-bytes",
+        "sha256": "1f54e4a3e2cd0b25aeb2a009d5104013a02f9b6b9b8fa10c5f44e0f7cb783f8c"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "studio/tests/test_studio_supervisor_recovery.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "tests/test_studio_supervisor_recovery.py"
     },
     {
       "identity": {
@@ -14528,7 +14541,7 @@
   "production_approved": false,
   "schema": 2,
   "scope": "file-specific notice inventory for this source-only Git delivery; no engine/image or production approval",
-  "source_files": 923,
+  "source_files": 924,
   "upstream": {
     "commit": "42d319c6692fa8e64790fddf0cdaafd2a4254bcc",
     "derived_source_paths": [

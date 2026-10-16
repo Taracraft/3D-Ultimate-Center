@@ -34,7 +34,7 @@ Nach der Absicht werden Referenz, Benutzerberechtigung und Storezustand erneut g
 
 Nach eindeutigem Erfolg wird erneut geprüft, dass genau die erwartete App installiert und gestoppt ist. Erst eine erfolgreich gespeicherte Abschlussquittung erlaubt `installed_stopped`. Eine bereits laufende App wird lediglich als `running_unverified` beschrieben; daraus werden keine Verbindung, Engine-Abnahme oder neuen Optionswerte abgeleitet.
 
-Timeout, HA-Unload, uneindeutige Antwort, Versionswechsel oder Fehler der Abschlussquittung behalten die gespeicherte Absicht. Der nächste Dialog beziehungsweise die nächste Runtime verweigert dann eine automatische Wiederholung mit `app_reconciliation_required`. Es gibt keinen Knopf, der diese Absicht blind löscht. Ein expliziter, belegter Abgleich mit dem tatsächlichen Supervisor-Vorgang bleibt eine getrennte Recovery-Aufgabe.
+Timeout, HA-Unload, uneindeutige Antwort, Versionswechsel oder Fehler der Abschlussquittung behalten die gespeicherte Absicht. Der nächste Dialog beziehungsweise die nächste Runtime verweigert dann eine automatische Wiederholung mit `app_reconciliation_required`. Es gibt keinen Knopf, der diese Absicht blind löscht. Der nachfolgend beschriebene bestätigte Bestandsabgleich kann eine inzwischen vorhandene, korrekt gestoppte App übernehmen. Er behauptet nicht, den Ausgang des ursprünglichen Installationsaufrufs nachträglich bewiesen zu haben.
 
 Der offizielle Store-Installaufruf hat keinen Parameter für eine frei gewählte exakte Version. Deshalb werden die Versionen vor und nach dem Vorgang verglichen. Ein währenddessen verschobener Storestand kann erst nach dem Aufruf erkennbar sein; der Adapter darf dann weder Erfolg melden noch selbst starten oder zerstörend rückgängig machen. Der spätere Distributionsvertrag muss unveränderliche Artefakte zusätzlich binden. Ein Versionsstring ist keine Signatur.
 
@@ -84,3 +84,80 @@ Quellen: `homeassistant/helpers/http.py`,
 `homeassistant/components/config/config_entries.py`, jeweils Core 2026.10.1.
 Die Quelltests simulieren diese HTTP-/Benutzergrenze ausdrücklich; sie sind
 keine echte HA-HTTP-Anmeldung oder visuelle Formularabnahme.
+
+
+## Bestätigter Bestandsabgleich nach unterbrochener Installation
+
+Eine gespeicherte `pending`-Absicht blockiert weiterhin jede erneute Installation.
+Die Statusprüfung kann jetzt aber die vorhandene App und die Supervisor-Aufträge
+lesen, statt jeden Abgleich vorab abzubrechen. Nur eine zur festgelegten Quelle,
+Version und Schutzkonfiguration passende **installierte und gestoppte** App kommt
+für die Übernahme infrage. Fehlender App-Bestand ist niemals eine Erlaubnis, den
+alten Vorgang zu löschen oder blind erneut zu installieren.
+
+Der Dialog bietet anschließend eine eigene Aktion mit eigener Bestätigung an.
+Sie schreibt ausschließlich die lokale HA-Einrichtungsquittung. Der neue Zustand
+`reconciled_stopped` unterscheidet sich absichtlich von `installed_stopped`:
+**Der aktuelle Bestand ist abgeglichen; der Ausgang des ursprünglichen Aufrufs
+bleibt unbekannt.** Es wird weder ein früherer Supervisor-Erfolg erfunden noch
+ein fehlender Installations-Job anhand eines Namens oder Zeitstempels erraten.
+
+Die bisherige private Quittung bleibt an denselben Release-Fingerprint gebunden.
+Nach Übernahme verhindert sie weiterhin eine Neuinstallation, falls die App
+später außerhalb dieses Ablaufs entfernt wird. Eine wiederholte Bestätigung ist
+idempotent und erzeugt weder weitere Quittungsschreibvorgänge noch Appaktionen.
+Ein Downgrade auf den älteren Adapter erkennt den neuen Zustand nicht und bleibt
+entsprechend gesperrt; er behandelt ihn nicht als leeren Installationsbestand.
+
+### Aufträge, konkurrierende Zustände und Datenminimierung
+
+Der Adapter verwendet zusätzlich ausschließlich `client.jobs.info()` vom durch
+HA verwalteten Supervisor-Client. Er setzt weder ignorierte Jobbedingungen noch
+löscht er Jobs. Alle gelieferten Wurzel- und Kindjobs müssen ausdrücklich beendet
+sein. Das ist bewusst strenger als eine Zuordnung über mehrdeutige Appreferenzen:
+Auch ein anderer laufender Supervisor-Auftrag kann den Abgleich blockieren.
+
+Unbekannter Abschluss, doppelte oder ungültige UUIDs, zyklische/zu tiefe Bäume,
+mehr als 2.048 Jobs oder aktiv ignorierte Supervisor-Bedingungen werden abgewiesen.
+Die Prüfung ist auf 64 Kindebenen begrenzt. Die Reihenfolge einer gleichbleibenden
+Jobliste spielt keine Rolle. Namen, freie Referenztexte, Fehlertexte und `extra`
+werden weder als Vertrauensgrundlage verwendet noch in Dialog oder Quittung
+kopiert. Beendete Jobs mit Fehlern werden nicht als Erfolg umgedeutet; der
+Bestandsabgleich trifft ausdrücklich keine Aussage über ihr früheres Ergebnis.
+
+Job-Fingerprints werden vor und nach der Appabfrage verglichen. Nach einer
+Bestätigung werden Bestand, Quittung und aktuelle Adminberechtigung erneut
+geprüft. Änderungen führen nicht zu einer automatischen Wiederholung. Nach dem
+lokalen Schreiben werden Quittung und App-/Jobzustand nochmals gelesen; eine
+Abweichung darf nicht als betriebsbereiter Erfolg erscheinen. Fehlende oder
+stillschweigend verworfene Store-Schreibvorgänge werden durch den Rückvergleich
+erkannt. Lese-/Schreibvorgänge haben feste Zeitgrenzen.
+
+Diese wiederholten Beobachtungen sind **keine globale Sperre des Supervisors**.
+Ein anderer Administrator kann anschließend App oder Jobs verändern. Der Adapter
+führt deshalb keine zustandsabhängige Start-/Druckaktion aus. Ein nach dem
+Quittungsschreiben erkanntes Problem kann die lokal gespeicherte Übernahme
+bereits hinterlassen; der Fehler wird gemeldet und die Quittung nicht blind
+zurückgelöscht. Eine künftige Start-/Update-Funktion benötigt ihre eigene frische
+Prüfung und Freigabe.
+
+### Nachweise und unveränderte Grenzen
+
+`tests/test_studio_supervisor_recovery.py` prüft echte Adapter-/asyncio-Abläufe mit
+explizit simulierten offiziellen Clientmodellen, HA-Store und HTTP-Benutzern.
+Zwei zunächst fehlgeschlagene Fälle belegen den vormals fehlenden Recoveryweg.
+Die Prüfung umfasst unter anderem Abbruch, doppelte Bestätigung, Jobs während
+Appabfragen, Rollenentzug, falsche Metadaten, korrupte Quittungen, verlorene
+Speicherbestätigung und fehlende reale Paketfreigabe. Kein realer Supervisor,
+keine App, Engine und kein Drucker wird dafür angesprochen.
+
+`SHIPPED_RELEASE` bleibt `None`. Dieses neue Wiederherstellungsverhalten aktiviert
+kein noch fehlendes Laufzeitpaket. Es ist kein automatisches Retry, kein Restore
+von Nutzerdaten und kein Beleg für eine vollständige App-/Engine-Auslieferung.
+
+Geprüfte zusätzliche Primärquellen: offizieller `aiohasupervisor/jobs.py`,
+Blob `74c0f3e56f91f98b32079606e56ba5a766ba826c`; `models/jobs.py`, Blob
+`3d47bb5762824bef01cd9d0618dca45ddd31fe1b`; die aktuelle Supervisor-API-Dokumentation
+unter https://contributors.home-assistant.io/apps/supervisor-api/supervisor/ .
+Der aktuelle Store-Client verwirft beim Installationsaufruf eine etwaige Antwort;
+eine von ihm zurückgegebene Job-ID wird daher nicht angenommen.

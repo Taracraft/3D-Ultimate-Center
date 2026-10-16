@@ -7,7 +7,7 @@ from homeassistant.helpers.http import KEY_AUTHENTICATED, current_request
 
 from .slicer_supervisor_app import get_supervisor_session
 
-SUPERVISOR_CHOICES = ("status", "install", "back")
+SUPERVISOR_CHOICES = ("status", "install", "reconcile", "back")
 
 
 class SlicerInstallationFlowMixin:
@@ -44,11 +44,14 @@ class SlicerInstallationFlowMixin:
             return self._supervisor_form("app_operation_failed")
         if session.busy:
             return self._supervisor_form("app_busy")
+        self._supervisor_observed = None
         self._supervisor_action = operation
         self._supervisor_task = None
         self._supervisor_confirmed = False
         if operation == "install":
             return await self.async_step_slicer_supervisor_confirm()
+        if operation == "reconcile":
+            return await self.async_step_slicer_supervisor_reconcile()
         return await self.async_step_slicer_supervisor_progress()
 
     async def async_step_slicer_supervisor_confirm(self, user_input=None):
@@ -64,10 +67,23 @@ class SlicerInstallationFlowMixin:
             data_schema=vol.Schema({vol.Required("confirm", default=False): bool}),
         )
 
+    async def async_step_slicer_supervisor_reconcile(self, user_input=None):
+        if getattr(self, "_supervisor_action", None) != "reconcile":
+            return self.async_abort(reason="installer_integration_unavailable")
+        if user_input is not None:
+            if type(user_input) is dict and user_input.get("confirm") is True:
+                self._supervisor_confirmed = True
+                return await self.async_step_slicer_supervisor_progress()
+            return self._supervisor_form()
+        return self.async_show_form(
+            step_id="slicer_supervisor_reconcile",
+            data_schema=vol.Schema({vol.Required("confirm", default=False): bool}),
+        )
+
     async def async_step_slicer_supervisor_progress(self, user_input=None):
         session = getattr(self, "_supervisor_session", None)
         operation = getattr(self, "_supervisor_action", None)
-        if session is None or operation not in {"status", "install"}:
+        if session is None or operation not in {"status", "install", "reconcile"}:
             return self.async_abort(reason="installer_integration_unavailable")
         task = getattr(self, "_supervisor_task", None)
         if task is None:
@@ -101,6 +117,8 @@ class SlicerInstallationFlowMixin:
         options = ["status", "back"]
         if result.get("ok") is True and result.get("state") == "not_installed" and not session.busy:
             options.insert(1, "install")
+        elif result.get("ok") is True and result.get("state") == "recovery_available" and not session.busy:
+            options.insert(1, "reconcile")
         errors = {}
         reason = error or result.get("error")
         if reason:

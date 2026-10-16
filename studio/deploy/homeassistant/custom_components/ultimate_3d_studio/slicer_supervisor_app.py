@@ -11,16 +11,20 @@ from dataclasses import dataclass
 import hashlib
 import json
 import re
+from uuid import UUID
 
 from .const import DOMAIN
 
 REPOSITORY_URL = "https://github.com/Taracraft/3D-Ultimate-Slicer-Server"
 DATA_SESSION = "supervisor_app_session"
-ACTIONS = frozenset({"status", "install"})
+ACTIONS = frozenset({"status", "install", "reconcile"})
+MAX_RECOVERY_JOBS = 2048
+MAX_JOB_DEPTH = 64
 ERRORS = frozenset({"forbidden", "supervisor_unavailable", "app_release_unavailable",
     "app_release_changed", "app_reference_invalid", "app_not_available", "app_identity_changed",
     "app_policy_mismatch", "app_version_mismatch", "app_response_invalid", "app_confirmation_required",
-    "app_busy", "app_closed", "app_operation_failed", "app_reconciliation_required", "app_storage_failed"})
+    "app_busy", "app_closed", "app_operation_failed", "app_reconciliation_required", "app_storage_failed",
+    "app_jobs_active", "app_jobs_invalid", "app_recovery_changed"})
 
 
 class AppError(ValueError):
@@ -121,6 +125,38 @@ class SupervisorBackend:
         require(state is not None, "app_response_invalid")
         return {"ok": True, "state": state}
 
+    async def idle_fingerprint(self):
+        """Bounded observation of all job trees, not a lock or original-job proof.
+
+        Require global idleness rather than guess which ancestor/reference can
+        affect this app. Do not reset/delete jobs or read/log their names, extras
+        and error messages. An old finished failure does not prove this app failed
+        or succeeded: recovery only adopts its separately checked stopped state.
+        """
+        info = await self.client.jobs.info()
+        require(type(info.ignore_conditions) is list and not info.ignore_conditions,
+                "app_policy_mismatch")
+        require(type(info.jobs) is list and len(info.jobs) <= MAX_RECOVERY_JOBS,
+                "app_jobs_invalid")
+        stack = [(job, "", 0) for job in info.jobs]
+        rows, seen = [], set()
+        while stack:
+            job, parent, depth = stack.pop()
+            require(depth <= MAX_JOB_DEPTH and len(rows) < MAX_RECOVERY_JOBS,
+                    "app_jobs_invalid")
+            require(type(job.uuid) is UUID and job.uuid.int != 0, "app_jobs_invalid")
+            identity = job.uuid.hex
+            require(identity not in seen, "app_jobs_invalid")
+            seen.add(identity)
+            require(job.done is True, "app_jobs_active")
+            require(type(job.child_jobs) is list and type(job.errors) is list
+                    and len(job.errors) <= MAX_RECOVERY_JOBS
+                    and len(rows) + len(stack) + len(job.child_jobs) < MAX_RECOVERY_JOBS + 1,
+                    "app_jobs_invalid")
+            rows.append((identity, parent, len(job.errors)))
+            stack.extend((child, identity, depth + 1) for child in job.child_jobs)
+        return hashlib.sha256(json.dumps(sorted(rows), separators=(",", ":")).encode()).hexdigest()
+
     async def install(self, release):
         # Official install endpoint installs but does not issue start. It has no
         # exact-version argument; inspect both sides and never auto-start on drift.
@@ -187,9 +223,10 @@ class SupervisorAppSession:
                 {"not_installed", "installed_stopped", "running_unverified"}, "app_response_invalid")
         return {"ok": True, "state": result["state"]}
 
-    async def _load_record(self, release):
+    async def _load_record(self, release, *, allow_pending=False):
         try:
-            record = await self._journal.async_load()
+            async with asyncio.timeout(self._read_timeout):
+                record = await self._journal.async_load()
         except Exception:
             raise AppError("app_storage_failed") from None
         if record is None:
@@ -197,15 +234,61 @@ class SupervisorAppSession:
         require(type(record) is dict and set(record) == {"schema", "release", "state"}
                 and type(record["schema"]) is int and record["schema"] == 1
                 and record["release"] == release.identity
-                and record["state"] in {"pending", "installed_stopped"}, "app_reconciliation_required")
-        require(record["state"] != "pending", "app_reconciliation_required")
-        return record
+                and type(record["state"]) is str
+                and record["state"] in {"pending", "installed_stopped", "reconciled_stopped"}, "app_reconciliation_required")
+        require(allow_pending or record["state"] != "pending", "app_reconciliation_required")
+        return dict(record)
 
     async def _save(self, release, state):
         try:
-            await self._journal.async_save({"schema": 1, "release": release.identity, "state": state})
+            value = {"schema": 1, "release": release.identity, "state": state}
+            async with asyncio.timeout(self._read_timeout):
+                await self._journal.async_save(value)
+                require(await self._journal.async_load() == value, "app_storage_failed")
         except Exception:
             raise AppError("app_storage_failed") from None
+
+    async def _idle_fingerprint(self, release):
+        async with asyncio.timeout(self._read_timeout):
+            fingerprint = await self._backend.idle_fingerprint()
+        self._current(release)
+        require(type(fingerprint) is str and re.fullmatch(r"[0-9a-f]{64}", fingerprint)
+                is not None, "app_jobs_invalid")
+        return fingerprint
+
+    async def _recovery_observation(self, release):
+        before = await self._idle_fingerprint(release)
+        observed = await self._inspect(release)
+        require(observed["state"] == "installed_stopped", "app_reconciliation_required")
+        after = await self._idle_fingerprint(release)
+        require(before == after, "app_recovery_changed")
+        return before
+
+    async def _reconcile(self, release, prior, user_id, *, commit):
+        require(prior is not None and prior["state"] in {"pending", "reconciled_stopped"},
+                "app_reconciliation_required")
+        fingerprint = await self._recovery_observation(release)
+        require(await self._load_record(release, allow_pending=True) == prior,
+                "app_recovery_changed")
+        self._current(release)
+        if not commit:
+            return {"ok": True, "state": "recovery_available"}
+        # The current actor must still be authorized after all awaited reads.
+        await self._admin(user_id)
+        self._current(release)
+        if prior["state"] == "pending":
+            # Preserve the unknown original outcome in a distinct receipt state.
+            # Never remove the receipt, unlock a fresh install, or claim that the
+            # old install call succeeded merely because an instance now exists.
+            await self._save(release, "reconciled_stopped")
+        require(await self._recovery_observation(release) == fingerprint,
+                "app_recovery_changed")
+        require(await self._load_record(release) ==
+                {"schema": 1, "release": release.identity, "state": "reconciled_stopped"},
+                "app_recovery_changed")
+        await self._admin(user_id)
+        self._current(release)
+        return {"ok": True, "state": "reconciled_stopped"}
 
     async def _perform(self, action, user_id):
         mutation_started = False
@@ -219,8 +302,14 @@ class SupervisorAppSession:
             if self._backend is None:
                 self._backend = self._backend_factory(self.hass)
                 self._journal = self._journal_factory(self.hass)
-            prior = await self._load_record(release)
+            prior = await self._load_record(release, allow_pending=action in {"status", "reconcile"})
+            if action == "reconcile" or (prior is not None and prior["state"] == "pending"):
+                result = await self._reconcile(release, prior, user_id, commit=action == "reconcile")
+                self._last = result
+                return dict(result)
             observed = await self._inspect(release)
+            if prior is not None and prior["state"] == "reconciled_stopped" and observed["state"] == "installed_stopped":
+                observed = {"ok": True, "state": "reconciled_stopped"}
             if action == "status":
                 result = observed
             elif observed["state"] != "not_installed":
@@ -258,7 +347,7 @@ class SupervisorAppSession:
             return failure("app_operation_failed")
         if self._closed:
             return failure("app_closed")
-        if action == "install" and confirmed is not True:
+        if action in {"install", "reconcile"} and confirmed is not True:
             return failure("app_confirmation_required")
         if self.busy:
             return failure("app_busy")

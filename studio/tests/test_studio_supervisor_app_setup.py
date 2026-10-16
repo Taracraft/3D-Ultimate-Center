@@ -517,7 +517,7 @@ class PackagingTests(unittest.TestCase):
                 doc=json.loads((COMP/rel).read_text(encoding='utf-8-sig'))
                 for step in ('slicer_installation','slicer_supervisor','slicer_supervisor_confirm','slicer_external','slicer_host_legacy'):
                     self.assertIn(step,doc['options']['step'])
-                self.assertEqual(set(doc['selector']['supervisor_app_operation']['options']),{'status','install','back'})
+                self.assertEqual(set(doc['selector']['supervisor_app_operation']['options']),{'status','install','reconcile','back'})
                 for code in app.ERRORS:self.assertIn('supervisor_'+code,doc['options']['error'])
                 self.assertIn('supervisor_app_working',doc['options']['progress'])
 

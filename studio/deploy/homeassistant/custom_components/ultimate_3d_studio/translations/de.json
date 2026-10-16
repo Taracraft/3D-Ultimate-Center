@@ -87,6 +87,13 @@
         "data": {
           "confirm": "Installation ausdrücklich ausführen"
         }
+      },
+      "slicer_supervisor_reconcile": {
+        "title": "Unterbrochene Einrichtung abgleichen",
+        "description": "Nur den lokalen Einrichtungsnachweis an die erneut geprüfte vorhandene, gestoppte App anpassen. Keine Installation, kein Start, kein Löschen. Der Ausgang des ursprünglichen Vorgangs bleibt unbekannt. Laufende Supervisor-Aufträge, abweichende Versionen oder unklare Daten blockieren den Abgleich.",
+        "data": {
+          "confirm": "Vorhandenen Zustand nach erneuter Prüfung übernehmen"
+        }
       }
     },
     "error": {
@@ -121,7 +128,10 @@
       "supervisor_app_closed": "Dieser Einrichtungsdialog gehört zu einer beendeten Integration.",
       "supervisor_app_operation_failed": "Der Supervisor-Vorgang konnte nicht bestätigt werden.",
       "supervisor_app_reconciliation_required": "Unklarer oder abweichender Installationszustand: zuerst den Supervisor-Vorgang und die vorhandene App prüfen. Keine automatische Wiederholung oder Löschung.",
-      "supervisor_app_storage_failed": "Der private Vorgangsstatus konnte nicht zuverlässig gespeichert oder gelesen werden."
+      "supervisor_app_storage_failed": "Der private Vorgangsstatus konnte nicht zuverlässig gespeichert oder gelesen werden.",
+      "supervisor_app_jobs_active": "Supervisor-Aufträge sind noch aktiv oder ihr Abschluss ist unbekannt. Der Zustand wurde nicht übernommen.",
+      "supervisor_app_jobs_invalid": "Die Supervisor-Auftragsübersicht ist unvollständig, ungültig oder zu groß für einen sicheren Abgleich.",
+      "supervisor_app_recovery_changed": "App, Aufträge oder Einrichtungsnachweis haben sich während der Prüfung geändert. Keine automatische Wiederholung."
     },
     "abort": {
       "cloud_login_expired": "Der Bambu-Anmeldevorgang ist abgelaufen. Öffne die Optionen erneut.",
@@ -161,7 +171,8 @@
       "options": {
         "status": "Status prüfen",
         "install": "Installieren, nicht starten",
-        "back": "Zurück zur Auswahl"
+        "back": "Zurück zur Auswahl",
+        "reconcile": "Vorhandene gestoppte App abgleichen"
       }
     }
   }

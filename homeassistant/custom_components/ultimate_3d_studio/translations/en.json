@@ -87,6 +87,13 @@
         "data": {
           "confirm": "Explicitly perform installation"
         }
+      },
+      "slicer_supervisor_reconcile": {
+        "title": "Reconcile interrupted setup",
+        "description": "Update only the local setup receipt to match the rechecked existing stopped app. No installation, startup or deletion. The original operation outcome remains unknown. Active Supervisor jobs, differing versions or ambiguous data block reconciliation.",
+        "data": {
+          "confirm": "Adopt current state after rechecking"
+        }
       }
     },
     "error": {
@@ -121,7 +128,10 @@
       "supervisor_app_closed": "This setup session belongs to an unloaded integration.",
       "supervisor_app_operation_failed": "The Supervisor operation could not be confirmed.",
       "supervisor_app_reconciliation_required": "Installation state is uncertain or inconsistent. Inspect the Supervisor operation and existing app first. No automatic retry or removal.",
-      "supervisor_app_storage_failed": "The private operation state could not be reliably saved or read."
+      "supervisor_app_storage_failed": "The private operation state could not be reliably saved or read.",
+      "supervisor_app_jobs_active": "Supervisor jobs remain active or their completion is unknown. No state was adopted.",
+      "supervisor_app_jobs_invalid": "The Supervisor job listing is incomplete, invalid or too large for safe reconciliation.",
+      "supervisor_app_recovery_changed": "App, jobs or setup receipt changed during verification. No automatic retry."
     },
     "abort": {
       "cloud_login_expired": "Bambu sign-in has expired. Open the options again.",
@@ -161,7 +171,8 @@
       "options": {
         "status": "Inspect status",
         "install": "Install without starting",
-        "back": "Back to route selection"
+        "back": "Back to route selection",
+        "reconcile": "Reconcile existing stopped app"
       }
     }
   }
