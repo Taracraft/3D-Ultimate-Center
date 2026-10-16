@@ -104,7 +104,7 @@ verfasster Testberichte. Der Verifikator erhebt keine neuen Laufzeitmessungen.
 Ein Upgrade-Zielimage braucht weiterhin seinen eigenen Paket-/Buildnachweis;
 hier wird nur die gemeinsame Ausgangs- und wiederhergestellte Image-ID gebunden.
 Der Schutz ist keine atomare Momentaufnahme gegen einen boesartigen Prozess
-mit derselben Benutzeridentitaet. Betriebsabnahme, Enginefunktion,
+mit derselben Benutzeridentitaet. Betriebsprüfung, Enginefunktion,
 Quellen-/Lizenzpflichten und vollstaendiger Produktrelease bleiben getrennt.
 
 Die frische Linux-Neuinstallation bleibt der letzte Verifikationstest nach

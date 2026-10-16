@@ -17,7 +17,7 @@ Der native Linux-Dienst verwendet die Python-Standardbibliothek und externe Linu
 
 **Der Installer prüft diese Voraussetzungen vor Änderungen an Programmen, Benutzern, Daten und Diensten.** Fehlt eine notwendige Abhängigkeit, bricht er kontrolliert ab. Es erfolgen weder automatische Paketinstallationen noch Downloads.
 
-Ein lesend verifiziertes Paket ist **nicht automatisch installationsfreigegeben**. Alle privaten Vorabarchive tragen in den Paketmetadaten native_deploy_ready=false. Damit sind --install und --upgrade auch bei vollständiger Engine-Angabe gesperrt. Erst nach den offenen unabhängigen Linux-, Lizenz-, TLS-, HACS- und Restore-Abnahmen darf ein kontrollierter Releaseprozess einen freigegebenen Quellstand erzeugen. Ein vorhandener Wiederherstellungspfad bleibt davon getrennt.
+Ein lesend verifiziertes Paket ist **nicht automatisch installationsfreigegeben**. Die Entwicklungspakete tragen in den Paketmetadaten native_deploy_ready=false. Damit sind --install und --upgrade auch bei vollständiger Engine-Angabe gesperrt. Erst nach den offenen unabhängigen Linux-, Lizenz-, TLS-, HACS- und Restore-Abnahmen darf ein kontrollierter Releaseprozess einen freigegebenen Quellstand erzeugen. Ein vorhandener Wiederherstellungspfad bleibt davon getrennt.
 
 ## Versionsmetadaten ohne versionierte Pfade
 
@@ -69,9 +69,6 @@ Remote-Betrieb bleibt ein Freigabeblocker bis zur tatsächlichen TLS-Handshakepr
 ## Native Linux-Abhängigkeiten
 
 Auf einer frischen Debian-Installation werden Python, JSON-/Shell-Werkzeuge und Linux-Namespace-Funktionen benötigt. Die folgenden Systempakete muss der Administrator bewusst vorinstallieren:
-
-    apt-get update
-    apt-get install python3 jq gawk grep coreutils findutils util-linux passwd systemd
 
 Der native Installer installiert keine Debian-Systempakete automatisch. Er prüft vor dem Anlegen von Benutzern, Dateien oder systemd-Diensten alle **25 erforderlichen Kommandos** und die für die Units verwendeten festen Pfade.
 

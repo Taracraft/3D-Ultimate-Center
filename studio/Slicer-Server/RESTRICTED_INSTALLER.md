@@ -99,8 +99,8 @@ Katalogsperre darf keinen notwendigen Rueckweg verhindern.
 
 Staging prueft freien Platz fuer deklarierte Downloads, Kandidaten und Kopien
 plus Reserve. Dies ist eine Vorpruefung, keine exklusive Speicherreservierung
-fuer jeden Archiv-Zwischenstrom. Begrenzte W25-Archive und Fehlerbereinigung
-bleiben massgeblich. W26 reserviert fuer die Aktivierung echten Linux-Platz.
+fuer jeden Archiv-Zwischenstrom. Begrenzte -Archive und Fehlerbereinigung
+bleiben maßgeblich. Der Aktivierungsschritt reserviert den benötigten Speicherplatz.
 Gemeinsame Datentraegernutzung, Quoten, Dateisystem- und Stromausfalltests sind
 weiterhin echte Hostabnahmen.
 
@@ -116,14 +116,14 @@ markiert ihn abgebrochen; retry verwendet eine neue private Vorbereitung.
 Alte Kandidaten und Nutzerdaten bleiben erhalten.
 
 Crash waehrend Aktivierung: Recovery ist an die erwartete Generation gebunden.
-Ein passender innerer W26-Vorgang kann explizit uebernommen/zurueckgerollt werden.
+Ein passender innerer -Vorgang kann explizit uebernommen/zurueckgerollt werden.
 War ACTIVE schon gewechselt und der innere Vorgang abgeschlossen, kann adopt
 nach erneutem Worker-Stopp und Manifestcheck den aeusseren Beleg abschliessen.
 Abort ist nur moeglich, wenn die alte Generation noch aktiv ist. Unklare
 Zustaende und Initialisierungsabbrueche verlangen host_reconciliation_required.
 Es erfolgt keine automatische Reparatur, Loeschung oder Wiederaufnahme.
 
-Der Rueckweg nach einem unsicheren W26-Wechsel ist implementiert. Ein frei
+Der Rueckweg nach einem unsicheren -Wechsel ist implementiert. Ein frei
 waehlbares Downgrade nach bereits vollstaendig erfolgreicher Installation,
 Compose-Umschaltung, Worker-Neustart und Health-bestaetigter Dienstrollback
 sind noch keine implementierten Operationen dieses Kerns.
@@ -140,7 +140,7 @@ Ein privilegierter konkurrierender Dateimutator liegt ausserhalb dieses Vertrags
 Operationen, Idempotenz, echten ZIP-Staging-/Aktivierungsdurchlauf mit
 Testbytes, Manipulation, Katalogwechsel, Platzmangel, Prozesssperre, Thread-
 Abbruch, Neustart und Recovery. Keine Testdatei ist eine echte Engine.
-Der integrierte Durchlauf deckte eine Luecke zwischen W25 und W26 auf:
+Der integrierte Durchlauf deckte eine Luecke zwischen und auf:
 asdict serialisiert optionale archive_path-Felder als null. Der READY-Leser
 normalisiert diese auf den impliziten Quellpfad, bevor er den Katalogvertrag
 anwendet. Bestehende explizite Pfadzuordnungen bleiben erhalten.
@@ -193,7 +193,7 @@ Einrichtung, Tokenwechsel, Widerruf, Rechte und Commit-/Restore-Grenzen sind in
 [HOST_PAIRING.md](HOST_PAIRING.md) beschrieben. Der sichere erreichbare Transport
 und die geschuetzte Zustellung sind weiterhin offen.
 
-## 11.10.2026 - Authentifizierter Installer mit Store-/Container-Rueckweg
+## Authentifizierter Installer mit Store-/Container-Rueckweg
 
 Der lokal provisionierte InstallerLifecycle verbindet restricted_installer,
 host_lifecycle, den festen Dockeradapter und den echten Generationsspeicher.
@@ -212,18 +212,6 @@ Der Rueckweg funktioniert auch nach bereits abgeschlossenem Paketwechsel,
 fehlgeschlagenem Containerstart, Orchestratorneustart oder verlorenem
 Schreibnachweis. Die alte Generation bleibt erhalten. Ein fremder Vorgang,
 abweichende Bindung oder fehlender Stillstandsnachweis blockiert den Rueckweg.
-
-16 neue Integrationstests verbinden Authentifizierung, Store, Lifecycle,
-konkreten Adapter und synthetischen Dockerdaemon. Windows zusammen64PASS,
-20LinuxSkips,12Untertests; Linux84PASS ohneSkips, inklusive echtem temporaerem
-Unix-Socket-Ablauf und falscherLane. Kein Docker-/Engine-/Produktivdienststart.
-Installer-/Lifecycle-/Store-Sperren liegen in getrennten Steuerverzeichnissen.
-
-Noch offen: Hostprovisionierung/Erstbootstrap ohne Vorgaenger, HA-Setup und
-serverseitige Secretuebernahme, reale Installation/Upgrade/Restore/TLS sowie
-freigegebene Enginepakete. Der vorhandene filesystem-only Installerpfad ist
-kein Containerinstallationsnachweis. container_deploy_ready bleibt false.
-Endgate, PC/HA-SHAs, Originalbackups und trockene Rueckwege im privaten Checkpoint.
 
 ### Lokale Provisionierung und Remotevertrag
 
@@ -245,7 +233,7 @@ Runtimeaktivierung nicht als blossen Dateizeigerwechsel quittieren. Ein
 pausierter Vorgang muss ueber rollback/resume fortgesetzt werden; nach unklarem
 Resume bleibt ein gesonderter lokaler Abgleich erforderlich.
 
-## 12.10.2026 - Erstinstallation hinter derselben Befehlsgrenze
+## Erstinstallation hinter derselben Befehlsgrenze
 
 activate verwendet bei fehlender aktiver Generation jetzt die separat
 journalisierte FirstInstall-Transaktion. Eine vorhandene Generation verwendet

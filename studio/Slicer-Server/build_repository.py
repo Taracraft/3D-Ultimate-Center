@@ -1,4 +1,4 @@
-﻿"""Build and verify the complete reviewed slicer source projection; no live actions."""
+"""Build and verify the complete reviewed slicer source projection; no live actions."""
 from __future__ import annotations
 import argparse
 import hashlib
@@ -24,8 +24,7 @@ SOURCE_PATHS = (
     "Slicer-Server/INSTALLER_HOST_CHANNEL_DECISION.md",
     "Slicer-Server/INSTALLER_TRANSPORT.md",
     "Slicer-Server/LICENSE",
-    "Slicer-Server/LINUX_TEST_SERVER_RUNBOOK.md",
-    "Slicer-Server/LIVE_ENGINE_INVENTORY.md",
+    "Slicer-Server/LINUX_SETUP.md",
     "Slicer-Server/MAINTENANCE.md",
     "Slicer-Server/MIGRATION.md",
     "Slicer-Server/OPERATIONS.md",
@@ -102,7 +101,7 @@ SOURCE_PATHS = (
     "Slicer-Server/wiki/Lizenz-und-Nutzung.md",
     "Slicer-Server/wiki/Profile-und-Engines.md",
     "Slicer-Server/wiki/Quellumfang.md",
-    "Slicer-Server/wiki/Release-Abnahme.md",
+    "Slicer-Server/wiki/Entwicklungsstand.md",
     "Slicer-Server/wiki/_Sidebar.md",
     "deploy/homeassistant/custom_components/ultimate_3d_studio/bed-temperature-contract.sh",
     "deploy/homeassistant/custom_components/ultimate_3d_studio/filament_parameter_contract.py",
@@ -132,7 +131,7 @@ SOURCE_PATHS = (
     "deploy/homeassistant/host/3d-printer-slicing-server/systemd/3d-printer-slicing-refresh.timer",
     "deploy/homeassistant/host/3d-printer-slicing-server/systemd/3d-printer-slicing-server.service",
     "packages/ultimate-slicer-server/README.md",
-    "packages/ultimate-slicer-server/WORK_SERVER_TEST_GUIDE.md",
+    "packages/ultimate-slicer-server/LINUX_TESTING.md",
     "packages/ultimate-slicer-server/build_native_package.py",
     "packages/ultimate-slicer-server/build_target_testkit.py",
     "packages/ultimate-slicer-server/check_target_host.sh",

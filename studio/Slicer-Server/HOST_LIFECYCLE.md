@@ -1,4 +1,4 @@
-﻿# Transaktionaler Host-Lifecycle
+# Transaktionaler Host-Lifecycle
 
 ## Implementierter Umfang
 
@@ -121,17 +121,7 @@ Ausgaben/Fristen und Teilstart-Reconciliation, echte Store-Rollbackkopplung,
 Hostentrypoint, Erstinstallation und HA-Backend. Danach folgen die vorgesehenen
 realen Neuinstallations-, Upgrade-/Restore-, TLS- und Engine-Abnahmen.
 
-## Synthetische Abnahme
-
-32 Tests pruefen Wechsel, wiederholte und widerspruechliche IDs, mehrere
-Transaktionen mit aufbewahrten Belegen, volle Historie, abgesicherte
-Mutationsreihenfolge, Neustart, unklare Ausgaenge, Volumeverlust, exakte
-Containeridentitaeten, TLS-/Worker-/Wartungsnachweise und expliziten Rueckweg.
-Windows:30 PASS,2 POSIX-Skips,23 Untertests. Linux prueft zusaetzlich Besitz,
-Modi und Links. Keine Docker-, Engine-, Drucker- oder Produktivdienstaktion.
-Endgate und PC/HA-Synchronitaet werden im privaten Checkpoint nachgewiesen.
-
-## Fester Docker-Hostadapter (synthetischer Stand 11.10.2026)
+## Fester Docker-Hostadapter (synthetischer Stand
 
 docker_host_adapter.py implementiert jetzt den lokalen Laufzeitadapter fuer den
 oben beschriebenen Transaktionskern. Seine Konfiguration entsteht ausschliesslich
@@ -166,7 +156,7 @@ restricted_installer verbunden, besitzt keinen freigegebenen Systemdienst und
 behandelt einen fehlenden Vorgaenger bewusst als Teilstart-Reconciliation.
 Storeauswahl, Erstbootstrap, HA-Backend und echte Docker-/TLS-/Restore-Abnahme
 bleiben offen. container_deploy_ready bleibt false.
-## 11.10.2026 - Dockeradapter: Rueckweg und Wartungsnachweis korrigiert
+## Dockeradapter: Rueckweg und Wartungsnachweis korrigiert
 
 Die Integrationspruefung zwischen echtem Lifecycle-Kern, Dockeradapter und
 kanonischem JobControl hat zwei bisher ungedeckte Fehler nachgewiesen und
@@ -182,14 +172,7 @@ Doppelte JSON-Felder und ungueltige Feldtypen werden wie im JobControl
 abgewiesen. Der Rueckweg nach fehlgeschlagenem Start funktioniert auch nach
 Neustart des Orchestrators und bleibt restored_paused; Resume ist ausdruecklich.
 
-Zehn neue Integrationstests verwenden den konkreten Adapter und kanonisches
-JobControl mit synthetischer Dockergrenze. Zusammen mit Adapter/Lifecycle:
-Windows50PASS,4POSIXSkips,41Untertests; Linux54PASS ohneSkips.
-Keine echte Docker-/Engine-/Dienst-/Jobaktion. Installer-/Storeverdrahtung,
-Erstbootstrap, HA-Setup und reale Installation/Restore/TLS bleiben offen.
-Finales Gesamtgate und PC/HA-Endhashes stehen im privaten Blockcheckpoint.
-
-## 11.10.2026 - Authentifizierter Installer mit Store-/Container-Rueckweg
+## Authentifizierter Installer mit Store-/Container-Rueckweg
 
 Der lokal provisionierte InstallerLifecycle verbindet restricted_installer,
 host_lifecycle, den festen Dockeradapter und den echten Generationsspeicher.
@@ -208,18 +191,6 @@ Der Rueckweg funktioniert auch nach bereits abgeschlossenem Paketwechsel,
 fehlgeschlagenem Containerstart, Orchestratorneustart oder verlorenem
 Schreibnachweis. Die alte Generation bleibt erhalten. Ein fremder Vorgang,
 abweichende Bindung oder fehlender Stillstandsnachweis blockiert den Rueckweg.
-
-16 neue Integrationstests verbinden Authentifizierung, Store, Lifecycle,
-konkreten Adapter und synthetischen Dockerdaemon. Windows zusammen64PASS,
-20LinuxSkips,12Untertests; Linux84PASS ohneSkips, inklusive echtem temporaerem
-Unix-Socket-Ablauf und falscherLane. Kein Docker-/Engine-/Produktivdienststart.
-Installer-/Lifecycle-/Store-Sperren liegen in getrennten Steuerverzeichnissen.
-
-Noch offen: Hostprovisionierung/Erstbootstrap ohne Vorgaenger, HA-Setup und
-serverseitige Secretuebernahme, reale Installation/Upgrade/Restore/TLS sowie
-freigegebene Enginepakete. Der vorhandene filesystem-only Installerpfad ist
-kein Containerinstallationsnachweis. container_deploy_ready bleibt false.
-Endgate, PC/HA-SHAs, Originalbackups und trockene Rueckwege im privaten Checkpoint.
 
 ### Lokale Provisionierung und Remotevertrag
 
@@ -266,13 +237,6 @@ unmittelbar vor der Operation erneut beobachten. Das API-/Worker-Paar kann
 nach einer Beobachtung erneut wechseln. Vorhandene Initialisierungscontainer
 werden weder automatisch entfernt noch als leer ignoriert.
 
-Synthetischer Nachweis: 15 neue Faelle; zusammen mit Adapter-, Lifecycle- und
-Installerkopplungstests Windows 70 bestanden/5 POSIX-Skips/55 Untertests,
-Linux 75 bestanden ohne Skips. Unter Linux echte temporaere Symlinks/FIFO,
-Prozessgrenzen und Unixsockets; Dockerdaemon weiterhin synthetisch.
-Dauerhafte Erstinstallation, sichere lokale Provisionierung und HA-Flow
-bleiben offen. Keine Deploymentfreigabe.
-
 ## Erste Dateninitialisierung mit kanonischer Wartungssperre
 
 Der lokale Bootstrap legt zuerst sein dauerhaftes requestgebundenes Journal an.
@@ -300,7 +264,7 @@ Rollback ohne vorherige Generation sowie HA-Konfiguration/TLS muessen noch
 gemeinsam end-to-end implementiert und abgenommen werden. Weder der Helper
 noch dieses Quellgate startet einen echten Container.
 
-## 11.10.2026 - Dauerhafte Erstinstallation und Rueckweg zu fehlendem ACTIVE
+## Dauerhafte Erstinstallation und Rueckweg zu fehlendem ACTIVE
 
 Der Hostbootstrap besitzt jetzt ein eigenes privates Journal ausserhalb des
 Datenvolumens und des Engine-Stores. Die Transaktion bindet die 32-stellige
@@ -322,15 +286,6 @@ Aktivierung, Containerstart, ACTIVE-Unlink oder Resume bleiben anhand der
 dauerhaften Phasen wiederaufnehmbar. Ein fremder Principal, Store, Request,
 Containerbestand oder Runtime-Binding wird abgewiesen.
 
-Die zuvor doppelt definierten Hostadapter-Testmethoden und der doppelte
-FakeRunner-Zweig sind konsolidiert. Gezielte Windows-Pruefung: 148 bestanden,
-11 plattformbedingte Skips und 44 Untertests. Die Tests sind synthetisch und
-starten keinen Dockerdaemon, keine Engine und keinen Produktivdienst.
-Echte Hostinstallation, Engine-Downloads/Lizenzen, TLS, HA-Einrichtungsflow,
-Upgrade/Restore und Pilot bleiben eigene Abnahmen; container_deploy_ready
-bleibt false.
-## W45: Gegenseitige Ausschliessung nativer und Docker-Laufzeit
-
 Der vorhandene Paralleltest ist ein temporaerer Test-/Uebergangszustand. Auf
 sauberen Zielsystemen ist Docker Compose der einzige Slicerbetrieb; der Installer
 darf keinen zweiten nativen oder Dockerbetrieb starten. Vor jeder Installation
@@ -343,7 +298,7 @@ Host, nativen Bestand, Dockerbestand sowie den temporaeren isolierten Mischtest
 getrennt pruefen. Keine automatische Migration, Entfernung oder Datenbewegung
 bei erkanntem Altbestand; ein solcher Befund blockiert die Neuinstallation.
 
-## 13.10.2026 - Clean-Host-Gegensperre vor Erstinstallation
+## Clean-Host-Gegensperre vor Erstinstallation
 
 Der Erstinstallationskern akzeptiert keinen impliziten leeren Docker-
 Projektbestand mehr als alleinige Freigabe. Ein vertrauenswuerdig lokal

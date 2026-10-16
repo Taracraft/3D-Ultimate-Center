@@ -1,4 +1,4 @@
-﻿# Gepruefte Vorbereitung von Enginepaketen
+# Gepruefte Vorbereitung von Enginepaketen
 
 Status: Download und isoliertes Archiv-Staging sind implementiert und statisch
 geprueft. Der getrennte persistente Speicher-/Aktivierungsvertrag ist ebenfalls
@@ -119,12 +119,6 @@ und Wiederaufnahme ueber Prozessgrenzen gehoeren in die kommende Transaktion.
 
 ## Verifizierter Stand
 
-Am 11.10.2026: 64 gezielte PC-Tests bestanden, eine reine POSIX-Rechtepruefung
-unter Windows ausgelassen, 129 Teilpruefungen bestanden. Die 37 neuen
-Staging-Tests bestehen unter Linux ohne Auslassung. Geprueft sind unter anderem
-Formatvarianten, manipulierte Pfade/Digests/Groessen, fehlende Dateien,
-Links, begrenzte Dekompression, Abbruch, Netzwerkfehler und Redirect-Ablehnung.
-
 Der neue Downloadpfad hat Cura 5.0.0-6 auf beiden Plattformen per TLS geladen.
 Auswahl: die zuvor geprueften 861 Definitions-/Extruderdateien plus Lizenztext,
 zusammen 862 Dateien und 1896942 Bytes. Der Definitionsgraph bleibt gueltig.
@@ -155,7 +149,7 @@ wurden nicht geaendert. Docker-Betriebsfreigabe bleibt container_deploy_ready=fa
 
 
 
-## Gemeinsamer Download-/Installer-Nachweis vom 15.10.2026
+## Gemeinsamer Download-/Installer-Nachweis
 
 13 neue synthetische Regressionen und47Unterpruefungen bestehen nach einem
 roten Altstand. Der positive Verbund nutzt den echten Downloader fuer drei
@@ -170,10 +164,10 @@ URL-Steuerzeichen/Pfadvarianten, doppelte Location-Header, zweite Hops,
 HTTP-Status/Encoding/Laengenfehler, abgeschnittene/zusätzliche/falsche Bytes,
 Abbruch, durchgehendes Zeitbudget und bereinigte Fehler. Bestehende Tests
 werden nicht entfernt. Die echte Linux-/TLS-/Engine-/Lizenz-/Hostkanal-
-und Betriebsabnahme bleibt hiervon unabhaengig offen.
+und Betriebsprüfung bleibt hiervon unabhaengig offen.
 
 
-## Durchgehender Bezug aus dem Slicer-Repository (15.10.2026)
+## Durchgehender Bezug aus dem Slicer-Repository
 
 Das dedizierte Taracraft/3D-Ultimate-Slicer-Server-Releaseverzeichnis nutzt
 den bestehenden Katalog-, TLS- und Ein-Hop-Assetvertrag. Zusaetzlich zum

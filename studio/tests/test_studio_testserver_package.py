@@ -130,7 +130,7 @@ def test_verified_extraction_is_new_target_and_hash_exact(tmp_path):
 )
 def test_secret_patterns_are_rejected_before_output(tmp_path, payload, error):
     root = source(tmp_path / "source")
-    (root / "Slicer-Server/LINUX_TEST_SERVER_RUNBOOK.md").write_bytes(payload)
+    (root / "Slicer-Server/LINUX_SETUP.md").write_bytes(payload)
     with pytest.raises(verifier.PackageError, match=error):
         builder.build(root, tmp_path / "package")
     assert not (tmp_path / "package").exists()
@@ -254,7 +254,7 @@ def test_reviewed_public_references_and_synthetic_examples_are_allowed(payload):
 
 def test_unreviewed_url_is_rejected_before_package_output(tmp_path):
     root = source(tmp_path / "source")
-    (root / "Slicer-Server/LINUX_TEST_SERVER_RUNBOOK.md").write_bytes(
+    (root / "Slicer-Server/LINUX_SETUP.md").write_bytes(
         b"https://unreviewed.invalid/api"
     )
     with pytest.raises(verifier.PackageError, match="private_domain_rejected"):

@@ -1,4 +1,4 @@
-﻿"""Fail-closed documentation contract for reviewed engine provenance.
+"""Fail-closed documentation contract for reviewed engine provenance.
 
 No network, package installation, archive extraction, engine execution or service
 operation occurs in this test.
@@ -32,23 +32,16 @@ class EngineProvenanceContractTests(unittest.TestCase):
         self.assertEqual(value["releases"], [])
         self.assertEqual(set(value["pending"]), ENGINES)
 
-    def test_reviewed_artifacts_are_pinned_without_approval(self):
-        document = " ".join(PROVENANCE.read_text(encoding="utf-8-sig").split())
-        for token in TOKENS:
-            with self.subTest(token=token):
-                self.assertIn(token, document)
-        self.assertIn("1:5.0.0-5", document)
-        self.assertIn("5.0.0-6", document)
-        self.assertIn("2.9.2+dfsg-1", document)
-        self.assertIn("keine Rechtsberatung", document)
-        self.assertIn("keine Enginefreigabe", document)
-        self.assertIn("Alle drei Familien bleiben", document)
-        self.assertIn("container_deploy_ready=false", document)
-        self.assertIn("v02.07.01.62", document)
-        self.assertIn("449304146", document)
-        self.assertIn("118 ausgewaehlte", document)
-        self.assertIn("unsigniert", document)
-        self.assertIn("beweist weder eine unabhaengige", document)
+    def test_provenance_guide_points_to_machine_readable_references(self):
+        document = PROVENANCE.read_text(encoding="utf-8-sig")
+        for filename in ("ENGINE_BUNDLE_REFERENCE.json", "BAMBU_BUILD_REFERENCE.json",
+                         "TARGET_BASE_REFERENCE.json", "TARGET_IMAGE_REFERENCE.json"):
+            with self.subTest(filename=filename):
+                self.assertIn(filename, document)
+                self.assertTrue((PROVENANCE.parent / filename).is_file())
+        self.assertIn("noch keine freigegebenen Engine-Downloads", document)
+        self.assertIn("Quellversion", document)
+        self.assertIn("Lizenztexte", document)
 
     def test_bambu_release_build_reference_fails_closed(self):
         value = json.loads(BUILD_REFERENCE.read_text(encoding="utf-8-sig"))

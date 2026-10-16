@@ -67,14 +67,6 @@ privaten Elternpfad noch den externen Berechtigungsbeleg veraendern.
 
 ## Nachweise
 
-Windows: gemeinsam mit Speicheradapter und Installer 61 Tests bestanden,
-20 Linux-/POSIX-Faelle ausgelassen, 27 Untertests bestanden.
-Linux: 50 Speicher-/Rechtefaelle ohne Skip bestanden. Enthalten sind
-tatsaechliche UID/GID-Wechsel eines kurzlebigen Testprozesses in einem
-temporaeren Dateibaum: Schreiben in Daten/Profile erlaubt, Rechteaenderung
-am Stammordner und Zugriff auf private Steuerdateien verboten; synthetische
-Engine-Dateien lesbar, aber weder ueberschreibbar noch erweiterbar.
-
 Weitere Faelle: veraenderte Eigentuemer/Gruppe/Modi, falscher Beleg,
 abgebrochene Teilvergabe, konkurrierende Sperre, POSIX-ACL und fremde Inhalte.
 Kein echter Worker, keine Engine, kein Container, kein Dienst, kein

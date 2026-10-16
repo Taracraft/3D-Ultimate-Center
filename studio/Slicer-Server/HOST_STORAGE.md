@@ -89,13 +89,6 @@ Alle echten Engine-Releases bleiben pending, container_deploy_ready=false.
 
 ## Nachweise
 
-26 Speicherfaelle bestehen unter Linux ohne Skip. Gemeinsam mit Installer
-und Aktivierung bestehen auf Windows 71 Tests und 20 Untertests; drei
-POSIX-Rechtefaelle werden dort ausgelassen. Die reale Linux-Probe erkennt
-das ext4-Dateisystem und seine UUID rein lesend; kein Installationslayout,
-Container, Dienst, Engine oder echter Job wurde dabei erzeugt/gestartet.
-Gesamtgate, Quellabgleich und Rueckweg stehen im privaten Abschlussbeleg.
-
 Technische Referenzen:
 - https://www.kernel.org/doc/html/latest/filesystems/proc.html
 - https://cgit.freedesktop.org/systemd/systemd/tree/src/udev/rules/60-persistent-storage.rules

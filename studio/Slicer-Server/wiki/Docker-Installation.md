@@ -1,11 +1,10 @@
-# Docker-Installation
+# Installation mit Docker
 
-Der aktuelle Stand stellt ein Preflight-Image bereit. Es prueft Quellen, startet aber keine API oder Engine. Es ist noch keine installierbare Slicing-Loesung.
+Für die Entwicklung werden Linux/amd64, Python sowie Docker mit Compose benötigt. Der vollständige Enginebestand muss separat bereitgestellt werden; das Prüfimage allein kann nicht slicen.
 
-Voraussetzungen fuer den Preflight: vollstaendiger Quellbaum, Python ab 3.11, ein neues privates Ausgabeverzeichnis sowie fuer den Image-Test Docker und Compose. Zuerst prepare_context.py aus Slicer-Server ausfuehren. Danach container_check.py im erzeugten Kontext starten. Die Ausgabe muss source_integrity=verified und container_deploy_ready=false enthalten.
+1. Das Repository klonen und den [Build-Kontext](../DOCKER_QUICKSTART.md) erstellen.
+2. Das Image aus der festgelegten Basis bauen.
+3. Daten, Profile, Engine-Dateien, API-Secret und TLS-Zertifikat vorbereiten.
+4. Die [Laufzeitkonfiguration](../RUNTIME_INSTALLATION.md) prüfen, bevor Dienste gestartet werden.
 
-Fuer den Docker-Build ist ein geprueftes Python-Linux-Basisimage mit Digest erforderlich. Die Datei compose.preview.yaml fuehrt ausschliesslich die lesende Pruefung ohne Netzwerk, Ports oder Engine aus. Die vollstaendigen Befehle stehen in INSTALLATION.md im Produktbereich.
-
-Die fertige Installation wird einen freigegebenen Image-Digest, getrennte persistente Speicherorte, ein lokal erzeugtes API-Secret und TLS verwenden. Die Engine-, Plattform- und Wiederherstellungsabnahmen muessen davor abgeschlossen sein. Ein allgemeiner ARM- oder NAS-Support wird nicht ohne entsprechende Tests zugesagt.
-
-Bei Home Assistant OS ist eine eigene App-Paketierung oder ein separater Docker-Host erforderlich. HACS installiert nur die Integration.
+Beim Wechsel einer vorhandenen Installation zuerst die [Migrationshinweise](../MIGRATION.md) beachten. Eine fehlende Engine wird nicht durch einen automatischen Download ersetzt.

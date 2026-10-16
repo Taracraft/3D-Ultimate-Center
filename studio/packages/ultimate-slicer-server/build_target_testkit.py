@@ -52,7 +52,7 @@ def build(root: Path, destination: Path) -> dict:
     package = root / "packages" / PACKAGE
     native_builder = _load_native_builder(package / "build_native_package.py")
     sources = {
-        "README.md": package / "WORK_SERVER_TEST_GUIDE.md",
+        "README.md": package / "LINUX_TESTING.md",
         "check_target_host.sh": package / "check_target_host.sh",
         "run_isolated_test.sh": package / "run_isolated_test.sh",
         f"packages/{PACKAGE}/install_native.py": package / "install_native.py",

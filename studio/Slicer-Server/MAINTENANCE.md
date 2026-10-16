@@ -25,13 +25,6 @@ atomar geschrieben, die Datei und das Verzeichnis werden synchronisiert und der
 Inhalt zurueckgelesen. Erst dann wird `dispatch_blocked=true` bestaetigt.
 `services_stopped=false` bleibt ausdruecklich erhalten.
 
-Der Dispatcher prueft die Existenz des Markers innerhalb seiner Sperre und vor
-jedem Claim. Auch ein beschaedigter Marker oder ein haengender symbolischer Link
-blockiert den Start. Bestehende Warteschlangen und Ergebnisse bleiben erhalten.
-Neue API-Uploads und Queue-Eintraege bleiben moeglich; die Barriere verhindert
-deren Ausfuehrung. Es gibt in diesem Block keinen neuen oeffentlichen
-administrativen HTTP-Endpunkt.
-
 ## Neustart, Status und explizite Fortsetzung
 
 Der Marker liegt im persistenten Datenmount und ueberlebt Prozess- und
@@ -92,12 +85,3 @@ HA-Einrichtungsflow sind weiterhin offen. Ebenso offen bleiben echte
 Docker-Neuinstallation, Enginefreigaben, Cross-Host-TLS und Live-Migration.
 
 ## Nachweise
-
-20 synthetische Linux-Tests pruefen Sperrkonkurrenz, aktiven Auftrag,
-Queue-/Artefakterhalt, Neustart, Besitzer-ID, fehlerhafte Marker, Busy und
-fsync-Fehler. Ein eigener Prozess wechselt wirklich auf UID/GID65532 und prueft
-Initialisierung, Wartungsbeginn, unterbundenen Dispatch und explizites Ende.
-Es werden keine Engines, Docker-Container oder produktiven Jobs ausgefuehrt.
-Windows prueft die portablen Teile; POSIX-/UID-Nachweise werden dort uebersprungen.
-Das abschliessende Gesamtgate und der PC/HA-Abgleich werden im privaten
-Blockcheckpoint dokumentiert.

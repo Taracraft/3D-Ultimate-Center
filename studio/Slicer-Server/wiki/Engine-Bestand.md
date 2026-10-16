@@ -1,15 +1,7 @@
-# Engine-Bestand und 10-GB-Frage
+# Engine-Pakete
 
-Rund 10,45 GB einer bestehenden Installation sind überwiegend private Daten,
-Laufzustand und Validierungsergebnisse. Der lokale Engine-Ordner umfasst rund
-0,78 GB; CuraEngine, PrusaSlicer und Systembibliotheken liegen zusätzlich als
-Systempakete außerhalb dieses Ordners.
+Engine-Dateien werden getrennt vom Programmquellcode verteilt. Ein Engine-Paket umfasst den Programmeinstieg, benötigte Bibliotheken, Ressourcen, Profile und Lizenztexte.
 
-Die vollständige Aufschlüsselung samt beobachteten Paketständen, Artefakthashes
-und offenen Herkunftsprüfungen steht in
-[LIVE_ENGINE_INVENTORY.md](../LIVE_ENGINE_INVENTORY.md).
+Der [Katalog](../ENGINE_CATALOG.md) beschreibt die erwarteten Dateien. Die [Distributionswerkzeuge](../ENGINE_DISTRIBUTION.md) stellen den vollständigen Bestand aus lokalen Archiven zusammen. Herkunft und Quellversionen werden in den [Paketreferenzen](../ENGINE_PROVENANCE.md) dokumentiert.
 
-Ein vollständiges Quellrepo ist nicht dasselbe wie ein Rohbackup der aktiven
-Installation. Für einen Betriebs-Restore braucht es zusätzlich eine private,
-geprüfte Datensicherung und die identifizierten Engine-Artefakte. Keine
-Benutzerdaten oder Zugangsdaten in Git übernehmen.
+Für Bambu Studio, PrusaSlicer und CuraEngine sind noch keine vollständigen Runtime-Downloads veröffentlicht.

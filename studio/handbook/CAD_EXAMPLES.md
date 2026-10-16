@@ -1,51 +1,25 @@
-# Echte CAD-Beispiele auf der Druckplatte
+# CAD-Beispiele
 
-[Handbuch](../README.md) · [Funktionskatalog](FEATURES.md)
+[Handbuch](../README.md) · [Funktionsübersicht](FEATURES.md) · [CAD-Wiki](https://github.com/Taracraft/3D-Ultimate-Center/wiki/CAD)
 
-![Echte Studio-CAD-Aufnahme mit Würfel, Zylinder, Ring und ausgewähltem Kegel auf der gerasterten Druckplatte](images/cad-plate.png)
+![Würfel, Zylinder, Ring und Kegel auf der Druckplatte](images/cad-plate.png)
 
-*Originalaufnahme einer tatsächlich gerenderten CAD-Fläche, 15.10.2026.
-Aufgenommen im vorhandenen Puppet-Add-on mit Software-WebGL. Der Bildausschnitt
-wurde direkt aus dem laufenden Browser erfasst, nicht nachträglich mit Modellen
-oder UI-Elementen montiert. Keine KI-generierte Produktansicht.*
+Die Abbildung zeigt vier im Studio erzeugte Grundkörper. Der ausgewählte Kegel ist durch einen Rahmen und die Transformationsachsen markiert.
 
-## Diese Szene selbst nachbauen
+## Die Szene nachbauen
 
-1. Mit einem leeren, eigenen Studio-Arbeitsstand beginnen. Einen vorhandenen
-   privaten Arbeitsstand vorher sichern, nicht für das Beispiel löschen.
-2. **Einfügen → Würfel**, **Zylinder**, **Ring** und **Kegel** verwenden.
-3. **Anordnen** wählen. In der Objektliste stehen vier eigenständige Modelle.
-4. Mit **Alles einpassen** beginnen und über das Mausrad auf eine passende
-   Ansicht zoomen. Rechte Maustaste verändert die Ansicht.
-5. Den Kegel markieren: Auswahlrahmen und Achsen machen die aktuelle Auswahl
-   sichtbar. Kein anderes Modell wird dadurch gelöscht oder geslicet.
-6. Bei Bedarf obere und rechte Leiste über ihre Pfeile einklappen, um die
-   Druckplatte größer zu betrachten.
+1. Ein leeres Projekt öffnen. Bestehende Änderungen vorher speichern.
+2. Unter **Einfügen** einen Würfel, einen Zylinder, einen Ring und einen Kegel erstellen.
+3. **Anordnen** verwenden und die Abstände auf der Druckplatte prüfen.
+4. Mit **Alles einpassen** die gesamte Szene anzeigen. Über das Mausrad lässt sich der Ausschnitt vergrößern.
+5. Den Kegel in der Objektliste auswählen und Position oder Abmessungen bearbeiten.
 
-Die gezeigte Szene verwendet ausschließlich im Studio erzeugte Grundkörper,
-keine fremden Modelle, privaten Uploads oder historischen Auftragsdateien.
-Für die Aufnahme wurde kein Projekt auf HA gespeichert, kein Slice angelegt
-und kein Druckerkommando ausgeführt. Die Szene wurde nach dem Schließen des
-isolierten Browserkontexts verworfen.
+Die Grundkörper bleiben eigenständige Modelle. Ihre Materialzuordnung wird unter **Materialien** festgelegt; das Erzeugen der Geometrie startet keinen Druck.
 
-## Ganze Oberfläche
+## Arbeitsbereich
 
-![Originalansicht mit Werkzeugleisten, Objektliste, Druckplatte und Prozessoptionen](images/cad-overview.png)
+![Werkzeugleisten, Objektliste, Druckplatte und Prozessoptionen](images/cad-overview.png)
 
-Die Profil- und Maschinenwerte gehören zur abgebildeten bestehenden
-Installation. Sie sind keine Empfehlung für eine andere Maschine und kein
-Nachweis, dass genau der aktuelle Repo-Stand bereits live ausgerollt ist.
-Die vier neutral dargestellten Körper zeigen Geometrie, keinen angenommenen
-Mehrfarbendruck. Die Materialzuordnung erfolgt getrennt.
+Links stehen Modelle und Malbereiche, in der Mitte die Druckplatte, rechts die Prozessoptionen. Werkzeugleisten lassen sich einklappen, um mehr Platz für das Modell zu schaffen. Die dargestellten Profilwerte sind Beispiele aus der abgebildeten Installation und müssen an den eigenen Drucker angepasst werden.
 
-## Bilder und Nachweis
-
-| Datei | Abmessungen | SHA-256 |
-| --- | --- | --- |
-| `cad-plate.png` | 1480 × 1000 | `a00b0fa2544cc64eabafbd4ebb1accaa1a61f04d9c2e8ce4d3e55e7345575370` |
-| `cad-overview.png` | 1920 × 2100 | `f5a1d21fb0d6fda78300b7ffe52bda0c1a2966d5aa49457ed233a69e973aaaae` |
-
-Die ausgewählten Original-PNGs bleiben byteidentisch erhalten. Eine spätere
-KI-Featureillustration müsste separat als Illustration gekennzeichnet und
-auf diese Originalbasis zurückgeführt werden. Sie würde keine reale Funktion,
-Hardwareabnahme oder Druckqualität belegen.
+Die Aufnahmen zeigen die Oberfläche vom Oktober 2026. Einzelne Bedienelemente können sich im weiteren Entwicklungsverlauf ändern.

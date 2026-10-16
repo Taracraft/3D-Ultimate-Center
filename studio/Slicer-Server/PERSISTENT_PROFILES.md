@@ -65,15 +65,3 @@ Container-Verbraucher duerfen Profile nicht veraendern; spaetere Profilverwaltun
 benoetigt einen expliziten, gestoppten und geprueften Schreibweg.
 
 ## Nachweise und verbleibende Arbeit
-
-Gezielt auf Windows: 86 Tests bestanden, acht POSIX-/Symlink-Pruefungen
-ausgelassen. Linux: 16 isolierte Pruefungen bestanden, inklusive kurzlebigem
-UID-65532-Prozess auf einem synthetischen root:65532/2770-Profilstamm.
-Geprueft wurden unter anderem Wiederholung, Erhalt von Nutzeraenderungen,
-Sperren, Teilzustaende, Links, Groessenbegrenzung und der H2S-Shellpfad.
-Kein Container, Dienst, echter Slicer oder Druckauftrag wurde gestartet.
-
-Naechste Schritte: Dateninitialisierung, Token-/TLS-Dateirechte, sicherer
-Hosttransport und Kopplung, Lifecycle/Health/Rueckweg und der HA-Einrichtungsflow.
-Alle drei Engine-Releases bleiben pending; container_deploy_ready=false.
-Gesamtgate und PC/HA-Quellabgleich werden im privaten Checkpoint belegt.

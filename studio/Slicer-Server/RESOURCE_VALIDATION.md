@@ -106,13 +106,6 @@ bleiben erhalten, normalisierte Nachweise sind separat gespeichert.
 
 ## Tests und offene Arbeit
 
-Gezielt: 60 PC-Tests und 100 Subtests bestanden, drei Windows-Symlink-Skips.
-Linux: alle 35 neuen Pruefungen einschliesslich Symlinks bestanden.
-Die echte Datenpruefung umfasst die Sperre des Originalbestands und die
-vollstaendige Abhaengigkeitspruefung der getrennten Auswahl. Sie startet
-keine echte Engine. Gesamtgate, finale Quell-SHAs und Rueckwege stehen im
-privaten Blockcheckpoint.
-
 Weiter offen: komplette Profile/Materialien/Varianten, Prusa-Ressourcen- und
 Pluginpfade, Bambu-Paketkuratierung, verifizierte Quellrevisionen, Lizenzen,
 SBOM, reproduzierbare headless Paketsaetze, begrenzter Download/Extraktion,

@@ -1,16 +1,8 @@
 # Docker: vom vollständigen Klon zum prüfbaren Kandidaten
 
-Diese Anleitung gilt für einen **neuen isolierten Linux-Testpfad**, nicht für
+Diese Anleitung gilt für einen **isolierten Linux-Entwicklungspfad**, nicht für
 den bestehenden nativen HA-Slicer. Sie startet selbst keine Installation.
 Produktivfreigabe, echte Engine-Abnahme und Bestandsmigration bleiben offen.
-
-## Zeitpunkt und Umfang
-
-Der [Release-Status](RELEASE_STATUS.md) unterscheidet R (vollständige Lieferung)
-und V (letzte frische Linux-Systemverifikation). Die folgenden Buildschritte
-können zur isolierten Paketprüfung dienen. Der eigentliche neue Testserverlauf
-folgt erst nach R; fehlende Engine- oder Hostimplementierung wird nicht auf ihn
-verschoben. Ein bestehender nativer Slicer wird nicht verändert.
 
 ## 1. Arbeitsverzeichnis richtig wählen
 
@@ -96,11 +88,6 @@ und explizites Wartungsende. Fehlende Hostpfade werden nicht automatisch als
 leere Verzeichnisse angelegt. Kein Docker-Socket, keine zusätzlichen
 Capabilities, kein Root-Worker und keine automatische Restart-Schleife.
 
-Die vollständige Vorbereitung von Verzeichnissen, Secret, Zertifikat,
-Bootstrap-/Recovery-Zustand und Nachweisdateien erfolgt nach dem
-[Linux-Testserver-Runbook](LINUX_TEST_SERVER_RUNBOOK.md). Ein isolierter
-Arbeitsplatz-Testserver bleibt MCP-frei und wird dort manuell bedient.
-
 ## 7. Erfolg richtig beurteilen
 
 HTTP-Health 200 kann bei fehlender Engine ausdrücklich `degraded` bedeuten.
@@ -110,4 +97,6 @@ Prüfung. Ein gesunder Idle-Worker ist keine Engine-/Profil-/Hardwarefreigabe.
 Vor einem späteren echten Betriebswechsel werden mindestens genaue Engine-
 Herkunft, Bibliotheken, vollständige Profile, unabhängige Linux-Installation,
 TLS-Verbindung, kontrollierter Stopp/Wiederanlauf, Upgrade und Restore benötigt.
-Der aktuelle Quellstand setzt diese Abnahmen nicht durch Dokumentation auf grün.
+Diese Laufzeiteigenschaften müssen zur eingesetzten Konfiguration passen.
+
+[Entwicklungsstand](RELEASE_STATUS.md)

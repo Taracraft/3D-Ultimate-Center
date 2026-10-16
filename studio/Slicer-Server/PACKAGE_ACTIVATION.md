@@ -94,7 +94,7 @@ spaeteren kontrollierten Versuch erhalten. Die spaetere Compose-/HA-Steuerung
 muss den aus ACTIVE.json aufgeloesten exakten Generationspfad verwenden und
 API/Worker erst danach gemeinsam neu starten.
 
-## Nicht abgenommen
+## Einschränkungen
 
 - echte drei freigegebene Enginepakete, Profile, dynamische Plugins und Slices,
 - Signatur-, Herkunfts-, Lizenz- und SBOM-Freigabe,
@@ -104,7 +104,7 @@ API/Worker erst danach gemeinsam neu starten.
 
 Diese Punkte bleiben Voraussetzungen fuer container_deploy_ready=true.
 
-## 11.10.2026 - Authentifizierter Installer mit Store-/Container-Rueckweg
+## Authentifizierter Installer mit Store-/Container-Rueckweg
 
 Der lokal provisionierte InstallerLifecycle verbindet restricted_installer,
 host_lifecycle, den festen Dockeradapter und den echten Generationsspeicher.
@@ -123,15 +123,3 @@ Der Rueckweg funktioniert auch nach bereits abgeschlossenem Paketwechsel,
 fehlgeschlagenem Containerstart, Orchestratorneustart oder verlorenem
 Schreibnachweis. Die alte Generation bleibt erhalten. Ein fremder Vorgang,
 abweichende Bindung oder fehlender Stillstandsnachweis blockiert den Rueckweg.
-
-16 neue Integrationstests verbinden Authentifizierung, Store, Lifecycle,
-konkreten Adapter und synthetischen Dockerdaemon. Windows zusammen64PASS,
-20LinuxSkips,12Untertests; Linux84PASS ohneSkips, inklusive echtem temporaerem
-Unix-Socket-Ablauf und falscherLane. Kein Docker-/Engine-/Produktivdienststart.
-Installer-/Lifecycle-/Store-Sperren liegen in getrennten Steuerverzeichnissen.
-
-Noch offen: Hostprovisionierung/Erstbootstrap ohne Vorgaenger, HA-Setup und
-serverseitige Secretuebernahme, reale Installation/Upgrade/Restore/TLS sowie
-freigegebene Enginepakete. Der vorhandene filesystem-only Installerpfad ist
-kein Containerinstallationsnachweis. container_deploy_ready bleibt false.
-Endgate, PC/HA-SHAs, Originalbackups und trockene Rueckwege im privaten Checkpoint.

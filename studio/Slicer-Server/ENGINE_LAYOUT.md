@@ -1,4 +1,4 @@
-﻿# Engine-Speicher im Docker-Kandidaten
+# Engine-Speicher im Docker-Kandidaten
 
 Der lesende Pfadvertrag sowie der persistente Store-/Aktivierungsvertrag sind
 implementiert. Echte Installation, Herkunfts- und Profilpruefung sind weiterhin
@@ -61,7 +61,7 @@ Die Einrichtung beginnt spaeter im [HA-Assistenten](HA_INSTALLATION_PLAN.md).
 Der Pfadvertrag ist eine Grundlage dafuer, keine fertige Installation.
 
 
-## 16.10.2026 - Enginearchive an die festen Container-Ressourcenpfade gebunden
+## Enginearchive an die festen Container-Ressourcenpfade gebunden
 
 Die geprueften Debianquellen von PrusaSlicer 2.9.2 setzen Ressourcen auf
 /usr/share/PrusaSlicer und das OCCT-Modul auf einen FHS-Libpfad. Der gepackte
@@ -100,4 +100,4 @@ zusammenhaengenden Block. Eine erfolgreiche Linkpruefung ist KEIN Nachweis
 eines gebauten Images, geladenen Plugins, vollstaendigen ABI oder Slices.
 Drei urspruengliche Enginearchive und Hostkanalkandidat bleiben unveraendert;
 Katalogfreigabe und Hostintegration werden dadurch nicht behauptet. Kein
-Live-/Docker-/Engine-/Druckereingriff; Linux-Neuinstallation weiterhin zuletzt.
+Eine Paketprüfung startet keine Engine und verändert keinen laufenden Dienst.

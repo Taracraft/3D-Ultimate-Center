@@ -91,7 +91,7 @@ require_isolation mit separate_anchor_network_required abbrechen. Die
 Python-Regressionen pruefen zusaetzlich Root-UID, Capabilities, fehlende
 Kernelbelege, fremde Netzwerkschnittstellen und abgeschwaechte Schutzwerte.
 
-## Stand der Teilabnahme
+## Testumfang
 
 Auf Linux/amd64 mit zwei tatsaechlichen Docker-Containern nachgewiesen:
 gemeinsame Prozesssicht bei getrenntem Netzwerk, Besitzeridentitaet vom Anker,
@@ -160,7 +160,7 @@ Hostangaben in Freitext sowie weitere Protokolle bleiben Teil des
 separaten Public-Inhaltsreviews. Sie ist weder vollstaendige
 Secret-/Infrastrukturpruefung noch Lizenz- oder Betriebsfreigabe.
 
-## Offline-Quellnachweis ausgewaehlter Profile (W84)
+## Offline-Quellnachweis ausgewaehlter Profile ()
 
 Das vorbereitete Kontextverzeichnis enthaelt PROFILE_SOURCE_BUNDLE.json und
 verify_profile_sources.py. Die Beigabe ist lesbares JSON, kein ungeprueftes
@@ -191,7 +191,7 @@ Manifest-Lizenzscope fuer die Daten: third-party-profile-source.
 Keine pauschale Rechte- oder Betriebsfreigabe.
 
 
-## Sicheres Entpacken des Testpakets (W85)
+## Sicheres Entpacken des Testpakets ()
 
 Der Verifikator akzeptiert weiterhin nur ein neues Zielverzeichnis.
 Das aeussere Ziel wird privat mit 0700 angelegt. Eigene Unterverzeichnisse
@@ -226,10 +226,10 @@ vor dem Entpacken abgewiesen. Damit koennen POSIX-Namen nicht auf Windows
 als Ruecksprung, Laufwerksangabe oder NTFS-Datenstrom umgedeutet werden.
 Auch zueinander passende Manifest-/Archivhashes erteilen keine Ausnahme.
 Die Ablehnung erfolgt vor dem Anlegen des aeusseren Zielverzeichnisses.
-Dies ersetzt keine reale Linux-/Windows-Rechte-, ACL- oder Betriebsabnahme.
+Dies ersetzt keine reale Linux-/Windows-Rechte-, ACL- oder Betriebsprüfung.
 
 
-## 16.10.2026 - Echter Imagebau als getrennter CI-Nachweis
+## Echter Imagebau als getrennter CI-Nachweis
 
 Nach erfolgreicher Quell-/Testsuite auf main baut die Slicer-CI nun das
 vorbereitete Docker-Image auf einem temporaeren GitHub-gehosteten
@@ -238,15 +238,6 @@ Das offizielle Python-Basisimage ist ueber den geprueften linux/amd64-
 Manifestdigest in TARGET_BASE_REFERENCE.json und im Workflow fest gebunden.
 Die oeffentlichen Index-/Manifestbytes wurden separat gehasht; die dort
 referenzierte Configidentitaet ist keine bereits erfolgte Imageausfuehrung.
-
-Nach dem expliziten Dockerbuild wird genau die ermittelte Image-ID verwendet,
-nicht ein veraenderlicher Tag. Drei kurzlebige Pruefcontainer sind non-root,
-netzlos, read-only und ohne Capabilities/Hostmounts; sie lesen Quellintegritaet,
-Ressourcenlinks und das vorhandene target_image_sbom-Paketinventar. Kein
-Worker/Server, keine Engine und keine Installation auf dem Arbeitsplatz-
-Testserver werden gestartet. Der Dienst- und Hostkanal-Kandidat bleibt
-unveraendert. Der Docker-Daemon wird ausschliesslich im eigenen CI-Runner
-verwendet, nicht auf einem privaten Live-Host.
 
 Die JSON-Nachweise binden Image-ID, unveraenderliches Basisimage, Commit,
 Workflowlauf, Dockerfile, Quell-/Kontextmanifest, Paketversionen und

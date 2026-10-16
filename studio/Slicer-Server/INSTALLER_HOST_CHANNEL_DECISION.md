@@ -1,4 +1,4 @@
-﻿# Installer Host Channel Decision
+# Installer Host Channel Decision
 
 > Aktualisierung 16.10.2026: Die folgenden festen Core-Mountanforderungen
 > beschreiben den bisherigen provisionierten Hostkanal, nicht eine allgemeine
@@ -9,7 +9,7 @@
 > Siehe [Supervisor-App-Einrichtung](SUPERVISOR_APP_SETUP.md).
 
 
-Status: W41 design decision, source/documentation only. No host provisioning,
+Status: design decision, source/documentation only. No host provisioning,
 HA source sync, runtime change, installation or migration was performed.
 
 ## Decision
@@ -19,7 +19,7 @@ local IPC. It already separates control and mutation lanes, authenticates
 bounded requests, checks SO_PEERCRED, pins the server identity on the HA
 client, and does not expose a TCP listener. Do not add a second transport.
 
-The channel is not deployable in the inspected HA VM. W40 found no installer
+The channel is not deployable in the inspected HA VM. found no installer
 or handoff mount, no native installer service, HA Core uid 0 without a user
 namespace, and a writable /share. Therefore no peer UID or mount security
 claim is accepted yet.
@@ -71,7 +71,7 @@ establish a supported deployment target, container_deploy_ready, HA source or
 live readiness, HACS acceptance, Linux installer acceptance, or pilot
 approval. HA OptionsFlow and __init__.py wiring remain after the Linux proof.
 
-## W42 source interface
+## source interface
 
 The fixed HA-side files are /run/ultimate-slicer-server/pins/expected.json
 for the root-owned pin record, /run/ultimate-slicer-server/installer/endpoint.json
@@ -87,7 +87,7 @@ mounts. Do not wire it into HA setup until the actual Linux mount and
 SO_PEERCRED tests pass.
 
 
-## W43 source hardening
+## source hardening
 
 The HA-side mount resolver rejects equally specific mountinfo entries instead
 of selecting one by file order. This covers stacked mounts at each fixed trust
@@ -96,13 +96,13 @@ mode, inode and both SO_PEERCRED measurements are still required before HA
 lifecycle wiring.
 
 
-## W44 Supervisor provisioning evidence
+## Supervisor provisioning evidence
 
 The current official App configuration documents map as selected
 Supervisor-managed directory types mounted into an App container; its optional
 path is the destination inside that App. The documented Core options API
 lists no arbitrary bind-mount field. These references do not establish a
-supported way to inject the three W42 fixed mounts into the running Core
+supported way to inject the three fixed mounts into the running Core
 container.
 
 This is a blocker for HA flow wiring, not approval to change transport. Keep

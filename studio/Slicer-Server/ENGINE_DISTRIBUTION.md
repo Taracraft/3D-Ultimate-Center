@@ -15,12 +15,6 @@ absichtlich keine ausreichende Eingabe und wird vor dem Anlegen einer Ausgabe
 abgewiesen. Weder fehlende Familien noch fehlende Archive werden durch
 Testdaten, andere Enginefamilien, Systemprogramme oder Netzwerkdownloads ersetzt.
 
-Ein vollständiger Katalog ist eine Eingangsdeklaration, keine automatische
-Herkunfts-, Rechts- oder Laufzeitfreigabe. Die Bindung der tatsächlichen
-Originalmanifeste und die jeweils erforderlichen Quellen-/Lizenznachweise müssen
-vor der echten Distribution getrennt vorliegen. Dieser Quellblock umgeht keinen
-früher abgewiesenen Zugriff auf Originalarchive oder Originalmanifeste.
-
 Die lokale Archivablage hat einen festen, nach Familie getrennten Aufbau:
 
 ```text
@@ -130,7 +124,7 @@ identische Kompressorversion zu verlangen. Für die Identität eines bestimmten
 veröffentlichten Downloads bleibt dessen unabhängig veröffentlichte
 Archivprüfsumme zusätzlich maßgeblich.
 
-## Abnahmegrenzen
+## Einschränkungen
 
 Das Ergebnis bestätigt vollständige Dateien und ein überprüftes Paket für die
 angegebenen drei Releases. Es bestätigt **nicht**:

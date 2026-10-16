@@ -1,37 +1,12 @@
-# Sauberer Linux-Testserver – Vorbereitung und Abnahme
+# Linux-Prüfumgebung
 
-Stand: 13.10.2026. Dieses Dokument bereitet den separaten Arbeitsplatz-Testserver
-vor. Es ist keine Anweisung zur Änderung des aktuellen Live-Systems.
+Diese Anleitung beschreibt eine isolierte Entwicklungsumgebung für Container- und Installationstests. Verwende eigene Datenverzeichnisse, keine produktiven Volumes. Das Testpaket enthält Quellen und Prüfwerkzeuge, aber keine vollständige Engine-Laufzeit.
 
-## Verbindliche Trennung
-
-- Das aktuelle Live-System behält ausschließlich seinen vorhandenen nativen
-  Slicer. Dort wird kein Docker-Compose-Test gestartet.
-- Der neue Testserver wird als isolierte Laborumgebung mit Home Assistant
-  Supervisor und dem Slicer ausschließlich in Docker Compose aufgebaut.
-- Auf dem neuen Testserver darf kein nativer Slicer installiert, aktiviert oder
-  aus einem Altbestand übernommen werden.
-- Die langfristige HAOS-Migration ist nicht Bestandteil dieses Tests.
-- Ein erkannter Altbestand wird nur gemeldet. Der Preflight stoppt, deaktiviert,
-  löscht oder migriert nichts.
-
-## Reihenfolge vor dem Testserver
-
-Der letzte frische Testserverlauf ist Meilenstein V **nach** dem vollständigen
-Release R. Zuerst alle aktiven Funktionen, unterstützte Hostintegration,
-konkreten Enginepakete, Quellen-/Noticepflichten, Installationspakete,
-Dokumentation und Veröffentlichungen abschließen. Nicht nur einen GitHub-
-Quellkandidaten bereitstellen. Danach den unveränderten veröffentlichten Stand
-mit Commit, Paket-/Image-/Dateiprüfsummen und genauer CI am Ziel prüfen.
-
-Der [Release-Status](RELEASE_STATUS.md) und die [Abnahmematrix](wiki/Release-Abnahme.md)
-beschreiben die vollständige Reihenfolge. Es werden keine unveröffentlichten
-Hilfsdateien nachgeschoben. Secrets, private Backups und interne Kontinuitätsdaten
-gehören nicht in die öffentliche Lieferung. Live-Migration bleibt separat.
+[Docker-Schnellstart](DOCKER_QUICKSTART.md) · [Entwicklungsstand](RELEASE_STATUS.md)
 
 ## Erzeugtes Testserverpaket
 
-Der kanonische PC-Quellstand erzeugt das Paket ausschließlich mit:
+Das Paket wird aus dem Repository erzeugt:
 
     python Slicer-Server/prepare_test_server_package.py --output ../ultimate-slicer-testserver-package
 
@@ -55,10 +30,8 @@ sortierte Einträge. Sein Manifest bindet Pfad, Größe, Modus und SHA-256 jeder
 Datei. "container_deploy_ready", "engine_included" und
 "secret_files_included" bleiben "false".
 
-## Übertragung und Offline-Verifikation
 
-Den gesamten Paketordner manuell auf den MCP-freien Linux-Testserver
-übertragen. Dort zuerst nur im übertragenen Paketordner ausführen:
+## Übertragung und Offline-Verifikation
 
     sha256sum -c SHA256SUMS
     python3 verify_test_server_package.py --package-dir .
@@ -72,6 +45,7 @@ Der Verifier akzeptiert ausschließlich reguläre Dateien und Verzeichnisse unte
 einer festen Archivwurzel. Links, Geräte, absolute Pfade, Traversal,
 Dubletten, Zusatzdateien, falsche Modi, Größen oder Hashes werden abgewiesen.
 Das Extraktionsziel wird nie überschrieben.
+
 
 ## Read-only Clean-Host-Preflight
 
@@ -90,6 +64,7 @@ Geprüft werden:
 Erwartet ist Exitcode 0 und "ok": true. Jede unvollständige Inventur oder
 jeder gefundene Slicerbestand blockiert. Der Preflight gibt nur Status und
 Anzahlen aus und verändert nichts.
+
 
 ## Compose vor dem ersten Start
 
@@ -121,22 +96,6 @@ Paket, Ausgabe oder Rückmeldung kopiert. Compose zunächst nur validieren:
 Fehlende Variablen, Bindpfade oder ein nicht lokales Image müssen die Prüfung
 beenden. Es gibt keinen automatischen Pull und keinen Docker-Socket im Dienst.
 
-## Abnahmefolge
-
-1. Hostidentität, Betriebssystem, Architektur, Zeit und freien Speicher erfassen.
-2. Home-Assistant-/Supervisor-Zustand ausschließlich lesend erfassen.
-3. Paket, Sidecar und internes Manifest vollständig vergleichen.
-4. Clean-Host-Preflight ausführen und bereinigtes Ergebnis sichern.
-5. Compose-Konfiguration validieren, noch ohne Start.
-6. Erstinstallation mit API/Worker im Wartungszustand ausführen.
-7. Containeridentität, Image-ID, Mounts, Benutzer 65532, Read-only-Root,
-   CapDrop, NoNewPrivileges, Prozess- und Netzwerkisolation prüfen.
-8. Authentifizierten TLS-Healthcheck ohne Slice ausführen.
-9. Explizites Resume prüfen.
-10. Containerneustart und Hostneustart mit Persistenzprüfung.
-11. Synthetischen Teilstart, Upgrade, Rollback sowie Backup/Restore getrennt
-    prüfen.
-12. Erst nach vollständigem Readback die Abnahme dokumentieren.
 
 ## Rückweg und Datenerhalt
 
@@ -156,6 +115,7 @@ Schreibnachweis keine Mutation wiederholen und keine Marker löschen. Zustand,
 Logs und Hashes bereinigt sichern; anschließend den dokumentierten
 Reconciliation-/Rollbackpfad verwenden.
 
+
 ## Stop-Kriterien
 
 Sofortiger Abbruch bei nativem Slicerbestand, unbekanntem Slicer-Container,
@@ -166,6 +126,7 @@ Rollbacknachweis.
 Keine echten Slices, Uploads, Druckstarts, Druckerbewegungen, Heiz- oder
 Materialkommandos. "container_deploy_ready" bleibt bis zum vollständigen
 Linux-, Engine-, TLS-, Upgrade- und Restore-Nachweis "false".
+
 
 ## Secretfreier Ergebnisvertrag
 
@@ -249,22 +210,3 @@ Authorization-Header, Cookies, Hostnamen oder privaten absoluten Pfade
 übermitteln. Der Verifier weist entsprechende Feldnamen, Schlüsselmaterial,
 doppelte JSON-Felder, fremde Paket-Hashes und nachträglich veränderte
 Phasenbelege ab.
-
-## Phasenuebergreifende Kontinuitaet
-
-Schema 5 bindet nicht nur jeden Einzelbeleg an Lauf, Paket und Host. Der
-initiale lokale Image-SHA muss in Compose, API-/Worker-Runtime und als altes
-Upgrade-Image identisch sein; der Rollback muss genau diesen SHA wiederherstellen.
-Daten- und Profil-Digests bilden eine durchgehende Kette von Persistenz ueber
-Upgrade und Rollback bis zur Quelle des Restore. Innerhalb jeder Phase muessen
-Vorher-/Nachher- beziehungsweise Quellen-/Restore-Digests identisch und ungleich
-dem Null-Digest sein. Einzeln plausible, aber untereinander widerspruechliche
-Phasen werden damit abgewiesen.
-Jede Phase enthaelt zusaetzlich previous_evidence_sha256. Die erste Phase
-verweist auf run_sha256, jede folgende Phase exakt auf evidence_sha256 ihres
-unmittelbaren Vorgaengers. Der eigene Phasenhash umfasst diesen
-Vorgaengerverweis. Der atomare Fortschreibpfad berechnet deshalb beim
-Fortschritt auch die noch nicht ausgefuehrte Restkette neu. Ein formal
-gueltiger Phasenbeleg aus einem parallelen Zweig desselben Paket-, Host- und
-Testlaufs kann nicht mehr eingesetzt werden, ohne dass die naechste Phase die
-abweichende Kette fail closed meldet.

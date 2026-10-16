@@ -7,7 +7,7 @@ weiterhin. container_deploy_ready=false.
 
 ## Zustands- und Vertrauensgrenzen
 
-installer_transport.py verbindet einen W27/W32A-Installer mit exakt dem
+installer_transport.py verbindet einen /W32A-Installer mit exakt dem
 snapshot-Provider der W32B-Registry. Es entsteht keine zweite Zugangsdatenbank
 und kein neuer frei aufrufbarer Installationsbefehl. Der bestehende
 Requestvertrag mit protocol, operation und dauerhaften request_id bleibt erhalten.
@@ -125,7 +125,7 @@ Keine automatische Wiederherstellung alter Tokens. Keine Registry-/File-
 Mehrdateientransaktion wird vorgetaeuscht. Neue Kopplung nach Widerruf braucht
 einen neuen Principal und eine explizite lokale Bereinigung des alten Files.
 
-## Nachweise und verbleibende Abnahmen
+## Tests und Einschränkungen
 
 Linux:20 Transport- und13 Uebergabetests, dazu61 angrenzende Registry-/Installer-
 Pruefungen. Echte temporaere Unix-Sockets, echtes SO_PEERCRED und eine kurzlebige
@@ -143,7 +143,7 @@ Lifecycle-Operationen fuer Idle/Stop/Mount/Start/Health/Rueckweg, realer HA-Clie
 und gefuehrter Setupflow, Cross-Host-TLS, Engine-/Lizenz-/SBOM-Abschluss sowie
 reale Installation, Upgrade/Restore und privater Pilot.
 
-## 12.10.2026 - Transport bleibt fuer Erstinstallation unveraendert
+## Transport bleibt fuer Erstinstallation unveraendert
 
 Die Erstinstallation benoetigt keine neue Transportoperation. initialize,
 stage und activate laufen weiterhin auf der Mutationsspur; rollback und resume
@@ -159,13 +159,13 @@ kontrollierten HA-Quellsync auf Linux erneut ausgefuehrt. Ein HA-Backendclient,
 Dienstentrypoint und die sichere Uebernahme/Bereinigung des Handoff-Tokens
 bleiben der naechste Integrationsblock.
 
-## HA-seitiger Client und Secret-Uebergabe (W38)
+## HA-seitiger Client und Secret-Uebergabe ()
 
 Die HA-Integration enthaelt einen protokollkompatiblen STI1-Unixclient und einen privaten Credential-Store. Die Host-ID wird nicht aus Request-/Forwarded-Daten oder dem Handoff selbst als Vertrauensanker abgeleitet, sondern muss bereits serverseitig gepinnt sein. Vor dem Senden des Tokens werden Sockettyp, Server-UID und Kernel-Peer geprueft. Antworten mit Secret-/Token-/Passwortfeldern werden verworfen.
 
 Der Handoff wird erst nach atomarem 0600-Write, fsync und Readback der gespeicherten Credentials geloescht. Ein unbestaetigter Store- oder Cleanup-Schritt bleibt explizit fehlgeschlagen. Der gefuehrte Setup-Controller speichert nur Host-ID, Principal-Digest, Request-IDs und bereinigte Ergebnisse. Es gibt keine Shell, keine beliebigen Pfade und keinen Docker-Socket in HA Core.
 
-## 15.10.2026 - Implementierter HA-Dialog und geschuetzte Serververbindung
+## Implementierter HA-Dialog und geschuetzte Serververbindung
 
 Der native HA-Optionendialog ist jetzt an den vorhandenen Installerkern
 angebunden. Lazy ConfigEntry-Sitzung, blockierungsfreie Datei-/Socketarbeit,
@@ -192,20 +192,6 @@ der Verbindung verhindern ein Ueberschreiben; andere aktuelle Optionen
 bleiben erhalten. Die Host-Uebergabedatei bleibt bis zu einer gesonderten,
 dauerhaft bestaetigten Bereinigung bestehen. Eine fluechtige Speicherzusage
 wird nicht mit einem gesicherten Persistenznachweis gleichgesetzt.
-
-Der neutrale Baustein slicer_connection_handoff.py stellt fuer einen spaeteren
-vertrauenswuerdigen lokalen Linux-Root-Provisionierer einen passenden Producer
-bereit. Er erstellt nur in einem bereits provisionierten Verzeichnis,
-serialisiert, setzt die Empfaengerrechte und veroeffentlicht atomar ohne eine
-vorhandene andere Uebergabe zu ueberschreiben. Ein identischer erneuter Aufruf
-ist idempotent. Dies ist kein neuer Netzwerkendpunkt; der echte Hostbootstrap
-muss den Producer noch anbinden. Reale Root-/Mount-/Peer- und Zielsystemtests
-bleiben bis zu ihrer Ausfuehrung offen.
-
-Nachweis: isolierter Kandidat130Faelle,122PASS/8plattformbedingteSkips;
-kanonische gezielte Pruefung126PASS/8Skips/77Untertests. Vier Sprach- und
-Platzhalterpruefungen enthalten. Echte Host-/HTTPS-Gegenstellen sind in diesen
-Faellen synthetisch; daraus folgt keine praktische Neuinstallationsabnahme.
 
 Aktuelle Release-Reihenfolge: Implementierung, gepruefte Pakete, Dokumentation
 und Veroeffentlichung zuerst; die separate saubere Linux-Neuinstallation ist

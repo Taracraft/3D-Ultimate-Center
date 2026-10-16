@@ -38,7 +38,7 @@ braucht entsprechende Zugriffsrechte.
 Nur einen geprueften Image-Digest einsetzen. API und Worker muessen zum selben
 freigegebenen Paketstand gehoeren. Nach dem Wechsel werden Prozesse, Health,
 Authentifizierung, TLS, API-Kompatibilitaet, Profile und Bestandsjobs geprueft.
-Ein erfolgreicher Containerstart allein ist keine Betriebsabnahme.
+Ein erfolgreicher Containerstart allein ist keine Betriebsprüfung.
 
 Bei Fehlern zuerst neue Auftraege verhindern, dann den Fehlerzustand sichern.
 Anschliessend das passende alte Image und bei Bedarf die dazugehoerige
@@ -53,7 +53,7 @@ Druckartefakte eines abgebrochenen Jobs duerfen nicht als fertiges Ergebnis
 erscheinen. Nach Container- oder Hostausfall muessen verwaiste slicing-Zustaende
 erkannt werden; kein automatisches Ueberschreiben oder erneutes Slicing.
 
-Die [synthetische Container-Abnahme](CONTAINER_TESTING.md) belegt kontrollierten
+Die [Container-Tests](CONTAINER_TESTING.md) belegt kontrollierten
 SIGTERM-Abbruch, bereinigte Nachfahren und Teilartefakte sowie eine Sperre bei
 verwaisten slicing-Markern. Produktive API-/Telemetrie-Steuerung, Anchor-Ausfall,
 Crash/Restore und persistente Datenvolumes sind weiterhin nicht abgenommen.

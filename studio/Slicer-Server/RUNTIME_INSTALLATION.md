@@ -1,7 +1,7 @@
 # Docker-Dienstkandidat: Installation und Betrieb
 
 Dieser Stand startet API, Worker und Telemetrie als Docker-Compose-Dienste.
-Die Linux/amd64-Abnahme umfasst TLS/Authentifizierung, Leerlauf, kontrollierten
+Die Linux/amd64-Tests behandeln TLS/Authentifizierung, Leerlauf, kontrollierten
 Stop/Neustart, doppelte Worker, Anchor-Ausfall und erhaltene verwaiste Jobmarker.
 Ein Backup/Restore des synthetischen Testbestands wurde hashgenau geprueft.
 Er ist noch keine freigegebene Slicer-Installation: eine Engine ist nicht
@@ -138,7 +138,7 @@ abgenommen.
   Image-Digest; README/Wiki gegen genau dieses Image nachstellen.
 
 
-## W21: Prusa-/Cura-Bibliotheken im Docker-Kandidaten (10.10.2026)
+## : Prusa-/Cura-Bibliotheken im Docker-Kandidaten
 
 22 weitere Laufzeitpakete ergaenzt. Neues Linux/amd64-Kandidatenimage gebaut;
 356 installierte Debian-Pakete im Versionsinventar. Statische Pruefung ohne
@@ -146,13 +146,6 @@ Engineausfuehrung: Bambu 172 ELF/731 Abhaengigkeiten/1356 Versionspruefungen,
 Prusa 222/965/1929, Cura 11/32/139. Bei allen drei Engines fehlen weder
 Bibliotheken noch angeforderte GNU-Versionen. Dies ist keine Pruefung von
 Symbolbindung, dynamisch geladenen Plugins, Profilen oder realem Slicing.
-
-Isolierter Compose-Leerlauf: Worker gesund, TLS mit explizitem Testvertrauen,
-Info mit Token=200, ohne Token=401; eigene Testcontainer wieder entfernt.
-58 gezielte Docker-Kontexttests bestanden, ein Windows-Symlink-Skip.
-PC zuerst, danach HA-Quellspiegel mit Originalbackups und SHA-Vergleich.
-Abschliessendes Gesamtgate und generierte Build-Metadaten werden separat im
-privaten W21-Checkpoint nachgewiesen; dieser Eintrag behauptet keinen Live-Deploy.
 
 Weiter offen: kuratierter versionierter Engine-/Profilkatalog, automatische
 Bereitstellung und passende Containerpfade fuer Prusa/Cura, persistenter
@@ -166,7 +159,7 @@ Die geplante einfache Einrichtung erfolgt aus Home Assistant, siehe
 ist der Standard; ein eigener Pfad bleibt unter Erweitert moeglich.
 
 
-## W22: Gemeinsame Container-Enginepfade (10.10.2026)
+## : Gemeinsame Container-Enginepfade
 
 Dispatcher und Telemetrie verwenden jetzt denselben lesenden Pfadvertrag:
 `/engine/<engine-id>/bin/<binary>`. Bambu-API und Worker teilen die neue
@@ -184,11 +177,6 @@ identisch zur Erkennung. Die Linux-Pruefung deckt die Symlink-/Ausfuehrbarkeits-
 Faelle ab; auf dem HA-Host ist pytest nicht installiert.
 Compose mit leerem Engine-Speicher: Worker gesund, Health degraded,
 Engine-Liste leer, TLS/Auth bestanden. Eigene Testcontainer entfernt.
-
-Gesamtgate und finale Build-Synchronisation werden im privaten W22-Checkpoint
-nachgewiesen. Keine echte Engine, kein echter Slice und kein Produktivdeploy.
-Automatischer Download/Installationskatalog, Ressourcen/Profile, transaktionaler
-Installer und HA-Assistent bleiben offen; container_deploy_ready=false.
 
 Der Hostpfad SLICER_ENGINE ist jetzt die Wurzel mit den drei Engine-Unterordnern,
 kein direktes Bambu-squashfs-root. Siehe [Engine-Speicher](ENGINE_LAYOUT.md).

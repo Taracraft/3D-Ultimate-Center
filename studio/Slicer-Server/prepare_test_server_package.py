@@ -34,7 +34,7 @@ MANIFEST_NAME = verifier.MANIFEST_NAME
 PACKAGE_FILES = (
     "Slicer-Server/clean_host_preflight.py",
     "Slicer-Server/compose.candidate.yaml",
-    "Slicer-Server/LINUX_TEST_SERVER_RUNBOOK.md",
+    "Slicer-Server/LINUX_SETUP.md",
     "Slicer-Server/CONTAINER_TESTING.md",
     "Slicer-Server/RUNTIME_INSTALLATION.md",
     "Slicer-Server/OPERATIONS.md",

@@ -6,7 +6,7 @@
 
 ![Echte Studio-Druckplatte mit Würfel, Zylinder, Ring und Kegel](handbook/images/cad-plate.png)
 
-*Die Bilder sind echte Puppet-Aufnahmen einer bestehenden Home-Assistant-Installation vom 15. Oktober 2026. Sie zeigen die Oberfläche und vorhandene Installationswerte. Der hier beschriebene Funktionsumfang bezieht sich auf die aktuellen Quellen; ein installierter Build kann davon abweichen. Die gezeigte Beispielplatte enthält vier im Studio erzeugte Grundkörper. Die Bilder sind kein Slice- oder Drucknachweis. [Ganze CAD-Oberfläche und Bildherkunft](handbook/CAD_EXAMPLES.md).*
+*Beispielansicht der Oberfläche vom Oktober 2026. [CAD-Beispiele](handbook/CAD_EXAMPLES.md).*
 
 ## Inhalt
 
@@ -21,7 +21,7 @@
 - [Aufgaben, Verlauf und Druckerübersicht](#aufgaben)
 - [Tastenkürzel](#tasten)
 - [Typische Fragen und Fehlerhilfe](#hilfe)
-- [Quellstand, Betriebsabnahme und weiterführende Dokumentation](#stand)
+- [Entwicklung und Downloads](#stand)
 
 <a id="funktionen"></a>
 ## 1. Was das Studio kann
@@ -69,7 +69,7 @@ Für eine neue Installation zuerst den dokumentierten Status prüfen:
 - [Vollständiger separater Slicer-Quellumfang](Slicer-Server/REPOSITORY_CONTENTS.md)
 - [Slicer-Installation und Quell-Preflight](Slicer-Server/INSTALLATION.md)
 - [Compose-Dienstkandidat und Laufzeitvertrag](Slicer-Server/RUNTIME_INSTALLATION.md)
-- [Sauberer manueller Linux-Testserver](Slicer-Server/LINUX_TEST_SERVER_RUNBOOK.md)
+- [Sauberer manueller Linux-Testserver](Slicer-Server/LINUX_SETUP.md)
 - [Betrieb, Sicherung und Wiederherstellung](Slicer-Server/OPERATIONS.md)
 
 Die neue Compose-Auslieferung ist noch nicht für produktives Slicing freigegeben. Ein vorhandener nativer Slicer wird durch das Lesen dieser Anleitung weder übernommen noch automatisch migriert.
@@ -109,8 +109,6 @@ Zum Kennenlernen genügt ein Grundkörper. Du brauchst dafür keinen echten Slic
 Für den späteren nächsten Schritt werden Slicer, Engine, Profile und die jeweilige Installation benötigt. Die Schaltfläche **Aktive Platte slicen** ist eine eigene bewusste Aktion. Druckvorbereitung, Druckerübertragung und Druckstart folgen getrennt.
 
 <a id="modelle"></a>
-## 4. Modelle, Werkzeuge und Druckplatten
-
 ### Modelle öffnen und speichern
 
 Im Menü **Datei** findest du die lokale STL-/3MF-Auswahl, den Zugang zu Galerie, SD-Karte und MakerWorld sowie Projekt- und Objektaktionen.
@@ -269,8 +267,6 @@ Analyseinformationen, Warnungen und ihr Bestätigungsstatus getrennt lesen. Ein 
 Die Bilder dieses Handbuchs zeigen keine geslicten privaten Aufträge. Ein sichtbarer Arbeitsbereich ist kein Nachweis für die Qualität eines realen Slices.
 
 <a id="quellen"></a>
-## 8. Galerie, SD-Karte und MakerWorld
-
 ### Galerie: deine Modellbibliothek
 
 Die Galerie bietet Modellübersicht, Ordnernavigation und Dateiverwaltung. Je nach Eintrag stehen Vorschau, Übernahme ins Studio, Umbenennen, Verschieben, Ersetzen oder Löschen zur Verfügung. ZIP-Import und Mehrfachaktionen unterstützen die Organisation größerer Bestände.
@@ -294,8 +290,6 @@ Lizenz- und Herkunftsangaben des Modells vor Speichern, Verwenden oder Weitergeb
 Bei abgelaufener Anmeldung, Ratenlimit oder Anbieterfehler zunächst den gemeldeten Zustand behandeln. Wiederholtes Klicken ersetzt keine gültige Anmeldung und keine bestätigte Profilzuordnung.
 
 <a id="aufgaben"></a>
-## 9. Aufgaben, Verlauf und Druckerübersicht
-
 ### Aufgaben und Verlauf
 
 **Aufgaben** zeigt Warteschlange und Auftragszustände. **Verlauf** dient dem Rückblick auf vergangene Einträge. Je nach Zustand sind Verwaltungsaktionen verfügbar, beispielsweise erneut einreihen oder einen Eintrag entfernen.
@@ -365,26 +359,8 @@ Die entsprechenden Menüeinträge bleiben als Alternative erreichbar. Vor dem L�
 Für einen hilfreichen Fehlerbericht genügen der betroffene Bereich, die konkrete Aktion, die sichtbare Fehlermeldung und der installierte Build. Keine Tokens, API-Secrets oder privaten Schlüssel veröffentlichen; bei Bildern private Dateinamen und sonstige vertrauliche Inhalte aussparen.
 
 <a id="stand"></a>
-## 12. Quellstand und Betriebsabnahme
+## 12. Entwicklung und Downloads
 
-Dieses Repository enthält den überprüfbaren Studio-Quellstand mit automatisierten Python-, TypeScript-, Frontend-, Build- und Lieferintegritätsprüfungen. Die Bilder wurden mit dem vorhandenen Puppet-Add-on einer laufenden Home-Assistant-Installation aufgenommen.
+Das Projekt befindet sich in Entwicklung. Eine vollständige HACS- und Slicer-Veröffentlichung mit allen benötigten Engines steht noch aus. Die Quellen lassen sich für Entwicklung und Tests verwenden; der [Entwicklungsstand](Slicer-Server/RELEASE_STATUS.md) nennt die aktuellen Einschränkungen.
 
-**Release noch offen:** Vollständige Host-/Engine-Integration, konkrete Pakete,
-Quellen-/Noticepflichten, erforderliche Funktions-/Bedienabnahmen und tatsächliche
-Veröffentlichungen müssen vor dem Release R geschlossen sein. Erst danach folgt
-V, die frische Linux-/HA-/HACS-Systemverifikation einschließlich TLS, Neustart,
-Persistenz, Upgrade und Restore. Eine produktive Migration bleibt gesondert.
-[Maßgeblicher Release-Status](Slicer-Server/RELEASE_STATUS.md). Eine grüne CI ersetzt
-diese getrennten Abschlüsse nicht.
-
-| Weiterführend | Inhalt |
-| --- | --- |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Komponenten und Verantwortlichkeiten |
-| [Slicer-Server/README.md](Slicer-Server/README.md) | Überblick über den getrennten Slicer |
-| [INSTALLATION.md](Slicer-Server/INSTALLATION.md) | Voraussetzungen und Quellprüfung |
-| [RUNTIME_INSTALLATION.md](Slicer-Server/RUNTIME_INSTALLATION.md) | Compose-Dienstkandidat |
-| [LINUX_TEST_SERVER_RUNBOOK.md](Slicer-Server/LINUX_TEST_SERVER_RUNBOOK.md) | Manueller MCP-freier Zielhostlauf |
-| [OPERATIONS.md](Slicer-Server/OPERATIONS.md) | Betrieb und Rückweg |
-| [Wiki-Quellen](Slicer-Server/wiki/Home.md) | Weitere komponentenbezogene Dokumentation |
-| [Quellhinweise](../SOURCE_NOTICES.md) | Herkunft und Lizenzgrenzen |
-
+[Studio-Wiki](https://github.com/Taracraft/3D-Ultimate-Center/wiki) · [Slicer-Wiki](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/wiki) · [Lizenzhinweise](../SOURCE_NOTICES.md)

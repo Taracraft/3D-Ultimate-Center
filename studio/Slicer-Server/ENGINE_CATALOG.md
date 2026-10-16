@@ -1,4 +1,4 @@
-﻿# Enginekatalog fuer die HA-Installation
+# Enginekatalog fuer die HA-Installation
 
 Status: Katalogvertrag, begrenzter Download, manifestgeprueftes Staging und
 transaktionale Generationsaktivierung sind implementiert. Noch keine
@@ -12,7 +12,7 @@ Die kuenftige HA-Anfrage waehlt nur eine bekannte Engine-ID und die Zielplattfor
 Sie darf weder einen eigenen Katalog noch eine URL oder einen Befehl liefern.
 
 engine_catalog.json nennt alle drei Familien explizit als pending. select()
-weist sie mit engine_not_approved ab. Es gibt keine erfundenen Downloadadressen,
+weist sie mit engine_not_approved ab. Es gibt keine angenommenen Downloadadressen,
 Digests oder Freigaben im ausgelieferten Katalog. Synthetische Beispiele stehen
 ausschliesslich in den Tests und duerfen nicht als Releasepakete verwendet werden.
 
@@ -130,7 +130,7 @@ manifestgebundene Archivauswahl muss gesondert kuratiert werden. Alle drei
 ausgelieferten Enginefamilien bleiben pending.
 
 
-## Dediziertes Slicer-Release-Repository (15.10.2026)
+## Dediziertes Slicer-Release-Repository
 
 Der vorhandene begrenzte Downloadvertrag akzeptiert jetzt auch exakt
 https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/
