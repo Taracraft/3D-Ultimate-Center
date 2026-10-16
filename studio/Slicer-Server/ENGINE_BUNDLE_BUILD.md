@@ -60,3 +60,16 @@ Verifikationstest. Der Paketbauer fuehrt diesen Test nicht aus und beruehrt
 weder das bestehende native Live-Slicing noch Home-Assistant-Einstellungen.
 
 Technische Referenz: https://docs.python.org/3/library/tarfile.html
+
+
+## Drei geprüfte Familien als gemeinsames Auslieferungspaket
+
+Die neue [Offline-Distributionsbildung](ENGINE_DISTRIBUTION.md) verwendet die
+vorhandenen Katalog-/Staging-/Generationsprüfer für einen gemeinsamen Bestand
+aus Bambu Studio, PrusaSlicer und CuraEngine. Sie übernimmt nur einen extern
+gepinnten vollständigen Katalog und die angegebenen lokalen Archivbytes.
+Fehlende oder noch `pending` Familien verhindern jede fertige Ausgabe.
+Originalarchive bleiben unverändert; kein Download, Engineaufruf, Aktivieren
+oder Supervisor-Vorgang. Das daraus erzeugte Archiv und jede Nutzdatei werden
+inhaltsgebunden zurückgeprüft. Ein Dateipaket ist weiterhin keine Engine-,
+Lizenz- oder Produktreleasefreigabe.

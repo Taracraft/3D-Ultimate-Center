@@ -918,7 +918,7 @@
     {
       "bytes": 6875,
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "18569ef66e7d0ca68d00715ffe84105961ff39fd09d9adeb79f63db6035cc372"
+      "sha256": "bef71b507642e02cc9cb1c7958319cba0c1df84b493e90dc0bfd92e165e48820"
     },
     {
       "bytes": 801,
@@ -936,9 +936,9 @@
       "sha256": "c34a65548032d1228b03b500fc410af53ed85cdd00ff944d7bfb7e7b84aa7bb1"
     },
     {
-      "bytes": 509856,
+      "bytes": 511321,
       "path": "source-license-map.json",
-      "sha256": "6d940668f822145d0a025ad145bd447409b558f7c4ab71e56e3205fc132b0040"
+      "sha256": "305a9a1f9abafea8185bba6fcd8945d96d4a0aafebbab4528dbb848174e8afae"
     },
     {
       "bytes": 2883,
@@ -996,9 +996,9 @@
       "sha256": "d12284a4c57921292884495ebf027ea7d33f760b13c470039358cda8ed06d9eb"
     },
     {
-      "bytes": 3329,
+      "bytes": 4045,
       "path": "studio/Slicer-Server/ENGINE_BUNDLE_BUILD.md",
-      "sha256": "8d0358fbaf0ab18d69d2acb90a9b3a45de6a0972dc7411c4503d187de528215a"
+      "sha256": "3db22d600989e07783156d393f8e7cb79d26a1c404e07a11592ac900494b08c2"
     },
     {
       "bytes": 3760,
@@ -1009,6 +1009,11 @@
       "bytes": 12596,
       "path": "studio/Slicer-Server/ENGINE_CATALOG.md",
       "sha256": "a75d6bb0bda1088db3c507e4e9db5081caa78fa0a9cc105832395f204c4cc1d6"
+    },
+    {
+      "bytes": 8225,
+      "path": "studio/Slicer-Server/ENGINE_DISTRIBUTION.md",
+      "sha256": "26504b753e0a1b3c9a1babd1a9af6f63e6ae0a8b3931452ac8cc12fd89955bfe"
     },
     {
       "bytes": 6021,
@@ -1186,9 +1191,9 @@
       "sha256": "dae92dde8b457336dcd36bfaa910a17a53c86216f8b7a2ae10f4427d41903fca"
     },
     {
-      "bytes": 15122,
+      "bytes": 15266,
       "path": "studio/Slicer-Server/build_repository.py",
-      "sha256": "b79d257a30a1579f7262d732b1960253f03fde1459df0b3712d91cf48459e20f"
+      "sha256": "779b0cd184639228680b7cb48bf69f63ec15d825b3e81b855bd1571ba0fbd43d"
     },
     {
       "bytes": 7489,
@@ -1319,6 +1324,11 @@
       "bytes": 10504,
       "path": "studio/Slicer-Server/prepare_context.py",
       "sha256": "20f421c6b02d8f8f146079c556e9ac91916bc54752936c37ba6df6d0689462e9"
+    },
+    {
+      "bytes": 17276,
+      "path": "studio/Slicer-Server/prepare_engine_distribution.py",
+      "sha256": "510d197da8eea493028a7b01c529749dbfe0e1d9ad37e6b9abe32b87bc451eee"
     },
     {
       "bytes": 8071,
@@ -2728,7 +2738,7 @@
     {
       "bytes": 6875,
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "18569ef66e7d0ca68d00715ffe84105961ff39fd09d9adeb79f63db6035cc372"
+      "sha256": "bef71b507642e02cc9cb1c7958319cba0c1df84b493e90dc0bfd92e165e48820"
     },
     {
       "bytes": 801,
@@ -4641,6 +4651,11 @@
       "sha256": "724901dafe689da364260630dd91e2cfac7d0fa3ba69e650b45f38dad957adbc"
     },
     {
+      "bytes": 20783,
+      "path": "studio/tests/test_studio_engine_distribution.py",
+      "sha256": "67eb9be9d580f04a47939d2c9bb55bf1012a70590ba8252192518ee28ff48771"
+    },
+    {
       "bytes": 10235,
       "path": "studio/tests/test_studio_engine_image_layout.py",
       "sha256": "2a97ba8116f6b5dbea166b49637fa12443b05eac5fb850653f211ce246558a93"
@@ -5555,19 +5570,19 @@
   "protected_component_tree": "83eee0b12ba828dd1de1e3c9ba83ca2af45e66df",
   "review_evidence": {
     "credentials": {
-      "sha256": "9a121ead68432ea3b3c404ba29779ecf485be766254488862130bf779f7fea3e",
+      "sha256": "10d6b802b0f5ad59e31c2852593d85808b80cc26080a9e15cdcfa5ff70ee4b2d",
       "verified": true
     },
     "infrastructure": {
-      "sha256": "2d8ae595a2e55e91a6bbc884720237e377c968b7aa3d645a3459cc365d13471e",
+      "sha256": "78d5e871f9b40dcc6d2519286ed468eb0786a570dbd4cf4c9e63ef07d875090b",
       "verified": true
     },
     "isolated_candidate": {
-      "sha256": "40982ceac108d8e803d0910c0c1696af0fd97f7412b3e6fa2cf452cd5d4674f2",
+      "sha256": "fbb50dad845c4ab9a1c8e6ad39a6b67c3957535098e40d5c0fc05998a7136474",
       "verified": true
     },
     "licenses": {
-      "sha256": "967768afea59e5ded1cf7fb8418f1fa034fce5a952f920e5c2b1e951e691225c",
+      "sha256": "d9820d36a30aa37a8ce8d5c208e6ea076d196ead9419ce888ff13c72a2632fbe",
       "verified": true
     }
   },

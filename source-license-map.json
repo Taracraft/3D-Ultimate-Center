@@ -1,6 +1,6 @@
 {
   "custom_terms_do_not_replace_inherited_or_third_party_rights": true,
-  "delivered_paths": 1110,
+  "delivered_paths": 1113,
   "derived_profile_modification_notice_date": "2026-10-15",
   "files": [
     {
@@ -2390,7 +2390,7 @@
       "identity": {
         "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "18569ef66e7d0ca68d00715ffe84105961ff39fd09d9adeb79f63db6035cc372"
+        "sha256": "bef71b507642e02cc9cb1c7958319cba0c1df84b493e90dc0bfd92e165e48820"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -2602,9 +2602,9 @@
     },
     {
       "identity": {
-        "bytes": 3329,
+        "bytes": 4045,
         "kind": "sha256-raw-bytes",
-        "sha256": "8d0358fbaf0ab18d69d2acb90a9b3a45de6a0972dc7411c4503d187de528215a"
+        "sha256": "3db22d600989e07783156d393f8e7cb79d26a1c404e07a11592ac900494b08c2"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/ENGINE_BUNDLE_BUILD.md",
@@ -2641,6 +2641,20 @@
         "studio/Slicer-Server/THIRD_PARTY_NOTICES.md"
       ],
       "source_path": "Slicer-Server/ENGINE_CATALOG.md"
+    },
+    {
+      "identity": {
+        "bytes": 8225,
+        "kind": "sha256-raw-bytes",
+        "sha256": "26504b753e0a1b3c9a1babd1a9af6f63e6ae0a8b3931452ac8cc12fd89955bfe"
+      },
+      "notice_class": "declared-new-original-slicer-scope",
+      "path": "studio/Slicer-Server/ENGINE_DISTRIBUTION.md",
+      "required_notice_paths": [
+        "studio/Slicer-Server/LICENSE",
+        "studio/Slicer-Server/THIRD_PARTY_NOTICES.md"
+      ],
+      "source_path": "Slicer-Server/ENGINE_DISTRIBUTION.md"
     },
     {
       "identity": {
@@ -3135,9 +3149,9 @@
     },
     {
       "identity": {
-        "bytes": 15122,
+        "bytes": 15266,
         "kind": "sha256-raw-bytes",
-        "sha256": "b79d257a30a1579f7262d732b1960253f03fde1459df0b3712d91cf48459e20f"
+        "sha256": "779b0cd184639228680b7cb48bf69f63ec15d825b3e81b855bd1571ba0fbd43d"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/build_repository.py",
@@ -3508,6 +3522,20 @@
         "studio/Slicer-Server/THIRD_PARTY_NOTICES.md"
       ],
       "source_path": "Slicer-Server/prepare_context.py"
+    },
+    {
+      "identity": {
+        "bytes": 17276,
+        "kind": "sha256-raw-bytes",
+        "sha256": "510d197da8eea493028a7b01c529749dbfe0e1d9ad37e6b9abe32b87bc451eee"
+      },
+      "notice_class": "declared-new-original-slicer-scope",
+      "path": "studio/Slicer-Server/prepare_engine_distribution.py",
+      "required_notice_paths": [
+        "studio/Slicer-Server/LICENSE",
+        "studio/Slicer-Server/THIRD_PARTY_NOTICES.md"
+      ],
+      "source_path": "Slicer-Server/prepare_engine_distribution.py"
     },
     {
       "identity": {
@@ -7191,7 +7219,7 @@
       "identity": {
         "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "18569ef66e7d0ca68d00715ffe84105961ff39fd09d9adeb79f63db6035cc372"
+        "sha256": "bef71b507642e02cc9cb1c7958319cba0c1df84b493e90dc0bfd92e165e48820"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -12173,6 +12201,19 @@
     },
     {
       "identity": {
+        "bytes": 20783,
+        "kind": "sha256-raw-bytes",
+        "sha256": "67eb9be9d580f04a47939d2c9bb55bf1012a70590ba8252192518ee28ff48771"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "studio/tests/test_studio_engine_distribution.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "tests/test_studio_engine_distribution.py"
+    },
+    {
+      "identity": {
         "bytes": 10235,
         "kind": "sha256-raw-bytes",
         "sha256": "2a97ba8116f6b5dbea166b49637fa12443b05eac5fb850653f211ce246558a93"
@@ -14541,7 +14582,7 @@
   "production_approved": false,
   "schema": 2,
   "scope": "file-specific notice inventory for this source-only Git delivery; no engine/image or production approval",
-  "source_files": 924,
+  "source_files": 927,
   "upstream": {
     "commit": "42d319c6692fa8e64790fddf0cdaafd2a4254bcc",
     "derived_source_paths": [
