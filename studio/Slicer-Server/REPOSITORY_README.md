@@ -4,7 +4,7 @@ Der eigenständige Slicer-Dienst für **Ultimate 3D Studio**: HTTP-API, kontroll
 
 [Anleitung](Slicer-Server/README.md) · [Docker-Schnellstart](Slicer-Server/DOCKER_QUICKSTART.md) · [Natives Linux-Paket](packages/ultimate-slicer-server/README.md) · [Wiki-Dateien](Slicer-Server/wiki/Home.md) · [Quellumfang](Slicer-Server/REPOSITORY_CONTENTS.md) · [Lizenzen](SOURCE_NOTICES.md) · [Gemeinsame Abschlussmatrix](Slicer-Server/wiki/Release-Abnahme.md)
 
-> Entwicklungs- und Prüfkandidat. Vollständige Komponentenauslieferung bedeutet nicht Produktivfreigabe. Engine-Binärdateien und private Betriebsdaten sind nicht enthalten. Die echte unabhängige Linux-/Engine-/TLS-/Upgrade-/Restore-Abnahme bleibt Voraussetzung für eine neue Installation.
+> Entwicklungs- und Prüfkandidat. Vollständige Komponentenauslieferung bedeutet nicht Produktivfreigabe. Engine-Binärdateien und private Betriebsdaten sind nicht enthalten. Die vollständige Engine-/Host-/Paketfreigabe fehlt noch. Der letzte frische Linux-Test folgt erst auf den ansonsten vollständigen Release; eine Produktivmigration bleibt gesondert.
 
 ## Was hier jetzt vollständig liegt
 
@@ -63,8 +63,8 @@ Ein Build prüft Quellen, nicht reale Maschinen. Der native Installer bleibt mit
 ## Status und Grenzen
 
 - Quell-/Build-/Testumfang: in diesem Repository versioniert und per Manifest prüfbar.
-- Dockerfile und Compose: vorhanden; Base-Image muss auf einen bestätigten Digest gesetzt werden. Kein erfundenes `latest`-Image und kein automatischer Registry-Pull.
-- Engines: Katalogeinträge noch nicht produktiv freigegeben; `engine_catalog.json` bleibt bewusst leer. Die vorhandene Bambu-/Prusa-/Cura-Installation ist nicht automatisch ein reproduzierbar genehmigtes Engine-Paket.
+- Dockerfile, Compose und reales Source-Preflight-Image: vorhanden und an feste Referenzen gebunden. Dies ist noch kein Engine-Laufzeitimage. [Belegter Stand und Releasegrenzen](Slicer-Server/RELEASE_STATUS.md).
+- Engines: Katalogeinträge noch nicht produktiv freigegeben; `engine_catalog.json` enthält eine leere Release-Liste und drei ausdrücklich ausstehende Enginefamilien. Die vorhandene Bambu-/Prusa-/Cura-Installation ist nicht automatisch ein reproduzierbar genehmigtes Engine-Paket.
 - GitHub-Wiki: vollständige Markdown-Seiten im Repo. Die separate Wiki-Funktion war bei der Lieferung deaktiviert; die Dateien sind nicht gleichbedeutend mit einem veröffentlichten Wiki-Tab.
 - Historische Testpakete und `continuity/`: bleiben zur Nachvollziehbarkeit erhalten. Maßgeblich für neue Builds sind die aktuellen Quellen und das aktuelle Manifest, nicht das alte W53-Archiv.
 - Keine Produktivfreigabe, keine automatische HA-Migration, keine ARM-Zusage und keine Druckeraktion durch diese Quelllieferung.
@@ -74,22 +74,18 @@ Ein Build prüft Quellen, nicht reale Maschinen. Der native Installer bleibt mit
 Es gibt **keine einheitliche neue Lizenz für alle Dateien**. Frühere Studio-Quellen behalten ihre bisherigen Bedingungen; neues ursprüngliches Slicer-Material unterliegt dem abgegrenzten [Slicer-Lizenztext](Slicer-Server/LICENSE). Importierte Profile und Drittanbieterkomponenten behalten ihre eigenen Rechte. [SOURCE_NOTICES.md](SOURCE_NOTICES.md) und [THIRD_PARTY_NOTICES.md](Slicer-Server/THIRD_PARTY_NOTICES.md) sind Bestandteil der Lieferung. Repository-Sichtbarkeit und Lizenzfreigabe wurden durch diese Aktualisierung nicht erweitert.
 
 
-## Ein gemeinsamer Abschlussblock
+## Getrennte Abschlüsse ohne verlorene Anforderungen
 
-Der Quellstand, die Engine-Artefakte und die Betriebsabnahme werden gemeinsam
-geschlossen. Die [Abnahmematrix](Slicer-Server/wiki/Release-Abnahme.md) nennt
-je Bereich den vorhandenen Nachweis und das noch benoetigte reale Ergebnis.
-Die gesamte Komponente kann aus diesem Repo geprueft und als Paket gebaut
-werden; die automatische Erstinstallation ist noch kein fertiges Produkt.
+Die [gemeinsame Statusseite](Slicer-Server/RELEASE_STATUS.md) und die
+[Abnahmematrix](Slicer-Server/wiki/Release-Abnahme.md) unterscheiden R, V und L:
+Zuerst Funktionen, unterstützte Hostintegration, tatsächliche Engine-/Runtime- und
+HACS-Pakete, Rechte, Dokumentation und öffentliche Auslieferung vollständig
+abschließen (R). Danach den unveränderten veröffentlichten Release auf dem
+separaten sauberen Linux-Testserver installieren und verifizieren (V).
+Produktiver Pilot und Migration bleiben gesondert (L).
 
-Die offizielle Bambu-Releasezuordnung und 118 ausgewaehlte Profilquelldateien
-sind belegt. Eine zusaetzliche native Inventur erfasst 292 ELF-Dateien und
-216 Debian-Pakete samt Copyright-Dateihashes. Diese Hostdaten ersetzen weder
-die vollstaendige Zielimage-/Plugin-/Lizenzclosure noch eine echte Linux-
-Abnahme. [Genauer Provenienzumfang](Slicer-Server/ENGINE_PROVENANCE.md).
-
-Der naechste externe Ablauf ist zusammenhaengend: sauberer Testhost und
-unveraenderliches Image/Engine-Paket; dann Rechte und Isolation, TLS, Neustart
-und Persistenz, Upgrade/Rollback/Backup/Restore, Hostkanal und HA/HACS,
-anschliessend privater Pilot und Release. Ein fehlender Nachweis bleibt
-`not_run` oder `blocked`. Ein gruener Quelltest setzt keine Betriebsfreigabe.
+Vorhandene Quell-/Image-/Profilnachweise werden weiterverwendet. Die vollständige
+Betriebskette wird nicht aus einem erfolgreichen Quellenbuild abgeleitet.
+Fehlende Enginepakete und ein unvollständiger Hostkanal sind Releaseblocker,
+keine Aufgaben, die erst beim letzten Systemtest implementiert werden dürfen.
+Eine fehlende Messung bleibt `not_run` oder `blocked`.

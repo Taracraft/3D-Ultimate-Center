@@ -46,7 +46,7 @@ Für die Originalaufnahmen wurden nur vier synthetische Grundkörper angelegt un
 | Repository | Inhalt |
 | --- | --- |
 | [3D-Ultimate-Center](https://github.com/Taracraft/3D-Ultimate-Center) | Studio-Gesamtprodukt, Home-Assistant-Integration, Frontend und gesamter geprüfter Quellstand |
-| [3D-Ultimate-Slicer-Server](https://github.com/Taracraft/3D-Ultimate-Slicer-Server) | Separates privates Slicer-Repo mit vollständiger geprüfter Komponentenprojektion, Paketbau, Worker/API, Docker, Tests und Wiki-Dateien |
+| [3D-Ultimate-Slicer-Server](https://github.com/Taracraft/3D-Ultimate-Slicer-Server) | Dediziertes Slicer-Repo mit geprüfter Komponentenprojektion, Paketbau, Worker/API, Docker, Tests und Wiki-Dateien; öffentliche Freigabe noch ausstehend |
 
 Das Slicer-Repo enthält keine privaten Modelle, Aufträge, Laufdaten oder Zugangsdaten. Die rund 10,45 GB einer bestehenden Installation sind überwiegend Betriebsdaten, nicht fehlender Quellcode. [Bestandsaufteilung und Engine-Grenzen](studio/Slicer-Server/LIVE_ENGINE_INVENTORY.md).
 
@@ -81,7 +81,17 @@ Das [Handbuch](studio/README.md) führt durch die einzelnen Schritte und erklär
 
 ## Installation und aktueller Stand
 
-**Die vollständige Quelllieferung und ihre automatisierten Prüfungen sind vorhanden.** Die neue Compose-Installation benötigt weiterhin ihre echte Linux-, Engine-, TLS-, Neustart-, Upgrade- und Restore-Abnahme. Eine grüne Quellprüfung ist keine Betriebsfreigabe.
+**Die Quelllieferung und ihre automatisierten Prüfungen sind vorhanden; der
+Gesamt-Release ist noch offen.** Zuerst müssen die beauftragten Funktionen,
+Host-/Engine-Integration, konkreten Pakete, Quellen-/Noticepflichten,
+Dokumentation und öffentliche Auslieferung vollständig abgeschlossen werden
+(R). Danach folgt die letzte frische Linux-Systemverifikation mit HA/HACS,
+TLS, Neustart, Persistenz, Upgrade und Restore (V). Produktiver Pilot und
+Migration bleiben gesondert (L). [Aktueller Release-Status und Nachweisgrenzen](studio/Slicer-Server/RELEASE_STATUS.md).
+
+Ein gebautes Source-Preflight-Image ohne Engines ist kein fertiges Slicer-
+Laufzeitimage. Ein privater HACS-Kandidat ist kein veröffentlichter Release.
+Die echte Wiki-Veröffentlichung bleibt von den vorhandenen Repo-Dateien getrennt.
 
 Das Studio läuft als Home-Assistant-Integration mit Frontend. Der Slicer ist ein eigener Dienst; Docker Compose ist der vorgesehene Weg für die neue saubere Installation. Bestehende native Installationen benötigen eine gesondert geprüfte Migration. Das [Handbuch](studio/README.md#einrichtung) verlinkt die passenden Einstiegspunkte.
 

@@ -28,3 +28,11 @@ Arbeitsverzeichnisse, alle Compose-Eingaben und die Grenze zwischen Build,
 Leerlaufprüfung und echtem Slicing. Die Betriebsinstallation mit vollständig
 freigegebener Engine ist noch kein abgenommener Ein-Klick-Ablauf.
 
+
+## Release-Reihenfolge
+
+[Gemeinsamer Release-Status](../RELEASE_STATUS.md): erst den vollständigen
+Release einschließlich Engines, Hostintegration, Paketen und Veröffentlichung
+abschließen (R); danach den veröffentlichten Stand auf sauberem Linux prüfen
+(V). Produktiver Pilot und Migration bleiben eigene Aufträge (L). Diese
+Reihenfolge ist keine vorgezogene technische oder produktive Freigabe.

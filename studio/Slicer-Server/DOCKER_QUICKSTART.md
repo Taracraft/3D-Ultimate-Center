@@ -4,6 +4,14 @@ Diese Anleitung gilt für einen **neuen isolierten Linux-Testpfad**, nicht für
 den bestehenden nativen HA-Slicer. Sie startet selbst keine Installation.
 Produktivfreigabe, echte Engine-Abnahme und Bestandsmigration bleiben offen.
 
+## Zeitpunkt und Umfang
+
+Der [Release-Status](RELEASE_STATUS.md) unterscheidet R (vollständige Lieferung)
+und V (letzte frische Linux-Systemverifikation). Die folgenden Buildschritte
+können zur isolierten Paketprüfung dienen. Der eigentliche neue Testserverlauf
+folgt erst nach R; fehlende Engine- oder Hostimplementierung wird nicht auf ihn
+verschoben. Ein bestehender nativer Slicer wird nicht verändert.
+
 ## 1. Arbeitsverzeichnis richtig wählen
 
 Im eigenständigen Slicer-Repo ist dessen Wurzel das Arbeitsverzeichnis. Im

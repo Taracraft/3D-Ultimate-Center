@@ -1,73 +1,73 @@
-﻿# Gemeinsame Abschluss- und Release-Abnahme
+﻿# Gemeinsame Release- und Systemabnahme
 
-Stand: 15.10.2026. Diese Matrix fasst den gesamten verbleibenden Abschluss
-zusammen. Sie ist keine Produktivfreigabe. Quelllieferung, reales Zielsystem,
-geladene HA-Oberflaeche und veroeffentlichtes Release sind getrennte Staende.
+**Release noch offen.** Maßgeblich ist die Trennung in
+[R – vollständiger Release, V – letzte Linux-Systemverifikation und L – gesonderter Betrieb](../RELEASE_STATUS.md).
+Diese Reihenfolge ersetzt ältere Abschnitte, die den frischen Testserver oder
+einen produktiven Pilot zwingend vor den Release gestellt haben. Fehlende
+Implementierung oder Auslieferung wird dadurch nicht freigegeben.
 
-| Bereich | Bereits belegt | Noch erforderlicher Abschluss |
+## R: vor Veröffentlichung des vollständigen Releases schließen
+
+| Bereich | Vorhanden | Vor R noch vollständig zu belegen |
 | --- | --- | --- |
-| Vollstaendige Quellen | Eigenstaendige Komponentenprojektion, Manifest, eigene Linux-CI, native/Docker-/Testpaketbauer und Offline-Profilquellen | Aktuelle Commit-/Manifestidentitaet bei jeder neuen Lieferung erneut pruefen |
-| Herkunft und Rechte | Offizielle Bambu-AppImage exakt zugeordnet; voller Bambu-Quellcommit und externe Rezeptarchive privat hashgeprueft; 118 Profilquelldateien bytegleich; Hersteller-CI und unveraenderter deps-Tree an den abgeleiteten wxWidgets-Commit gebunden; Debian-Paketarchive statisch untersucht | Historische Cachebytes und Werkzeugversionen fehlen; Herstellerbinaerdatei reproduzieren und vollstaendige dateibezogene Quellen-/Lizenz-/Notice-/SBOM-Pflichten fuer die konkrete Auslieferung schliessen |
-| Bibliotheken und Plugins | Native Hostinventur: 292 ELF-Dateien, 216 genaue Debian-Pakete und Copyright-Dateihashes; fail-closed Zielimage-Inventarvertrag fuer 40 explizite Docker-Pakete | Tatsaechliches vollstaendiges Zielimage-Inventar erfassen und Loader-/Plugin-/Ressourcenumfang messen; Referenz und Hostinventur genuegen nicht |
-| Frisches Linux und Docker | Kontext-/Integritaets-/Clean-Host-/Compose-Vertraege, synthetische Tests und offline pruefbarer SBOM-Erfasser | Neuer unabhaengiger Host ohne nativen Altbestand; fester Basisdigest, Image-ID und kompletter Paket-/Copyright-Beleg; echter Imagebuild/Erststart |
-| Rechte und Isolation | Fail-closed Pruefcode fuer Benutzer, Mounts, Prozesse, Netzwerk und Wartung | Laufende Zielcontainer, Image-ID, UID65532, Mountrechte, Read-only-Root, CapDrop und NoNewPrivileges messen |
-| Authentifizierung und TLS | API-/Client-/Secret-/TLS-Vertraege und begrenzte Pruefwerkzeuge | Echte getrennte Gegenstellen; gueltiges Zertifikat sowie falsche CA, falsches Secret, Timeout/DNS/Offline pruefen |
-| Neustart und Persistenz | Dauerhafte Initialisierung, Journale und synthetische Fehlerfaelle | Container- und Hostneustart mit unveraenderten Daten-/Profildigests messen |
-| Upgrade und Rueckweg | Transaktionale Staging-/Aktivierungs-/Rollback-Vertraege | Zwei reale gepinnte Staende; Teilfehler, Wartung, Rollback und getrenntes Resume pruefen |
-| Backup und Restore | Datenerhaltende Vertraege und Verifier | Vollstaendige private Sicherung in ein neues Ziel zurueckspielen; Quell-/Restore-Digests vergleichen |
-| Hostkanal und HA | Gepinnter Unix-Transport, Endpoint-/Peer-/Tokenpruefungen; isolierte HA-Flow-/Speichertests | Unterstuetzte Supervisor-/Mountprovisionierung und SO_PEERCRED beider Enden auch nach Neustart belegen; erst dann sichtbare Installerverdrahtung |
-| HACS und Oberflaeche | Reproduzierbarer Paket-/Asset-/Importvertrag; dokumentierte Studiofunktionen und echte CAD-Originalbilder | Frische separate HA-/HACS-Installation, geladene Assets, Optionen, Upgrade/Reload/Unload und Datenbestand abnehmen |
-| Privater Pilot | Gepruefte Quellkandidaten und Rueckwegvertraege | Erst nach Linux/Engine/HA/HACS: Tagesbackup, aktuelle Livehashes und echte Sicht-/Betriebsabnahme |
-| Public Release und Wiki | Versionierte Anleitungen/Wiki-Quellen und gepruefte Git-Quelllieferung | Gesamte Freigabematrix, Rechte-/Datenschutzreview, passende Releaseartefakte und tatsaechlicher Wiki-Upload mit Readback |
+| Studiofunktionen | Versionierte Implementierung und konkrete Teilprüfungen, einschließlich datenerhaltender Projektimporte | Vollständige beauftragte Abläufe und notwendige echte Bedien-/Bildabnahmen; keine Vollabnahme aus Teiltestzahlen |
+| Quell- und Paketidentität | Manifestgebundene Studio-/Slicerquellen und genaue Commit-CI | Finale zusammenpassende Studio-, HACS-, Slicer-, Engine-/Quell- und Containerartefakte |
+| Engines | Originalinventare und Bundle-/Katalog-/Staging-/Aktivierungsverträge | Alle konkreten Pakete und Dateiauswahlen, Profile, Ressourcen, Plugins und passende Bibliotheken; echte Funktionsnachweise im freigegebenen Umfang |
+| Herkunft und Rechte | Abgegrenzte Original- und Quellnachweise, vorhandene Notice-Texte | Vollständige Datei-/Komponentenbindung und erforderliche Quellen-/Noticeauslieferung; keine Freigabe allein aus einem Hash |
+| Runtime-Image | Reales geprüftes Source-Preflight-Image vorhanden | Vollständiges nutzbares Engine-Laufzeitpaket beziehungsweise fester geprüfter Installationsweg; Prüfimage nicht als Runtime vermarkten |
+| Host-/HA-Integration | Registry-, Transport-, Verbindungs-, Transaktions- und Lifecycle-Teilmodule | Unterstützte Provisionierung und geführter Gesamtweg, notwendige Rechte und Vertrauensgrenzen, Fehler- und Rückwegbehandlung |
+| Betriebsvorbereitung | Persistenz-, Wartungs-, Upgrade-, Abbruch-, Rollback- und Restoreverträge | Erforderliche isolierte Integrationsprüfungen vor Release und vollständige Anleitungen; keine Quelllücke für V übriglassen |
+| HACS und Dokumentation | Reproduzierbarer privater Paketkandidat, Handbuch und echte CAD-Dokumentationsbilder | Passender veröffentlichter HACS-Download, Build-/Versionszuordnung und aktuelle Bedien-/Installationsdokumentation |
+| Öffentliche Lieferung | Quellrepository und versionierte Wiki-Dateien | Öffentlicher Slicer, echtes Wiki, vorhandene Releaseassets und Runtime-Verteilung mit tatsächlichem Download-Readback |
 
-## Eine geordnete Ausfuehrung
+**R ist erst fertig, wenn außer der ausdrücklich letzten frischen
+Linux-Systemverifikation keine beauftragte Releasepflicht offen bleibt.**
+Die aktuelle Engine-/Host-/Veröffentlichungslücke verhindert R weiterhin.
 
-1. Aktuelle Quellen, Manifest, CI und alle Paket-/Asset-SHAs zusammen pinnen.
-2. Herkunft/Rechte, komplette Engine-/Profil-/Plugin-/Bibliotheksauswahl und
-   reproduzierbares Zielimage schliessen.
-3. Auf dem sauberen separaten Testserver Installation, Isolation, TLS,
-   Neustart/Persistenz, Upgrade, Rollback und Backup/Restore messen.
-4. Den unterstuetzten Hostkanal sowie echte HA-/HACS-Installation abnehmen.
-5. Erst danach privaten Pilot und oeffentliches Release abschliessen.
+## V: erst danach den veröffentlichten Release auf sauberem Linux prüfen
 
-Der [Linux-Testserververtrag](../LINUX_TEST_SERVER_RUNBOOK.md) ist fuer
-Messungen massgeblich. Die Evidence-Vorlage beginnt mit `not_run`;
-fehlende Messungen werden nicht aus synthetischen Tests ergaenzt.
-Der Arbeitsplatz-Testserver bleibt MCP-frei; nur bereinigte manuelle
-Ergebnisse werden zurueckgegeben. Das bestehende native Live-System wird
-fuer diesen Abschluss nicht in einen Compose-Mischbetrieb umgebaut.
+| Systemphase | Tatsächlich am Ziel zu prüfen |
+| --- | --- |
+| Sauberer Host und Installation | Richtige Plattform, kein nativer/fremder Slicer, unveränderte veröffentlichte Pakete, konkrete Image-ID |
+| Rechte und Isolation | Tatsächliche UID, Mounts, Schreibrechte, Read-only-Root, CapDrop und NoNewPrivileges |
+| Verbindung | Erforderliche Hostkommunikation und Gegenstellen; korrekte und falsche TLS-/Authkonfigurationen sowie Offline-/Timeoutfälle |
+| HA/HACS | Geladene Assets, Einrichtung, Optionen, Reload/Unload, Upgrade und erhaltene Nutzerdaten |
+| Neustart/Persistenz | Container- und Hostneustart mit erhaltenen Daten- und Profildigests |
+| Upgrade/Rollback | Zwei reale gepinnte Stände, Teilfehler, Wartung, Rückweg und getrennte Wiederfreigabe |
+| Backup/Restore | Vollständige Sicherung in ein neues Ziel, überprüfte Datei-/Datenidentitäten |
 
-Ein echter Slice benoetigt einen gesonderten konkreten Auftrag. Ein
-Druckstart ist davon getrennt und benoetigt die vorgesehene zweistufige
-Freigabe. HAOS-Migration bleibt ein eigener ausdruecklicher Auftrag.
+Das [Linux-Runbook](../LINUX_TEST_SERVER_RUNBOOK.md) und seine unveränderten
+technischen Stop-Kriterien gelten weiter. Die Vorlage beginnt mit `not_run`;
+fehlende Messungen werden nicht aus Quelltests ergänzt. Der letzte Testserver
+bleibt MCP-frei und wird manuell mit bereinigten Ergebnissen geprüft.
 
-## Gemeinsamer Abschlussbeleg
+## L: keine automatische Live-Migration oder Druckfreigabe
 
-Zu jedem realen Ergebnis gehoeren Datum, konkrete Software-/OS-/Architektur,
-Commit-/Archiv-/Image-/Assetidentitaet, Voraussetzungen, beobachtetes
-Ergebnis und bereinigte Belege. Keine Secrets, privaten Modelle, Rohlogs
-oder standortspezifischen Zugangsdaten in Issues oder Wiki kopieren.
+Das bestehende native Live-System bleibt unverändert. Ein produktiver Pilot,
+eine Bestandsmigration oder HAOS-Umstellung ist ein gesonderter Auftrag. Ein
+Slice, Upload und Druckstart sind unterschiedliche Handlungen; ein Druckstart
+behält seine zweistufige Bestätigung. Ein erfolgreicher R- oder V-Nachweis startet
+keine Hardwareaktion und hebt keine Schutzgrenze auf.
 
-Ein Screenshot nimmt nur den nachgewiesenen geladenen Build ab. Die
-bestehenden Originalbilder dienen der Anleitung und sind kein Nachweis
-einer neu ausgerollten Version. Quell-CI, Paketbau, Installation und
-Produktivfreigabe bleiben gesondert erkennbar.
+## Rückverfolgbare Belege statt pauschaler Freigabe
 
-Das Wiki wird aus den versionierten Texten exportiert und nach Upload
-zurueckgelesen; anschliessend werden README-/Release-Links geprueft.
-Ein lokaler Wiki-Ordner ist kein veroeffentlichter Wiki-Tab.
-`production_approved=false` und `container_deploy_ready=false` bleiben
-bis zum echten Gesamtabschluss erhalten.
+Jedes Ergebnis benötigt Datum, Software-/Plattformversion, die geprüften
+Commit-/Paket-/Image-/Assetidentitäten, Voraussetzungen und tatsächliche
+Beobachtungen. Screenshots belegen nur den wirklich geladenen Build. Private
+Modelle, Rohlogs, Secrets und standortspezifische Zugangsdaten gehören nicht in
+öffentliche Belege. Wiki-Dateien im Repository ersetzen den veröffentlichten
+Wiki-Tab nicht.
 
+Die Bestandsschutzfelder werden durch diese Abnahmematrix nicht umgeschrieben.
+`release_complete=false` in einem Komponentenprüfer bedeutet, dass dieser Prüfer
+keinen Produktrelease freigibt; R und V benötigen ihre eigenen belegten Abschlüsse.
 
-## FFmpeg-Quell- und Lizenzgrenze (15.10.2026)
+## Historischer Herkunftshinweis vom 15.10.2026
 
-Der gepinnte BambuStudio-Quellstand deklariert die Schalter --enable-gpl und
---enable-nonfree nur in einer im untersuchten CMake-Konfigurationsaufruf
-nicht verwendeten Variablen _extra_cmd. Daraus darf weder die tatsaechliche
-Binaerlizenz noch eine Nichtweiterverteilbarkeit oder Lizenzfreigabe
-abgeleitet werden. 27 Quellarchiv-Kandidaten und 302 gesicherte Notice-Texte
-sind statisch hashgeprueft; ihr vollstaendiger Bezug zu den tatsaechlich
-gepackten Komponenten, Bibliotheken und Plugins bleibt offen. Siehe
-ENGINE_PROVENANCE.md im Slicer-Server-Quellverzeichnis. Bis zur realen
-Zielimage- und Rechteabnahme bleibt die Engine-Releasesperre bestehen.
+Im untersuchten BambuStudio-Quellstand lagen die FFmpeg-Schalter `--enable-gpl`
+und `--enable-nonfree` in einer im betrachteten CMake-Aufruf nicht verwendeten
+Variablen `_extra_cmd`. Daraus folgt weder die tatsächliche Binärlizenz noch eine
+Freigabe oder ein Verbot der konkreten Weitergabe. Die damals gesicherten
+Quellarchiv- und Notice-Kandidaten waren noch keine vollständige Zuordnung zu
+allen gepackten Komponenten. Dieser begrenzte historische Befund bleibt erhalten;
+maßgeblich ist die konkrete [Engine-Provenienz](../ENGINE_PROVENANCE.md).

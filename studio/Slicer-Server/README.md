@@ -4,7 +4,7 @@ Slicer-Server ist die eigenständige Slicer-Komponente von Ultimate 3D Studio.
 Die kanonischen Entwicklungsquellen bleiben gemeinsam gepflegt. Auf ausdrücklichen
 Auftrag wird die vollständige geprüfte Komponente zusätzlich nach
 `Taracraft/3D-Ultimate-Slicer-Server` ausgeliefert; das Studio-Gesamtprodukt liegt
-in `Taracraft/3D-Ultimate-Center`. Das separate Repo bleibt privat.
+in `Taracraft/3D-Ultimate-Center`. Das separate Repo ist beim letzten Abgleich noch privat; seine öffentliche Freigabe gehört zum ausstehenden Releaseumfang.
 Docker ist der vorgesehene neue Installationsweg; der bestehende native Betrieb
 wird dadurch nicht automatisch migriert.
 
@@ -282,6 +282,12 @@ Die HAOS-Migration bleibt ein separater Plan und wird nicht ausgefuehrt.
 
 ## Gemeinsamer aktueller Abschlussstand
 
+[Release-Status und Abfolge R → V → L](RELEASE_STATUS.md): vollständiger
+Release zuerst, frische Linux-Systemverifikation zuletzt, Live-Migration nur
+auf gesonderten Auftrag. Die unten genannten offenen Host-/Enginepflichten
+bleiben vorher zu erledigen.
+
+
 Die [gemeinsame Abnahmematrix](wiki/Release-Abnahme.md) ist der aktuelle
 Einstieg fuer die verbleibende Gesamtarbeit. Die oben datierten
 Entwicklungsabschnitte dokumentieren ihren jeweiligen Verlauf; Aussagen
@@ -300,18 +306,20 @@ freigegebenes Engineimage oder fertiger Ein-Klick-Installationsweg.
 
 ## Zielimage-Paket- und SBOM-Vertrag
 
-Der Docker-Kontext enthaelt jetzt eine fail-closed Referenz fuer alle 40 im
-Dockerfile ausdruecklich angeforderten Debian-Pakete sowie
-target_image_sbom.py. Das Werkzeug arbeitet offline: Es akzeptiert nur einen
-Basisnamen mit @sha256:..., eine konkrete lokale Image-ID, eine eindeutige
-fuenfspaltige dpkg-query-Inventur und fuer jedes installierte Paket eine
-begrenzte regulaere Copyright-Datei. Fehlende Pflichtpakete, Duplikate, Links,
-fremde Architekturen oder veraenderte Referenzen brechen ab.
+Das Source-Preflight-Image wurde bereits real gebaut und mit den referenzierten
+Paket-/Quell-/Copyright-Identitäten geprüft. Die jeweils geltende Referenz steht
+in `TARGET_IMAGE_REFERENCE.json`; der datierte bestätigte Umfang und der genaue
+Quellcommit stehen im [Release-Status](RELEASE_STATUS.md). Die ältere native
+Hostinventur ist kein Ersatz für diese Zielimage-Daten.
 
-Die Referenz bindet den aktuellen Paketbedarf an den privaten lesenden
-Hostbefund, uebernimmt dessen Versionen aber absichtlich nicht als Zielimage-
-Lock. Erst die spaetere autorisierte Imageerzeugung liefert den tatsaechlichen
-vollstaendigen Paket-, Quellversions- und Copyright-Hashsatz. Auch ein
-erfolgreich verifiziertes Inventar setzt production_approved und
-runtime_approved weiterhin auf false; Engine-, Plugin-, Loader-, TLS-,
-Persistenz- und Restore-Abnahmen bleiben getrennt.
+`target_image_sbom.py` arbeitet offline mit einem unveränderlichen Basisdigest,
+einer konkreten Image-ID, vollständiger Paketliste und begrenzten regulären
+Copyright-Dateien. Fehlende Pflichtpakete, Duplikate, Links, fremde Architekturen
+und veränderte Referenzen werden abgewiesen. Der [gemeinsame Verifikator](IMAGE_EVIDENCE.md)
+bindet den Beleg an seine ursprüngliche Quellprojektion.
+
+Das belegte Image enthält noch keine Engine-Binärdateien und ist kein als Release
+verteiltes Runtime-Image. Engine-/Plugin-/Loader-/Quellenpflichten, vollständige
+Hostbereitstellung und veröffentlichte Pakete bleiben offen. Die Felder
+`production_approved` und `runtime_approved` werden nicht durch Dokumentation
+geändert. Der frische Linux-Test bleibt danach die letzte Systemverifikation.

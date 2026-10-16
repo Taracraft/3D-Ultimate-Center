@@ -38,6 +38,7 @@ SOURCE_PATHS = (
     "Slicer-Server/REPOSITORY_CONTENTS.md",
     "Slicer-Server/REPOSITORY_NOTICES.md",
     "Slicer-Server/REPOSITORY_README.md",
+    "Slicer-Server/RELEASE_STATUS.md",
     "Slicer-Server/RESOURCE_VALIDATION.md",
     "Slicer-Server/RESTRICTED_INSTALLER.md",
     "Slicer-Server/RUNTIME_INSTALLATION.md",
@@ -172,6 +173,7 @@ SOURCE_PATHS = (
     "tests/test_studio_profile_sources.py",
     "tests/test_studio_restricted_installer.py",
     "tests/test_studio_slicer_repository.py",
+    "tests/test_studio_release_documentation.py",
     "tests/test_studio_target_image_sbom.py",
     "tests/test_studio_testserver_package.py",
 )

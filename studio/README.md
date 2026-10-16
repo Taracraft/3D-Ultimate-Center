@@ -369,7 +369,13 @@ Für einen hilfreichen Fehlerbericht genügen der betroffene Bereich, die konkre
 
 Dieses Repository enthält den überprüfbaren Studio-Quellstand mit automatisierten Python-, TypeScript-, Frontend-, Build- und Lieferintegritätsprüfungen. Die Bilder wurden mit dem vorhandenen Puppet-Add-on einer laufenden Home-Assistant-Installation aufgenommen.
 
-**Noch separat erforderlich:** echte saubere Linux-/Compose-Installation, konkrete Engine-Herkunft und Lizenzclosure, TLS, Neustart/Persistenz, Upgrade, Rollback, Backup/Restore sowie frische HA/HACS-, Pilot- und Release-Abnahmen. Eine grüne CI ersetzt diese Schritte nicht.
+**Release noch offen:** Vollständige Host-/Engine-Integration, konkrete Pakete,
+Quellen-/Noticepflichten, erforderliche Funktions-/Bedienabnahmen und tatsächliche
+Veröffentlichungen müssen vor dem Release R geschlossen sein. Erst danach folgt
+V, die frische Linux-/HA-/HACS-Systemverifikation einschließlich TLS, Neustart,
+Persistenz, Upgrade und Restore. Eine produktive Migration bleibt gesondert.
+[Maßgeblicher Release-Status](Slicer-Server/RELEASE_STATUS.md). Eine grüne CI ersetzt
+diese getrennten Abschlüsse nicht.
 
 | Weiterführend | Inhalt |
 | --- | --- |

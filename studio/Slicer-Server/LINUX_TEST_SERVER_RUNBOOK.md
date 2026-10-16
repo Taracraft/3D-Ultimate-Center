@@ -17,13 +17,17 @@ vor. Es ist keine Anweisung zur Änderung des aktuellen Live-Systems.
 
 ## Reihenfolge vor dem Testserver
 
-Zuerst die unabhaengig ausfuehrbaren Quellen, Tests, Dokumentation und
-Auslieferungsdateien fertigstellen. Danach den geprueften, sicheren Projektstand
-im bestehenden GitHub-Repository mit ausschliesslich main bereitstellen und
-Commit, Dateimanifest und CI remote verifizieren. Erst danach beginnt der
-manuelle Testserverlauf per git clone. Ein GitHub-Teststand ist keine
-Public-Release-, Engine- oder Betriebsfreigabe. Secrets, private Backups und
-Brain-/Checkpointdaten gehoeren nicht in die Lieferung.
+Der letzte frische Testserverlauf ist Meilenstein V **nach** dem vollständigen
+Release R. Zuerst alle aktiven Funktionen, unterstützte Hostintegration,
+konkreten Enginepakete, Quellen-/Noticepflichten, Installationspakete,
+Dokumentation und Veröffentlichungen abschließen. Nicht nur einen GitHub-
+Quellkandidaten bereitstellen. Danach den unveränderten veröffentlichten Stand
+mit Commit, Paket-/Image-/Dateiprüfsummen und genauer CI am Ziel prüfen.
+
+Der [Release-Status](RELEASE_STATUS.md) und die [Abnahmematrix](wiki/Release-Abnahme.md)
+beschreiben die vollständige Reihenfolge. Es werden keine unveröffentlichten
+Hilfsdateien nachgeschoben. Secrets, private Backups und interne Kontinuitätsdaten
+gehören nicht in die öffentliche Lieferung. Live-Migration bleibt separat.
 
 ## Erzeugtes Testserverpaket
 
@@ -235,7 +239,9 @@ Exitcode 0 bedeutet vollständige Testserverabnahme aller zehn Phasen.
 Exitcode 2 bedeutet gültigen, aber unvollständigen oder blockierten Nachweis.
 Exitcode 1 bedeutet ungültiges beziehungsweise unsicheres Ergebnis. Auch bei
 vollständiger Testserverabnahme bleibt `container_deploy_ready=false`, weil
-Engine-/Lizenzclosure, HACS, Pilot und Public Release eigene Gates sind.
+der Systemprüfer keine Engine-/Lizenz-, Release- oder Produktivfreigabe erteilt.
+R muss bereits zuvor separat belegt sein; V bestätigt die echte Zielinstallation.
+Ein produktiver Pilot oder eine Migration wird nicht automatisch gestartet.
 
 Nur die abschließende kompakte JSON-Ausgabe und die Evidence-Datei dürfen
 zurückgegeben werden. Keine Rohlogs, Token, Secrets, privaten Schlüssel,
