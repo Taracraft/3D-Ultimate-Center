@@ -25,6 +25,7 @@ import { createPrimitiveGeometry, firstLayerParameters, type PrimitiveKind } fro
 import { firstLayerProcessOptions } from "./first-layer-process.js";
 import { ProfileApi, type StudioProfile, type StudioProfileCatalog } from "./profile-api.js";
 import { bestFlatRotation, positionCenteredOnPlate, positionOnBed } from "./mesh-export.js";
+import { arrangePlateInstances } from "./studio-arrangement.js";
 import { measureMeshInstances, mirrorMeshGeometry, type StudioMirrorAxis } from "./studio-mesh-tools.js";
 import { analyzeMeshGeometry, repairMeshGeometry, type MeshRepairReport } from "./studio-mesh-repair.js";
 import { previewMeshPlaneSplit, type MeshPlaneSplitPreview, type MeshSplitAxis } from "./studio-mesh-split.js";
@@ -273,7 +274,11 @@ function newPlate(
     width,
     depth,
     instances: [],
-    selection: { ...selection, filament_profile_ids: [...selection.filament_profile_ids] },
+    selection: {
+      ...selection,
+      filament_profile_ids: [...selection.filament_profile_ids],
+      ...(selection.gcode_preset_ids ? { gcode_preset_ids: { ...selection.gcode_preset_ids } } : {}),
+    },
     materialSource,
     externalFilamentProfileId,
     stage: "prepared",
@@ -2947,29 +2952,24 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
 
   #arrange(): void {
     const plate = this.#plate();
-    const items = plate.instances;
-    if (!items.length) return;
-    const columns = Math.ceil(Math.sqrt(items.length));
-    const rows = Math.ceil(items.length / columns);
-    const margin = 12;
-    const gap = 8;
-    const cellWidth = (plate.width - margin * 2 - gap * (columns - 1)) / columns;
-    const cellDepth = (plate.depth - margin * 2 - gap * (rows - 1)) / rows;
-    plate.instances = items.map((item, index) => {
-      const width = Math.max(.001, item.geometry.boundsMax[0] - item.geometry.boundsMin[0]);
-      const depth = Math.max(.001, item.geometry.boundsMax[1] - item.geometry.boundsMin[1]);
-      const factor = Math.min(1, (cellWidth - 4) / width, (cellDepth - 4) / depth);
-      const scale: Vec3 = [factor, factor, factor];
-      const column = index % columns;
-      const row = Math.floor(index / columns);
-      const position: Vec3 = [
-        margin + column * (cellWidth + gap) + cellWidth / 2,
-        margin + row * (cellDepth + gap) + cellDepth / 2,
-        0,
-      ];
-      return { ...item, scale, position: positionOnBed(item.geometry, { ...item, scale, position }) };
-    });
-    this.#invalidatePlate(plate);
+    if (!plate.instances.length) return;
+    const result = arrangePlateInstances(plate.instances, plate.width, plate.depth);
+    if (!result.ok) {
+      this.#status = result.reason === "no_space"
+        ? "Kein passender Platz gefunden. Modelle und ihre Abmessungen bleiben unverändert."
+        : result.reason === "complexity_limit"
+          ? "Die Anordnung ist zu umfangreich. Modelle bleiben unverändert; bitte auf weitere Platten verteilen."
+          : "Ungültige Platten- oder Modelldaten. Modelle wurden nicht angeordnet.";
+      this.#audit("plate_arrangement_rejected", "info", { reason: result.reason, object_count: plate.instances.length });
+      this.#renderStatus();
+      return;
+    }
+    if (result.movedCount > 0) {
+      plate.instances = result.instances;
+      this.#invalidatePlate(plate);
+    }
+    this.#status = `${plate.instances.length} Modell(e) angeordnet. Skalierung und Drehung bleiben erhalten.`;
+    this.#audit("plate_arranged", "success", { object_count: plate.instances.length, moved_count: result.movedCount });
     this.#renderFull();
   }
 

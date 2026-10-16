@@ -2,11 +2,11 @@
   "schema_version": 3,
   "product": "Ultimate 3D Printing Studio",
   "version": "6.0.0",
-  "build_id": "c1021a5e2b",
+  "build_id": "846ffb7a98",
   "entry": "frontend/studio-entry.ts",
   "output": "deploy/homeassistant/www/3d-studio/ultimate-3d-studio.js",
-  "size_bytes": 673443,
-  "sha256": "0a506544901467a2f7c70d48af0043d9c78b6578bd83ec4b21b85f659a3a881e",
+  "size_bytes": 677078,
+  "sha256": "3cfb1b2c67458726fa537f501fc0187175340a8042578a84b84ec4cf661a01f9",
   "css": {
     "output": "deploy/homeassistant/www/3d-studio/ultimate-3d-studio.css",
     "size_bytes": 801,
@@ -29,7 +29,7 @@
     "target": "es2022",
     "minified": true,
     "sourcemap": false,
-    "bundled_input_count": 131,
+    "bundled_input_count": 132,
     "inputs": [
       "frontend/ams-workspace.ts",
       "frontend/api-client.ts",
@@ -118,6 +118,7 @@
       "frontend/storage-workspace-style.ts",
       "frontend/studio-action-dialog.ts",
       "frontend/studio-api.ts",
+      "frontend/studio-arrangement.ts",
       "frontend/studio-build-plates.ts",
       "frontend/studio-context-menu.ts",
       "frontend/studio-direct-print-strip.ts",
@@ -176,5 +177,5 @@
       "__transformMountPatched"
     ]
   },
-  "built_at": "2026-10-16T09:53:50.706Z"
+  "built_at": "2026-10-16T16:22:50.908Z"
 }

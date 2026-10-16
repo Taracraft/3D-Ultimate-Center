@@ -52,7 +52,14 @@ function numeric(payload: Readonly<Record<string, unknown>>, keys: readonly stri
 }
 
 function surfaceFrom(profile: StudioProfile): StudioBuildPlateVisual["surface"] {
-  const payloadSurface = String(profile.payload.surface || "").toLowerCase();
+  const payloadSurface = String(profile.payload.surface || "").trim().toLowerCase();
+  const explicitSurfaces: readonly StudioBuildPlateVisual["surface"][] = [
+    "cool", "engineering", "high_temp", "smooth", "textured", "smooth_cool", "textured_cool", "supertack", "custom",
+  ];
+  // A known explicit surface is authoritative; profile display names are not.
+  if (explicitSurfaces.includes(payloadSurface as StudioBuildPlateVisual["surface"])) {
+    return payloadSurface as StudioBuildPlateVisual["surface"];
+  }
   const text = `${profile.id} ${profile.name} ${payloadSurface}`.toLowerCase();
   if (text.includes("supertack") || text.includes("super tack")) return "supertack";
   if (text.includes("textured cool") || text.includes("strukturierte cool")) return "textured_cool";

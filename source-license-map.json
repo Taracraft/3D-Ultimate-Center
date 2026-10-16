@@ -1,6 +1,6 @@
 {
   "custom_terms_do_not_replace_inherited_or_third_party_rights": true,
-  "delivered_paths": 1098,
+  "delivered_paths": 1100,
   "derived_profile_modification_notice_date": "2026-10-15",
   "files": [
     {
@@ -2362,9 +2362,9 @@
     },
     {
       "identity": {
-        "bytes": 6835,
+        "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "ec54551ba68359c0895ebaec3237de115b5b87d1be5c3cff26e35c47985a53f1"
+        "sha256": "722d24268f8d2a6efefcef43dd922beafe0bdfadcde8d6eca14a417e756a5b98"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -2388,9 +2388,9 @@
     },
     {
       "identity": {
-        "bytes": 673443,
+        "bytes": 677078,
         "kind": "sha256-raw-bytes",
-        "sha256": "0a506544901467a2f7c70d48af0043d9c78b6578bd83ec4b21b85f659a3a881e"
+        "sha256": "3cfb1b2c67458726fa537f501fc0187175340a8042578a84b84ec4cf661a01f9"
       },
       "notice_class": "generated-frontend-bundle",
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio.js",
@@ -7109,9 +7109,9 @@
     },
     {
       "identity": {
-        "bytes": 6835,
+        "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "ec54551ba68359c0895ebaec3237de115b5b87d1be5c3cff26e35c47985a53f1"
+        "sha256": "722d24268f8d2a6efefcef43dd922beafe0bdfadcde8d6eca14a417e756a5b98"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -7135,9 +7135,9 @@
     },
     {
       "identity": {
-        "bytes": 673443,
+        "bytes": 677078,
         "kind": "sha256-raw-bytes",
-        "sha256": "0a506544901467a2f7c70d48af0043d9c78b6578bd83ec4b21b85f659a3a881e"
+        "sha256": "3cfb1b2c67458726fa537f501fc0187175340a8042578a84b84ec4cf661a01f9"
       },
       "notice_class": "generated-frontend-bundle",
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio.js",
@@ -7535,6 +7535,19 @@
         "LICENSE"
       ],
       "source_path": "frontend-tests/storage-upgrade.test.ts"
+    },
+    {
+      "identity": {
+        "bytes": 25730,
+        "kind": "sha256-raw-bytes",
+        "sha256": "3e040d41422b9aa7e6977bc7515496546963c2994393fae2178e4b75ca9d6ab8"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "studio/frontend-tests/studio-plate-workflows.test.ts",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "frontend-tests/studio-plate-workflows.test.ts"
     },
     {
       "identity": {
@@ -9579,9 +9592,22 @@
     },
     {
       "identity": {
-        "bytes": 6343,
+        "bytes": 8229,
         "kind": "sha256-raw-bytes",
-        "sha256": "17e7bde57c41a90764b267b21a6648a51c1236eec47f8572600f28853da95758"
+        "sha256": "25329c34aec714ddb98893c26122e70274426016d13016ac8e6ee9e2a171b44b"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "studio/frontend/studio-arrangement.ts",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "frontend/studio-arrangement.ts"
+    },
+    {
+      "identity": {
+        "bytes": 6782,
+        "kind": "sha256-raw-bytes",
+        "sha256": "c9a3028587f50a7f289894cabc344f21427139d8f5494ff6a3ed740fd88fb8d4"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/frontend/studio-build-plates.ts",
@@ -9709,9 +9735,9 @@
     },
     {
       "identity": {
-        "bytes": 245259,
+        "bytes": 245354,
         "kind": "sha256-raw-bytes",
-        "sha256": "252b8aa024295dd2f7f2c23b2a7e27897d7e8af2bb035867c43d5f905ab1e571"
+        "sha256": "e21785741cdebba1c6194a49b386b02bbdc2fa4fad87cdc7ab0d54bb69b2d3d0"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/frontend/studio-mega-workspace-v2.ts",
@@ -14383,7 +14409,7 @@
   "production_approved": false,
   "schema": 2,
   "scope": "file-specific notice inventory for this source-only Git delivery; no engine/image or production approval",
-  "source_files": 913,
+  "source_files": 915,
   "upstream": {
     "commit": "42d319c6692fa8e64790fddf0cdaafd2a4254bcc",
     "derived_source_paths": [
