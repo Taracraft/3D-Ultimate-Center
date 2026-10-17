@@ -13,5 +13,7 @@
   "version": "6.0.0",
   "after_dependencies": [
     "hassio"
-  ]
+  ],
+  "documentation": "https://github.com/Taracraft/3D-Ultimate-Center",
+  "issue_tracker": "https://github.com/Taracraft/3D-Ultimate-Center/issues"
 }

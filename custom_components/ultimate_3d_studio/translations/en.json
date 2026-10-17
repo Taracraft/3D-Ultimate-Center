@@ -1,0 +1,179 @@
+{
+  "title": "Ultimate 3D Studio",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Ultimate 3D Studio",
+        "description": "Creates a fully isolated Studio test runtime.",
+        "data": {
+          "instance_name": "Test instance name"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "The Studio test integration is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure printer and Bambu account",
+        "description": "The LAN provider connects directly to the printer. Optional account sign-in makes your filament, print and machine profiles and MakerWorld available in Studio. Start cloud profile synchronization manually under Profiles. The password is used only for this sign-in and is not stored. If a token already exists, password and email remain optional. Current token status: {cloud_token_status}. LAN access code: {lan_code_status}. Slicer key status: {slicer_secret_status}. Connection check: {slicer_connection_status}.",
+        "data": {
+          "lan_enabled": "Enable Bambu LAN provider",
+          "printer_name": "Printer display name",
+          "host": "IP address or hostname",
+          "serial": "Serial number",
+          "access_code": "LAN access code",
+          "tls_insecure": "Accept self-signed printer certificate",
+          "cloud_enabled": "Enable Bambu account access",
+          "cloud_profile_sync": "Allow cloud profile synchronization under Profiles",
+          "cloud_region": "Bambu account region",
+          "cloud_email": "Bambu account email address",
+          "password": "Bambu account password for one-time sign-in",
+          "slicer_enabled": "Use separate Linux slicer",
+          "slicer_base_url": "Slicer server address (HTTPS)",
+          "slicer_api_secret": "Slicer API secret (will not be shown again)",
+          "slicer_connection_test": "Check slicer connection (without saving)",
+          "slicer_installer_setup": "Set up slicer: Supervisor app or external server (do not save other changes)"
+        }
+      },
+      "cloud_code": {
+        "title": "Bambu email verification",
+        "description": "Bambu sent a verification code to the account email address. The code is used only for this sign-in.",
+        "data": {
+          "verification_code": "Verification code"
+        }
+      },
+      "installer_action": {
+        "title": "Slicer setup and recovery",
+        "description": "State: {state}. Reason: {reason}. Running operation: {active}. Only a securely provisioned host is supported. Installation activates paused; no print job is released. Closing this dialog does not stop a host operation. Use Status or Cancel after reopening. Server URL and API secret remain in the existing settings until a separate secure handoff is implemented.",
+        "data": {
+          "operation": "Action"
+        }
+      },
+      "installer_confirm": {
+        "title": "Confirm installer action",
+        "description": "Requested operation: {operation}. This may change the configured host. Data and previous generations are retained. Resume releases the maintenance barrier and can allow already queued work; choose it only after checking those jobs. No printer command is sent by this dialog.",
+        "data": {
+          "confirm": "Execute this action"
+        }
+      },
+      "slicer_installation": {
+        "title": "Choose slicer installation route",
+        "description": "Supervisor manages the app package. An independent Compose slicer remains usable through its secure server connection. The old host installer is only for explicitly provisioned hosts.",
+        "menu_options": {
+          "slicer_supervisor": "Inspect and install Supervisor app",
+          "slicer_external": "Connect external slicer (Docker Compose)",
+          "slicer_host_legacy": "Open existing provisioned host installer"
+        }
+      },
+      "slicer_external": {
+        "title": "Connect external slicer"
+      },
+      "slicer_host_legacy": {
+        "title": "Provisioned host installer"
+      },
+      "slicer_supervisor": {
+        "title": "Provision Supervisor app",
+        "description": "Verified management state: {state}. Installation and startup are separate. This flow does not start an app, show credentials or replace existing settings. A running container alone proves neither connectivity nor slicing.",
+        "data": {
+          "operation": "Action"
+        }
+      },
+      "slicer_supervisor_confirm": {
+        "title": "Confirm app installation",
+        "description": "Install only the server-owned reviewed app package. No startup, update, removal or print job. Closing this dialog does not stop an operation already sent to Supervisor.",
+        "data": {
+          "confirm": "Explicitly perform installation"
+        }
+      },
+      "slicer_supervisor_reconcile": {
+        "title": "Reconcile interrupted setup",
+        "description": "Update only the local setup receipt to match the rechecked existing stopped app. No installation, startup or deletion. The original operation outcome remains unknown. Active Supervisor jobs, differing versions or ambiguous data block reconciliation.",
+        "data": {
+          "confirm": "Adopt current state after rechecking"
+        }
+      }
+    },
+    "error": {
+      "required": "This field is required for the enabled feature.",
+      "invalid_auth": "Bambu sign-in or verification code was rejected.",
+      "cannot_connect": "Bambu Cloud is currently unavailable.",
+      "invalid_slicer_url": "Invalid slicer server address. Do not enter credentials in the URL.",
+      "slicer_https_required": "Remote slicer servers require HTTPS; HTTP is allowed only on loopback.",
+      "invalid_slicer_secret": "The slicer key must contain at least 32 valid characters.",
+      "slicer_not_configured": "Enable the slicer and enter its connection details first.",
+      "slicer_auth_required": "The slicer rejected the API key.",
+      "slicer_incompatible": "The slicer info API is incompatible or incomplete.",
+      "slicer_redirect_refused": "The slicer returned an unsafe redirect.",
+      "slicer_unavailable": "The slicer is unavailable or returned an invalid response.",
+      "slicer_certificate_error": "The slicer TLS certificate could not be verified.",
+      "installer_invalid_action": "Invalid installer action.",
+      "installer_busy": "An installer mutation is still running. Status and Cancel remain available.",
+      "installer_operation_failed": "The operation was not confirmed. Check the displayed reason; no automatic retry was started.",
+      "installer_host_blocked": "Host prerequisites or engine releases are not ready.",
+      "supervisor_forbidden": "Only an active Home Assistant administrator may perform this operation.",
+      "supervisor_supervisor_unavailable": "Supervisor is unavailable. Use the external connection route for an independent Compose slicer.",
+      "supervisor_app_release_unavailable": "No reviewed Supervisor app package is configured yet. Nothing was installed. Engine and isolation evidence is still required.",
+      "supervisor_app_release_changed": "The reviewed app reference changed during the operation.",
+      "supervisor_app_reference_invalid": "The server-owned app reference is invalid.",
+      "supervisor_app_not_available": "The reviewed app package is unavailable on this platform.",
+      "supervisor_app_identity_changed": "The app or repository does not match the reviewed identity.",
+      "supervisor_app_policy_mismatch": "The app configuration does not meet the required safeguards. No fallback was used.",
+      "supervisor_app_version_mismatch": "The app or store version differs from the reviewed release.",
+      "supervisor_app_response_invalid": "The app state could not be verified unambiguously.",
+      "supervisor_app_confirmation_required": "Installation requires explicit confirmation.",
+      "supervisor_app_busy": "An app operation is already running. Do not repeat installation.",
+      "supervisor_app_closed": "This setup session belongs to an unloaded integration.",
+      "supervisor_app_operation_failed": "The Supervisor operation could not be confirmed.",
+      "supervisor_app_reconciliation_required": "Installation state is uncertain or inconsistent. Inspect the Supervisor operation and existing app first. No automatic retry or removal.",
+      "supervisor_app_storage_failed": "The private operation state could not be reliably saved or read.",
+      "supervisor_app_jobs_active": "Supervisor jobs remain active or their completion is unknown. No state was adopted.",
+      "supervisor_app_jobs_invalid": "The Supervisor job listing is incomplete, invalid or too large for safe reconciliation.",
+      "supervisor_app_recovery_changed": "App, jobs or setup receipt changed during verification. No automatic retry."
+    },
+    "abort": {
+      "cloud_login_expired": "Bambu sign-in has expired. Open the options again.",
+      "installer_integration_unavailable": "The Studio integration is not loaded. Existing settings were not changed."
+    },
+    "progress": {
+      "installer_working": "Checking or processing the selected installer operation. No duplicate request is started on page refresh.",
+      "supervisor_app_working": "Inspecting or provisioning Supervisor app. An uncertain outcome is not automatically retried."
+    }
+  },
+  "selector": {
+    "cloud_region": {
+      "options": {
+        "global": "Global / Europe",
+        "china": "China"
+      }
+    },
+    "installer_operation": {
+      "options": {
+        "install": "Set up: check, prepare and activate paused",
+        "preflight": "Check prerequisites",
+        "status": "Inspect current operation",
+        "cancel": "Cancel running download",
+        "retry": "Retry failed download",
+        "activate": "Activate prepared components paused",
+        "rollback": "Restore previous installation",
+        "resume": "Release maintenance after verification",
+        "recover_stage": "Reconcile interrupted preparation",
+        "recover_retry": "Reconcile interrupted retry",
+        "recover_activation": "Adopt uncertain activation",
+        "recover_rollback": "Roll back uncertain activation",
+        "finish": "Return to unchanged settings",
+        "configure_connection": "Apply the protected slicer connection"
+      }
+    },
+    "supervisor_app_operation": {
+      "options": {
+        "status": "Inspect status",
+        "install": "Install without starting",
+        "back": "Back to route selection",
+        "reconcile": "Reconcile existing stopped app"
+      }
+    }
+  }
+}

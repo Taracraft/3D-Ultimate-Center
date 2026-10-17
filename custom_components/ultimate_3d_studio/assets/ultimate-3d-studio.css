@@ -1,0 +1,39 @@
+:host {
+  --studio-layer-background: 0;
+  --studio-layer-scene: 10;
+  --studio-layer-selection: 20;
+  --studio-layer-gizmos: 30;
+  --studio-layer-overlay: 40;
+  --studio-layer-toolbar: 50;
+  --studio-layer-drawer: 60;
+  --studio-layer-popover: 70;
+  --studio-layer-modal-backdrop: 80;
+  --studio-layer-modal: 90;
+  --studio-layer-notification: 100;
+}
+
+.studio-shell {
+  position: relative;
+  min-height: 720px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.studio-shell__workspace {
+  position: relative;
+  z-index: var(--studio-layer-background);
+  min-height: 640px;
+}
+
+.studio-shell__navigation {
+  position: sticky;
+  top: 0;
+  z-index: var(--studio-layer-toolbar);
+}
+
+.studio-shell__notifications {
+  position: fixed;
+  inset: 1rem 1rem auto auto;
+  z-index: var(--studio-layer-notification);
+}
+

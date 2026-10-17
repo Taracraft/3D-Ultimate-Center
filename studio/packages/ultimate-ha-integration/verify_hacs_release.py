@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+from contextlib import contextmanager
 from hashlib import sha256
 import json
 import math
@@ -63,16 +64,64 @@ def _json(raw: bytes) -> dict:
     return result
 
 
+def _linked(path: Path) -> bool:
+    return path.is_symlink() or getattr(path, "is_junction", lambda: False)()
+
+
+def _identity(value):
+    return value.st_dev, value.st_ino, value.st_size, value.st_mtime_ns, value.st_ctime_ns
+
+
+@contextmanager
+def _regular_file(path: Path, limit: int):
+    if _linked(path):
+        raise HacsReleaseError("linked input is not accepted")
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NONBLOCK", 0) | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(path, flags)
+    try:
+        info = os.fstat(descriptor)
+        if not stat.S_ISREG(info.st_mode) or not 0 <= info.st_size <= limit:
+            raise HacsReleaseError("input size or file type rejected")
+        stream = os.fdopen(descriptor, "rb")
+        descriptor = None
+        with stream:
+            yield stream
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+
+
 def _metadata(path: Path) -> dict:
-    if path.is_symlink():
-        raise HacsReleaseError("linked metadata is not accepted")
-    with path.open("rb") as stream:
-        if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
-            raise HacsReleaseError("regular metadata file required")
+    with _regular_file(path, MAX_METADATA_BYTES) as stream:
+        before = os.fstat(stream.fileno())
         raw = stream.read(MAX_METADATA_BYTES + 1)
+        if _identity(before) != _identity(os.fstat(stream.fileno())):
+            raise HacsReleaseError("metadata changed during verification")
     if len(raw) > MAX_METADATA_BYTES:
         raise HacsReleaseError("metadata exceeds size limit")
     return _json(raw)
+
+
+def _repository_members(root: Path):
+    pending = [(root, 0)]
+    count = 0
+    while pending:
+        directory, depth = pending.pop()
+        if depth > 16:
+            raise HacsReleaseError("repository directory depth exceeds limit")
+        with os.scandir(directory) as entries:
+            for entry in entries:
+                count += 1
+                if count > MAX_ENTRIES:
+                    raise HacsReleaseError("too many repository entries")
+                path = Path(entry.path)
+                if entry.is_symlink() or _linked(path):
+                    raise HacsReleaseError("linked repository member")
+                if entry.is_dir(follow_symlinks=False):
+                    _name(path.relative_to(root).as_posix())
+                    pending.append((path, depth + 1))
+                else:
+                    yield path
 
 
 def _name(name: str, *, directory: bool = False) -> str:
@@ -131,10 +180,7 @@ def _imports(payloads: dict[str, bytes]) -> int:
     return count
 
 
-def verify_release(archive: Path, hacs: dict, expected_files: dict[str, str], *,
-                   expected_version: str, expected_build_id: str,
-                   expected_archive_sha256: str) -> dict:
-    """Verify externally pinned bytes; success is not installation approval."""
+def _configuration(hacs: dict) -> str:
     if not isinstance(hacs, dict) or hacs.get("zip_release") is not True:
         raise HacsReleaseError("zip_release must be explicitly true")
     if not isinstance(hacs.get("name"), str) or not hacs["name"].strip() or hacs.keys() - HACS_KEYS:
@@ -145,23 +191,40 @@ def verify_release(archive: Path, hacs: dict, expected_files: dict[str, str], *,
     filename = hacs.get("filename")
     if not isinstance(filename, str) or _name(filename) != filename or "/" in filename or not filename.endswith(".zip"):
         raise HacsReleaseError("safe release filename required")
-    if archive.name != filename:
-        raise HacsReleaseError("archive filename does not match hacs.json")
-    if not isinstance(expected_version, str) or not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?", expected_version):
+    return filename
+
+
+def _expected_inventory(expected_files: dict[str, str], version: str, build_id: str) -> None:
+    if not isinstance(version, str) or not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?", version):
         raise HacsReleaseError("invalid expected version")
-    if not isinstance(expected_build_id, str) or not re.fullmatch(r"[a-f0-9]{10}", expected_build_id):
+    if not isinstance(build_id, str) or not re.fullmatch(r"[a-f0-9]{10}", build_id):
         raise HacsReleaseError("invalid expected build identity")
-    if not isinstance(expected_archive_sha256, str) or not re.fullmatch(r"[a-f0-9]{64}", expected_archive_sha256):
-        raise HacsReleaseError("archive must have an external SHA-256 pin")
     if not isinstance(expected_files, dict) or not REQUIRED <= expected_files.keys():
         raise HacsReleaseError("reviewed member inventory missing required files")
     for name, digest in expected_files.items():
         if _name(name) != name or not isinstance(digest, str) or not re.fullmatch(r"[a-f0-9]{64}", digest):
             raise HacsReleaseError("invalid reviewed member inventory")
+        if name.startswith("assets/"):
+            if name not in {"assets/" + asset for asset in ASSETS}:
+                raise HacsReleaseError("unexpected frontend asset")
+        elif PurePosixPath(name).suffix not in (".py", ".json", ".yaml", ".yml") or any(p.startswith(".") or p == "__pycache__" for p in PurePosixPath(name).parts):
+            raise HacsReleaseError("forbidden integration file")
+
+
+def verify_release(archive: Path, hacs: dict, expected_files: dict[str, str], *,
+                   expected_version: str, expected_build_id: str,
+                   expected_archive_sha256: str) -> dict:
+    """Verify externally pinned bytes; success is not installation approval."""
+    filename = _configuration(hacs)
+    if archive.name != filename:
+        raise HacsReleaseError("archive filename does not match hacs.json")
+    _expected_inventory(expected_files, expected_version, expected_build_id)
+    if not isinstance(expected_archive_sha256, str) or not re.fullmatch(r"[a-f0-9]{64}", expected_archive_sha256):
+        raise HacsReleaseError("archive must have an external SHA-256 pin")
     if archive.is_symlink():
         raise HacsReleaseError("linked archive is not accepted")
     try:
-        with archive.open("rb") as stream:
+        with _regular_file(archive, MAX_ARCHIVE_BYTES) as stream:
             before = os.fstat(stream.fileno())
             if not stat.S_ISREG(before.st_mode) or not 0 < before.st_size <= MAX_ARCHIVE_BYTES:
                 raise HacsReleaseError("archive size or file type rejected")
@@ -237,6 +300,13 @@ def verify_release(archive: Path, hacs: dict, expected_files: dict[str, str], *,
                 raise HacsReleaseError("archive changed during verification")
     except (OSError, zipfile.BadZipFile, RuntimeError, NotImplementedError, EOFError, zlib.error):
         raise HacsReleaseError("archive could not be verified") from None
+    result = _verify_payloads(payloads, expected_version, expected_build_id)
+    result.update({"archive_sha256": expected_archive_sha256, "expanded_bytes": total,
+                   "artifact_contract_verified": True, "repository_structure_verified": False})
+    return result
+
+
+def _verify_payloads(payloads: dict[str, bytes], expected_version: str, expected_build_id: str) -> dict:
     manifest = _json(payloads["manifest.json"])
     build = _json(payloads["assets/" + ASSETS[2]])
     if not isinstance(manifest.get("name"), str) or not manifest["name"].strip() or not isinstance(manifest.get("codeowners"), list) or not all(isinstance(owner, str) and owner for owner in manifest["codeowners"]):
@@ -265,27 +335,89 @@ def verify_release(archive: Path, hacs: dict, expected_files: dict[str, str], *,
         if name.endswith(".json"):
             _json(raw)
     return {"integration": DOMAIN, "version": expected_version, "build_id": expected_build_id,
-            "archive_sha256": expected_archive_sha256, "files": len(payloads),
-            "expanded_bytes": total, "relative_imports_verified": _imports(payloads),
-            "artifact_contract_verified": True, "installation_verified": False,
-            "repository_structure_verified": False,
+            "files": len(payloads), "relative_imports_verified": _imports(payloads),
+            "installation_verified": False,
             "publication_approved": False, "product_release_complete": False}
+
+
+def verify_repository(root: Path, expected_files: dict[str, str], *,
+                      expected_version: str, expected_build_id: str) -> dict:
+    """Read a full normal HACS source projection; never creates package files."""
+    _expected_inventory(expected_files, expected_version, expected_build_id)
+    if _linked(root) or not root.is_dir():
+        raise HacsReleaseError("invalid repository root")
+    hacs = _metadata(root / "hacs.json")
+    filename = _configuration(hacs)
+    # The selected Studio monorepo deliberately uses the documented normal
+    # layout. content_in_root is a different repository projection contract.
+    if hacs.get("content_in_root", False) is not False:
+        raise HacsReleaseError("normal custom_components repository layout required")
+    components = root / "custom_components"
+    integration = components / DOMAIN
+    if _linked(components) or _linked(integration) or not integration.is_dir():
+        raise HacsReleaseError("HACS root integration directory missing")
+    with os.scandir(components) as entries:
+        first = next(entries, None)
+        if first is None or first.name != DOMAIN or next(entries, None) is not None:
+            raise HacsReleaseError("repository must expose exactly one HACS integration")
+    payloads = {}
+    total = 0
+    try:
+        seen = set()
+        for path in _repository_members(integration):
+            name = _name(path.relative_to(integration).as_posix())
+            if name.casefold() in seen or name not in expected_files:
+                raise HacsReleaseError("unexpected or aliased repository member")
+            seen.add(name.casefold())
+            with _regular_file(path, MAX_MEMBER_BYTES) as stream:
+                before = os.fstat(stream.fileno())
+                if not stat.S_ISREG(before.st_mode) or not 0 <= before.st_size <= MAX_MEMBER_BYTES:
+                    raise HacsReleaseError("repository member size or type rejected")
+                raw = stream.read(MAX_MEMBER_BYTES + 1)
+                after = os.fstat(stream.fileno())
+                if _identity(before) != _identity(after) or len(raw) != before.st_size:
+                    raise HacsReleaseError("repository member changed during verification")
+            total += len(raw)
+            if total > MAX_TOTAL_BYTES or sha256(raw).hexdigest() != expected_files[name]:
+                raise HacsReleaseError("repository differs from reviewed source inventory")
+            payloads[name] = raw
+        actual = {p.relative_to(integration).as_posix() for p in _repository_members(integration)}
+        if actual != payloads.keys() or payloads.keys() != expected_files.keys():
+            raise HacsReleaseError("repository source inventory changed or incomplete")
+        if _metadata(root / "hacs.json") != hacs:
+            raise HacsReleaseError("repository configuration changed during verification")
+    except OSError:
+        raise HacsReleaseError("repository could not be verified") from None
+    result = _verify_payloads(payloads, expected_version, expected_build_id)
+    result.update({"repository_structure_verified": True, "expanded_bytes": total,
+                   "release_filename": filename, "release_asset_verified": False})
+    return result
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--archive", type=Path, required=True)
-    parser.add_argument("--hacs-json", type=Path, required=True)
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--archive", type=Path)
+    mode.add_argument("--repository-root", type=Path)
+    parser.add_argument("--hacs-json", type=Path)
     parser.add_argument("--expected-files-json", type=Path, required=True)
     parser.add_argument("--version", required=True)
     parser.add_argument("--build-id", required=True)
-    parser.add_argument("--sha256", required=True)
+    parser.add_argument("--sha256")
     args = parser.parse_args()
     try:
-        result = verify_release(args.archive, _metadata(args.hacs_json),
-                                _metadata(args.expected_files_json),
-                                expected_version=args.version, expected_build_id=args.build_id,
-                                expected_archive_sha256=args.sha256)
+        if args.repository_root:
+            if args.hacs_json is not None or args.sha256 is not None:
+                raise HacsReleaseError("archive-only arguments in repository mode")
+            result = verify_repository(args.repository_root, _metadata(args.expected_files_json),
+                                       expected_version=args.version, expected_build_id=args.build_id)
+        else:
+            if args.hacs_json is None or args.sha256 is None:
+                raise HacsReleaseError("archive configuration and SHA-256 pin required")
+            result = verify_release(args.archive, _metadata(args.hacs_json),
+                                    _metadata(args.expected_files_json),
+                                    expected_version=args.version, expected_build_id=args.build_id,
+                                    expected_archive_sha256=args.sha256)
     except (HacsReleaseError, OSError):
         print(json.dumps({"artifact_contract_verified": False, "error": "hacs_release_contract_rejected"}))
         return 1

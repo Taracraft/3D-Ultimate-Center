@@ -1,6 +1,6 @@
 {
   "custom_terms_do_not_replace_inherited_or_third_party_rights": true,
-  "delivered_paths": 1129,
+  "delivered_paths": 1267,
   "derived_profile_modification_notice_date": "2026-10-15",
   "files": [
     {
@@ -67,6 +67,1778 @@
         "LICENSE"
       ],
       "source_path": null
+    },
+    {
+      "identity": {
+        "bytes": 8133,
+        "kind": "sha256-raw-bytes",
+        "sha256": "78bee60019305385dd816dd5d061d99f3aea8fe40ee7ccb5d4569d153e9ffbe7"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/__init__.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/__init__.py"
+    },
+    {
+      "identity": {
+        "bytes": 17491,
+        "kind": "sha256-raw-bytes",
+        "sha256": "67f453f01a77fab1969505f34395219a4d00ee0a310dea6cdc90b360272d8370"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/a1_filament_catalog.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/a1_filament_catalog.py"
+    },
+    {
+      "identity": {
+        "bytes": 32754,
+        "kind": "sha256-raw-bytes",
+        "sha256": "eecd95a1500a1eac20c722b05ca648eb4c7fe8bbd6c3c9fc60b38e3c151a32dd"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/a1_gcode_defaults.json",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/a1_gcode_defaults.json"
+    },
+    {
+      "identity": {
+        "bytes": 18072,
+        "kind": "sha256-raw-bytes",
+        "sha256": "ce3bcc7d1484822616093663cbf7c062bd12f2c0b3ee9957f7e53fa54db92611"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/api.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/api.py"
+    },
+    {
+      "identity": {
+        "bytes": 585,
+        "kind": "sha256-raw-bytes",
+        "sha256": "ef75fdcdd601870197ca798643950239c9501d6b26ee847f3c29d487ed57a4c9"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/api_studio_commands.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/api_studio_commands.py"
+    },
+    {
+      "identity": {
+        "bytes": 6875,
+        "kind": "sha256-raw-bytes",
+        "sha256": "cf3feefdac01dd1708af798cf79dd9b20cc9d4d7f295796787361ba233fdfe51"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/assets/ultimate-3d-studio-build.json",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json"
+    },
+    {
+      "identity": {
+        "bytes": 801,
+        "kind": "sha256-raw-bytes",
+        "sha256": "0ec340b2b24dca9bdcd9bb5528e9aa7f72e64acf6b83d82f2c81871c0a03901c"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/assets/ultimate-3d-studio.css",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/www/3d-studio/ultimate-3d-studio.css"
+    },
+    {
+      "identity": {
+        "bytes": 677665,
+        "kind": "sha256-raw-bytes",
+        "sha256": "8d89bcf6aa24fde2be9d157292572afb5ad4487054158b717b60416992c3f074"
+      },
+      "notice_class": "generated-frontend-bundle",
+      "path": "custom_components/ultimate_3d_studio/assets/ultimate-3d-studio.js",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/www/3d-studio/ultimate-3d-studio.js"
+    },
+    {
+      "identity": {
+        "bytes": 6000,
+        "kind": "sha256-raw-bytes",
+        "sha256": "ca11b6349d99297013d1a3f33579306d78d4151a461f04c69cf874157e7c2187"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/audit_log.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/audit_log.py"
+    },
+    {
+      "identity": {
+        "bytes": 6749,
+        "kind": "sha256-raw-bytes",
+        "sha256": "c49b6fd7feea641eac9c875a2a7668c11e2de39a199c21ac728118ad996e6e55"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/audit_runtime.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/audit_runtime.py"
+    },
+    {
+      "identity": {
+        "bytes": 4216,
+        "kind": "sha256-raw-bytes",
+        "sha256": "d36a601bc1d39213368e0441fd3322e779c542c7d86cfaf0bd066ca3d5c20af0"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/audit_safety.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/audit_safety.py"
+    },
+    {
+      "identity": {
+        "bytes": 5968,
+        "kind": "sha256-raw-bytes",
+        "sha256": "43ab386e3b55e70ebb4677638f23a17cfd587a34cca8c8e19afa7210ab0e16ab"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/audit_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/audit_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 4912,
+        "kind": "sha256-raw-bytes",
+        "sha256": "dd90e420b56c774d7436b743b574565f3393c88a17d101b130573674c75cf9c7"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/bambu_cloud_auth.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/bambu_cloud_auth.py"
+    },
+    {
+      "identity": {
+        "bytes": 22108,
+        "kind": "sha256-raw-bytes",
+        "sha256": "12be17e03dc3e7aa6447087d465d3a1f5e0c61fd17805fd80c25a72f5a39329a"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/bambu_cloud_profile_sync.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/bambu_cloud_profile_sync.py"
+    },
+    {
+      "identity": {
+        "bytes": 18396,
+        "kind": "sha256-raw-bytes",
+        "sha256": "b9096a70bcf1c2bc487759be7885272ae6a52635c6b9b73af30b2b7536b2da1f"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/bambu_direct_print.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/bambu_direct_print.py"
+    },
+    {
+      "identity": {
+        "bytes": 19317,
+        "kind": "sha256-raw-bytes",
+        "sha256": "a4bbe286316fe9f8d7cdf530f028bb6f7153f28ce28f2a92102a4c9277bcacbf"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/bambu_project_archive.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/bambu_project_archive.py"
+    },
+    {
+      "identity": {
+        "bytes": 4276,
+        "kind": "sha256-raw-bytes",
+        "sha256": "e58fec79a2f5235cf6562b3344dd181a65211a5f2bb1a6013ac0b120c55c17f7"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/binary_sensor.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/binary_sensor.py"
+    },
+    {
+      "identity": {
+        "bytes": 2391,
+        "kind": "sha256-raw-bytes",
+        "sha256": "9d3cb23a9f57970094342a2be156eade11d02aabcb69acf8c2773e46f806cf9c"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/build_plate_contract.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/build_plate_contract.py"
+    },
+    {
+      "identity": {
+        "bytes": 5337,
+        "kind": "sha256-raw-bytes",
+        "sha256": "9d03858e2c34cb1a8dcc8299f716509501a41d1f1aba68b76431fc0031f3b304"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/button.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/button.py"
+    },
+    {
+      "identity": {
+        "bytes": 3911,
+        "kind": "sha256-raw-bytes",
+        "sha256": "d5ce88da306f41e6ba651f37606a6172027a9ed94e94852cb0e937754d0062ac"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/camera.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/camera.py"
+    },
+    {
+      "identity": {
+        "bytes": 6954,
+        "kind": "sha256-raw-bytes",
+        "sha256": "ffca97a3d5cab23fcd5fa2431ec6130500358c764606b6fe9b82deacb17caa0f"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/camera_native.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/camera_native.py"
+    },
+    {
+      "identity": {
+        "bytes": 151,
+        "kind": "sha256-raw-bytes",
+        "sha256": "080fb0ee99b3cdb30c6f70c2cc7e2e79dbb83aaee9621f9c170d0aaea73b1105"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/command_view.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/command_view.py"
+    },
+    {
+      "identity": {
+        "bytes": 6485,
+        "kind": "sha256-raw-bytes",
+        "sha256": "c122a5ac5ef817857ae30dc80234bd5610d5199f9ae2fa941c1c74d016b85b44"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/commands.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/commands.py"
+    },
+    {
+      "identity": {
+        "bytes": 17324,
+        "kind": "sha256-raw-bytes",
+        "sha256": "b275811deb2cc081b6100b1328fc41ff3eca2b43445a451b00106ef77af00389"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/config_flow.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/config_flow.py"
+    },
+    {
+      "identity": {
+        "bytes": 1558,
+        "kind": "sha256-raw-bytes",
+        "sha256": "89a5e807ef0ba630ecba14ce779f799752445e1592208d2347df5630d823aba4"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/const.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/const.py"
+    },
+    {
+      "identity": {
+        "bytes": 19235,
+        "kind": "sha256-raw-bytes",
+        "sha256": "42d25cfad1edd566652ec672d9f4ebaddb159b01842a5814063ad2eedf92a67a"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/curated_local_profiles.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/curated_local_profiles.py"
+    },
+    {
+      "identity": {
+        "bytes": 5569,
+        "kind": "sha256-raw-bytes",
+        "sha256": "fcfa79b896f8c478ffe5f576e7d6a5bdba8a17e6d1c0958c938ab36ba79af01b"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/direct_print_material_plan.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/direct_print_material_plan.py"
+    },
+    {
+      "identity": {
+        "bytes": 10009,
+        "kind": "sha256-raw-bytes",
+        "sha256": "e23443727c5c79e2a578efdfb591b85740426a12b2f4593561940fcfa7136e14"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/direct_print_runtime.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/direct_print_runtime.py"
+    },
+    {
+      "identity": {
+        "bytes": 8722,
+        "kind": "sha256-raw-bytes",
+        "sha256": "4196eb26f6f1a5e2fd72ce54d2657c8aa63aefd04c76fcd4d65011e25c43b62e"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/direct_print_slot_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/direct_print_slot_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 25211,
+        "kind": "sha256-raw-bytes",
+        "sha256": "124858e842729919526dc2ef80d3524f69de5889b4d8733eba036a68cd89bd16"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/direct_print_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/direct_print_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 4158,
+        "kind": "sha256-raw-bytes",
+        "sha256": "20c7623c303ba9dfd67fae7d63f58ce06bdc7d279c1cd444a6a963dcdb7ccfee"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/discovery.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/discovery.py"
+    },
+    {
+      "identity": {
+        "bytes": 14967,
+        "kind": "sha256-raw-bytes",
+        "sha256": "db3a8b7a4ea49773c418a334fd9b7af3dc5a4ee261557130c8aa3396c2fc53c5"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/filament_color_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/filament_color_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 13280,
+        "kind": "sha256-raw-bytes",
+        "sha256": "3ff4b0cc265105e8c3e3ec46c74e2db9ca3665d75c64c55682fe9f14ad0d63f9"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/filament_parameter_contract.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/filament_parameter_contract.py"
+    },
+    {
+      "identity": {
+        "bytes": 8953,
+        "kind": "sha256-raw-bytes",
+        "sha256": "d5509ce8ca3d9e760c327edf682294c9432867c04ac5aaec471ee61c85f8b576"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/filament_profile_mapping.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/filament_profile_mapping.py"
+    },
+    {
+      "identity": {
+        "bytes": 9858,
+        "kind": "sha256-raw-bytes",
+        "sha256": "a35728a923995d3a760319c9f2c56bd47e334a6e8569e4aca2c0a5af56e96930"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/gallery_duplicate_scan.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/gallery_duplicate_scan.py"
+    },
+    {
+      "identity": {
+        "bytes": 4344,
+        "kind": "sha256-raw-bytes",
+        "sha256": "ef7fca6adc8b9b112cfb9299a28b2ecb2d33f9b16a6dcd433bc0c1848ad11735"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/gallery_duplicate_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/gallery_duplicate_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 10854,
+        "kind": "sha256-raw-bytes",
+        "sha256": "8f528fc69b9e45154c9cd7114f029f023a915b62564a920f9779c260d47ea904"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/gallery_management_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/gallery_management_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 21038,
+        "kind": "sha256-raw-bytes",
+        "sha256": "73c14a5c0190d681715245268762137cfe2efbd7c71908e4c7f81e3b4548d2d7"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/gallery_management_views_v2.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/gallery_management_views_v2.py"
+    },
+    {
+      "identity": {
+        "bytes": 17374,
+        "kind": "sha256-raw-bytes",
+        "sha256": "d72587abb678f5ca5df2ef6151bce95d1a0e202badf54896b24b3d87b4e043d8"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/gallery_repository.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/gallery_repository.py"
+    },
+    {
+      "identity": {
+        "bytes": 1630,
+        "kind": "sha256-raw-bytes",
+        "sha256": "14b5e3faa9ea5c5a2f2ff43fe52480660ab2aaa445c737b49ff29558effc63da"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/gallery_repository_v2.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/gallery_repository_v2.py"
+    },
+    {
+      "identity": {
+        "bytes": 5922,
+        "kind": "sha256-raw-bytes",
+        "sha256": "3ebb6e88e2978bdc854fa5bf1cc3ab8f0caf039ea80ed4b8c2b1205dbb67a1d5"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/gallery_runtime.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/gallery_runtime.py"
+    },
+    {
+      "identity": {
+        "bytes": 2367,
+        "kind": "sha256-raw-bytes",
+        "sha256": "204c8f807aa2d326a1237e5f8ca49cb1fcc1ce84f08fcb13303c3c7a6591c26e"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/gallery_storage_paths.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/gallery_storage_paths.py"
+    },
+    {
+      "identity": {
+        "bytes": 27581,
+        "kind": "sha256-raw-bytes",
+        "sha256": "5101e70cb4f8bc55fe5c7332e643f39b4b1caf4e1734bb463b763a7e7b43edaf"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/gcode_analysis.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/gcode_analysis.py"
+    },
+    {
+      "identity": {
+        "bytes": 28695,
+        "kind": "sha256-raw-bytes",
+        "sha256": "07042f237cb303f52f106274ccc66927ba96464c985516bec90becd635de74d7"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/gcode_artifact_validation.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/gcode_artifact_validation.py"
+    },
+    {
+      "identity": {
+        "bytes": 5374,
+        "kind": "sha256-raw-bytes",
+        "sha256": "806f2382cabfac36f0c04a4c51675a516ee24da0f2f8bbbd36eaf9bbb849f261"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/gcode_preset_contract.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/gcode_preset_contract.py"
+    },
+    {
+      "identity": {
+        "bytes": 11193,
+        "kind": "sha256-raw-bytes",
+        "sha256": "1ce5badd385080889b040af2e4e0586fdd120a49a293cf883f78e8068f000ce9"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/gcode_template_contract.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/gcode_template_contract.py"
+    },
+    {
+      "identity": {
+        "bytes": 12623,
+        "kind": "sha256-raw-bytes",
+        "sha256": "16ffb8cc20a4caed402ea682cfd71ebb8a703e1c66264478423d3fc0a2597fd1"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/gcode_toolpath.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/gcode_toolpath.py"
+    },
+    {
+      "identity": {
+        "bytes": 11371,
+        "kind": "sha256-raw-bytes",
+        "sha256": "11ceae5a773160958da85aaecc6468783885d78544b0a9236a6cc1979b5557bd"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/geometry_export.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/geometry_export.py"
+    },
+    {
+      "identity": {
+        "bytes": 114228,
+        "kind": "sha256-raw-bytes",
+        "sha256": "959caa3c4a15c9f28aa0cd0a7397686153fccd641037644d6ef27aea60236ee4"
+      },
+      "notice_class": "upstream-derived-profile-data",
+      "path": "custom_components/ultimate_3d_studio/h2s_native_defaults.json",
+      "required_notice_paths": [
+        "studio/Slicer-Server/licenses/AGPL-BambuStudio.txt",
+        "studio/Slicer-Server/PROFILE_SOURCE_BUNDLE.json",
+        "studio/Slicer-Server/PAYLOAD_PROVENANCE.json"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/h2s_native_defaults.json"
+    },
+    {
+      "identity": {
+        "bytes": 2772,
+        "kind": "sha256-raw-bytes",
+        "sha256": "6fad8bf0521efca3f7a14b0029ea5bb3deffa23e7ba18dcaf73346ddc3794041"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/h2s_profiles.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/h2s_profiles.py"
+    },
+    {
+      "identity": {
+        "bytes": 6725,
+        "kind": "sha256-raw-bytes",
+        "sha256": "3a96d3397b5026b47332d63e18d1e83bcf2d45798d58ce9e47edb28f81090a52"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/jarvis_events.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/jarvis_events.py"
+    },
+    {
+      "identity": {
+        "bytes": 9524,
+        "kind": "sha256-raw-bytes",
+        "sha256": "fcaa8e370c815563f311bcdf38826fb087deab9867b65c116bea6b13e6102bdb"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/job_history.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/job_history.py"
+    },
+    {
+      "identity": {
+        "bytes": 3588,
+        "kind": "sha256-raw-bytes",
+        "sha256": "e2fa4cb330d2e785241cc57a87cd0b5d892cf7cfb7276b712f27962f986d4d56"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/job_history_maintenance_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/job_history_maintenance_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 1228,
+        "kind": "sha256-raw-bytes",
+        "sha256": "75694c98957b67198be0fb9fb6ac38322f689a684731299b53cacfee8c50113f"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/job_history_v2.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/job_history_v2.py"
+    },
+    {
+      "identity": {
+        "bytes": 1891,
+        "kind": "sha256-raw-bytes",
+        "sha256": "65c34e15ea8ea68647bbf94d6397ec5dd384a269f54915bbb3cef0b239a732cc"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/lovelace_resources.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/lovelace_resources.py"
+    },
+    {
+      "identity": {
+        "bytes": 10932,
+        "kind": "sha256-raw-bytes",
+        "sha256": "6abff79df7c29cc632edc4138b7e679eaf0201017d027bef2a97303c67d3013c"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/makerworld_catalog.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/makerworld_catalog.py"
+    },
+    {
+      "identity": {
+        "bytes": 33001,
+        "kind": "sha256-raw-bytes",
+        "sha256": "c5103599b906d6183e5bb663347769830c84a9589f569ecc1791284ab46c2b5b"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/makerworld_detail.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/makerworld_detail.py"
+    },
+    {
+      "identity": {
+        "bytes": 7322,
+        "kind": "sha256-raw-bytes",
+        "sha256": "5b55061151c3606db845d3e6095e823fee77321172945c16305ada8f2ca7f490"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/makerworld_download.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/makerworld_download.py"
+    },
+    {
+      "identity": {
+        "bytes": 29379,
+        "kind": "sha256-raw-bytes",
+        "sha256": "5bac61a9587e373f9e0a0e5c703c74d3a172cba6710860b3296491fcc145fad7"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/makerworld_runtime.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/makerworld_runtime.py"
+    },
+    {
+      "identity": {
+        "bytes": 5772,
+        "kind": "sha256-raw-bytes",
+        "sha256": "45d4e43caeaa3f93409396c1105baa9c5416fcd80cfa54c32f7252e219997b7a"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/makerworld_search_pager.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/makerworld_search_pager.py"
+    },
+    {
+      "identity": {
+        "bytes": 12661,
+        "kind": "sha256-raw-bytes",
+        "sha256": "969796e1ad4f9b97f38fae511bb35bf88b25e146a5b74c58ea0e0362f3fac7b7"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/makerworld_transfer.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/makerworld_transfer.py"
+    },
+    {
+      "identity": {
+        "bytes": 10571,
+        "kind": "sha256-raw-bytes",
+        "sha256": "3ebc8a4467f0b207b4b3fd0ad1a39634732d991bd3d38f90c52ee5b026b50fab"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/makerworld_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/makerworld_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 438,
+        "kind": "sha256-raw-bytes",
+        "sha256": "e7eb2c43d2c7a20e511f9dc5b7d6db654c10f8834b6a8ad232c958956a018cc0"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/manifest.json",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/manifest.json"
+    },
+    {
+      "identity": {
+        "bytes": 11279,
+        "kind": "sha256-raw-bytes",
+        "sha256": "d344f9c4d12f65138d762234ee7ba8876a6d73b7a2bd6a0ba44a161ee1d12ccc"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/manufacturer_profiles_complete.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/manufacturer_profiles_complete.py"
+    },
+    {
+      "identity": {
+        "bytes": 4369,
+        "kind": "sha256-raw-bytes",
+        "sha256": "74540729dc4dded0f8ad750b7690199a0da53fdba3f091b5c4361eb2cc2429d1"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/materialize-bambu-machine.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/materialize-bambu-machine.py"
+    },
+    {
+      "identity": {
+        "bytes": 46692,
+        "kind": "sha256-raw-bytes",
+        "sha256": "821ac3f47d2c589d11f3678f40435c3398059de213da0507402a7bbb2f9fd4b4"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/materialize-bambu-multimaterial.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/materialize-bambu-multimaterial.py"
+    },
+    {
+      "identity": {
+        "bytes": 1756,
+        "kind": "sha256-raw-bytes",
+        "sha256": "137221cfe77d52d400a2ababa3eb788d5983aaf7300e379d583d61e5f70e188f"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/models.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/models.py"
+    },
+    {
+      "identity": {
+        "bytes": 6140,
+        "kind": "sha256-raw-bytes",
+        "sha256": "2b4b1ea3e00056d5be61d562d63309ccc4a3bb76561e849554cfb4d5a82d67cd"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/mqtt_transport.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/mqtt_transport.py"
+    },
+    {
+      "identity": {
+        "bytes": 16580,
+        "kind": "sha256-raw-bytes",
+        "sha256": "cbf628b9724e232bb17c31728e8b1cc390f9f9c920def036cc8ca1254a0109a1"
+      },
+      "notice_class": "upstream-derived-profile-data",
+      "path": "custom_components/ultimate_3d_studio/native_filament_defaults.json",
+      "required_notice_paths": [
+        "studio/Slicer-Server/licenses/AGPL-BambuStudio.txt",
+        "studio/Slicer-Server/PROFILE_SOURCE_BUNDLE.json",
+        "studio/Slicer-Server/PAYLOAD_PROVENANCE.json"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/native_filament_defaults.json"
+    },
+    {
+      "identity": {
+        "bytes": 11856,
+        "kind": "sha256-raw-bytes",
+        "sha256": "516f26fcbd7813fe8d10fe17d5a661dcb9100fab0f763e4c1498c5519f9b2d41"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/network_plugin.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/network_plugin.py"
+    },
+    {
+      "identity": {
+        "bytes": 605,
+        "kind": "sha256-raw-bytes",
+        "sha256": "305df3ac3f55332b6abd681a0fe8ceb14eba13502a3f6cd39b8438ada7fbbcc7"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/network_plugin/__init__.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/network_plugin/__init__.py"
+    },
+    {
+      "identity": {
+        "bytes": 3314,
+        "kind": "sha256-raw-bytes",
+        "sha256": "af8db8faaf3ef1bfad13db9f4f2ead9331194c0b48e45776b15045d4f7cc6f31"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/network_plugin/commands.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/network_plugin/commands.py"
+    },
+    {
+      "identity": {
+        "bytes": 1421,
+        "kind": "sha256-raw-bytes",
+        "sha256": "6cf9691c7aee25cf0b530e0845341475ae19356aa56362c984c18142c165e9e0"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/network_plugin/models.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/network_plugin/models.py"
+    },
+    {
+      "identity": {
+        "bytes": 7573,
+        "kind": "sha256-raw-bytes",
+        "sha256": "1cd65038244e0bd2d03d42245957a33ae3ee54f95bd3db20922ecaaba17e21a0"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/network_plugin/plugin.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/network_plugin/plugin.py"
+    },
+    {
+      "identity": {
+        "bytes": 6289,
+        "kind": "sha256-raw-bytes",
+        "sha256": "0ecbbf6f110ce9149fc4689e17a79af29facb96107c9398b96046c0caed030fa"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/print_stage.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/print_stage.py"
+    },
+    {
+      "identity": {
+        "bytes": 1311,
+        "kind": "sha256-raw-bytes",
+        "sha256": "da4087fbd59d0da9b7220fa56a87bfae22b09b8ce4c7bdcf3efda6ba2910d9a0"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/printer_identity.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/printer_identity.py"
+    },
+    {
+      "identity": {
+        "bytes": 13565,
+        "kind": "sha256-raw-bytes",
+        "sha256": "0a4966fb1b63cb526607de2a786bfb7798b6eeac692e3eabbce309366edc5109"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/printer_issues.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/printer_issues.py"
+    },
+    {
+      "identity": {
+        "bytes": 1270,
+        "kind": "sha256-raw-bytes",
+        "sha256": "bf63acf05d232316e9ddcb436b3121ec4d18d4ea031e06fa420f1abe61404a27"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/printer_model_contract.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/printer_model_contract.py"
+    },
+    {
+      "identity": {
+        "bytes": 17139,
+        "kind": "sha256-raw-bytes",
+        "sha256": "444e630155d82b329f3fa367a3e406ddb44f5f2d644f81b0247d8824da94da4d"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/printer_storage.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/printer_storage.py"
+    },
+    {
+      "identity": {
+        "bytes": 2800,
+        "kind": "sha256-raw-bytes",
+        "sha256": "c3b5ec82acec0e587a47723ec42b971960fd92b82c62c18a3ca5d2b8610ad1ae"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/printer_storage_lookup.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/printer_storage_lookup.py"
+    },
+    {
+      "identity": {
+        "bytes": 2313,
+        "kind": "sha256-raw-bytes",
+        "sha256": "100b44419b185c34afe96b58b649f7d6d5031f0233ca4dfdb8702678d7778d99"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/printer_storage_lookup_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/printer_storage_lookup_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 2745,
+        "kind": "sha256-raw-bytes",
+        "sha256": "9a04293d89b014f7c7864c0dfabcd59fe6fcfecadeab31f20fdf2d639461d2b4"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/printer_storage_runtime.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/printer_storage_runtime.py"
+    },
+    {
+      "identity": {
+        "bytes": 10992,
+        "kind": "sha256-raw-bytes",
+        "sha256": "19af233f0f35d77e96575745d21c1e1752584a8bc2b4b16045c51b3109f5625c"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/printer_storage_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/printer_storage_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 16586,
+        "kind": "sha256-raw-bytes",
+        "sha256": "679c7d20eee1ff2bd797fba3ac076a48de4c990d29287bc1c3c2ee96d89c45b2"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/process_profile_contract.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/process_profile_contract.py"
+    },
+    {
+      "identity": {
+        "bytes": 283,
+        "kind": "sha256-raw-bytes",
+        "sha256": "bb1602905102f787450b44188b8803e4690f005b9ce34af9b8959be346f560d6"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/profile_bootstrap.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/profile_bootstrap.py"
+    },
+    {
+      "identity": {
+        "bytes": 10524,
+        "kind": "sha256-raw-bytes",
+        "sha256": "a1103ab81862f0f1ad32cb8913b0d178d5ff7312a90433bd993d6ad4de548393"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/profile_catalog_enrichment.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/profile_catalog_enrichment.py"
+    },
+    {
+      "identity": {
+        "bytes": 6155,
+        "kind": "sha256-raw-bytes",
+        "sha256": "50416518a149e7c807f8eb17ca54e9e57110d32fe72d3886828792120452acbf"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/profile_resolution.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/profile_resolution.py"
+    },
+    {
+      "identity": {
+        "bytes": 23048,
+        "kind": "sha256-raw-bytes",
+        "sha256": "45eb753a3b64e597d862cebe40753f71879d3901f57a45483ebfd7fb99c8a18c"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/profile_runtime.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/profile_runtime.py"
+    },
+    {
+      "identity": {
+        "bytes": 5919,
+        "kind": "sha256-raw-bytes",
+        "sha256": "6ee508551d227ad62d733d99908d06092d8140b4bc5b6710ec3a3fd646e1e2eb"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/profile_runtime_v2.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/profile_runtime_v2.py"
+    },
+    {
+      "identity": {
+        "bytes": 6443,
+        "kind": "sha256-raw-bytes",
+        "sha256": "6bad8046914bbd98f85c71e36b982f4caa6e5d04512969fed386f7fd1a690fa3"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/profile_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/profile_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 18879,
+        "kind": "sha256-raw-bytes",
+        "sha256": "3cabbf197dc81692c0f1483d41875cff4a77f7f19846441747b9aef115b583c8"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/provider_bambu_lan.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/provider_bambu_lan.py"
+    },
+    {
+      "identity": {
+        "bytes": 9518,
+        "kind": "sha256-raw-bytes",
+        "sha256": "5b61d0b3560c766a642adbe933559cbf39a81045853f232ffeaad5036bdb5b9e"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/provider_bambu_lan_v2.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/provider_bambu_lan_v2.py"
+    },
+    {
+      "identity": {
+        "bytes": 1770,
+        "kind": "sha256-raw-bytes",
+        "sha256": "670df2a67859a56b11ba08c71e0603553a436239b0de46bcf74391e30d6db520"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/request_body.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/request_body.py"
+    },
+    {
+      "identity": {
+        "bytes": 5295,
+        "kind": "sha256-raw-bytes",
+        "sha256": "4370a191e6916b1c012935562d13200354890d535de245446ddcf59cb5e82713"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/rich_text.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/rich_text.py"
+    },
+    {
+      "identity": {
+        "bytes": 7301,
+        "kind": "sha256-raw-bytes",
+        "sha256": "364690602d5a71fa5fa138016f9d6aed89228d460610fcb95964abf9eb304d65"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/runtime.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/runtime.py"
+    },
+    {
+      "identity": {
+        "bytes": 9383,
+        "kind": "sha256-raw-bytes",
+        "sha256": "9350dcd8f20c278dbfe69a4956f4ab4a1ef0ed8c2ce3624e31cd0191c62f9358"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/sensor.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/sensor.py"
+    },
+    {
+      "identity": {
+        "bytes": 53220,
+        "kind": "sha256-raw-bytes",
+        "sha256": "96922db93b588e5987bd724952f8a652251dc5416218be9453fdedc4647293c9"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_backend_router.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_backend_router.py"
+    },
+    {
+      "identity": {
+        "bytes": 26502,
+        "kind": "sha256-raw-bytes",
+        "sha256": "040874168c6d9a694329dc6bc58f4152a9a152d0ac572830cb4a22ca04f23e24"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_compatibility_contract.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_compatibility_contract.py"
+    },
+    {
+      "identity": {
+        "bytes": 11839,
+        "kind": "sha256-raw-bytes",
+        "sha256": "3521bdd399502bb20ae0cb68f1ef14d48c69b420d82d5a746704a89f8360053c"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_connection_handoff.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_connection_handoff.py"
+    },
+    {
+      "identity": {
+        "bytes": 3273,
+        "kind": "sha256-raw-bytes",
+        "sha256": "0adc0151d0049815cf7f697d1e55637ab90cda2bbacd1b9a5766d5078dfff295"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_connection_probe.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_connection_probe.py"
+    },
+    {
+      "identity": {
+        "bytes": 2754,
+        "kind": "sha256-raw-bytes",
+        "sha256": "a6b1326126b094ec7207089b3a71a1f3f00630c23cc5091c8de9e901e9955fdb"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_connection_settings.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_connection_settings.py"
+    },
+    {
+      "identity": {
+        "bytes": 7572,
+        "kind": "sha256-raw-bytes",
+        "sha256": "377ed6077f594758a803459e0729588f32ba0c7f6de4c60ce93015998278a12c"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_execution_contract.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_execution_contract.py"
+    },
+    {
+      "identity": {
+        "bytes": 7995,
+        "kind": "sha256-raw-bytes",
+        "sha256": "c5ee59147c8530d0682ec6854f0e5deeba275ccfff8fa910cb1b40c70c3666c3"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_http_client.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_http_client.py"
+    },
+    {
+      "identity": {
+        "bytes": 6811,
+        "kind": "sha256-raw-bytes",
+        "sha256": "6c75af3331def0aed32b02daa2f2bcf5e77aa13cf00a149b8eac33496ba980e4"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_installation_flow.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_installation_flow.py"
+    },
+    {
+      "identity": {
+        "bytes": 13845,
+        "kind": "sha256-raw-bytes",
+        "sha256": "4deb6d93796e1f4d7be52285c09dc17c4e011a4d486634be1701b6bae22468d8"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_installer_backend.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_installer_backend.py"
+    },
+    {
+      "identity": {
+        "bytes": 10172,
+        "kind": "sha256-raw-bytes",
+        "sha256": "1358be19b74a86b1715baecf094dd8f9822a04a3376b66594af6bc78218d08ef"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_installer_endpoint.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_installer_endpoint.py"
+    },
+    {
+      "identity": {
+        "bytes": 5813,
+        "kind": "sha256-raw-bytes",
+        "sha256": "083204d950d193a884b784767a08d874cc8dc6a5c9ea1bee99619617235b5f7d"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_installer_flow.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_installer_flow.py"
+    },
+    {
+      "identity": {
+        "bytes": 15871,
+        "kind": "sha256-raw-bytes",
+        "sha256": "78cd741f3b34f537a31a579f96dc3b07614c9e496fb4ce1c62885ac0e96392d8"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_installer_runtime.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_installer_runtime.py"
+    },
+    {
+      "identity": {
+        "bytes": 9041,
+        "kind": "sha256-raw-bytes",
+        "sha256": "a92c39b680eb64b13d1750a3ff671e8e1fce9c22e1d12f7f31fe2d156d79c99a"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_installer_setup.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_installer_setup.py"
+    },
+    {
+      "identity": {
+        "bytes": 410,
+        "kind": "sha256-raw-bytes",
+        "sha256": "c00eb00651d85b7c3a6afea07855e6a4ff645840346507063b45d3fafdeff3cd"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_job_delete_client.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_job_delete_client.py"
+    },
+    {
+      "identity": {
+        "bytes": 2575,
+        "kind": "sha256-raw-bytes",
+        "sha256": "6c1af3e4a517dff41065f0b472c0437dca33e1ba3206ec41d6393acc3098358f"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_job_delete_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_job_delete_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 382,
+        "kind": "sha256-raw-bytes",
+        "sha256": "2d5fcd3a9c08ac327be101692b00b184efdb8546eaa6bdca16afae086e946668"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_job_list_client.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_job_list_client.py"
+    },
+    {
+      "identity": {
+        "bytes": 2007,
+        "kind": "sha256-raw-bytes",
+        "sha256": "1ebf597302ef2854c07f4f0c1b49fc89e3ae9b11c9441ea6238a8273d360066e"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_job_list_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_job_list_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 1771,
+        "kind": "sha256-raw-bytes",
+        "sha256": "dc2de6d22d2a703bbd39171cbf55b54d477f83c991670e57d0a15c5f190780cd"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_native_contract.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_native_contract.py"
+    },
+    {
+      "identity": {
+        "bytes": 14016,
+        "kind": "sha256-raw-bytes",
+        "sha256": "024a76f95b02c78cd5ffd5b2a8e7dabf11c31e73aa5998facbbc9000715e2c0d"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_nozzle_profiles.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_nozzle_profiles.py"
+    },
+    {
+      "identity": {
+        "bytes": 7297,
+        "kind": "sha256-raw-bytes",
+        "sha256": "12ad8483dda41f3177f36d1d90d78b7ce1f9d7cb3d83e46a5ad94db836af5f7e"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_plate_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_plate_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 28594,
+        "kind": "sha256-raw-bytes",
+        "sha256": "2196a7be2f242b8c76b891534890b739bdbfcb65996afc28333353efaccfc25a"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_plate_views_v2.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_plate_views_v2.py"
+    },
+    {
+      "identity": {
+        "bytes": 13318,
+        "kind": "sha256-raw-bytes",
+        "sha256": "d54e4b1b83f0b76bb8d007deff75eebc89f72ac3b79e8f27268dfae5e8300080"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_queue_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_queue_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 8590,
+        "kind": "sha256-raw-bytes",
+        "sha256": "cfcc9963a0050eaf3ee1b152df033d21f79e8cc55da5205811b9017cb69d431d"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_runtime.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_runtime.py"
+    },
+    {
+      "identity": {
+        "bytes": 1579,
+        "kind": "sha256-raw-bytes",
+        "sha256": "15d5935f4f76ef07dc2ac99811fac1245be15c700af2bcde075f8038cfcac8ca"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_scene_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_scene_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 17660,
+        "kind": "sha256-raw-bytes",
+        "sha256": "b6cb7f89b0e5a0fa1e7cfb69d9091cb33e24ed72daf9d57fe80b1ccb710e9795"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_supervisor_app.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_supervisor_app.py"
+    },
+    {
+      "identity": {
+        "bytes": 5655,
+        "kind": "sha256-raw-bytes",
+        "sha256": "4c76b782255350867695aeaa14ced11fb48ba52f2d7e2e8219f6e0838b8b9f2d"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_toolpath_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_toolpath_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 8830,
+        "kind": "sha256-raw-bytes",
+        "sha256": "fd88a52e84304dde91345c6520a5cd082a95fef1182ada391c4244c8ebf758a8"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/slicer_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 11640,
+        "kind": "sha256-raw-bytes",
+        "sha256": "30bc3d5b93416ef48bd2341f458ee0eb06467f6001d4cca5b09cb30bb079f99c"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/strings.json",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/strings.json"
+    },
+    {
+      "identity": {
+        "bytes": 11239,
+        "kind": "sha256-raw-bytes",
+        "sha256": "baa847e84b9e1969cca7fc38aa1042b418636e5b138ac294907f8d3bb2bbb39b"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/studio_project_repository.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/studio_project_repository.py"
+    },
+    {
+      "identity": {
+        "bytes": 7529,
+        "kind": "sha256-raw-bytes",
+        "sha256": "09ed4654563990a1ef3622b932b39410e87a378e1f5ed169f8878d85b25b07e6"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/studio_project_views.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/studio_project_views.py"
+    },
+    {
+      "identity": {
+        "bytes": 19610,
+        "kind": "sha256-raw-bytes",
+        "sha256": "2c140740d16ea932fb72e18364445064a04c57f112a88af5cf26569b613d03d2"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/telemetry.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/telemetry.py"
+    },
+    {
+      "identity": {
+        "bytes": 17830,
+        "kind": "sha256-raw-bytes",
+        "sha256": "e21fc29a53eacf8fc0f8883c40c603b6efdb23475441937b9ea4295655c4ba9f"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/three_mf_inspector.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/three_mf_inspector.py"
+    },
+    {
+      "identity": {
+        "bytes": 6125,
+        "kind": "sha256-raw-bytes",
+        "sha256": "3e4cb7fe508e4fcda809eeb75e9ee65600c6644cbfdb6a37eed1b41f96bbc115"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/three_mf_inspector_compat.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/three_mf_inspector_compat.py"
+    },
+    {
+      "identity": {
+        "bytes": 17097,
+        "kind": "sha256-raw-bytes",
+        "sha256": "cccd21d5e1f9998aede6eca98ee10bad38c2b48ef17690088b995e249d4664fa"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/three_mf_materials.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/three_mf_materials.py"
+    },
+    {
+      "identity": {
+        "bytes": 12793,
+        "kind": "sha256-raw-bytes",
+        "sha256": "5169c8b0dcc95e0b3f200d4b0b394caa15d16e7cebacda6a7fcb029416d7c969"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/three_mf_mesh_graph.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/three_mf_mesh_graph.py"
+    },
+    {
+      "identity": {
+        "bytes": 18508,
+        "kind": "sha256-raw-bytes",
+        "sha256": "60843518b3481b7aef805c6525f52f2b97632c9ebc558a54b2a679c87e2ab5b5"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/three_mf_scene.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/three_mf_scene.py"
+    },
+    {
+      "identity": {
+        "bytes": 11640,
+        "kind": "sha256-raw-bytes",
+        "sha256": "30bc3d5b93416ef48bd2341f458ee0eb06467f6001d4cca5b09cb30bb079f99c"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/translations/de.json",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/translations/de.json"
+    },
+    {
+      "identity": {
+        "bytes": 10621,
+        "kind": "sha256-raw-bytes",
+        "sha256": "1f4465aab0954191d6946fc9dcfe95fb4cd0624169fe4f72cfdc4e2fd6fb6055"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/translations/en.json",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/translations/en.json"
+    },
+    {
+      "identity": {
+        "bytes": 1321,
+        "kind": "sha256-raw-bytes",
+        "sha256": "9ed33eb09c24c2b4f3f847c95c9f107fe2cea66b2c41d46719fb6e25d18e722a"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "custom_components/ultimate_3d_studio/validate-bambu-bed-temperature.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "deploy/homeassistant/custom_components/ultimate_3d_studio/validate-bambu-bed-temperature.py"
+    },
+    {
+      "identity": {
+        "bytes": 182,
+        "kind": "sha256-raw-bytes",
+        "sha256": "ff634236f7524415a74e3859b4d353c9466bdb560a477b7b9b7e81d34d32c2c3"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "hacs.json",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "packages/ultimate-ha-integration/hacs.json"
     },
     {
       "identity": {
@@ -1385,9 +3157,9 @@
     },
     {
       "identity": {
-        "bytes": 291,
+        "bytes": 438,
         "kind": "sha256-raw-bytes",
-        "sha256": "979776953a4e1cc8659d968fb08da95a80d3385b6957989aa5a4653f6d25e5a7"
+        "sha256": "e7eb2c43d2c7a20e511f9dc5b7d6db654c10f8834b6a8ad232c958956a018cc0"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/custom_components/ultimate_3d_studio/manifest.json",
@@ -2390,7 +4162,7 @@
       "identity": {
         "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "8ef42e45915f671c17adaf24d01620aff204337dbf4a44c9fd5d670c2aa5713a"
+        "sha256": "cf3feefdac01dd1708af798cf79dd9b20cc9d4d7f295796787361ba233fdfe51"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -5966,9 +7738,9 @@
     },
     {
       "identity": {
-        "bytes": 291,
+        "bytes": 438,
         "kind": "sha256-raw-bytes",
-        "sha256": "979776953a4e1cc8659d968fb08da95a80d3385b6957989aa5a4653f6d25e5a7"
+        "sha256": "e7eb2c43d2c7a20e511f9dc5b7d6db654c10f8834b6a8ad232c958956a018cc0"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/manifest.json",
@@ -7205,7 +8977,7 @@
       "identity": {
         "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "8ef42e45915f671c17adaf24d01620aff204337dbf4a44c9fd5d670c2aa5713a"
+        "sha256": "cf3feefdac01dd1708af798cf79dd9b20cc9d4d7f295796787361ba233fdfe51"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -11017,9 +12789,9 @@
     },
     {
       "identity": {
-        "bytes": 3044,
+        "bytes": 4618,
         "kind": "sha256-raw-bytes",
-        "sha256": "c2198d1242ff49e2360ae9bdc66f1095ac27f43ca6defdfaf285f2580f8964a3"
+        "sha256": "105a3ca0714f937c5fdb7a0e93e72c57eb12a49817da8fc574cccbe68b7b5f19"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/packages/ultimate-ha-integration/HACS_RELEASE_CONTRACT.md",
@@ -11056,9 +12828,22 @@
     },
     {
       "identity": {
-        "bytes": 15936,
+        "bytes": 182,
         "kind": "sha256-raw-bytes",
-        "sha256": "b91c4e0dd9d47576744e26703be694a48c1a3a3473ecace56506ddc359c38b63"
+        "sha256": "ff634236f7524415a74e3859b4d353c9466bdb560a477b7b9b7e81d34d32c2c3"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "studio/packages/ultimate-ha-integration/hacs.json",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "packages/ultimate-ha-integration/hacs.json"
+    },
+    {
+      "identity": {
+        "bytes": 22497,
+        "kind": "sha256-raw-bytes",
+        "sha256": "8664f92bb8ea87c4a7cff8547b0b7c928c1bdac2a0e5b5b6c8e3cfc11959313c"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/packages/ultimate-ha-integration/verify_hacs_release.py",
@@ -12721,9 +14506,9 @@
     },
     {
       "identity": {
-        "bytes": 10655,
+        "bytes": 10629,
         "kind": "sha256-raw-bytes",
-        "sha256": "17094f620e96d45dd78b83f862d0017ebcd37c812754702ed3e3d6c4de7d075d"
+        "sha256": "b61a89268eab5b83ecd68380dd9bb57e2c0c60a03d93dd8b38e3cb3c4d3c184f"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/tests/test_studio_hacs_release_verification.py",
@@ -12731,6 +14516,19 @@
         "LICENSE"
       ],
       "source_path": "tests/test_studio_hacs_release_verification.py"
+    },
+    {
+      "identity": {
+        "bytes": 7521,
+        "kind": "sha256-raw-bytes",
+        "sha256": "346bcb58bd01e9c076cd7486f2bb430de2d73ec3ed979d9256b722c12faff036"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "studio/tests/test_studio_hacs_repository_contract.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "tests/test_studio_hacs_repository_contract.py"
     },
     {
       "identity": {
@@ -14790,7 +16588,7 @@
   "production_approved": false,
   "schema": 2,
   "scope": "file-specific notice inventory for this source-only Git delivery; no engine/image or production approval",
-  "source_files": 943,
+  "source_files": 945,
   "upstream": {
     "commit": "42d319c6692fa8e64790fddf0cdaafd2a4254bcc",
     "derived_source_paths": [

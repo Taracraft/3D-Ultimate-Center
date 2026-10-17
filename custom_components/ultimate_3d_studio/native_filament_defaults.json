@@ -1,0 +1,762 @@
+{
+  "schema": 1,
+  "authority": "installed_bambu_studio_native_profiles",
+  "profiles": {
+    "Generic ABS @BBL A1": {
+      "native_path": "BBL/filament/Generic ABS @BBL A1.json",
+      "resolved_sha256": "1bfee356901b7821d09142351ee847fea1d882788928228df3a4cf946642e5be",
+      "settings": {
+        "cool_plate_temp": [
+          "0"
+        ],
+        "cool_plate_temp_initial_layer": [
+          "0"
+        ],
+        "eng_plate_temp": [
+          "90"
+        ],
+        "eng_plate_temp_initial_layer": [
+          "90"
+        ],
+        "fan_max_speed": [
+          "20"
+        ],
+        "fan_min_speed": [
+          "10"
+        ],
+        "filament_density": [
+          "1.04"
+        ],
+        "filament_deretraction_speed": [
+          "nil"
+        ],
+        "filament_diameter": [
+          "1.75"
+        ],
+        "filament_flow_ratio": [
+          "0.95"
+        ],
+        "filament_max_volumetric_speed": [
+          "15"
+        ],
+        "filament_retraction_length": [
+          "0.4"
+        ],
+        "filament_retraction_speed": [
+          "nil"
+        ],
+        "filament_wipe_distance": [
+          "nil"
+        ],
+        "filament_z_hop": [
+          "nil"
+        ],
+        "full_fan_speed_layer": [
+          "0"
+        ],
+        "hot_plate_temp": [
+          "100"
+        ],
+        "hot_plate_temp_initial_layer": [
+          "100"
+        ],
+        "nozzle_temperature": [
+          "270"
+        ],
+        "nozzle_temperature_initial_layer": [
+          "260"
+        ],
+        "overhang_fan_speed": [
+          "80"
+        ],
+        "slow_down_layer_time": [
+          "3"
+        ],
+        "supertack_plate_temp": [
+          "0"
+        ],
+        "supertack_plate_temp_initial_layer": [
+          "0"
+        ],
+        "textured_plate_temp": [
+          "100"
+        ],
+        "textured_plate_temp_initial_layer": [
+          "100"
+        ]
+      }
+    },
+    "Generic ASA @BBL A1": {
+      "native_path": "BBL/filament/Generic ASA @BBL A1.json",
+      "resolved_sha256": "d11f5767de6ce4571e5fa6c5a6dcd79a2cdba422077fd8207c6bd2bed7889041",
+      "settings": {
+        "cool_plate_temp": [
+          "0"
+        ],
+        "cool_plate_temp_initial_layer": [
+          "0"
+        ],
+        "eng_plate_temp": [
+          "100"
+        ],
+        "eng_plate_temp_initial_layer": [
+          "100"
+        ],
+        "fan_max_speed": [
+          "80"
+        ],
+        "fan_min_speed": [
+          "10"
+        ],
+        "filament_density": [
+          "1.04"
+        ],
+        "filament_deretraction_speed": [
+          "nil"
+        ],
+        "filament_diameter": [
+          "1.75"
+        ],
+        "filament_flow_ratio": [
+          "0.95"
+        ],
+        "filament_max_volumetric_speed": [
+          "12"
+        ],
+        "filament_retraction_length": [
+          "nil"
+        ],
+        "filament_retraction_speed": [
+          "nil"
+        ],
+        "filament_wipe_distance": [
+          "nil"
+        ],
+        "filament_z_hop": [
+          "nil"
+        ],
+        "full_fan_speed_layer": [
+          "0"
+        ],
+        "hot_plate_temp": [
+          "100"
+        ],
+        "hot_plate_temp_initial_layer": [
+          "100"
+        ],
+        "nozzle_temperature": [
+          "260"
+        ],
+        "nozzle_temperature_initial_layer": [
+          "260"
+        ],
+        "overhang_fan_speed": [
+          "80"
+        ],
+        "slow_down_layer_time": [
+          "3"
+        ],
+        "supertack_plate_temp": [
+          "0"
+        ],
+        "supertack_plate_temp_initial_layer": [
+          "0"
+        ],
+        "textured_plate_temp": [
+          "100"
+        ],
+        "textured_plate_temp_initial_layer": [
+          "100"
+        ]
+      }
+    },
+    "Generic PA @BBL A1": {
+      "native_path": "BBL/filament/Generic PA @BBL A1.json",
+      "resolved_sha256": "0e8c67d10107e80955d4aea576a448905ac93fdebcc7a2c651fcac324118f327",
+      "settings": {
+        "cool_plate_temp": [
+          "0"
+        ],
+        "cool_plate_temp_initial_layer": [
+          "0"
+        ],
+        "eng_plate_temp": [
+          "100"
+        ],
+        "eng_plate_temp_initial_layer": [
+          "100"
+        ],
+        "fan_max_speed": [
+          "85"
+        ],
+        "fan_min_speed": [
+          "40"
+        ],
+        "filament_density": [
+          "1.04"
+        ],
+        "filament_deretraction_speed": [
+          "nil"
+        ],
+        "filament_diameter": [
+          "1.75"
+        ],
+        "filament_flow_ratio": [
+          "1"
+        ],
+        "filament_max_volumetric_speed": [
+          "12"
+        ],
+        "filament_retraction_length": [
+          "nil"
+        ],
+        "filament_retraction_speed": [
+          "nil"
+        ],
+        "filament_wipe_distance": [
+          "nil"
+        ],
+        "filament_z_hop": [
+          "nil"
+        ],
+        "full_fan_speed_layer": [
+          "0"
+        ],
+        "hot_plate_temp": [
+          "100"
+        ],
+        "hot_plate_temp_initial_layer": [
+          "100"
+        ],
+        "nozzle_temperature": [
+          "260"
+        ],
+        "nozzle_temperature_initial_layer": [
+          "260"
+        ],
+        "overhang_fan_speed": [
+          "95"
+        ],
+        "slow_down_layer_time": [
+          "8"
+        ],
+        "supertack_plate_temp": [
+          "0"
+        ],
+        "supertack_plate_temp_initial_layer": [
+          "0"
+        ],
+        "textured_plate_temp": [
+          "100"
+        ],
+        "textured_plate_temp_initial_layer": [
+          "100"
+        ]
+      }
+    },
+    "Generic PC @BBL A1": {
+      "native_path": "BBL/filament/Generic PC @BBL A1.json",
+      "resolved_sha256": "ab87a8a717a6f9f40082bbda2cc245184694f4c8bd9946ae1139c96c970b4b97",
+      "settings": {
+        "cool_plate_temp": [
+          "0"
+        ],
+        "cool_plate_temp_initial_layer": [
+          "0"
+        ],
+        "eng_plate_temp": [
+          "100"
+        ],
+        "eng_plate_temp_initial_layer": [
+          "100"
+        ],
+        "fan_max_speed": [
+          "20"
+        ],
+        "fan_min_speed": [
+          "10"
+        ],
+        "filament_density": [
+          "1.04"
+        ],
+        "filament_deretraction_speed": [
+          "nil"
+        ],
+        "filament_diameter": [
+          "1.75"
+        ],
+        "filament_flow_ratio": [
+          "0.94"
+        ],
+        "filament_max_volumetric_speed": [
+          "16"
+        ],
+        "filament_retraction_length": [
+          "nil"
+        ],
+        "filament_retraction_speed": [
+          "nil"
+        ],
+        "filament_wipe_distance": [
+          "nil"
+        ],
+        "filament_z_hop": [
+          "nil"
+        ],
+        "full_fan_speed_layer": [
+          "0"
+        ],
+        "hot_plate_temp": [
+          "100"
+        ],
+        "hot_plate_temp_initial_layer": [
+          "100"
+        ],
+        "nozzle_temperature": [
+          "280"
+        ],
+        "nozzle_temperature_initial_layer": [
+          "270"
+        ],
+        "overhang_fan_speed": [
+          "60"
+        ],
+        "slow_down_layer_time": [
+          "2"
+        ],
+        "supertack_plate_temp": [
+          "0"
+        ],
+        "supertack_plate_temp_initial_layer": [
+          "0"
+        ],
+        "textured_plate_temp": [
+          "100"
+        ],
+        "textured_plate_temp_initial_layer": [
+          "100"
+        ]
+      }
+    },
+    "Generic PETG HF @BBL A1": {
+      "native_path": "BBL/filament/Generic PETG HF @BBL A1.json",
+      "resolved_sha256": "a5508ec932697c6ac549626527bad68b51d2c3255bc42a0d2e4e34577033032a",
+      "settings": {
+        "cool_plate_temp": [
+          "0"
+        ],
+        "cool_plate_temp_initial_layer": [
+          "0"
+        ],
+        "eng_plate_temp": [
+          "70"
+        ],
+        "eng_plate_temp_initial_layer": [
+          "70"
+        ],
+        "fan_max_speed": [
+          "40"
+        ],
+        "fan_min_speed": [
+          "20"
+        ],
+        "filament_density": [
+          "1.28"
+        ],
+        "filament_deretraction_speed": [
+          "nil"
+        ],
+        "filament_diameter": [
+          "1.75"
+        ],
+        "filament_flow_ratio": [
+          "0.95"
+        ],
+        "filament_max_volumetric_speed": [
+          "16"
+        ],
+        "filament_retraction_length": [
+          "0.4"
+        ],
+        "filament_retraction_speed": [
+          "nil"
+        ],
+        "filament_wipe_distance": [
+          "nil"
+        ],
+        "filament_z_hop": [
+          "nil"
+        ],
+        "full_fan_speed_layer": [
+          "0"
+        ],
+        "hot_plate_temp": [
+          "70"
+        ],
+        "hot_plate_temp_initial_layer": [
+          "70"
+        ],
+        "nozzle_temperature": [
+          "220"
+        ],
+        "nozzle_temperature_initial_layer": [
+          "220"
+        ],
+        "overhang_fan_speed": [
+          "90"
+        ],
+        "slow_down_layer_time": [
+          "25"
+        ],
+        "supertack_plate_temp": [
+          "70"
+        ],
+        "supertack_plate_temp_initial_layer": [
+          "70"
+        ],
+        "textured_plate_temp": [
+          "70"
+        ],
+        "textured_plate_temp_initial_layer": [
+          "70"
+        ]
+      }
+    },
+    "Generic PLA @BBL A1": {
+      "native_path": "BBL/filament/Generic PLA @BBL A1.json",
+      "resolved_sha256": "d05ad1e9c539d65fc89699051a0bff9e724a58bd2a40b2177783aa9b7b2177f8",
+      "settings": {
+        "cool_plate_temp": [
+          "35"
+        ],
+        "cool_plate_temp_initial_layer": [
+          "35"
+        ],
+        "eng_plate_temp": [
+          "0"
+        ],
+        "eng_plate_temp_initial_layer": [
+          "0"
+        ],
+        "fan_max_speed": [
+          "80"
+        ],
+        "fan_min_speed": [
+          "60"
+        ],
+        "filament_density": [
+          "1.24"
+        ],
+        "filament_deretraction_speed": [
+          "nil"
+        ],
+        "filament_diameter": [
+          "1.75"
+        ],
+        "filament_flow_ratio": [
+          "0.98"
+        ],
+        "filament_max_volumetric_speed": [
+          "12"
+        ],
+        "filament_retraction_length": [
+          "nil"
+        ],
+        "filament_retraction_speed": [
+          "nil"
+        ],
+        "filament_wipe_distance": [
+          "nil"
+        ],
+        "filament_z_hop": [
+          "nil"
+        ],
+        "full_fan_speed_layer": [
+          "0"
+        ],
+        "hot_plate_temp": [
+          "65"
+        ],
+        "hot_plate_temp_initial_layer": [
+          "65"
+        ],
+        "nozzle_temperature": [
+          "220"
+        ],
+        "nozzle_temperature_initial_layer": [
+          "220"
+        ],
+        "overhang_fan_speed": [
+          "100"
+        ],
+        "slow_down_layer_time": [
+          "8"
+        ],
+        "supertack_plate_temp": [
+          "45"
+        ],
+        "supertack_plate_temp_initial_layer": [
+          "45"
+        ],
+        "textured_plate_temp": [
+          "65"
+        ],
+        "textured_plate_temp_initial_layer": [
+          "65"
+        ]
+      }
+    },
+    "Generic PP @BBL A1": {
+      "native_path": "BBL/filament/Generic PP @BBL A1.json",
+      "resolved_sha256": "bc6cfd4d7a4e0c86ddda6553e3b46135a47a82962afe1d70d1bb6a70eaac6506",
+      "settings": {
+        "cool_plate_temp": [
+          "35"
+        ],
+        "cool_plate_temp_initial_layer": [
+          "35"
+        ],
+        "eng_plate_temp": [
+          "0"
+        ],
+        "eng_plate_temp_initial_layer": [
+          "0"
+        ],
+        "fan_max_speed": [
+          "100"
+        ],
+        "fan_min_speed": [
+          "100"
+        ],
+        "filament_density": [
+          "0.93"
+        ],
+        "filament_deretraction_speed": [
+          "nil"
+        ],
+        "filament_diameter": [
+          "1.75"
+        ],
+        "filament_flow_ratio": [
+          "1"
+        ],
+        "filament_max_volumetric_speed": [
+          "12"
+        ],
+        "filament_retraction_length": [
+          "nil"
+        ],
+        "filament_retraction_speed": [
+          "nil"
+        ],
+        "filament_wipe_distance": [
+          "nil"
+        ],
+        "filament_z_hop": [
+          "nil"
+        ],
+        "full_fan_speed_layer": [
+          "0"
+        ],
+        "hot_plate_temp": [
+          "55"
+        ],
+        "hot_plate_temp_initial_layer": [
+          "55"
+        ],
+        "nozzle_temperature": [
+          "235"
+        ],
+        "nozzle_temperature_initial_layer": [
+          "235"
+        ],
+        "overhang_fan_speed": [
+          "100"
+        ],
+        "slow_down_layer_time": [
+          "4"
+        ],
+        "supertack_plate_temp": [
+          "0"
+        ],
+        "supertack_plate_temp_initial_layer": [
+          "0"
+        ],
+        "textured_plate_temp": [
+          "55"
+        ],
+        "textured_plate_temp_initial_layer": [
+          "55"
+        ]
+      }
+    },
+    "Generic PVA @BBL A1": {
+      "native_path": "BBL/filament/Generic PVA @BBL A1.json",
+      "resolved_sha256": "45c16aa93d4da02668de8dd33e482bb5cbdae0b68ad968739bb05bbfd7f5e2ec",
+      "settings": {
+        "cool_plate_temp": [
+          "45"
+        ],
+        "cool_plate_temp_initial_layer": [
+          "45"
+        ],
+        "eng_plate_temp": [
+          "0"
+        ],
+        "eng_plate_temp_initial_layer": [
+          "0"
+        ],
+        "fan_max_speed": [
+          "80"
+        ],
+        "fan_min_speed": [
+          "60"
+        ],
+        "filament_density": [
+          "1.24"
+        ],
+        "filament_deretraction_speed": [
+          "nil"
+        ],
+        "filament_diameter": [
+          "1.75"
+        ],
+        "filament_flow_ratio": [
+          "0.95"
+        ],
+        "filament_max_volumetric_speed": [
+          "16"
+        ],
+        "filament_retraction_length": [
+          "nil"
+        ],
+        "filament_retraction_speed": [
+          "nil"
+        ],
+        "filament_wipe_distance": [
+          "nil"
+        ],
+        "filament_z_hop": [
+          "nil"
+        ],
+        "full_fan_speed_layer": [
+          "0"
+        ],
+        "hot_plate_temp": [
+          "65"
+        ],
+        "hot_plate_temp_initial_layer": [
+          "65"
+        ],
+        "nozzle_temperature": [
+          "220"
+        ],
+        "nozzle_temperature_initial_layer": [
+          "220"
+        ],
+        "overhang_fan_speed": [
+          "100"
+        ],
+        "slow_down_layer_time": [
+          "8"
+        ],
+        "supertack_plate_temp": [
+          "35"
+        ],
+        "supertack_plate_temp_initial_layer": [
+          "35"
+        ],
+        "textured_plate_temp": [
+          "65"
+        ],
+        "textured_plate_temp_initial_layer": [
+          "65"
+        ]
+      }
+    },
+    "Generic TPU @BBL A1": {
+      "native_path": "BBL/filament/Generic TPU @BBL A1.json",
+      "resolved_sha256": "2c5c057af194560ffc466b12b2cb40a2bdd06026b4aafcedb3c0aa85880a9b13",
+      "settings": {
+        "cool_plate_temp": [
+          "30"
+        ],
+        "cool_plate_temp_initial_layer": [
+          "30"
+        ],
+        "eng_plate_temp": [
+          "30"
+        ],
+        "eng_plate_temp_initial_layer": [
+          "30"
+        ],
+        "fan_max_speed": [
+          "100"
+        ],
+        "fan_min_speed": [
+          "100"
+        ],
+        "filament_density": [
+          "1.24"
+        ],
+        "filament_deretraction_speed": [
+          "nil"
+        ],
+        "filament_diameter": [
+          "1.75"
+        ],
+        "filament_flow_ratio": [
+          "1"
+        ],
+        "filament_max_volumetric_speed": [
+          "3.2"
+        ],
+        "filament_retraction_length": [
+          "0.4"
+        ],
+        "filament_retraction_speed": [
+          "nil"
+        ],
+        "filament_wipe_distance": [
+          "nil"
+        ],
+        "filament_z_hop": [
+          "nil"
+        ],
+        "full_fan_speed_layer": [
+          "0"
+        ],
+        "hot_plate_temp": [
+          "45"
+        ],
+        "hot_plate_temp_initial_layer": [
+          "45"
+        ],
+        "nozzle_temperature": [
+          "240"
+        ],
+        "nozzle_temperature_initial_layer": [
+          "240"
+        ],
+        "overhang_fan_speed": [
+          "100"
+        ],
+        "slow_down_layer_time": [
+          "8"
+        ],
+        "supertack_plate_temp": [
+          "0"
+        ],
+        "supertack_plate_temp_initial_layer": [
+          "0"
+        ],
+        "textured_plate_temp": [
+          "45"
+        ],
+        "textured_plate_temp_initial_layer": [
+          "45"
+        ]
+      }
+    }
+  }
+}

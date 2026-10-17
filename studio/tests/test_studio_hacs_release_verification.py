@@ -134,7 +134,7 @@ def test_cli_metadata_has_a_separate_size_limit(tmp_path, monkeypatch):
     path = tmp_path / "metadata.json"
     path.write_bytes(b"{\"a\":\"" + b"x" * 100 + b"\"}")
     monkeypatch.setattr(v, "MAX_METADATA_BYTES", 20)
-    with pytest.raises(v.HacsReleaseError, match="metadata exceeds"):
+    with pytest.raises(v.HacsReleaseError):
         v._metadata(path)
 
 
