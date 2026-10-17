@@ -2458,3 +2458,5 @@ test("requested manufacturer prefers its matching material over its first catalo
   assert.equal(resolveFilamentSelection(items.filter((item) => item.id !== "sunlu-pla"),"ams_slot","old","PLA","SUNLU"),null);
   assert.equal(JSON.stringify(items),before);
 });
+
+import "./external-spool-controls.test.js";

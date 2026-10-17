@@ -42,8 +42,9 @@ function inspect(nozzle: number, width: number, depth: number): void {
       queue.push(...graph.get(vertex)!);
     }
   }
-  assert.equal(components, 5, "outer sheet, three separate T contours, filled T centre");
-  assert.ok(signedVolume > (width - 10) * (depth - 10) * height * 0.85, "calibration covers the bed, not sparse lines");
+  assert.ok(components >= 4, "open bed pattern and isolated T contours");
+  assert.ok(signedVolume > (width - 10) * (depth - 10) * height * 0.03, "diagnostic areas remain present");
+  assert.ok(signedVolume < (width - 10) * (depth - 10) * height * 0.4, "sparse geometry must not recreate the hour-long solid sheet");
   assert.ok(signedVolume < (width - 10) * (depth - 10) * height, "visible contour gaps remain open");
 }
 
@@ -62,8 +63,8 @@ test("first layer rejects invalid dimensions and unsupported nozzles", () => {
 test("first-layer process matches mesh and preserves unrelated process settings", () => {
   const before = { layer_height_ranges: [{ min_z_mm: 0, max_z_mm: 10, layer_height_mm: 0.1 }], travel_speed_mm_s: 200 } as unknown as SliceProcessOverrides;
   const after = firstLayerProcessOptions(0.4, before);
-  assert.equal(after.first_layer_height_mm, 0.28);
-  assert.equal(after.layer_height_mm, 0.28);
+  assert.equal(after.first_layer_height_mm, 0.2);
+  assert.equal(after.layer_height_mm, 0.2);
   assert.equal(after.initial_layer_line_width_mm, 0.6);
   assert.equal(after.infill_direction_deg, 135);
   assert.equal(after.initial_layer_infill_speed_mm_s, 30);

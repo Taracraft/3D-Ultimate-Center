@@ -1,4 +1,4 @@
-# TaraCraft - Markenillustrationen
+﻿# TaraCraft - Markenillustrationen
 
 Die Grafiken dieser Dokumentationsfamilie wurden am 17. Oktober 2026 mit KI auf Basis der von Tara für diesen Auftrag bereitgestellten TaraCraft-Markenillustration gestaltet. Die ursprüngliche Beschriftung „3D-Printer Control Center“ wurde durch die aktuellen Produktnamen ersetzt.
 
@@ -12,6 +12,13 @@ Die jeweilige Produktausgabe enthält ihre passende Titelgrafik und das gemeinsa
 
 Gestaltungsauftrag: Das metallische T mit Düse, den dunklen Hintergrund und die Cyan-/Blautöne der bereitgestellten Vorlage erhalten; ein breites Dokumentationscover mit lesbarem aktuellem Produktnamen und „by TaraCraft“ bilden. Für das Emblem sämtliche Schrift entfernen und echte Transparenz verwenden. Die Grafiken wurden mit der integrierten Bildgenerierung erstellt; die Originaldateien bleiben unverändert.
 
+## Animierte Originalaufnahme
+
+- `ultimate-slicer-server-demo.gif`: acht Sekunden, 900 × 450 Pixel und 8 Bilder pro Sekunde; aus tatsächlich aufgenommenen Frames der vom Nutzer bereitgestellten Datei `TaraCraft_Video_bis_16-21_ohne_Adresszeile.mp4` abgeleitet.
+- Die Bearbeitung beschränkt sich auf einen oberen und unteren Zuschnitt gegen Browser-/Adress-/Taskleistenbereiche, die Auswahl des sichtbaren Slicing-/Vorschau-Workflows und die Titelzeile „ULTIMATE SLICER SERVER · SLICING & VORSCHAU“. Es ist kein Video eingebettet; das Original bleibt unverändert und wird nicht mitveröffentlicht.
+- Originaldatei: 41.707.109 Bytes, SHA-256 `c1b58128af165651a78fa03e9a6de10552f278b2acf9ad6a34aae210dc383765`.
+- Abgeleitete GIF-Datei: 514.930 Bytes, SHA-256 `00cad0e9227e11066b041a743c98dd921e293ef3d3888f00c9e4f589fc0e61e4`.
+- Die Animation zeigt einen sichtbaren Ablauf in der Studio-Oberfläche. Sie belegt weder eine eigenständige Runtime-/Engine-Lieferung noch eine vollständige Produktabnahme.
 ## Rechte
 
 Die Grafiken dienen als Projektkennzeichen. Aus dem Nutzungsauftrag oder der KI-Bearbeitung wird keine neue pauschale MIT-, AGPL- oder sonstige Fremdlizenz abgeleitet. Die bestehenden Code-, Dokumentations- und Drittanbieterrechte bleiben unverändert. Maßgeblich bleiben die jeweiligen Lizenztexte und SOURCE_NOTICES.md. Dieser Herkunftshinweis ist keine Aussage über Rechte an fremden Kennzeichen oder Komponenten.

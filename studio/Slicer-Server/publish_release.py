@@ -28,7 +28,7 @@ SPECS = {
         "workflow": "Slicer source contract",
         "workflow_path": ".github/workflows/slicer-source-contract.yml",
         "version_path": "packages/ultimate-slicer-server/release.json",
-        "version": "0.1.0-alpha6",
+        "version": "0.1.0-alpha7",
         "name": "Ultimate Slicer Server",
         "prerelease": True,
         "contents": "API-/Workerquellen, Container- und Paketwerkzeuge, geprüfte Profilquellen, Installations- und Betriebsdokumentation sowie Wiki-Quellen.",

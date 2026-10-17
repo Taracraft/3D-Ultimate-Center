@@ -1,6 +1,10 @@
-# Ultimate 3D Studio
+﻿# Ultimate 3D Studio
 
 ![Promo-Illustration - Ultimate 3D Studio](studio/handbook/assets/studio-hero.png)
+
+![Animierte, zugeschnittene Originalaufnahme des Studio-Modell- und Arbeitsablaufs](studio/handbook/assets/ultimate-3d-studio-demo.gif)
+
+Die Animation nutzt tatsächlich aufgenommene, zugeschnittene Studio-Frames; Browserleiste, Adressfeld und Taskleiste sind nicht enthalten. Sie zeigt einen kurzen Modell-/Arbeitsablauf und ist kein Nachweis einer vollständigen Funktions- oder Systemabnahme.
 
 **Dein Modell. Deine Materialien. Deine Druckplatte. Direkt in Home Assistant.**
 

@@ -54,6 +54,7 @@ SOURCE_PATHS = (
     "Slicer-Server/assets/ASSET_NOTICES.md",
     "Slicer-Server/assets/slicer-hero.png",
     "Slicer-Server/assets/taracraft-mark.png",
+    "Slicer-Server/assets/ultimate-slicer-server-demo.gif",
     "Slicer-Server/build_repository.py",
     "Slicer-Server/ENGINE_BUNDLE_BUILD.md",
     "Slicer-Server/ENGINE_BUNDLE_REFERENCE.json",
@@ -204,6 +205,7 @@ ALIASES = {
     "assets/ASSET_NOTICES.md": "Slicer-Server/assets/ASSET_NOTICES.md",
     "assets/slicer-hero.png": "Slicer-Server/assets/slicer-hero.png",
     "assets/taracraft-mark.png": "Slicer-Server/assets/taracraft-mark.png",
+    "assets/ultimate-slicer-server-demo.gif": "Slicer-Server/assets/ultimate-slicer-server-demo.gif",
 }
 GENERATED = {
     ".gitattributes": b"* -text\n",

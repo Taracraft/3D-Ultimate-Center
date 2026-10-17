@@ -1,6 +1,10 @@
-# Ultimate Slicer Server
+﻿# Ultimate Slicer Server
 
 ![Promo-Illustration - Ultimate Slicer Server](https://raw.githubusercontent.com/Taracraft/3D-Ultimate-Slicer-Server/main/assets/slicer-hero.png)
+
+![Animierte, zugeschnittene Originalaufnahme des Slicing- und Vorschau-Workflows](https://raw.githubusercontent.com/Taracraft/3D-Ultimate-Slicer-Server/main/assets/ultimate-slicer-server-demo.gif)
+
+Die Animation nutzt tatsächlich aufgenommene, zugeschnittene Studio-Frames; Browserleiste, Adressfeld und Taskleiste sind nicht enthalten. Sie zeigt den sichtbaren Slicing-/Vorschau-Workflow, nicht die Lieferung eines eigenständigen Runtime-Images, einer Engine oder eine vollständige Produktabnahme.
 
 **Slicing als eigenständiger Dienst für [Ultimate 3D Studio](https://github.com/Taracraft/3D-Ultimate-Center).** Modelle, Aufträge und Ergebnisse erhalten einen gemeinsamen technischen Ablauf: Eine HTTP-API nimmt Anfragen entgegen, ein getrennter Worker verarbeitet die Jobs, und fest zugeordnete Engines liefern die Grundlage für die spätere G-Code-Erzeugung.
 

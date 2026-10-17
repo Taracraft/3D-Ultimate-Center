@@ -37,5 +37,5 @@ export function resolveFilamentSelection(
       ?? null;
   }
   const compatible = allowed.filter(matchesMaterial);
-  return compatible.find((item) => item.id === currentId) ?? compatible[0] ?? null;
+  return compatible.find((item) => item.id === currentId) ?? (material ? compatible[0] : null) ?? null;
 }

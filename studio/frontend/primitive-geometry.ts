@@ -104,52 +104,125 @@ export function firstLayerParameters(nozzleDiameter: number): { height: number; 
   if (![0.2, 0.4, 0.6, 0.8].some((diameter) => Math.abs(diameter - nozzleDiameter) < 1e-6)) {
     throw new Error("Für den First-Layer-Test zuerst eine unterstützte Düse auswählen.");
   }
-  return { height: Math.round(nozzleDiameter * 70) / 100, lineWidth: Math.round(nozzleDiameter * 150) / 100 };
+  return { height: Math.round(nozzleDiameter * 50) / 100, lineWidth: Math.round(nozzleDiameter * 150) / 100 };
 }
 
+/**
+ * One thin closed solid, not a stack of sheets. A sparse diagnostic network
+ * samples the whole bed; nine small pads show adjacent-line bonding. Three
+ * isolated T contours are branding and corner tests, not embossed extra layers.
+ * Model caps and side faces close the mesh; they do not represent print layers.
+ */
 function firstLayer(width: number, depth: number, nozzleDiameter: number): MeshGeometry {
   const { height, lineWidth } = firstLayerParameters(nozzleDiameter);
   if (![width, depth].every((value) => Number.isFinite(value) && value >= 120 && value <= 1000)) {
     throw new Error("Ungültige Druckbettgröße für den First-Layer-Test.");
   }
-  // Keep the physical edge and the native purge/wipe area clear. The selected
-  // printer/plate contract remains authoritative during slicing.
-  const margin = 5;
-  const halfX = width / 2 - margin, halfY = depth / 2 - margin;
-  const logoHalf = Math.min(width, depth) * 0.28;
-  const stemHalf = logoHalf * 0.4;
-  const shoulder = logoHalf * 0.48;
-  const band = Math.max(0.8, lineWidth * 2);
-  const offsets = Array.from({ length: 8 }, (_, index) => index * band);
-  if (offsets[7]! >= stemHalf || shoulder + 2 * offsets[7]! >= logoHalf) throw new Error("Druckbett zu klein für drei druckbare T-Konturen mit dieser Düse.");
+  const halfX = width / 2 - 5, halfY = depth / 2 - 5;
+  const logoHalf = Math.min(width, depth) * 0.25;
+  const stemHalf = logoHalf * 0.4, shoulder = logoHalf * 0.48;
+  const band = Math.max(0.55, lineWidth * 1.25);
+  const offsets = [-band, 0, band, 2 * band, 3 * band, 4 * band, 5 * band];
+  const padHalf = Math.min(15, Math.max(7.5, Math.min(width, depth) * 0.038));
+  const centreHalf = Math.min(padHalf, stemHalf - 5 * band - 2 * lineWidth);
+  if (centreHalf <= lineWidth) throw new Error("Druckbett zu klein für die gewählte First-Layer-Düse.");
+  type Point = readonly [number, number];
+  const pads: { x: number; y: number; half: number }[] = [];
+  for (const x of [-halfX + padHalf + 3 * lineWidth, 0, halfX - padHalf - 3 * lineWidth]) {
+    for (const y of [-halfY + padHalf + 3 * lineWidth, 0, halfY - padHalf - 3 * lineWidth]) {
+      pads.push({ x, y, half: x === 0 && y === 0 ? centreHalf : padHalf });
+    }
+  }
   const insideT = (x: number, y: number, inset: number): boolean =>
     y > -logoHalf + inset && y < logoHalf - inset
     && (Math.abs(x) < stemHalf - inset || (Math.abs(x) < logoHalf - inset && y > shoulder + inset));
-  // Four empty T-shaped grooves isolate exactly three solid contour bands.
-  // The central T and the surrounding sheet remain filled calibration areas.
-  const filled = (x: number, y: number): boolean => {
-    if (!insideT(x, y, 0) || insideT(x, y, offsets[7]!)) return true;
-    return [1, 3, 5].some((index) => insideT(x, y, offsets[index]!) && !insideT(x, y, offsets[index + 1]!));
+  const sorted = (values: number[]): number[] => [...new Set(values.map((v) => Math.round(v * 1e6) / 1e6))].sort((a, b) => a - b);
+  const xs = sorted([-halfX, halfX, -halfX + lineWidth, halfX - lineWidth,
+    ...offsets.flatMap((d) => [-logoHalf + d, logoHalf - d, -stemHalf + d, stemHalf - d]),
+    ...pads.flatMap((p) => [p.x - p.half, p.x + p.half])]);
+  const ys = sorted([-halfY, halfY, -halfY + lineWidth, halfY - lineWidth,
+    ...offsets.flatMap((d) => [-logoHalf + d, logoHalf - d, shoulder + d]),
+    ...pads.flatMap((p) => [p.y - p.half, p.y + p.half])]);
+  // x+y=constant runs from upper-left to lower-right in the bed plane.
+  const pitch = 14 * Math.SQRT2, diagonalHalf = lineWidth * Math.SQRT2;
+  const extent = halfX + halfY;
+  const cuts = sorted([-extent, extent, ...Array.from(
+    { length: 2 * Math.ceil(extent / pitch) + 3 },
+    (_, index) => (index - Math.ceil(extent / pitch) - 1) * pitch,
+  ).flatMap((u) => [u - diagonalHalf, u + diagonalHalf]).filter((u) => u > -extent && u < extent)]);
+  const solidCell = (x: number, y: number): boolean =>
+    Math.abs(x) > halfX - lineWidth || Math.abs(y) > halfY - lineWidth
+    || pads.some((p) => Math.abs(x - p.x) < p.half && Math.abs(y - p.y) < p.half)
+    || [0, 2 * band, 4 * band].some((d) => insideT(x, y, d) && !insideT(x, y, d + band));
+  const clip = (poly: readonly Point[], limit: number, keepGreater: boolean): Point[] => {
+    const output: Point[] = [];
+    for (let index = 0; index < poly.length; index += 1) {
+      const a = poly[index]!, z = poly[(index + 1) % poly.length]!;
+      const da = a[0] + a[1] - limit, dz = z[0] + z[1] - limit;
+      const aIn = keepGreater ? da >= 0 : da <= 0;
+      const zIn = keepGreater ? dz >= 0 : dz <= 0;
+      if (aIn) output.push(a);
+      if (aIn !== zIn) {
+        const t = da / (da - dz);
+        output.push([a[0] + t * (z[0] - a[0]), a[1] + t * (z[1] - a[1])]);
+      }
+    }
+    return output;
   };
-  const sorted = (values: number[]): number[] => [...new Set(values.map((value) => Math.round(value * 1e6) / 1e6))].sort((a, b) => a - b);
-  const xs = sorted([-halfX, halfX, ...offsets.flatMap((d) => [-logoHalf + d, logoHalf - d, -stemHalf + d, stemHalf - d])]);
-  const ys = sorted([-halfY, halfY, ...offsets.flatMap((d) => [-logoHalf + d, logoHalf - d, shoulder + d])]);
-  const cells = ys.slice(0, -1).map((y, j) => xs.slice(0, -1).map((x, i) => filled((x + xs[i + 1]!) / 2, (y + ys[j + 1]!) / 2)));
+  const vertices = new Map<string, Point>();
+  const point = (p: Point): Point => {
+    const rounded: Point = [Math.round(p[0] * 1e6) / 1e6, Math.round(p[1] * 1e6) / 1e6];
+    const key = `${rounded[0]},${rounded[1]}`;
+    if (!vertices.has(key)) vertices.set(key, rounded);
+    return vertices.get(key)!;
+  };
+  const edgeKey = (a: Point, z: Point): string => [`${a[0]},${a[1]}`, `${z[0]},${z[1]}`].sort().join("|");
+  const boundary = new Map<string, { a: Point; z: Point; count: number }>();
   const b: Builder = { positions: [], normals: [] };
+  const addCell = (input: readonly Point[]): void => {
+    const poly: Point[] = [];
+    for (const p of input.map(point)) if (poly.at(-1) !== p) poly.push(p);
+    if (poly[0] === poly.at(-1)) poly.pop();
+    if (poly.length < 3) return;
+    let twiceArea = 0;
+    for (let k = 0; k < poly.length; k += 1) {
+      const a = poly[k]!, z = poly[(k + 1) % poly.length]!;
+      twiceArea += a[0] * z[1] - a[1] * z[0];
+    }
+    if (twiceArea <= 1e-8) return;
+    // Centre fans retain every shared edge, including collinear subdivisions.
+    // Removing those vertices would introduce T-junctions in adjacent cells.
+    const centre: Point = [poly.reduce((s, p) => s + p[0], 0) / poly.length,
+      poly.reduce((s, p) => s + p[1], 0) / poly.length];
+    for (let k = 0; k < poly.length; k += 1) {
+      const a = poly[k]!, z = poly[(k + 1) % poly.length]!;
+      triangle(b, [centre[0], centre[1], 0], [z[0], z[1], 0], [a[0], a[1], 0]);
+      triangle(b, [centre[0], centre[1], height], [a[0], a[1], height], [z[0], z[1], height]);
+      const key = edgeKey(a, z), entry = boundary.get(key);
+      if (entry) entry.count += 1;
+      else boundary.set(key, { a, z, count: 1 });
+    }
+  };
   for (let j = 0; j < ys.length - 1; j += 1) {
     for (let i = 0; i < xs.length - 1; i += 1) {
-      if (!cells[j]![i]) continue;
       const x0 = xs[i]!, x1 = xs[i + 1]!, y0 = ys[j]!, y1 = ys[j + 1]!;
-      const p: Vec3[] = [[x0,y0,0],[x1,y0,0],[x1,y1,0],[x0,y1,0],[x0,y0,height],[x1,y0,height],[x1,y1,height],[x0,y1,height]];
-      quad(b,p[0]!,p[3]!,p[2]!,p[1]!);
-      quad(b,p[4]!,p[5]!,p[6]!,p[7]!);
-      // Only exposed edges get side faces: no intersecting boxes or internal
-      // walls, and shared grid edges have matching vertices on both sides.
-      if (!cells[j - 1]?.[i]) quad(b,p[0]!,p[1]!,p[5]!,p[4]!);
-      if (!cells[j]?.[i + 1]) quad(b,p[1]!,p[2]!,p[6]!,p[5]!);
-      if (!cells[j + 1]?.[i]) quad(b,p[2]!,p[3]!,p[7]!,p[6]!);
-      if (!cells[j]?.[i - 1]) quad(b,p[3]!,p[0]!,p[4]!,p[7]!);
+      if (x1 - x0 < 1e-5 || y1 - y0 < 1e-5) continue;
+      const x = (x0 + x1) / 2, y = (y0 + y1) / 2;
+      const full = solidCell(x, y), clearLogo = insideT(x, y, -band);
+      if (!full && clearLogo) continue;
+      const rectangle: Point[] = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+      for (let k = 0; k < cuts.length - 1; k += 1) {
+        const low = cuts[k]!, high = cuts[k + 1]!;
+        if (high <= x0 + y0 || low >= x1 + y1) continue;
+        const u = (low + high) / 2;
+        if (!full && Math.abs(u - Math.round(u / pitch) * pitch) >= diagonalHalf) continue;
+        addCell(clip(clip(rectangle, low, true), high, false));
+      }
     }
+  }
+  for (const { a, z, count } of boundary.values()) {
+    if (count > 2) throw new Error("Ungültige First-Layer-Topologie.");
+    if (count === 1) quad(b, [a[0], a[1], 0], [z[0], z[1], 0], [z[0], z[1], height], [a[0], a[1], height]);
   }
   return finish(b);
 }

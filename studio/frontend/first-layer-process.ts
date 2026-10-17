@@ -20,8 +20,8 @@ export function firstLayerProcessOptions(nozzle: number, current: SliceProcessOv
     walls: 1,
     bottom_shell_layers: 1,
     top_shell_layers: 0,
-    // The solid bottom layer fills the whole sheet. Sparse grid infill does
-    // not support 100 percent in Bambu Studio and is unnecessary here.
+    // One bottom layer fills only the sparse diagnostic geometry. The model
+    // height equals this first layer; mesh caps are not extra printed layers.
     infill_percent: 0,
     layer_height_ranges: [],
   };

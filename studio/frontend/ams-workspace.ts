@@ -5,7 +5,6 @@ import {
   type DetailedAmsSlot,
   type FilamentSettingTargetKind,
   type ManualA1FilamentProfile,
-  type ManualA1FilamentType,
   type DetailedDirectPrintPrinter,
   type DetailedExternalSpool,
 } from "./direct-print-status-api.js";
@@ -87,6 +86,7 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
   #catalog: StudioProfileCatalog | null = null;
   #filamentCatalog: ManualA1FilamentProfile[] = [];
   readonly #filamentSelections = new Map<string, Readonly<{ vendor: string; filamentId: string }>>();
+  readonly #filamentColors = new Map<string, string>();
   #workspace: PersistedStudioWorkspace | null = null;
   #loading = false;
   #error = "";
@@ -179,14 +179,6 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
     return this.#activePlate()?.materialSource === "external_spool" ? "Externe Spule" : "AMS / Materialsystem";
   }
 
-  #manualMaterialOptions(kind: FilamentSettingTargetKind, current: string): string {
-    const allowed: readonly ManualA1FilamentType[] = kind === "external_spool"
-      ? ["PLA", "PETG", "TPU", "PVA"]
-      : ["PLA", "PETG", "PVA"];
-    const normalizedCurrent = current.trim().toUpperCase();
-    return allowed.map((material) => `<option value="${material}" ${material === normalizedCurrent ? "selected" : ""}>${material}</option>`).join("");
-  }
-
   #filamentSelection(
     kind: FilamentSettingTargetKind,
     key: string,
@@ -205,13 +197,13 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
   }
 
   #manufacturerOptions(kind: FilamentSettingTargetKind, selected: string): string {
-    return vendorsForTarget(this.#filamentCatalog, kind)
+    return (selected ? "" : '<option value="" selected>Hersteller wählen</option>') + vendorsForTarget(this.#filamentCatalog, kind)
       .map((vendor) => `<option value="${esc(vendor)}" ${vendor === selected ? "selected" : ""}>${esc(vendor)}</option>`)
       .join("");
   }
 
   #filamentOptions(kind: FilamentSettingTargetKind, vendor: string, selectedId: string): string {
-    return filamentsForTarget(this.#filamentCatalog, kind)
+    return (selectedId ? "" : '<option value="" selected>Filament wählen</option>') + filamentsForTarget(this.#filamentCatalog, kind)
       .filter((item) => item.vendor === vendor)
       .map((item) => `<option value="${esc(item.id)}" ${item.id === selectedId ? "selected" : ""}>${esc(item.name)} · ${esc(item.material_type)}</option>`)
       .join("");
@@ -227,22 +219,19 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
     present: boolean,
   ): string {
     if (!present) return "";
-    const key = `${kind}:${targetId}`;
+    const key = `${encodeURIComponent(this.#printerId)}|${kind}:${targetId}`;
     const printerBlocked = this.#printer() !== null && !this.#printer()?.ready;
     const locked = rfidDetected || printerBlocked;
     const busy = this.#settingBusy === key;
     const selected = this.#filamentSelection(kind, key, currentFilamentId, material);
-    if (!selected) return `<section class="material-setting ${locked ? "locked" : ""}">
-      <label><span>Filamentart</span><select data-setting-material data-setting-key="${esc(key)}" ${locked || busy ? "disabled" : ""}>${this.#manualMaterialOptions(kind, material)}</select></label>
-      <label><span>Farbe</span><input type="color" value="${safeColor(color)}" data-setting-color data-setting-key="${esc(key)}" ${locked || busy ? "disabled" : ""}></label>
-      <button type="button" data-setting-apply data-setting-kind="${kind}" data-setting-target="${esc(targetId)}" data-setting-key="${esc(key)}" ${locked || busy ? "disabled" : ""}>${busy ? "Wird gesetzt …" : "Am Drucker setzen"}</button>
-      <small>${printerBlocked ? "Während eines laufenden Drucks gesperrt; Materialart und Farbe können erst danach geändert werden." : locked ? "RFID erkannt: Materialart und Farbe kommen verbindlich vom Tag und können hier nicht überschrieben werden." : "Kompatibilitätsmodus bis zur nächsten Home-Assistant-Kernaktivierung: Materialart und Farbe bleiben vollständig bedienbar; Herstellerprofile werden erst angeboten, sobald das validierende Backend aktiv ist."}</small>
-    </section>`;
+    if (!this.#filamentCatalog.length) return '<section class="material-setting locked"><small>Der validierte A1-Filamentkatalog ist nicht verfügbar. Materialsysteme synchronisieren; ohne Katalog werden keine Filamentarten erfunden oder geschrieben.</small></section>';
+    const vendor = selected?.vendor ?? this.#filamentSelections.get(key)?.vendor ?? "";
+    const chosenColor = rfidDetected ? color : this.#filamentColors.get(key) ?? color;
     return `<section class="material-setting ${locked ? "locked" : ""}">
-      <label><span>Hersteller</span><select data-setting-vendor data-setting-kind="${kind}" data-setting-key="${esc(key)}" data-setting-material="${esc(material)}" ${locked || busy ? "disabled" : ""}>${this.#manufacturerOptions(kind, selected.vendor)}</select></label>
-      <label><span>Filament</span><select data-setting-filament data-setting-kind="${kind}" data-setting-key="${esc(key)}" ${locked || busy ? "disabled" : ""}>${this.#filamentOptions(kind, selected.vendor, selected.id)}</select></label>
-      <label><span>Farbe</span><input type="color" value="${safeColor(color)}" data-setting-color data-setting-key="${esc(key)}" ${locked || busy ? "disabled" : ""}></label>
-      <button type="button" data-setting-apply data-setting-kind="${kind}" data-setting-target="${esc(targetId)}" data-setting-key="${esc(key)}" ${locked || busy ? "disabled" : ""}>${busy ? "Wird gesetzt …" : "Am Drucker setzen"}</button>
+      <label><span>Hersteller</span><select data-setting-vendor data-setting-kind="${kind}" data-setting-key="${esc(key)}" data-setting-material="${esc(material)}" ${locked || busy ? "disabled" : ""}>${this.#manufacturerOptions(kind, vendor)}</select></label>
+      <label><span>Filament</span><select data-setting-filament data-setting-kind="${kind}" data-setting-key="${esc(key)}" ${locked || busy ? "disabled" : ""}>${this.#filamentOptions(kind, vendor, selected?.id ?? "")}</select></label>
+      <label><span>Farbe</span><input type="color" value="${safeColor(chosenColor)}" data-setting-color data-setting-key="${esc(key)}" ${locked || busy ? "disabled" : ""}></label>
+      <button type="button" data-setting-apply data-setting-kind="${kind}" data-setting-target="${esc(targetId)}" data-setting-key="${esc(key)}" ${locked || busy || !selected ? "disabled" : ""}>${busy ? "Wird gesetzt …" : "Am Drucker setzen"}</button>
       <small>${printerBlocked ? "Während eines laufenden Drucks gesperrt; Hersteller, Filamentart und Farbe können erst danach geändert werden." : locked ? "RFID erkannt: Hersteller, Filamentart und Farbe kommen verbindlich vom Tag und können hier nicht überschrieben werden." : "Auswahl ausschließlich aus dem offiziellen, für Bambu Lab A1 instanziierten Systemkatalog. Reguläres TPU bleibt auf die externe Spule begrenzt; TPU for AMS ist im Materialsystem zulässig."}</small>
     </section>`;
   }
@@ -293,7 +282,7 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
         color,
         status,
         loaded,
-        `<span>Material<b>${esc(material)}</b></span><span>Farbe<b>${esc(external?.color || color || "–")}</b></span><span>Tray-ID<b>${esc(external?.tray_id || "EXT")}</b></span><span>Filament-ID<b>${esc(external?.filament_id || "–")}</b></span><span>RFID<b>${external?.rfid_detected ? "erkannt" : "nicht erkannt"}</b></span>${this.#materialControls("external_spool", "external", material, external?.filament_id || "", external?.color || color, Boolean(external?.rfid_detected), Boolean(external?.loaded))}`,
+        `<span>Material<b>${esc(material)}</b></span><span>Farbe<b>${esc(external?.color || color || "–")}</b></span><span>Tray-ID<b>${esc(external?.tray_id || "EXT")}</b></span><span>Filament-ID<b>${esc(external?.filament_id || "–")}</b></span><span>RFID<b>${external?.rfid_detected ? "erkannt" : "nicht erkannt"}</b></span>${this.#materialControls("external_spool", "external", material, external?.filament_id || "", external?.color || color, Boolean(external?.rfid_detected), Boolean(external?.available))}`,
       ));
     }
     if (!feeds.length) return '<div class="notice">Aktuell werden weder belegte Materialfächer noch eine externe Spule gemeldet.</div>';
@@ -335,9 +324,8 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
   ): Promise<void> {
     const printer = this.#printer();
     const filamentId = this.#root.querySelector<HTMLSelectElement>(`[data-setting-filament][data-setting-key="${CSS.escape(key)}"]`)?.value;
-    const material = this.#root.querySelector<HTMLSelectElement>(`[data-setting-material][data-setting-key="${CSS.escape(key)}"]`)?.value as ManualA1FilamentType | undefined;
     const color = this.#root.querySelector<HTMLInputElement>(`[data-setting-color][data-setting-key="${CSS.escape(key)}"]`)?.value;
-    if (!printer || (!filamentId && !material) || !color || this.#settingBusy) return;
+    if (!printer || !filamentId || !color || this.#settingBusy) return;
     this.#settingBusy = key;
     this.#settingStatus = "Filamenteinstellung wird gegen die Live-Telemetrie geprüft …";
     this.#error = "";
@@ -348,13 +336,20 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
         target_kind: kind,
         target_id: targetId,
         color,
-        ...(filamentId ? { filament_id: filamentId } : { material_type: material! }),
+        filament_id: filamentId,
       });
+      if (!this.isConnected || this.#printerId !== printer.printer_id) {
+        this.#settingStatus = "Druckeransicht geändert; es wurde nichts an den Drucker gesendet.";
+        return;
+      }
       if (!globalThis.confirm(preview.confirmation_message)) {
         this.#settingStatus = "Änderung abgebrochen; es wurde nichts an den Drucker gesendet.";
         return;
       }
+      if (!this.isConnected || this.#printerId !== printer.printer_id) return;
       const result = await applyFilamentSetting(preview.token);
+      this.#filamentSelections.delete(key);
+      this.#filamentColors.delete(key);
       this.#settingStatus = result.telemetry_confirmed
         ? `${result.target_label}: ${result.new_material} / ${result.new_color} wurde am Drucker gesetzt und per Telemetrie bestätigt.`
         : `${result.target_label}: Der Drucker hat die Einstellung angenommen; die Telemetrieaktualisierung steht noch aus.`;
@@ -397,8 +392,8 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
         const key = select.dataset.settingKey || "";
         const kind = select.dataset.settingKind as FilamentSettingTargetKind;
         const first = resolveFilamentSelection(this.#filamentCatalog, kind, "", select.dataset.settingMaterial || "", select.value);
-        if (!key || !first) return;
-        this.#filamentSelections.set(key, { vendor: select.value, filamentId: first.id });
+        if (!key || !vendorsForTarget(this.#filamentCatalog, kind).includes(select.value)) return;
+        this.#filamentSelections.set(key, { vendor: select.value, filamentId: first?.id ?? "" });
         this.#render();
       });
     });
@@ -406,7 +401,16 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
       select.addEventListener("change", () => {
         const key = select.dataset.settingKey || "";
         const item = this.#filamentCatalog.find((candidate) => candidate.id === select.value);
-        if (key && item) this.#filamentSelections.set(key, { vendor: item.vendor, filamentId: item.id });
+        if (key && item) {
+          this.#filamentSelections.set(key, { vendor: item.vendor, filamentId: item.id });
+          this.#render();
+        }
+      });
+    });
+    this.#root.querySelectorAll<HTMLInputElement>("[data-setting-color]").forEach((input) => {
+      input.addEventListener("input", () => {
+        const key = input.dataset.settingKey || "";
+        if (key && /^#[0-9a-f]{6}$/i.test(input.value)) this.#filamentColors.set(key, input.value);
       });
     });
     this.#root.querySelectorAll<HTMLButtonElement>("[data-setting-apply]").forEach((button) => {

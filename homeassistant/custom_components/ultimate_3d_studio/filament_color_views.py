@@ -73,9 +73,11 @@ def _temperature(value: Any) -> int | None:
 
 def _snapshot(hass: HomeAssistant, printer: Any, kind: str, target_id: str) -> dict[str, Any]:
     if kind == "external_spool":
+        if target_id != "external":
+            raise ValueError("Das externe Filamentziel muss eindeutig angegeben werden.")
         item = _external_spool(hass, printer)
-        if not item.get("available") or not item.get("loaded"):
-            raise ValueError("Die externe Spule wird vom Drucker aktuell nicht als geladen gemeldet.")
+        if not item.get("available"):
+            raise ValueError("Die externe Spule wird vom Drucker aktuell nicht gemeldet.")
         ams_id = 255
         tray_id = 0
         label = "Externe Spule"
@@ -114,6 +116,7 @@ def _snapshot(hass: HomeAssistant, printer: Any, kind: str, target_id: str) -> d
         "nozzle_temp_min": minimum,
         "nozzle_temp_max": maximum,
         "current_color": _hex_color(item.get("color")),
+        "loaded": bool(item.get("loaded") if kind == "external_spool" else item.get("active")),
     }
 
 
@@ -243,7 +246,7 @@ class FilamentColorView(HomeAssistantView):
             current = _snapshot(hass, printer, expected["kind"], expected["target_id"])
         except ValueError as exc:
             return _error(409, "unsafe_color_target", str(exc))
-        protected = ("ams_id", "tray_id", "tray_info_idx", "tray_type", "nozzle_temp_min", "nozzle_temp_max", "current_color")
+        protected = ("ams_id", "tray_id", "tray_info_idx", "tray_type", "nozzle_temp_min", "nozzle_temp_max", "current_color", "loaded")
         if any(current.get(field) != expected.get(field) for field in protected):
             return _error(409, "telemetry_changed", "Die Filamentdaten haben sich seit der Vorschau geändert. Bitte erneut prüfen.")
         await get_audit_log(hass).async_append(
