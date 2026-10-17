@@ -7,7 +7,7 @@ import ts from "typescript";
 import { arrangePlateInstances } from "../frontend/studio-arrangement.js";
 import { transformedBounds } from "../frontend/mesh-export.js";
 import { studioBuildPlateVisual, buildPlateProfiles } from "../frontend/studio-build-plates.js";
-import { buildPlateProfileFromCatalog, profileById } from "../frontend/studio-profile-catalog.js";
+import { buildPlateProfileFromCatalog, profileById, uniqueStudioProfiles, printerProfileForNozzle, selectionPatch, printerBuildVolume } from "../frontend/studio-profile-catalog.js";
 import type { MeshInstance, Vec3 } from "../frontend/webgl-studio-viewport.js";
 
 // Isolated source-flow tests. UI/WebGL, provider, HTTP and hardware boundaries
@@ -340,4 +340,104 @@ test("local 3MF loader requests every plate and preserves instance material iden
   assert.equal(new Set(value.plates.map((p: any) => p.uid)).size, 2);
   for (const p of value.plates) { assert.equal(p.instances.length, 1); assert.equal(value.assignments.get(p.instances[0].id), "model:2"); assert.equal(p.instances[0].color, "#ffffff"); }
   assert.match(value.status, /hinzugefügt/);
+});
+
+
+const profileChange = productionMethod(workspace, "profileChanged", {
+  profileById, uniqueStudioProfiles, printerProfileForNozzle, selectionPatch, printerBuildVolume,
+  loadSliceProcessOverrides: () => ({}), processOverrideValidationError: () => null,
+});
+const invalidateProfilePlate = productionMethod(workspace, "invalidatePlate");
+
+function profileContext(id: string, model: string, diameter?: number, vendor = "Bambu Lab", source = "local"): any {
+  return { id, name: `${vendor} ${model} ${diameter ?? "generic"}`, kind: "printer", source,
+    builtin: source === "builtin", payload: { vendor, model, ...(diameter === undefined ? {} : { nozzle_diameter_mm: diameter }) } };
+}
+
+function profileChangeState(printers: any[], current = printers[0], nozzleDiameter = .6): any {
+  const nozzle = { id: "selected.nozzle", name: "Selected nozzle", kind: "nozzle", source: "local", builtin: false,
+    payload: { diameter_mm: nozzleDiameter } };
+  const selection = { target_printer_id: "old-target", printer_profile_id: current.id,
+    nozzle_profile_id: "old-nozzle", process_profile_id: "process", build_plate_profile_id: "plate", filament_profile_ids: ["pla"] };
+  const plate = { id: 0, name: "Druckplatte 1", selection, stage: "sliced", jobId: "old-printer-job",
+    lastError: "retained", layers: [{ index: 1 }], layerCount: 9, visibleLayer: 5, toolColors: ["#123456"],
+    instances: [item("unchanged-model")] };
+  const state: any = { plate: () => plate, catalog: { profiles: [...printers, nozzle], groups: { printer: printers } },
+    printers: [{ printer_id: "new-target", name: "New target" }], saved: [], invalidated: 0, error: "", status: "",
+    audit() {}, renderFull() {},
+    profileApi: { async saveSelection(value: any) { state.saved.push(plain(value)); return value; } },
+    invalidatePlate(value: any) { state.invalidated++; invalidateProfilePlate.call(state, value); } };
+  return state;
+}
+
+test("target printer change invalidates the old job layers and colors without changing user geometry", async () => {
+  const state = profileChangeState([profileContext("a1", "A1", .4)]);
+  const plate = state.plate(), instances = plate.instances, geometry = instances[0].geometry;
+  const transform = { position: instances[0].position, rotation: instances[0].rotation, scale: instances[0].scale };
+  await profileChange.call(state, "target_printer_id", "new-target");
+  assert.equal(plate.selection.target_printer_id, "new-target");
+  assert.equal(state.invalidated, 1); assert.equal(plate.stage, "prepared"); assert.equal(plate.jobId, "");
+  assert.deepEqual(plain(plate.layers), []); assert.equal(plate.layerCount, 0); assert.equal(plate.visibleLayer, 0);
+  assert.deepEqual(plain(plate.toolColors), []); assert.equal(plate.lastError, "");
+  assert.equal(plate.instances, instances); assert.equal(instances[0].geometry, geometry);
+  for (const [key, value] of Object.entries(transform)) assert.equal(instances[0][key], value);
+  assert.deepEqual(plate.selection.filament_profile_ids, ["pla"]); assert.equal(state.saved.length, 1);
+});
+
+test("clearing a target printer also invalidates the previous printer job", async () => {
+  const state = profileChangeState([profileContext("a1", "A1", .4)]);
+  await profileChange.call(state, "target_printer_id", "");
+  assert.equal(state.plate().selection.target_printer_id, "");
+  assert.equal(state.plate().jobId, ""); assert.equal(state.invalidated, 1);
+});
+
+test("nozzle change selects the matching A1 diameter before printer family deduplication", async () => {
+  const state = profileChangeState([profileContext("a1-04", "A1", .4), profileContext("a1-06", "A1", .6)]);
+  await profileChange.call(state, "nozzle_profile_id", "selected.nozzle");
+  assert.equal(state.plate().selection.printer_profile_id, "a1-06");
+  assert.equal(state.plate().jobId, ""); assert.equal(state.invalidated, 1);
+});
+
+test("nozzle change retains the selected printer model instead of switching H2S to A1", async () => {
+  const current = profileContext("h2s-04", "H2S", .4);
+  const state = profileChangeState([current, profileContext("a1-06", "A1", .6), profileContext("h2s-06", "H2S", .6)]);
+  await profileChange.call(state, "nozzle_profile_id", "selected.nozzle");
+  assert.equal(state.plate().selection.printer_profile_id, "h2s-06");
+  assert.equal(state.plate().selection.target_printer_id, "old-target");
+});
+
+test("no matching printer family never falls back to a different model", async () => {
+  const current = profileContext("h2s-04", "H2S", .4);
+  const state = profileChangeState([current, profileContext("a1-06", "A1", .6)]);
+  await profileChange.call(state, "nozzle_profile_id", "selected.nozzle");
+  assert.equal(state.plate().selection.printer_profile_id, "h2s-04");
+  assert.equal(state.plate().jobId, "");
+  assert.match(state.error, /Düse.*Druckermodells.*Herstellers/);
+  assert.doesNotMatch(state.status, /passendes natives Maschinenprofil gewählt/);
+});
+
+test("nozzle change never uses a matching model name from a different manufacturer", async () => {
+  const current = profileContext("selected-04", "A1", .4, "Selected vendor");
+  const state = profileChangeState([current, profileContext("other-06", "A1", .6, "Other vendor")]);
+  await profileChange.call(state, "nozzle_profile_id", "selected.nozzle");
+  assert.equal(state.plate().selection.printer_profile_id, "selected-04");
+  assert.match(state.error, /Düse.*Druckermodells.*Herstellers/);
+});
+
+test("nozzle matching retains local profile priority within the same manufacturer model and diameter", async () => {
+  const current = profileContext("a1-04", "A1", .4);
+  const cloud = profileContext("cloud-06", " A1 ", .6, " Bambu Lab ", "bambu_cloud");
+  const local = profileContext("local-06", "A1", .6);
+  const state = profileChangeState([current, cloud, local]);
+  await profileChange.call(state, "nozzle_profile_id", "selected.nozzle");
+  assert.equal(state.plate().selection.printer_profile_id, "local-06");
+});
+
+test("generic printer profiles remain independent from nozzle diameter", async () => {
+  const current = profileContext("h2s-generic", "H2S");
+  const state = profileChangeState([current, profileContext("a1-06", "A1", .6)]);
+  await profileChange.call(state, "nozzle_profile_id", "selected.nozzle");
+  assert.equal(state.plate().selection.printer_profile_id, "h2s-generic");
+  assert.equal(state.plate().selection.nozzle_profile_id, "selected.nozzle");
+  assert.equal(state.plate().jobId, ""); assert.equal(state.saved.length, 1);
 });

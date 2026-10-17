@@ -80,6 +80,22 @@ export function uniqueStudioProfiles(catalog: StudioProfileCatalog | null, kind:
   return [...selected.values()].sort((left, right) => left.name.localeCompare(right.name, "de-DE", { numeric: true }));
 }
 
+/** Match nozzle-specific legacy profiles within the selected printer family before deduplication. */
+export function printerProfileForNozzle(
+  catalog: StudioProfileCatalog | null,
+  current: StudioProfile | null,
+  diameter: number,
+): StudioProfile | null {
+  const model = text(current?.payload.model).toLocaleLowerCase("de-DE");
+  const vendor = text(current?.payload.vendor).toLocaleLowerCase("de-DE");
+  if (!catalog || !model || !Number.isFinite(diameter) || diameter <= 0) return null;
+  const printer = (catalog.groups.printer ?? []).filter((profile) => profile.kind === "printer"
+    && text(profile.payload.model).toLocaleLowerCase("de-DE") === model
+    && text(profile.payload.vendor).toLocaleLowerCase("de-DE") === vendor
+    && Math.abs(Number(profile.payload.nozzle_diameter_mm) - diameter) < .000001);
+  return uniqueStudioProfiles({ ...catalog, groups: { ...catalog.groups, printer } }, "printer")[0] ?? null;
+}
+
 export function profileById(catalog: StudioProfileCatalog | null, id: string): StudioProfile | null {
   return catalog?.profiles.find((profile) => profile.id === id) ?? null;
 }

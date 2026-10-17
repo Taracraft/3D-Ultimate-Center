@@ -332,6 +332,7 @@ class SupervisorAppSession:
                 observed = await self._inspect(release)
                 require(observed["state"] == "installed_stopped", "app_reconciliation_required")
                 await self._save(release, "installed_stopped")
+                self._current(release)
                 result = observed
         except asyncio.CancelledError:
             self._last = failure("app_reconciliation_required" if mutation_started else "app_closed")

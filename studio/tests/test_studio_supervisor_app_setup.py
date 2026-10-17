@@ -253,6 +253,50 @@ class SessionTests(SessionFixture):
         self.journal.fail_save=2
         self.assertEqual((await self.run_action())['error'],'app_reconciliation_required')
         self.assertEqual(self.journal.record['state'],'pending')
+    async def _assert_context_change_during_final_receipt_save(self, change_context):
+        entered = asyncio.Event()
+        finish = asyncio.Event()
+        original_save = self.journal.async_save
+
+        async def delayed_final_save(value):
+            if value["state"] == "installed_stopped":
+                entered.set()
+                await finish.wait()
+            await original_save(value)
+
+        self.journal.async_save = delayed_final_save
+        action = asyncio.create_task(self.run_action())
+        try:
+            async with asyncio.timeout(1):
+                await entered.wait()
+            change_context()
+        finally:
+            finish.set()
+        result = await action
+
+        # The remote install already happened. Reject only stale success;
+        # do not pretend to undo it, erase its receipt or install a second time.
+        self.assertTrue(self.client.installed)
+        self.assertEqual(self.client.state, "stopped")
+        self.assertEqual([call[0] for call in self.client.calls].count("install"), 1)
+        self.assertEqual(self.journal.record,
+            {"schema": 1, "release": RELEASE.identity, "state": "installed_stopped"})
+        self.assertEqual([value["state"] for value in self.journal.saves],
+            ["pending", "installed_stopped"])
+        self.assertEqual(result,
+            {"ok": False, "state": "blocked", "error": "app_reconciliation_required"})
+        self.assertEqual(self.session.snapshot()["result"], result)
+        self.assertFalse((await self.run_action())["ok"])
+        self.assertEqual([call[0] for call in self.client.calls].count("install"), 1)
+        self.assertEqual(self.journal.record["state"], "installed_stopped")
+
+    async def test_unload_during_final_receipt_save_rejects_stale_success(self):
+        await self._assert_context_change_during_final_receipt_save(self.session.invalidate)
+
+    async def test_release_change_during_final_receipt_save_rejects_stale_success(self):
+        await self._assert_context_change_during_final_receipt_save(
+            lambda: self.release.__setitem__(0, None))
+
     async def test_request_failure_remains_unknown_across_session_recreation(self):
         self.client.error=RuntimeError('token-private-DO-NOT-EXPOSE')
         result=await self.run_action();self.assertEqual(result['error'],'app_reconciliation_required')

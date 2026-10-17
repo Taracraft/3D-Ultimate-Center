@@ -150,31 +150,94 @@ function descriptionPanel(detail: MakerWorldDetail): string {
   return `<section class="mw-tab-panel"><div class="mw-description">${description}</div>${media}${tags ? `<div class="mw-tags">${tags}</div>` : ""}</section>`;
 }
 
-function commentHtml(comment: MakerWorldComment, depth = 0): string {
-  const replies = comment.replies.slice(0, 4).map((reply) => commentHtml(reply, depth + 1)).join("");
-  const remaining = Math.max(0, Number(comment.reply_count || 0) - comment.replies.length);
+type DiscussionSort = "all" | "top" | "new" | "answers";
+type MakerWorldDiscussionState = { sort: DiscussionSort; expandedReplies: Set<string> };
+
+function createDiscussionState(): MakerWorldDiscussionState {
+  return { sort: "all", expandedReplies: new Set<string>() };
+}
+
+function discussionCount(value: unknown): number {
+  const count = Number(value);
+  return Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0;
+}
+
+function sortedDiscussionComments(comments: readonly MakerWorldComment[], sort: DiscussionSort): MakerWorldComment[] {
+  const score = (comment: MakerWorldComment): number => {
+    if (sort === "top") return discussionCount(comment.like_count);
+    if (sort === "answers") return Math.max(discussionCount(comment.reply_count), comment.replies.length);
+    const timestamp = Date.parse(comment.created_at);
+    return Number.isFinite(timestamp) ? timestamp : 0;
+  };
+  const indexed = comments.map((comment, index) => ({ comment, index }));
+  if (sort !== "all") indexed.sort((a, b) => score(b.comment) - score(a.comment) || a.index - b.index);
+  return indexed.map(({ comment }) => comment);
+}
+
+function commentHtml(
+  comment: MakerWorldComment,
+  depth = 0,
+  discussion = createDiscussionState(),
+  key = "0",
+): string {
+  const expanded = discussion.expandedReplies.has(key);
+  const visibleReplies = expanded ? comment.replies : comment.replies.slice(0, 4);
+  const replies = visibleReplies.map((reply, index) => commentHtml(reply, depth + 1, discussion, `${key}.${index}`)).join("");
+  const hiddenLoaded = comment.replies.length - visibleReplies.length;
+  const notLoaded = Math.max(0, discussionCount(comment.reply_count) - comment.replies.length);
+  const toggle = comment.replies.length > 4
+    ? `<button type="button" class="mw-more-replies" data-replies-toggle="${esc(key)}" aria-expanded="${expanded}" aria-controls="mw-replies-${esc(key)}">${expanded ? "Antworten einklappen" : `${hiddenLoaded} weitere geladene Antworten anzeigen`}</button>`
+    : "";
+  const unloaded = notLoaded
+    ? `<div class="mw-hint">${notLoaded} weitere Antworten wurden vom Anbieter noch nicht geladen.</div>`
+    : "";
   return `<article class="mw-comment ${depth ? "reply" : ""}">
     <div class="mw-comment-avatar">${comment.avatar_url ? `<img src="${esc(comment.avatar_url)}" alt="">` : esc((comment.author || "M").slice(0, 1).toUpperCase())}</div>
     <div class="mw-comment-body">
       <div class="mw-comment-head"><strong>${esc(comment.author || "MakerWorld")}</strong>${comment.boosted ? '<span class="mw-boosted">Boosted</span>' : ""}<span>${esc(shortDate(comment.created_at))}</span></div>
       ${comment.rating ? `<div class="mw-stars" aria-label="${comment.rating} von 5">${ratingStars(comment.rating)}</div>` : ""}
       <p>${esc(comment.content).replace(/\n/g, "<br>")}</p>
-      <div class="mw-comment-actions"><button type="button" data-noop="original">${comment.original_available ? "Original anzeigen" : "Original"}</button><button type="button" data-noop="reaction">♡ ${compactNumber(comment.like_count)}</button><button type="button" data-noop="reply">Antwort</button><button type="button" data-noop="more">⋯</button></div>
-      ${replies ? `<div class="mw-replies">${replies}</div>` : ""}${remaining ? `<button type="button" class="mw-more-replies" data-noop="more-replies">${remaining} weitere Antworten anzeigen</button>` : ""}
+      <div class="mw-comment-actions"><button type="button" disabled title="Originaltext wurde vom Anbieter nicht mitgeliefert.">${comment.original_available ? "Original nicht geladen" : "Original nicht verfügbar"}</button><button type="button" data-noop="reaction">♡ ${compactNumber(comment.like_count)}</button><button type="button" data-noop="reply">Antwort</button><button type="button" data-noop="more">⋯</button></div>
+      ${replies ? `<div class="mw-replies" id="mw-replies-${esc(key)}">${replies}</div>` : ""}${toggle}${unloaded}
     </div>
   </article>`;
 }
 
-function reviewsPanel(detail: MakerWorldDetail): string {
-  const count = detail.comment_count || detail.stats.comments || detail.comments.length;
+function reviewsPanel(detail: MakerWorldDetail, discussion = createDiscussionState()): string {
+  const count = Math.max(detail.comments.length, discussionCount(detail.comment_count || detail.stats.comments));
   const comments = detail.comments.length
-    ? detail.comments.map((comment) => commentHtml(comment)).join("")
+    ? sortedDiscussionComments(detail.comments, discussion.sort)
+      .map((comment) => commentHtml(comment, 0, discussion, String(detail.comments.indexOf(comment)))).join("")
     : '<div class="mw-empty">Noch keine Bewertungen vom MakerWorld-Endpunkt geladen.</div>';
+  const sorts: readonly [DiscussionSort, string][] = [["all", "Alle"], ["top", "Beliebteste"], ["new", "Neueste zuerst"], ["answers", "Die meisten Antworten"]];
   return `<section class="mw-tab-panel">
     <div class="mw-review-composer"><input type="text" placeholder="Teile deine Erfahrungen mit diesem Druckprofil"><button type="button" data-noop="photo">Foto hinzufügen</button><button type="button" data-noop="publish">Veröffentlichen</button></div>
-    <div class="mw-review-filters"><span>Rezensionen & Bewertungen (${compactNumber(count)})</span><button type="button" class="active" data-noop="all">Alle</button><button type="button" data-noop="top">Beliebteste</button><button type="button" data-noop="new">Neueste zuerst</button><button type="button" data-noop="answers">Die meisten Antworten</button></div>
+    <div class="mw-review-filters"><span>Geladene Rezensionen & Bewertungen (${compactNumber(detail.comments.length)} von ${compactNumber(count)})</span>${sorts.map(([sort, label]) => `<button type="button" class="${discussion.sort === sort ? "active" : ""}" data-review-sort="${sort}" aria-pressed="${discussion.sort === sort}">${label}</button>`).join("")}</div>
     <div class="mw-comments">${comments}</div>
   </section>`;
+}
+
+function bindDiscussionControls(
+  dialog: HTMLElement,
+  discussion: MakerWorldDiscussionState,
+  rerender: () => void,
+  active: () => boolean,
+): void {
+  dialog.querySelectorAll<HTMLButtonElement>("[data-review-sort]").forEach((button) => button.addEventListener("click", () => {
+    if (!active()) return;
+    const sort = button.dataset.reviewSort;
+    if (sort !== "all" && sort !== "top" && sort !== "new" && sort !== "answers") return;
+    discussion.sort = sort;
+    rerender();
+  }));
+  dialog.querySelectorAll<HTMLButtonElement>("[data-replies-toggle]").forEach((button) => button.addEventListener("click", () => {
+    if (!active()) return;
+    const key = button.dataset.repliesToggle || "";
+    if (!/^\d+(?:\.\d+)*$/.test(key)) return;
+    if (discussion.expandedReplies.has(key)) discussion.expandedReplies.delete(key);
+    else discussion.expandedReplies.add(key);
+    rerender();
+  }));
 }
 
 function recommendationsHtml(items: readonly MakerWorldRecommendation[]): string {
@@ -185,7 +248,7 @@ function recommendationsHtml(items: readonly MakerWorldRecommendation[]): string
   </article>`).join("");
 }
 
-type MakerWorldDialogState = { busy: boolean; closed: boolean; cleanupViewport?: () => void };
+type MakerWorldDialogState = { busy: boolean; closed: boolean; discussion?: MakerWorldDiscussionState; cleanupViewport?: () => void };
 const dialogStates = new WeakMap<HTMLElement, MakerWorldDialogState>();
 
 function closeMakerWorldDialog(overlay: HTMLElement): void {
@@ -330,7 +393,9 @@ function render(
   activeTab: DetailTab = "description",
   activeImage = "",
 ): void {
-  if (dialogStates.get(overlay)?.busy || dialogStates.get(overlay)?.closed) return;
+  const state = dialogStates.get(overlay);
+  if (state?.busy || state?.closed) return;
+  const discussion = state ? (state.discussion ??= createDiscussionState()) : createDiscussionState();
   const visibleInstances = selectedPrinter === "ALL"
     ? detail.instances
     : detail.instances.filter((item) => printerKey(item.printer_model || item.profile_name) === selectedPrinter);
@@ -344,11 +409,11 @@ function render(
   const printers = [...new Set(detail.instances.map((item) => printerKey(item.printer_model || item.profile_name)).filter((value) => value && value !== "OTHER"))];
   const images = imageList(detail, selected);
   const selectedImage = images.includes(activeImage) ? activeImage : images[0] || "";
-  const tabPanel = activeTab === "reviews" ? reviewsPanel(detail) : descriptionPanel(detail);
+  const tabPanel = activeTab === "reviews" ? reviewsPanel(detail, discussion) : descriptionPanel(detail);
   const dialog = overlay.querySelector<HTMLElement>(".mw-dialog")!;
   const printerProfileId = dialog.querySelector<HTMLSelectElement>("#target-printer")?.value ?? catalog.selection.printer_profile_id;
   const focused = (dialog.getRootNode() as ShadowRoot).activeElement;
-  const focusAttribute = ["data-profile", "data-printer", "data-image", "data-tab"].find((name) => focused?.hasAttribute(name));
+  const focusAttribute = ["data-profile", "data-printer", "data-image", "data-tab", "data-review-sort", "data-replies-toggle"].find((name) => focused?.hasAttribute(name));
   const focusValue = focusAttribute ? focused?.getAttribute(focusAttribute) : null;
   const focusId = focused?.id || "";
   const focusClose = focused?.classList.contains("mw-close");
@@ -411,6 +476,12 @@ function render(
       void openMakerWorldDetail(host, nextId, api, onTag);
     }
   }));
+  bindDiscussionControls(dialog, discussion, () => {
+    render(host, overlay, detail, api, folders, catalog, onTag, selected?.id || "", selectedPrinter, activeTab, selectedImage);
+  }, () => {
+    const current = dialogStates.get(overlay);
+    return Boolean(current && !current.busy && !current.closed && overlay.isConnected);
+  });
   dialog.querySelectorAll<HTMLButtonElement>("[data-noop]").forEach((button) => button.addEventListener("click", () => {
     const result = dialog.querySelector<HTMLElement>("#result");
     if (result) result.textContent = "Diese MakerWorld-Aktion ist sichtbar vorbereitet; Schreibaktionen werden erst verbunden, wenn die offizielle Aktion im Backend verfügbar ist.";

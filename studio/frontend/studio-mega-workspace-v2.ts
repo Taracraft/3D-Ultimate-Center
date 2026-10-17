@@ -44,6 +44,7 @@ import {
   plateVisualFromCatalog,
   printerBuildVolume,
   profileById,
+  printerProfileForNozzle,
   selectionPatch,
   uniqueStudioProfiles,
   type StudioPlateProfileSelection,
@@ -3166,20 +3167,20 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       const diameter = Number(nozzle?.payload.diameter_mm);
       const currentPrinter = profileById(this.#catalog, plate.selection.printer_profile_id);
       const configuredDiameter = Number(currentPrinter?.payload.nozzle_diameter_mm);
+      let machineProfileError = "";
       if (Number.isFinite(diameter) && Number.isFinite(configuredDiameter) && Math.abs(diameter - configuredDiameter) > .000001) {
-        const compatiblePrinter = uniqueStudioProfiles(this.#catalog, "printer").find((profile) => (
-          String(profile.payload.model || "").trim().toLocaleLowerCase("de-DE") === "a1"
-          && Math.abs(Number(profile.payload.nozzle_diameter_mm) - diameter) < .000001
-        ));
+        const compatiblePrinter = printerProfileForNozzle(this.#catalog, currentPrinter, diameter);
         if (compatiblePrinter) plate.selection = { ...plate.selection, printer_profile_id: compatiblePrinter.id };
+        else machineProfileError = "Für diese Düse fehlt ein passendes Profil des gewählten Druckermodells und Herstellers.";
       }
       const validationError = processOverrideValidationError(loadSliceProcessOverrides(), diameter);
-      this.#error = validationError || "";
-      this.#status = validationError
-        ? `${plate.name}: Düse geändert; benutzerdefinierte Prozesswerte müssen geprüft werden.`
+      this.#error = machineProfileError || validationError || "";
+      this.#status = this.#error
+        ? `${plate.name}: Düse geändert; Drucker- und Prozesszuordnung müssen geprüft werden.`
         : `${plate.name}: Düse ${Number.isFinite(diameter) ? `${diameter.toLocaleString("de-DE")} mm` : ""} und passendes natives Maschinenprofil gewählt.`;
       this.#invalidatePlate(plate);
     } else if (field === "target_printer_id") {
+      this.#invalidatePlate(plate);
       const printer = this.#printers.find((item) => item.printer_id === value);
       this.#status = printer ? `${plate.name} ist an ${printer.name} gebunden.` : `${plate.name}: Druckerbindung aufgehoben.`;
     } else {

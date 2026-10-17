@@ -1,6 +1,7 @@
 import "./makerworld-identity.test.js";
 import "./material-preview-colors.test.js";
 import "./makerworld-attribution.test.js";
+import "./makerworld-discussion-controls.test.js";
 import "./job-activity-store.test.js";
 import "./storage-upgrade.test.js";
 import { safeMediaUrl, descriptionImageUrls, missingDescriptionImages } from "../frontend/makerworld-description-media.js";
