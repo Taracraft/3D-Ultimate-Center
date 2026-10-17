@@ -10,7 +10,7 @@ HACS entpackt dieses Release-Asset direkt nach `custom_components/<manifest.doma
 
 ```sh
 python3 packages/ultimate-ha-integration/verify_hacs_release.py \
-  --archive /path/to/ultimate-studio.zip \
+  --archive /path/to/ultimate-3d-studio.zip \
   --hacs-json /path/to/hacs.json \
   --expected-files-json /path/to/reviewed-member-hashes.json \
   --version "$RELEASE_VERSION" --build-id "$FRONTEND_BUILD_ID" \

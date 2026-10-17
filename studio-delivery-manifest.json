@@ -53,7 +53,7 @@
     {
       "bytes": 6875,
       "path": "custom_components/ultimate_3d_studio/assets/ultimate-3d-studio-build.json",
-      "sha256": "cf3feefdac01dd1708af798cf79dd9b20cc9d4d7f295796787361ba233fdfe51"
+      "sha256": "e1564987b7eb56a6f942b7af59cf46292a239f538ee0423bdfb3ed51e7dda033"
     },
     {
       "bytes": 801,
@@ -1598,7 +1598,7 @@
     {
       "bytes": 6875,
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "cf3feefdac01dd1708af798cf79dd9b20cc9d4d7f295796787361ba233fdfe51"
+      "sha256": "e1564987b7eb56a6f942b7af59cf46292a239f538ee0423bdfb3ed51e7dda033"
     },
     {
       "bytes": 801,
@@ -1618,7 +1618,7 @@
     {
       "bytes": 602697,
       "path": "source-license-map.json",
-      "sha256": "a9a67691d198fe47c429cfb7b900cadbd668b3d55d0ab69d46c2c01ee8f7f00c"
+      "sha256": "03a6bef34f784701774d80b23cf0f129f72592d19621bdad0ccae0f136276112"
     },
     {
       "bytes": 2883,
@@ -3413,7 +3413,7 @@
     {
       "bytes": 6875,
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "cf3feefdac01dd1708af798cf79dd9b20cc9d4d7f295796787361ba233fdfe51"
+      "sha256": "e1564987b7eb56a6f942b7af59cf46292a239f538ee0423bdfb3ed51e7dda033"
     },
     {
       "bytes": 801,
@@ -4876,9 +4876,9 @@
       "sha256": "bfe4ce567638a05770eec487655c516b6c3cc9e564499df24fe32c2573470c83"
     },
     {
-      "bytes": 4618,
+      "bytes": 4621,
       "path": "studio/packages/ultimate-ha-integration/HACS_RELEASE_CONTRACT.md",
-      "sha256": "105a3ca0714f937c5fdb7a0e93e72c57eb12a49817da8fc574cccbe68b7b5f19"
+      "sha256": "e0e5d236ee6419fa7922e04e4c0c126b9bdddd98bf2fc6658158467698aa63d3"
     },
     {
       "bytes": 10174,
@@ -6348,7 +6348,7 @@
       "verified": true
     },
     "isolated_candidate": {
-      "sha256": "4b5019b6cbffd2e610df9aa9d297d4d831b9f45ede83c21321abfda3c3d74c94",
+      "sha256": "06dd183862192685566eda6996f49259b41fa6c3bdce020e9f1f3e41c3014819",
       "verified": true
     },
     "licenses": {
