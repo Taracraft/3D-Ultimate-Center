@@ -4,7 +4,7 @@
 
 Der Ultimate Slicer Server verarbeitet Slicing-Aufträge aus Ultimate 3D Studio. Die HTTP-API nimmt Anfragen entgegen und verwaltet Aufträge; ein getrennter Worker führt die Verarbeitung aus. Engine-Dateien, Profile und Nutzdaten sind eigenständige Bestandteile. Ein vorhandener Quellcode oder ein erfolgreich gebautes Prüfimage reicht deshalb für einen nutzbaren Slicing-Dienst noch nicht aus.
 
-**Aktueller Stand:** Der vollständige Runtime-Download mit Bambu Studio, PrusaSlicer und CuraEngine ist noch nicht veröffentlicht. Eine vollständig freigegebene Installation und ein fertiger Produktrelease sind nicht nachgewiesen. Die Supervisor-App bietet weiterhin kein freigegebenes Installationspaket an. Die [Entwicklungsübersicht](Entwicklungsstand.md) erläutert diese Grenzen.
+**Aktueller Lieferstand:** Programmquellen und Paketwerkzeuge sind veröffentlicht. Verfügbare Quellreleases und Downloads stehen unter [Veröffentlichungen](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases). Die [Versionsmetadaten](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/blob/main/packages/ultimate-slicer-server/release.json) beschreiben den Quellstand im Hauptzweig; dieser kann vom letzten Release abweichen. Der vollständige Runtime-Download mit Bambu Studio, PrusaSlicer und CuraEngine steht weiterhin aus. Die Supervisor-App bietet weiterhin kein freigegebenes Installationspaket an. Die [Entwicklungsübersicht](Entwicklungsstand.md) erläutert diese Liefergrenzen.
 
 ## Dein Einstieg
 

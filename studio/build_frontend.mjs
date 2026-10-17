@@ -57,9 +57,18 @@ assertRequiredFile(entryFile, "Frontend entry point");
 assertRequiredFile(sourceCssFile, "Frontend layer stylesheet");
 const packageMetadata = JSON.parse(readFileSync(packageFile, "utf8"));
 const version = String(packageMetadata.version);
-const frontendInputs = readdirSync(sourceDirectory, { withFileTypes: true })
-  .filter((item) => item.isFile() && /\.(ts|css|json)$/.test(item.name))
-  .map((item) => item.name).sort();
+function frontendSourceInputs(directory, prefix = "") {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((item) => {
+    const name = prefix ? `${prefix}/${item.name}` : item.name;
+    if (item.isDirectory()) return frontendSourceInputs(join(directory, item.name), name);
+    return item.isFile() && (/\.(ts|js|css|json)$/.test(item.name) || item.name === "LICENSE") ? [name] : [];
+  }).sort();
+}
+const frontendInputs = frontendSourceInputs(sourceDirectory);
+const earcutLicenseFile = join(sourceDirectory, "vendor", "earcut", "LICENSE");
+assertRequiredFile(earcutLicenseFile, "Mapbox Earcut ISC license");
+const earcutLicenseNotice = readFileSync(earcutLicenseFile, "utf8").trim();
+const thirdPartyBanner = `/* Mapbox Earcut v3.0.2 - third-party software notice\n${earcutLicenseNotice}\n*/`;
 const buildFingerprint = createHash("sha256");
 buildFingerprint.update(version);
 for (const filename of frontendInputs) {
@@ -73,11 +82,12 @@ console.log(`Entry point: ${entryFile}`);
 console.log(`Output:      ${outputDirectory}`);
 console.log(`esbuild:     ${esbuildVersion}`);
 console.log("");
-const buildResult = await build({ absWorkingDir: root, entryPoints: [entryFile], outfile: outputJavaScriptFile, bundle: true, format: "esm", platform: "browser", target: ["es2022"], charset: "utf8", treeShaking: true, legalComments: "none", minify: false, sourcemap: false, define: { __STUDIO_VERSION__: JSON.stringify(version), __STUDIO_BUILD_ID__: JSON.stringify(buildId) }, metafile: true, logLevel: "info", tsconfig: join(root, "tsconfig.json") });
+const buildResult = await build({ absWorkingDir: root, entryPoints: [entryFile], outfile: outputJavaScriptFile, bundle: true, format: "esm", platform: "browser", target: ["es2022"], charset: "utf8", treeShaking: true, legalComments: "none", banner: { js: thirdPartyBanner }, minify: false, sourcemap: false, define: { __STUDIO_VERSION__: JSON.stringify(version), __STUDIO_BUILD_ID__: JSON.stringify(buildId) }, metafile: true, logLevel: "info", tsconfig: join(root, "tsconfig.json") });
 copyFileSync(sourceCssFile, outputCssFile);
 assertRequiredFile(outputJavaScriptFile, "JavaScript bundle");
 assertRequiredFile(outputCssFile, "CSS artifact");
 const javaScriptSource = readFileSync(outputJavaScriptFile, "utf8");
+if (!javaScriptSource.includes(earcutLicenseNotice)) throw new Error("Generated frontend bundle is missing the full Mapbox Earcut ISC notice");
 const policy = assertBundlePolicy(javaScriptSource);
 const inputCount = Object.keys(buildResult.metafile.inputs).length;
 const manifest = { schema_version: 1, product: "Ultimate 3D Printing Studio", version, build_id: buildId, build: { bundler: "esbuild", bundler_version: esbuildVersion, format: "esm", platform: "browser", target: "es2022", minified: false, sourcemap: false, entry_point: relative(root, entryFile).replaceAll("\\", "/"), bundled_input_count: inputCount }, architecture: { active_workspace: "ultimate-3d-unified-studio", runtime_monkey_patches_allowed: false, nested_workspace_shells_allowed: false, webgl_canvas_authorities: 1 }, policy: { runtime_monkey_patches_allowed: false, navigation_authorities: 1, ...policy }, artifacts: [artifact(outputJavaScriptFile), artifact(outputCssFile)], manifest_path: relative(root, manifestFile).replaceAll("\\", "/") };
@@ -87,7 +97,7 @@ console.log("Build artifacts:");
 for (const builtArtifact of manifest.artifacts) console.log(`  ${builtArtifact.path} (${builtArtifact.size_bytes} bytes, sha256 ${builtArtifact.sha256})`);
 console.log(`  ${manifest.manifest_path} (${statSync(manifestFile).size} bytes)`);
 console.log("");
-console.log(`Bundled TypeScript modules: ${inputCount}`);
+console.log(`Bundled frontend modules: ${inputCount}`);
 console.log(`Policy patterns checked: ${forbiddenPatterns.length}`);
 console.log("Frontend production build: OK");
 console.log("Terminal bleibt offen.");

@@ -1,12 +1,12 @@
 {
   "schema_version": 3,
   "product": "Ultimate 3D Printing Studio",
-  "version": "6.0.0",
-  "build_id": "d1beeb6a9d",
+  "version": "6.0.1",
+  "build_id": "76e066f20c",
   "entry": "frontend/studio-entry.ts",
   "output": "deploy/homeassistant/www/3d-studio/ultimate-3d-studio.js",
-  "size_bytes": 690258,
-  "sha256": "66daaa780a5bdc52d6de96089a91b0e805710bfe7b3e96a982b21b58cc95365f",
+  "size_bytes": 700056,
+  "sha256": "4343af1732c3df2489f34bc64b8210bf9dbcabe01160894ce06bc16f40f58b17",
   "css": {
     "output": "deploy/homeassistant/www/3d-studio/ultimate-3d-studio.css",
     "size_bytes": 801,
@@ -29,7 +29,7 @@
     "target": "es2022",
     "minified": true,
     "sourcemap": false,
-    "bundled_input_count": 133,
+    "bundled_input_count": 134,
     "inputs": [
       "frontend/ams-workspace.ts",
       "frontend/api-client.ts",
@@ -162,6 +162,7 @@
       "frontend/toolpath-support-filter.ts",
       "frontend/transfer-attempt.ts",
       "frontend/upload-controller.ts",
+      "frontend/vendor/earcut/earcut.js",
       "frontend/webgl-studio-viewport.ts",
       "frontend/workspace-file-handoff.ts"
     ]
@@ -178,5 +179,5 @@
       "__transformMountPatched"
     ]
   },
-  "built_at": "2026-10-17T11:24:31.395Z"
+  "built_at": "2026-10-17T12:38:21.848Z"
 }

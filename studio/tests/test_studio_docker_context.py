@@ -459,8 +459,9 @@ def test_service_compose_separates_networks_and_preserves_stop_order():
     assert data_init["user"] == "65532:65532" and data_init["read_only"] is True
     assert data_init["volumes"][0]["read_only"] is False
     assert data_init["volumes"][0]["bind"]["create_host_path"] is False
+    assert maintenance_clear["profiles"] == ["maintenance"]
     assert maintenance_clear["command"] == ["maintenance-end", "--request-id",
-                                             "${SLICER_BOOTSTRAP_REQUEST_ID:?Set the owned bootstrap request ID}"]
+                                             "${SLICER_BOOTSTRAP_REQUEST_ID:-}"]
     assert maintenance_clear["network_mode"] == "none"
     assert maintenance_clear["user"] == "65532:65532" and maintenance_clear["read_only"] is True
     assert maintenance_clear["volumes"] == data_init["volumes"]

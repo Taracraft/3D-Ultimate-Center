@@ -3,6 +3,7 @@ import "./material-preview-colors.test.js";
 import "./makerworld-attribution.test.js";
 import "./makerworld-discussion-controls.test.js";
 import "./primitive-topology.test.js";
+import "./plane-split-holes.test.js";
 import "./job-activity-store.test.js";
 import "./storage-upgrade.test.js";
 import { safeMediaUrl, descriptionImageUrls, missingDescriptionImages } from "../frontend/makerworld-description-media.js";
@@ -1212,7 +1213,7 @@ test("mega studio previews two split objects and requires explicit confirmation"
   assert.ok(workspace.includes('id="mesh-split-preview"'));
   assert.ok(workspace.includes('id="mesh-split-confirm"'));
   assert.ok(workspace.includes("Vorschau · zwei getrennte Ergebnisobjekte"));
-  assert.ok(workspace.includes("noch nicht freigegebene Kappenbildung"));
+  assert.ok(workspace.includes("Die Schnittflächen lassen sich nicht eindeutig und geschlossen erzeugen."));
   assert.ok(workspace.includes("mesh_safe_plane_split_applied"));
   assert.ok(!workspace.includes("MutationObserver"));
   assert.ok(!workspace.includes("location.reload"));

@@ -85,8 +85,7 @@ for (const kind of ["cube", "plate"] as const) {
   });
 }
 
-// The ring closes for export, but a fan cannot triangulate a hole-bearing cap.
-// A simple seam fix used to unlock this path and falsely fill the central hole.
+// Closed periodic geometry and genuine hole-aware caps share the same split path.
 test("torus has exact closed periodic seams without changing tessellation", () => {
   const geometry = createPrimitiveGeometry("torus");
   assert.equal(geometry.triangleCount, 3072);
@@ -106,24 +105,19 @@ test("torus central vertical cuts preserve two disjoint convex sections", () => 
   }
 });
 
-test("torus hole-bearing horizontal cut remains fail closed", () => {
-  const source = instance("torus"), original = new Float32Array(source.geometry.positions);
-  assertClosed(source.geometry);
-  const result = previewMeshPlaneSplit(source, "z", 4);
-  assert.ok(result.crossingTriangleCount > 0);
-  assert.equal(result.canApply, false, "nested contours must not become two overlapping fan disks");
-  assert.equal(result.negativeGeometry, null);
-  assert.equal(result.positiveGeometry, null);
-  assert.deepEqual(source.geometry.positions, original);
-});
-
-test("torus concave oblique section remains fail closed", () => {
-  const result = previewMeshPlaneSplit(instance("torus"), "x", 2);
-  assert.ok(result.crossingTriangleCount > 0);
-  assert.equal(result.canApply, false, "a triangle fan must not fill a concave cross-section");
-  assert.equal(result.negativeGeometry, null);
-  assert.equal(result.positiveGeometry, null);
-});
+for (const [axis, plane] of [["z", 4], ["x", 2]] as const) {
+  test(`torus ${axis}=${plane} hole-bearing/concave cut preserves its closed volume`, () => {
+    const source = instance("torus"), original = new Float32Array(source.geometry.positions);
+    const result = previewMeshPlaneSplit(source, axis, plane);
+    assert.ok(result.crossingTriangleCount > 0);
+    assert.equal(result.canApply, true);
+    assert.ok(result.negativeGeometry && result.positiveGeometry);
+    assertClosed(result.negativeGeometry); assertClosed(result.positiveGeometry);
+    const sourceVolume = signedVolume(source.geometry);
+    assert.ok(Math.abs(signedVolume(result.negativeGeometry) + signedVolume(result.positiveGeometry) - sourceVolume) < sourceVolume * 1e-6);
+    assert.deepEqual(source.geometry.positions, original);
+  });
+}
 
 function openHollowPrism(rotated = false): MeshGeometry {
   const outer = [[-2, -2], [2, -2], [2, 2], [-2, 2]], inner = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
@@ -144,12 +138,14 @@ function openHollowPrism(rotated = false): MeshGeometry {
 }
 
 for (const rotated of [false, true]) {
-  test(`hollow prism cap rejects nested contours${rotated ? " after local-axis rotation" : ""}`, () => {
+  test(`hollow prism cap closes the real annulus${rotated ? " after local-axis rotation" : ""}`, () => {
     const source = openHollowPrism(rotated), original = new Float32Array(source.positions);
     // The supplied world axis is deliberately unchanged for the rotated model.
     const result = generateCapFaces(source, "z");
-    assert.equal(result.capCount, 0, "the missing annulus must not become overlapping square caps");
-    assert.equal(result.capPositions.length, 0);
+    assert.ok(result.capCount > 0, "the missing annulus must receive a hole-aware cap");
+    const full = geometryFromPositions(new Float32Array([...source.positions, ...result.capPositions]));
+    assertClosed(full);
+    assert.ok(Math.abs(signedVolume(full) - 12) < 1e-10, "the inner hole must retain its real volume");
     assert.deepEqual(source.positions, original);
   });
 }

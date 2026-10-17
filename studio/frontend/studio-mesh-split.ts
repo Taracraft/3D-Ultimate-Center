@@ -124,7 +124,7 @@ function appendCapFaces(target: number[], axis: MeshSplitAxis): void {
   if (target.length < 9) return;
   const geometry = geometryFromPositions(new Float32Array(target));
   const cap = generateCapFaces(geometry, axis);
-  target.push(...Array.from(cap.capPositions));
+  for (const coordinate of cap.capPositions) target.push(coordinate);
 }
 
 export function previewMeshPlaneSplit(

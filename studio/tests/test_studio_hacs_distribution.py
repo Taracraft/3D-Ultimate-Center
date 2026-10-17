@@ -45,6 +45,17 @@ def test_hacs_root_contains_only_one_integration_and_built_frontend(tmp_path):
     assert all(not name.endswith((".bak", ".pyc", ".sh")) for name in result["file_sha256"])
 
 
+def test_built_hacs_frontend_preserves_complete_earcut_isc_notice():
+    license_text = (ROOT / "frontend/vendor/earcut/LICENSE").read_text(
+        encoding="utf-8",
+    ).strip("\r\n")
+    bundle = (ROOT / "deploy/homeassistant/www/3d-studio/ultimate-3d-studio.js").read_text(
+        encoding="utf-8",
+    )
+    assert license_text, "The original Earcut license must not be empty"
+    assert license_text in bundle, "The built HACS frontend must retain the complete original Earcut ISC notice"
+
+
 def test_build_is_reproducible_and_preserves_static_resource_route(tmp_path):
     a = builder.build(ROOT, tmp_path / "first")
     b = builder.build(ROOT, tmp_path / "second")

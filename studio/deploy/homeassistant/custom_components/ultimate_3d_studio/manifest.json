@@ -10,7 +10,7 @@
   "requirements": [
     "paho-mqtt==2.1.0"
   ],
-  "version": "6.0.0",
+  "version": "6.0.1",
   "after_dependencies": [
     "hassio"
   ],

@@ -1,17 +1,17 @@
 # Entwicklungsstand
 
-Quellcode, Paketwerkzeuge und automatisierte Tests sind verfügbar. Der vollständige Runtime-Download mit Bambu Studio, PrusaSlicer und CuraEngine steht noch aus. Die Supervisor-App bietet deshalb noch kein freigegebenes Installationspaket an. Eine bestätigte vollständige Installation und ein fertiger Produktrelease lassen sich aus diesem Stand nicht ableiten.
+Programmquellen, Paketwerkzeuge und automatisierte Tests sind veröffentlicht. Die verfügbaren Quellreleases und Downloads stehen unter [Slicer-Veröffentlichungen](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases). Die [Versionsmetadaten](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/blob/main/packages/ultimate-slicer-server/release.json) beschreiben den Quellstand im Hauptzweig; dieser kann vom letzten Release abweichen. Der vollständige Runtime-Download mit Bambu Studio, PrusaSlicer und CuraEngine steht weiterhin aus. Die Supervisor-App bietet weiterhin kein freigegebenes Installationspaket an.
 
 ## Vorhandenes und offene Nachweise
 
 | Bereich | Einordnung |
 | --- | --- |
-| Programmquellen und Paketwerkzeuge | Grundlage für Aufbau und Prüfung verfügbar |
+| Programmquellen und Paketwerkzeuge | Veröffentlicht; konkrete Versionen und Downloads unter [Slicer-Veröffentlichungen](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases) |
 | Automatisierte Prüfungen | Nachweise für ihren jeweils konkreten Umfang |
 | Prüfimage | Prüfung von Quellen und Systempaketen; keine Slicing-Engines enthalten |
 | Vollständige Engine-Runtime | Veröffentlichung und Freigaben weiterhin offen |
 | Supervisor-App | Kein freigegebenes Installationspaket hinterlegt |
-| HACS | Struktur korrigiert; Release-Asset und tatsächliche Installation weiterhin offen |
+| HACS | Studio-Integration im normalen Repositorymodus; [veröffentlichte Versionen](https://github.com/Taracraft/3D-Ultimate-Center/releases) und [Quellmetadaten](https://github.com/Taracraft/3D-Ultimate-Center/blob/main/custom_components/ultimate_3d_studio/manifest.json) getrennt prüfen; Testinstallationen separat dokumentiert |
 | Vollständige Funktionsabnahmen | Noch nicht für alle beauftragten Abläufe abgeschlossen |
 
 Die dokumentierten Werkzeuge und vorhandenen Teilprüfungen beschreiben den Entwicklungsumfang. Vollständige Funktionsabnahmen sind davon getrennt zu betrachten. Ein grüner automatisierter Prüflauf und veröffentlichte Dokumentation bestätigen für sich allein weder ein vollständiges Runtime-Paket noch eine erfolgreiche Installation.
@@ -32,4 +32,6 @@ Die [Installation](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/blob/m
 
 ## Releasebewertung
 
-Sobald alle übrigen beauftragten Produkt-, Liefer-, Dokumentations- und Veröffentlichungspunkte erfüllt sind, wird der Release veröffentlicht und als abgeschlossen bewertet. Linux-Testserver, Testinstallation und frische Neuinstallation sind seit der Entscheidung vom 17.10.2026 vollständig aus dieser Bewertung und dem Releaseabschluss ausgenommen. Ausstehende Tests bleiben ungeprüft beziehungsweise `not_run`; ein fehlendes installierbares Produktartefakt wird dadurch nicht ersetzt.
+**Historischer Stand vom 17.10.2026 vor den Folgepatches:** Die Veröffentlichung der Quellreleases Studio 6.0.0 und Slicer Server 0.1.0-alpha5 war abgeschlossen.
+
+Den jeweils veröffentlichten Stand nennen die [Studio-Releases](https://github.com/Taracraft/3D-Ultimate-Center/releases) und [Slicer-Releases](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases). Die oben benannten Engine- und Supervisor-App-Pakete bleiben eigenständige offene Liefergrenzen. Linux-Testserver, Testinstallation und frische Neuinstallation sind seit der Entscheidung vom 17.10.2026 vollständig aus der Releasebewertung und dem Releaseabschluss ausgenommen. Ausstehende Tests bleiben ungeprüft beziehungsweise `not_run`.

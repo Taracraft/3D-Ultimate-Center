@@ -3,6 +3,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import re
 import sys
 import tempfile
 import threading
@@ -19,6 +20,64 @@ import container_service as service
 
 IDENT = "a" * 32
 OTHER = "b" * 32
+
+
+class ComposeBootstrapTests(unittest.TestCase):
+    """Configuration contract only; no Docker daemon, container or job starts."""
+
+    @staticmethod
+    def compose():
+        return json.loads((ROOT / "Slicer-Server/compose.candidate.yaml").read_text(encoding="utf-8-sig"))
+
+    @staticmethod
+    def selected_services(compose, profiles=()):
+        active = set(profiles)
+        return {
+            name: value for name, value in compose["services"].items()
+            if not value.get("profiles") or active.intersection(value["profiles"])
+        }
+
+    @staticmethod
+    def bootstrap_argument(value, request_id=None):
+        # Model only the two Compose substitutions used by this bootstrap.
+        # Interpolation applies to the file before service profiles are selected.
+        match = re.fullmatch(r"\$\{SLICER_BOOTSTRAP_REQUEST_ID:([-?])([^}]*)\}", value)
+        if match is None:
+            return value
+        if request_id:
+            return request_id
+        if match[1] == "?":
+            raise ValueError("bootstrap_request_id_required")
+        return match[2]
+
+    def test_default_service_set_cannot_resume_bootstrap_maintenance(self):
+        services = self.selected_services(self.compose())
+        self.assertEqual(set(services), {"api", "worker", "data-init", "profile-init"})
+        self.assertNotIn("maintenance-clear", services)
+        self.assertFalse(any(value.get("command", [None])[0] == "maintenance-end"
+                             for value in services.values()))
+
+    def test_default_dependencies_cannot_enable_the_clear_service(self):
+        for name, service_config in self.selected_services(self.compose()).items():
+            with self.subTest(service=name):
+                self.assertNotIn("maintenance-clear", service_config.get("depends_on", {}))
+
+    def test_clear_service_is_available_only_with_explicit_maintenance_profile(self):
+        compose = self.compose()
+        clear = compose["services"]["maintenance-clear"]
+        self.assertEqual(clear.get("profiles"), ["maintenance"])
+        self.assertEqual(clear["command"][:2], ["maintenance-end", "--request-id"])
+        self.assertEqual(set(self.selected_services(compose, ["maintenance"])),
+                         {"api", "worker", "data-init", "profile-init", "maintenance-clear"})
+
+    def test_unselected_clear_service_does_not_require_a_bootstrap_id(self):
+        compose = self.compose()
+        init_value = compose["services"]["data-init"]["environment"]["STUDIO_BOOTSTRAP_REQUEST_ID"]
+        clear_value = compose["services"]["maintenance-clear"]["command"][-1]
+        for value in (init_value, clear_value):
+            with self.subTest(value=value):
+                self.assertEqual(self.bootstrap_argument(value), "")
+                self.assertEqual(self.bootstrap_argument(value, IDENT), IDENT)
 
 
 class MaintenanceTests(unittest.TestCase):
@@ -334,6 +393,71 @@ print(json.dumps({'uid':os.geteuid(),'passed':True}))
         control = jc.JobControl(runtime)
         self.assertTrue(emit.call_args.kwargs["dispatch_blocked"])
         self.assertEqual(control._maintenance_record()["request_id"], IDENT)
+
+    @unittest.skipUnless(os.name == "posix", "Linux dispatcher")
+    def test_default_compose_keeps_bootstrap_barrier_and_existing_queue(self):
+        self._initialize_for_test(request_id=IDENT)
+        queued = self.control.jobs / "bootstrap.queued.json"
+        jc.atomic_json(queued, {"job_id": "bootstrap", "manual_release": True})
+        queued_before = queued.read_bytes()
+        marker_before = self.marker.read_bytes()
+        # Select the actual default-profile commands, without starting API,
+        # worker, Docker or an engine. A mistakenly default clear service would
+        # execute the real maintenance CLI and remove the owned barrier here.
+        services = ComposeBootstrapTests.selected_services(ComposeBootstrapTests.compose())
+        with patch.object(service, "canonical", return_value=jc), patch.object(service, "emit"):
+            for config in services.values():
+                command = config.get("command", [])
+                if command and command[0] == "maintenance-end":
+                    arguments = [ComposeBootstrapTests.bootstrap_argument(value, IDENT)
+                                 for value in command]
+                    with patch.object(sys, "argv", ["service", *arguments, "--base", str(self.base)]):
+                        service.main()
+        self.assertEqual(self.marker.read_bytes(), marker_before)
+        with patch.object(self.control, "_claim", side_effect=AssertionError("must not claim")), \
+                patch.object(jc.subprocess, "Popen", side_effect=AssertionError("must not execute")):
+            self.assertEqual(self.control.dispatch(Path("/nonexistent")), {"status": "maintenance"})
+        self.assertEqual(queued.read_bytes(), queued_before)
+        self.assertEqual(list(self.control.jobs.glob("*.slicing.json")), [])
+
+    def test_explicit_clear_rejects_missing_and_foreign_id_without_mutation(self):
+        self._initialize_for_test(request_id=IDENT)
+        queued = self.control.jobs / "retained.queued.json"
+        jc.atomic_json(queued, {"job_id": "retained", "manual_release": True})
+        marker_before, queued_before = self.marker.read_bytes(), queued.read_bytes()
+        with patch.object(service, "canonical", return_value=jc), \
+                patch.object(service, "configure_environment", side_effect=AssertionError("not runtime")), \
+                patch.object(service, "emit") as emit:
+            for request_id in (None, "", OTHER):
+                arguments = ["service", "maintenance-end", "--base", str(self.base)]
+                if request_id is not None:
+                    arguments.extend(["--request-id", request_id])
+                with self.subTest(request_id=request_id), patch.object(sys, "argv", arguments):
+                    with self.assertRaises(ValueError):
+                        service.main()
+                self.assertEqual(self.marker.read_bytes(), marker_before)
+                self.assertEqual(queued.read_bytes(), queued_before)
+                self.assertTrue(self.control.maintenance_pending())
+            emit.assert_not_called()
+
+    def test_explicit_owned_clear_resumes_without_claiming_or_changing_queue(self):
+        self._initialize_for_test(request_id=IDENT)
+        queued = self.control.jobs / "retained.queued.json"
+        jc.atomic_json(queued, {"job_id": "retained", "manual_release": True})
+        queued_before = queued.read_bytes()
+        command = ComposeBootstrapTests.compose()["services"]["maintenance-clear"]["command"]
+        arguments = [ComposeBootstrapTests.bootstrap_argument(value, IDENT) for value in command]
+        with patch.object(service, "canonical", return_value=jc), \
+                patch.object(service, "configure_environment", side_effect=AssertionError("not runtime")), \
+                patch.object(jc.subprocess, "Popen", side_effect=AssertionError("must not execute")), \
+                patch.object(service, "emit") as emit, \
+                patch.object(sys, "argv", ["service", *arguments, "--base", str(self.base)]):
+            service.main()
+        self.assertFalse(self.control.maintenance_pending())
+        self.assertFalse(self.marker.exists())
+        self.assertFalse(emit.call_args.kwargs["dispatch_blocked"])
+        self.assertEqual(queued.read_bytes(), queued_before)
+        self.assertEqual(list(self.control.jobs.glob("*.slicing.json")), [])
 
 
 if __name__ == "__main__":

@@ -69,3 +69,34 @@ def test_invalid_one_does_not_hide_other_engines(tmp_path):
     installed(tmp_path, "prusaslicer")
     installed(tmp_path, "curaengine")
     assert [row["id"] for row in engines.available_engines(tmp_path)] == ["prusaslicer", "curaengine"]
+
+
+@pytest.mark.parametrize("name", list(engines.ENGINES))
+@pytest.mark.parametrize("link_kind", ["symlink", "junction"])
+def test_linked_store_parent_is_rejected_before_resolving(tmp_path, monkeypatch, name, link_kind):
+    store = tmp_path / "engine"
+    installed(store, name)
+    parent = store.parent
+    method = "is_symlink" if link_kind == "symlink" else "is_junction"
+    original = getattr(Path, method, lambda self: False)
+    monkeypatch.setattr(Path, method, lambda self: self == parent or original(self), raising=False)
+    with pytest.raises(engines.EnginePathError, match="linked_engine_path"):
+        engines.resolve_engine(name, store)
+    assert engines.available_engines(store) == []
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows symlinks require extra privileges")
+@pytest.mark.parametrize("name", list(engines.ENGINES))
+def test_real_linked_ancestor_cannot_redirect_to_another_store(tmp_path, name):
+    actual = tmp_path / "actual"
+    binary = installed(actual / "nested/engine", name)
+    linked = tmp_path / "linked"
+    linked.symlink_to(actual, target_is_directory=True)
+    # The store and its immediate parent are ordinary directories. Only the
+    # grandparent is linked; the old resolver returned this foreign binary.
+    store = linked / "nested/engine"
+    assert not store.is_symlink() and not store.parent.is_symlink()
+    with pytest.raises(engines.EnginePathError, match="linked_engine_path"):
+        engines.resolve_engine(name, store)
+    assert engines.available_engines(store) == []
+    assert binary.read_text() == "# synthetic file; must never execute\n"

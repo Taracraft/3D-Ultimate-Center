@@ -106,6 +106,29 @@ muss zusaetzlich das Jobresultat und requires_recovery auswerten. Bei Timeout
 wird der Supervisor nicht blind getoetet und kein Folgejob gestartet.
 Das aktuelle Image bleibt container_deploy_ready=false.
 
+## Bootstrap-Wartung und Standarddienste
+
+Der normale Start der `compose.candidate.yaml` umfasst `data-init`,
+`profile-init`, `api` und `worker`. Der Hilfsdienst `maintenance-clear` besitzt
+das ausdrücklich zu aktivierende Profil `maintenance`; er darf weder über eine
+Standardauswahl noch als Abhängigkeit dieser vier Dienste mitstarten. So bleibt
+eine bei der Dateninitialisierung mit `SLICER_BOOTSTRAP_REQUEST_ID` angelegte
+Wartungssperre bis zur bewussten Freigabe erhalten.
+
+Die isolierten Python-Regressionen prüfen die tatsächliche Compose-Dienstmenge,
+den optionalen Kennungswert des ausgeschlossenen Hilfsdiensts und den gezielten
+Einmallauf. Die bestehende Maintenance-Suite prüft zusätzlich am temporären
+Jobbaum, dass Initialisierung und Wiederholung die Sperre sowie wartende Jobs
+beibehalten. Nur das ausdrücklich aufgerufene Wartungsende mit passender
+Kennung darf die Sperre aufheben; Queue- und Ergebnisdateien bleiben dabei
+erhalten. Fehlende, ungültige und fremde Kennungen dürfen nichts ändern.
+
+Ein bewusster Einmallauf ist in [RUNTIME_INSTALLATION.md](RUNTIME_INSTALLATION.md)
+beschrieben. Ein pauschaler Start aller Dienste mit aktiviertem Wartungsprofil
+ist kein Einrichtungs- oder Prüfschritt. Diese Regressionen starten keine
+Container, Engine, API, Worker oder realen Jobs und belegen keine installierbare
+Supervisor-App.
+
 ## Startfreigabe und fruehe Abbrueche
 
 Der Supervisor verwendet fuer den produktiven Aufrufer eine explizite

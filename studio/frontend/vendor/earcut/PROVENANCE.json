@@ -1,0 +1,12 @@
+{
+  "package": "mapbox/earcut",
+  "version": "3.0.2",
+  "tag_object": "d128042b4a6d63fc20e8bbd066132b3a77a1075d",
+  "license": "ISC",
+  "source_url": "https://github.com/mapbox/earcut/blob/1b942f01f4093afe8f9ba729c3850b229f69eb12/src/earcut.js",
+  "source_unmodified": true,
+  "source_sha256": "83d5b59bc520601bb2dd7401a2f8382a008d8d95e0e6e0fe45759ae4fda1aa56",
+  "license_sha256": "324139c19d87af03fda38afea1590e00ca354c4159bdb2ae9e9cec070cfa46a8",
+  "distribution": "Full original ISC notice is embedded in the generated JavaScript banner; license is retained beside vendored source.",
+  "source_commit": "1b942f01f4093afe8f9ba729c3850b229f69eb12"
+}

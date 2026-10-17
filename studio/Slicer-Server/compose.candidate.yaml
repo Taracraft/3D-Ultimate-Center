@@ -233,6 +233,9 @@
       ]
     },
     "maintenance-clear": {
+      "profiles": [
+        "maintenance"
+      ],
       "image": "${SLICER_IMAGE:?Set a locally built candidate image}",
       "pull_policy": "never",
       "entrypoint": [
@@ -242,7 +245,7 @@
       "command": [
         "maintenance-end",
         "--request-id",
-        "${SLICER_BOOTSTRAP_REQUEST_ID:?Set the owned bootstrap request ID}"
+        "${SLICER_BOOTSTRAP_REQUEST_ID:-}"
       ],
       "user": "65532:65532",
       "read_only": true,

@@ -74,7 +74,7 @@ class ReleaseTests(unittest.TestCase):
     def test_slicer_alpha_metadata_stays_prerelease(self):
         self.prepare("Taracraft/3D-Ultimate-Slicer-Server")
         result = self.publish()
-        self.assertEqual(result["tag"], "v0.1.0-alpha5")
+        self.assertEqual(result["tag"], "v" + publisher.SPECS[self.repo]["version"])
         self.assertTrue(result["prerelease"])
         body = self.calls[-1][2]
         self.assertEqual(body["make_latest"], "false")

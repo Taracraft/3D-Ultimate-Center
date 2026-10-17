@@ -29,7 +29,9 @@ def resolve_engine(engine, store=STORE):
     root = store / engine
     binary = root / ENGINES[engine][1]
     # Fixed paths only. No fallback to PATH, another engine or a host binary.
-    for path in (store, root, root / "bin", binary):
+    # The fixed store itself can still be redirected by a linked ancestor.
+    # Validate the whole lexical route before resolving or advertising a binary.
+    for path in (store, *store.parents, root, root / "bin", binary):
         if path.is_symlink() or getattr(path, "is_junction", lambda: False)():
             raise EnginePathError("linked_engine_path")
     try:

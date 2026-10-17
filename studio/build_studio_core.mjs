@@ -12,9 +12,19 @@ const jsPath = path.join(out, "ultimate-3d-studio.js");
 const cssPath = path.join(out, "ultimate-3d-studio.css");
 const manifestPath = path.join(out, "ultimate-3d-studio-build.json");
 const version = JSON.parse(await readFile(path.join(root, "package.json"), "utf8")).version;
-const sourceList = (await readdir(path.join(root, "frontend"), { withFileTypes: true }))
-  .filter((item) => item.isFile() && /\.(ts|css|json)$/.test(item.name))
-  .map((item) => item.name).sort();
+const sourceDirectory = path.join(root, "frontend");
+async function frontendSourceInputs(directory, prefix = "") {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const nested = await Promise.all(entries.map(async (item) => {
+    const name = prefix ? `${prefix}/${item.name}` : item.name;
+    if (item.isDirectory()) return frontendSourceInputs(path.join(directory, item.name), name);
+    return item.isFile() && (/\.(ts|js|css|json)$/.test(item.name) || item.name === "LICENSE") ? [name] : [];
+  }));
+  return nested.flat().sort();
+}
+const sourceList = await frontendSourceInputs(sourceDirectory);
+const earcutLicenseNotice = (await readFile(path.join(sourceDirectory, "vendor", "earcut", "LICENSE"), "utf8")).trim();
+const thirdPartyBanner = `/* Mapbox Earcut v3.0.2 - third-party software notice\n${earcutLicenseNotice}\n*/`;
 const buildFingerprint = createHash("sha256");
 buildFingerprint.update(version);
 for (const name of sourceList) {
@@ -39,6 +49,7 @@ const result = await esbuild.build({
   target: ["es2022"],
   charset: "utf8",
   legalComments: "none",
+  banner: { js: thirdPartyBanner },
   minify: true,
   sourcemap: false,
   define: {
@@ -57,6 +68,7 @@ await writeFile(cssPath, css);
 
 const bundle = await readFile(jsPath);
 const text = bundle.toString("utf8");
+if (!text.includes(earcutLicenseNotice)) throw new Error("Generated frontend bundle is missing the full Mapbox Earcut ISC notice");
 const forbidden = [
   "prototype.connectedCallback =",
   "prototype.disconnectedCallback =",

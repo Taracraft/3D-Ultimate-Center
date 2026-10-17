@@ -100,9 +100,32 @@ docker compose -f Slicer-Server/compose.candidate.yaml up -d
 docker compose -f Slicer-Server/compose.candidate.yaml ps
 ~~~
 
+Der normale Start aktiviert nur `data-init`, `profile-init`, `api` und `worker`.
+Wenn `SLICER_BOOTSTRAP_REQUEST_ID` gesetzt ist, legt die Dateninitialisierung die
+zugehörige Wartungssperre an und lässt sie bestehen. Bereits freigegebene
+Queue-Einträge bleiben dadurch unverändert; der Worker darf sie während der
+Wartung nicht übernehmen. Ein gewöhnliches `up -d` beendet diese Sperre nicht.
+
 `pull_policy: never` verlangt ein bereits lokal vorhandenes Image. Compose lädt kein erfundenes Runtime-Paket nach. Die Quelle für die Compose-Eigenschaften ist die [offizielle Docker-Referenz](https://docs.docker.com/reference/compose-file/services/).
 
 Das ausdrücklich eigene Wartungsende ist ein Betriebswechsel: Danach kann der normale Worker bereits freigegebene Queue-Einträge verarbeiten. Es darf deshalb nicht als harmloser lesender Verbindungstest behandelt werden.
+
+Erst nach der bewussten Entscheidung, den vorbereiteten Bestand für die
+Verarbeitung freizugeben, wird das Wartungsende als einzelner Hilfsdienst
+aufgerufen. Verwende dafür die unveränderte Kennung deiner eigenen Sperre:
+
+~~~sh
+docker compose -f Slicer-Server/compose.candidate.yaml run --rm --no-deps maintenance-clear
+~~~
+
+`maintenance-clear` gehört zum Profil `maintenance` und läuft beim normalen
+Start nicht mit. Der gezielte `run`-Aufruf aktiviert ausschließlich diesen
+Hilfsdienst. Verwende dafür kein pauschales `up` mit aktiviertem Wartungsprofil.
+Eine fehlende, ungültige oder fremde Kennung wird vom bestehenden
+Wartungsvertrag vor einer Änderung abgewiesen; sie ist keine Erlaubnis zum
+Löschen anderer Wartungs- oder Recovery-Markierungen. Der leere Standardwert in
+der Compose-Datei hält den Hilfsdienst bei der Konfigurationsauswertung optional
+und hebt diese Prüfung nicht auf.
 
 ## 6. Enginepfade und Ressourcen
 

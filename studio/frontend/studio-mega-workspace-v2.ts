@@ -2899,7 +2899,7 @@ export class Ultimate3DMegaStudioV2 extends HTMLElement {
       confirm.disabled = !preview.canApply;
       if (!preview.canApply) {
         const reason = preview.crossingTriangleCount || preview.touchingTriangleCount
-          ? `Die Ebene schneidet ${preview.crossingTriangleCount} und berührt ${preview.touchingTriangleCount} Dreieck(e). Dafür wäre eine noch nicht freigegebene Kappenbildung nötig.`
+          ? `Die Ebene schneidet ${preview.crossingTriangleCount} und berührt ${preview.touchingTriangleCount} Dreieck(e). Die Schnittflächen lassen sich nicht eindeutig und geschlossen erzeugen. Prüfe offene, sich berührende oder überschneidende Konturen oder wähle eine andere Ebene.`
           : "Die Ebene erzeugt nicht zwei jeweils belegte Seiten.";
         resultHost.innerHTML = `<div class="error-box">${escapeHtml(reason)} Die Geometrie bleibt unverändert.</div>`;
         return;

@@ -28,4 +28,10 @@ Technische Metadaten wie `release_complete=false` oder `production_approved=fals
 
 ## Versionierte Quellveroeffentlichung
 
-Der aktuelle gepruefte Quellstand wird unter seiner bestehenden Komponentenkennung 0.1.0-alpha5 als GitHub Release veroeffentlicht. Er enthaelt die beschriebenen Quellen, Container-/Paketierungswerkzeuge und Dokumentation. Engine-Binaerpakete, vollstaendiges Laufzeitimage und Supervisor-App werden damit nicht geliefert oder freigegeben. Externe Bedien-/Systemabnahmen und Testinstallationen sind aus der Releasebewertung ausgenommen; nicht ausgefuehrte Pruefungen bleiben ungeprueft. Der Studio-Release verwendet unabhaengig davon die Integrations-/Frontendversion 6.0.0.
+Der geprüfte Quellstand wird mit den Metadaten aus [release.json](../packages/ultimate-slicer-server/release.json) als eigene Komponente veröffentlicht. Er enthält die beschriebenen Quellen, Container-/Paketierungswerkzeuge und Dokumentation. Studio besitzt eine unabhängige Integrations-/Frontendkennung. Externe Bedien-/Systemabnahmen und Testinstallationen gehören nicht zur Releasebewertung; nicht ausgeführte Prüfungen bleiben ungeprüft.
+
+## Enginebestand in einen Image-Kontext einbinden
+
+Die [Runtime-Kontextbrücke](RUNTIME_CONTEXT.md) verbindet einen geprüften Source-Kontext mit einer vollständigen, separat geprüften Drei-Engine-Distribution. Sie bindet die vier Eingabeprüfsummen, bewahrt Quellen- und Lizenzmetadaten und erzeugt eine Compose-Variante ohne verdeckende Engine-Binds. Die Trennung von API und Worker sowie dessen Netzwerksperre bleiben erhalten.
+
+Das Werkzeug führt keine Engine aus und baut kein Image. Der lesende Imagechecker prüft den eingebundenen Dateibestand, keine ABI-Kompatibilität oder Betriebsfreigabe. Freigegebene Engine-Binärpakete, ein vollständiger Runtime-Download und eine installierbare Supervisor-App-Referenz werden durch diese Quellerweiterung nicht geliefert.
