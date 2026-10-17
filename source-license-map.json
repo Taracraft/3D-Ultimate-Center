@@ -2390,7 +2390,7 @@
       "identity": {
         "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "2cf0326ecd696ac6897fdb81f7c241f0be08fd84251cd595e36035c6c04f9afc"
+        "sha256": "8ef42e45915f671c17adaf24d01620aff204337dbf4a44c9fd5d670c2aa5713a"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -2414,9 +2414,9 @@
     },
     {
       "identity": {
-        "bytes": 677152,
+        "bytes": 677665,
         "kind": "sha256-raw-bytes",
-        "sha256": "e5c34a611cd880d6471d1b3ea0f778de61b7a384c64056e157826f8ebfb75321"
+        "sha256": "8d89bcf6aa24fde2be9d157292572afb5ad4487054158b717b60416992c3f074"
       },
       "notice_class": "generated-frontend-bundle",
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio.js",
@@ -7205,7 +7205,7 @@
       "identity": {
         "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "2cf0326ecd696ac6897fdb81f7c241f0be08fd84251cd595e36035c6c04f9afc"
+        "sha256": "8ef42e45915f671c17adaf24d01620aff204337dbf4a44c9fd5d670c2aa5713a"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -7229,9 +7229,9 @@
     },
     {
       "identity": {
-        "bytes": 677152,
+        "bytes": 677665,
         "kind": "sha256-raw-bytes",
-        "sha256": "e5c34a611cd880d6471d1b3ea0f778de61b7a384c64056e157826f8ebfb75321"
+        "sha256": "8d89bcf6aa24fde2be9d157292572afb5ad4487054158b717b60416992c3f074"
       },
       "notice_class": "generated-frontend-bundle",
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio.js",
@@ -7255,9 +7255,9 @@
     },
     {
       "identity": {
-        "bytes": 6571,
+        "bytes": 9782,
         "kind": "sha256-raw-bytes",
-        "sha256": "85d8d19a78d7971f8c6d265a3d394190d873c7475d63c4bcf57e72dcb4769c17"
+        "sha256": "9d3ea0d3702309e9c0d9911444e3e7fd38f627b0289ecc3e9ff70c032086b912"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/frontend-tests/camera-panel-lifecycle.test.ts",
@@ -8932,9 +8932,9 @@
     },
     {
       "identity": {
-        "bytes": 16947,
+        "bytes": 18556,
         "kind": "sha256-raw-bytes",
-        "sha256": "9209edee2650805ac6f88ede0b92a6070e41c97ac5d7a20c202564c4802652e2"
+        "sha256": "b57d7f63018942d93576e7a27eeb7a8a71fc813f540068f89dfd5e2ebc50320f"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/frontend/printer-camera-panel.ts",
@@ -10861,9 +10861,9 @@
     },
     {
       "identity": {
-        "bytes": 782,
+        "bytes": 1457,
         "kind": "sha256-raw-bytes",
-        "sha256": "8713da9732cecb30c59d1dc9b6438844056745c54bcf34d8fc55aa4a5678db9f"
+        "sha256": "479ee3b562f119743670e23ed33d96a15426f21cdc1f2bb6f60912e6588a7738"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/handbook/wiki/Fehlerhilfe.md",

@@ -17,6 +17,22 @@ type CameraSelection = Readonly<{
 const FRAME_INTERVAL_MS = 2_000;
 const MIN_REFRESH_GAP_MS = 1_500;
 const FRAME_REQUEST_TIMEOUT_MS = 8_000;
+const MAX_CAMERA_FRAME_BYTES = 16 * 1024 * 1024;
+const CAMERA_IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
+
+/** A camera state is not permitted to choose an arbitrary fetch URL. */
+function selectedCameraProxy(entityId: string, picture: unknown): string {
+  const proxy = "/api/camera_proxy/" + encodeURIComponent(entityId);
+  if (typeof picture !== "string" || picture.length > 2_048 || !picture.startsWith(proxy)) return proxy;
+  const suffix = picture.slice(proxy.length);
+  if (suffix && !suffix.startsWith("?")) return proxy;
+  // Reject fragments, backslashes and control characters without decoding tokens.
+  for (let index = 0; index < suffix.length; index += 1) {
+    const code = suffix.charCodeAt(index);
+    if (code < 32 || code === 35 || code === 92 || code === 127) return proxy;
+  }
+  return picture;
+}
 
 function isHassState(value: unknown): value is HassState {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
@@ -212,10 +228,7 @@ export class PrinterCameraPanel extends HTMLElement {
   }
 
   #cameraUrl(camera: CameraSelection): string {
-    const picture = camera.state.attributes.entity_picture;
-    const base = typeof picture === "string" && picture.startsWith("/")
-      ? picture
-      : `/api/camera_proxy/${encodeURIComponent(camera.entityId)}`;
+    const base = selectedCameraProxy(camera.entityId, camera.state.attributes.entity_picture);
     return `${base}${base.includes("?") ? "&" : "?"}_studio_frame=${Date.now()}`;
   }
 
@@ -269,8 +282,17 @@ export class PrinterCameraPanel extends HTMLElement {
         signal: controller.signal,
       });
       if (!response.ok) throw new Error(`Kamera HTTP ${response.status}`);
+      const declaredSize = response.headers?.get("content-length");
+      if (declaredSize !== null && declaredSize !== undefined
+        && (!/^[0-9]+$/.test(declaredSize) || !Number.isSafeInteger(Number(declaredSize))
+          || Number(declaredSize) > MAX_CAMERA_FRAME_BYTES)) {
+        throw new Error("Kamerabild ist zu gross.");
+      }
       const blob = await response.blob();
-      if (!blob.type.startsWith("image/") || blob.size === 0) throw new Error("Kamera lieferte kein gültiges Bild.");
+      if (!CAMERA_IMAGE_MIMES.has(blob.type.toLowerCase())
+        || !Number.isSafeInteger(blob.size) || blob.size < 1 || blob.size > MAX_CAMERA_FRAME_BYTES) {
+        throw new Error("Kamera lieferte kein unterstuetztes Bild.");
+      }
       nextUrl = URL.createObjectURL(blob);
       await waitForCameraImage(new Image(), nextUrl, controller.signal);
       const image = this.#root.querySelector<HTMLImageElement>("#camera-image");

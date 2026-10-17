@@ -918,7 +918,7 @@
     {
       "bytes": 6875,
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "2cf0326ecd696ac6897fdb81f7c241f0be08fd84251cd595e36035c6c04f9afc"
+      "sha256": "8ef42e45915f671c17adaf24d01620aff204337dbf4a44c9fd5d670c2aa5713a"
     },
     {
       "bytes": 801,
@@ -926,9 +926,9 @@
       "sha256": "0ec340b2b24dca9bdcd9bb5528e9aa7f72e64acf6b83d82f2c81871c0a03901c"
     },
     {
-      "bytes": 677152,
+      "bytes": 677665,
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio.js",
-      "sha256": "e5c34a611cd880d6471d1b3ea0f778de61b7a384c64056e157826f8ebfb75321"
+      "sha256": "8d89bcf6aa24fde2be9d157292572afb5ad4487054158b717b60416992c3f074"
     },
     {
       "bytes": 1234,
@@ -936,9 +936,9 @@
       "sha256": "c34a65548032d1228b03b500fc410af53ed85cdd00ff944d7bfb7e7b84aa7bb1"
     },
     {
-      "bytes": 516681,
+      "bytes": 516682,
       "path": "source-license-map.json",
-      "sha256": "21ed30920956450d5d32152bdf8deba99b854479b01953387a8f1ef896d7677a"
+      "sha256": "6347a0093a3a571a9f1b38a0a936f211e66c15eda4e558b347d44e7948eb60c9"
     },
     {
       "bytes": 2883,
@@ -2733,7 +2733,7 @@
     {
       "bytes": 6875,
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "2cf0326ecd696ac6897fdb81f7c241f0be08fd84251cd595e36035c6c04f9afc"
+      "sha256": "8ef42e45915f671c17adaf24d01620aff204337dbf4a44c9fd5d670c2aa5713a"
     },
     {
       "bytes": 801,
@@ -2741,9 +2741,9 @@
       "sha256": "0ec340b2b24dca9bdcd9bb5528e9aa7f72e64acf6b83d82f2c81871c0a03901c"
     },
     {
-      "bytes": 677152,
+      "bytes": 677665,
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio.js",
-      "sha256": "e5c34a611cd880d6471d1b3ea0f778de61b7a384c64056e157826f8ebfb75321"
+      "sha256": "8d89bcf6aa24fde2be9d157292572afb5ad4487054158b717b60416992c3f074"
     },
     {
       "bytes": 29715,
@@ -2751,9 +2751,9 @@
       "sha256": "156c840ebdf34d86f5cd70868fb4603b64bf45ca6bd3d73e3f7f961a7d82732f"
     },
     {
-      "bytes": 6571,
+      "bytes": 9782,
       "path": "studio/frontend-tests/camera-panel-lifecycle.test.ts",
-      "sha256": "85d8d19a78d7971f8c6d265a3d394190d873c7475d63c4bcf57e72dcb4769c17"
+      "sha256": "9d3ea0d3702309e9c0d9911444e3e7fd38f627b0289ecc3e9ff70c032086b912"
     },
     {
       "bytes": 6574,
@@ -3396,9 +3396,9 @@
       "sha256": "4dc05666088ef29473d2542fcc9edc82724fe522e90850aef4ae73fcc6bfd926"
     },
     {
-      "bytes": 16947,
+      "bytes": 18556,
       "path": "studio/frontend/printer-camera-panel.ts",
-      "sha256": "9209edee2650805ac6f88ede0b92a6070e41c97ac5d7a20c202564c4802652e2"
+      "sha256": "b57d7f63018942d93576e7a27eeb7a8a71fc813f540068f89dfd5e2ebc50320f"
     },
     {
       "bytes": 4727,
@@ -4136,9 +4136,9 @@
       "sha256": "078ba25da8907c1161df1f71410c2df60cdbebb569d1d4dc6f285668bb6e29f5"
     },
     {
-      "bytes": 782,
+      "bytes": 1457,
       "path": "studio/handbook/wiki/Fehlerhilfe.md",
-      "sha256": "8713da9732cecb30c59d1dc9b6438844056745c54bcf34d8fc55aa4a5678db9f"
+      "sha256": "479ee3b562f119743670e23ed33d96a15426f21cdc1f2bb6f60912e6588a7738"
     },
     {
       "bytes": 715,
@@ -5635,19 +5635,19 @@
   "protected_component_tree": "83eee0b12ba828dd1de1e3c9ba83ca2af45e66df",
   "review_evidence": {
     "credentials": {
-      "sha256": "8eb7a7321ca868d6a760de61acb62282dc973a6a4058123098b9d26b0d6fc6f0",
+      "sha256": "8977398467aa52c641a8547ff41facf170894aaf350f3eeff0b6143cb49c5197",
       "verified": true
     },
     "infrastructure": {
-      "sha256": "8d58ad55004314d44a23d1e57af3389084cc255c31dabc77deca7070f09e10b0",
+      "sha256": "e691d8c179df8aa309a25bdab0706ec5825d3f1dc30e1a689ea06d016ccdd87c",
       "verified": true
     },
     "isolated_candidate": {
-      "sha256": "23529d7773d5307797ebd0d2d577883571899268fb3f69857abd5cbd9a27e945",
+      "sha256": "4fafd058f142e8dfa8e4ffe03f1b1e3f8fd2db43d9cd3d2d5867ee3e033f1bd5",
       "verified": true
     },
     "licenses": {
-      "sha256": "31669cdc42778a7053ba28ee1688eff8b4e850512e129b344fa5fc0a4a3e8afb",
+      "sha256": "0841af2a35cea811f961b1edae27a817c46625e8af8932b3e7fcf80aa8d69cda",
       "verified": true
     }
   },
