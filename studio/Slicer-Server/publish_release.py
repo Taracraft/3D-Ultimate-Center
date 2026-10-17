@@ -19,7 +19,7 @@ SPECS = {
         "workflow": "Studio source contract",
         "workflow_path": ".github/workflows/studio-source-contract.yml",
         "version_path": "homeassistant/custom_components/ultimate_3d_studio/manifest.json",
-        "version": "6.0.1",
+        "version": "6.0.2",
         "name": "Ultimate 3D Studio",
         "prerelease": False,
         "contents": "Home-Assistant-Integration, gebautes Studio-Frontend, CAD-/Profilquellen, Handbuch und Wiki-Quellen.",

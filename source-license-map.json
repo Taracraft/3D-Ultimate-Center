@@ -5458,7 +5458,7 @@
       "identity": {
         "bytes": 9243,
         "kind": "sha256-raw-bytes",
-        "sha256": "7bce8e5020b58c468ca19a56eeb052eb63347d38934f6e3d599c662701006cad"
+        "sha256": "f8780f8518752526968c7891d24d908ae05cf44dca568c9c0e1fa4446219e9ec"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/publish_release.py",

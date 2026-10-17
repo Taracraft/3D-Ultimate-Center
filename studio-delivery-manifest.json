@@ -1623,7 +1623,7 @@
     {
       "bytes": 602909,
       "path": "source-license-map.json",
-      "sha256": "2a33c4f3e2284014b38854cfa7c5d4f2539d86e188eb1399de70a6120e2edbff"
+      "sha256": "358141a3abbd2130d193df6df8331eae6f7a8fc6f719a37fe0eb1dc181a492d9"
     },
     {
       "bytes": 2883,
@@ -2063,7 +2063,7 @@
     {
       "bytes": 9243,
       "path": "studio/Slicer-Server/publish_release.py",
-      "sha256": "7bce8e5020b58c468ca19a56eeb052eb63347d38934f6e3d599c662701006cad"
+      "sha256": "f8780f8518752526968c7891d24d908ae05cf44dca568c9c0e1fa4446219e9ec"
     },
     {
       "bytes": 545,
@@ -6500,19 +6500,19 @@
   "protected_component_tree": "83eee0b12ba828dd1de1e3c9ba83ca2af45e66df",
   "review_evidence": {
     "credentials": {
-      "sha256": "cea2c2524ccd2537b324309648a19d7ad96c1c904c8ababba9d7722bb8093053",
+      "sha256": "0898bb59a2030baa37be7c3baaea32c181e3a6bb37e5fa811f37701755273235",
       "verified": true
     },
     "infrastructure": {
-      "sha256": "c7934ba0b546936e088284650d7e186d35ff896293f0b923b35e48ea482e0618",
+      "sha256": "5647051d79e0e09afed859debcfe2f93aca0badf6fbbc492d3065060592052b7",
       "verified": true
     },
     "isolated_candidate": {
-      "sha256": "2437b72a752253b152a89e4a90942a93bfb9fa0e81a66c9c349ad4904b427386",
+      "sha256": "99717dc01c47a2e5e935b6bc4777a0c1712eda56cdaf472d4e69eb7332ee7295",
       "verified": true
     },
     "licenses": {
-      "sha256": "2871417dff570a06726aa87b006615124117a6e7741a09e8256b21c6f6b0d946",
+      "sha256": "9f8a01308f6f8d4c1f4578970ce33aed810cf9e8f89afb593d69babbd376bf83",
       "verified": true
     }
   },
