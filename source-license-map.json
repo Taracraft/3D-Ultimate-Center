@@ -1,6 +1,6 @@
 {
   "custom_terms_do_not_replace_inherited_or_third_party_rights": true,
-  "delivered_paths": 1298,
+  "delivered_paths": 1299,
   "derived_profile_modification_notice_date": "2026-10-15",
   "files": [
     {
@@ -9242,6 +9242,19 @@
     },
     {
       "identity": {
+        "bytes": 4417,
+        "kind": "sha256-raw-bytes",
+        "sha256": "8d15798d7c4c65602974d53cb91508ad55411de855b407d123ee478a75e2e24e"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "studio/frontend-tests/external-spool-controls.test.ts",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "frontend-tests/external-spool-controls.test.ts"
+    },
+    {
+      "identity": {
         "bytes": 6814,
         "kind": "sha256-raw-bytes",
         "sha256": "d28b215a38cd10194437fc31eb333dd0456b149b091816778a4b4423686f1ebc"
@@ -17019,7 +17032,7 @@
   "production_approved": false,
   "schema": 2,
   "scope": "file-specific notice inventory for this source-only Git delivery; no engine/image or production approval",
-  "source_files": 976,
+  "source_files": 977,
   "upstream": {
     "commit": "42d319c6692fa8e64790fddf0cdaafd2a4254bcc",
     "derived_source_paths": [
