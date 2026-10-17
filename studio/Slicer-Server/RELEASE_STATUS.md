@@ -35,3 +35,9 @@ Der geprüfte Quellstand wird mit den Metadaten aus [release.json](../packages/u
 Die [Runtime-Kontextbrücke](RUNTIME_CONTEXT.md) verbindet einen geprüften Source-Kontext mit einer vollständigen, separat geprüften Drei-Engine-Distribution. Sie bindet die vier Eingabeprüfsummen, bewahrt Quellen- und Lizenzmetadaten und erzeugt eine Compose-Variante ohne verdeckende Engine-Binds. Die Trennung von API und Worker sowie dessen Netzwerksperre bleiben erhalten.
 
 Das Werkzeug führt keine Engine aus und baut kein Image. Der lesende Imagechecker prüft den eingebundenen Dateibestand, keine ABI-Kompatibilität oder Betriebsfreigabe. Freigegebene Engine-Binärpakete, ein vollständiger Runtime-Download und eine installierbare Supervisor-App-Referenz werden durch diese Quellerweiterung nicht geliefert.
+
+## Supervisor source integration
+
+The source-bound app builder, explicit worker confinement and corrected graceful
+shutdown are included. This closes the previous private-candidate-only source gap,
+not the outstanding public Engine/Runtime/App delivery or license review.

@@ -596,7 +596,7 @@ Eine vorhandene SD-Datei bleibt erhalten.`,confirmLabel:"Verlauf entfernen",dang
           @media(max-width:800px){header{min-height:56px;padding:8px 10px}.logo{width:36px;height:36px;flex-basis:36px;border-radius:10px}.marke{gap:9px}.marke strong{font-size:14px}.marke small{font-size:10px}#studio-host,ultimate-3d-studio{min-height:calc(100dvh - 112px)}}
         </style>
         <ha-card>
-          <header><div class="marke"><div class="logo">3D</div><div><strong id="card-title">${Ve.productName}</strong><small>Version 6.0.2 · Build 942604b54d</small></div></div></header>
+          <header><div class="marke"><div class="logo">3D</div><div><strong id="card-title">${Ve.productName}</strong><small>Version 6.0.3 · Build 1b54cebfcb</small></div></div></header>
           <div id="studio-host"></div>
         </ha-card>
         <ultimate-3d-global-job-popup></ultimate-3d-global-job-popup>`,this.mounted=!0,tn("card-mounted")),this.adoptPersistentStudio()}updateTitle(){let e=this.rootElement.querySelector("#card-title");e&&(e.textContent=String(this.configValue.title||Ve.productName))}forwardHass(){if(!this.hassValue||!this.mounted)return;he.owner===this&&(Gc().hass=this.hassValue);let e=this.rootElement.querySelector("ultimate-3d-global-job-popup");e&&(e.hass=this.hassValue)}};customElements.get("ultimate-3d-studio-card")||customElements.define("ultimate-3d-studio-card",ia);window.customCards=window.customCards||[];window.customCards.some(n=>n.type==="ultimate-3d-studio-card")||window.customCards.push({type:"ultimate-3d-studio-card",name:Ve.productName,description:Ve.cardDescription,preview:!1});export{ia as Ultimate3DStudioCard};

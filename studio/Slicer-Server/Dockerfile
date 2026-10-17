@@ -24,6 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     libimath-3-1-29t64 \
     libmpfr6 \
+    libseccomp2 \
     libnlopt0 \
     libopenvdb10.0t64 \
     libpolyclipping22 \
@@ -59,7 +60,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/ultimate-slicer-server
 COPY --chown=65532:65532 payload/ ./payload/
-COPY --chown=65532:65532 context-manifest.json verify_profile_sources.py PROFILE_SOURCE_BUNDLE.json target_image_sbom.py TARGET_IMAGE_REFERENCE.json container_check.py container_runtime.py container_probe.py container_service.py container_engines.py LICENSE THIRD_PARTY_NOTICES.md PAYLOAD_PROVENANCE.json ./
+COPY --chown=65532:65532 context-manifest.json verify_profile_sources.py PROFILE_SOURCE_BUNDLE.json target_image_sbom.py TARGET_IMAGE_REFERENCE.json container_check.py container_runtime.py container_probe.py container_service.py supervisor_worker_policy.py supervisor_app_service.py container_engines.py LICENSE THIRD_PARTY_NOTICES.md PAYLOAD_PROVENANCE.json ./
 COPY --chown=65532:65532 licenses/ ./licenses/
 # Fixed FHS paths for reviewed Prusa/Cura archives; no engine executed here.
 RUN python3 container_engines.py prepare-image \

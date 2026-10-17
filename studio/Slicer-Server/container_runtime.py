@@ -53,6 +53,19 @@ def validate(state):
     return state
 
 def require_isolation():
+    # Explicit app selection never bypasses the Compose contract on failure.
+    # The app policy checks actual kernel denials; this value alone grants none.
+    profile = os.environ.get("STUDIO_RUNTIME_ISOLATION", "compose")
+    if profile == "supervisor-landlock-seccomp":
+        from supervisor_worker_policy import PolicyError, verify_applied
+        try:
+            return verify_applied()
+        except PolicyError as error:
+            raise IsolationError(str(error)) from None
+        except (OSError, KeyError, ValueError):
+            raise IsolationError("app_kernel_evidence_unavailable") from None
+    if profile != "compose":
+        raise IsolationError("unknown_isolation_profile")
     try:
         return validate(observe())
     except (OSError, KeyError, ValueError) as exc:

@@ -60,6 +60,23 @@ class ReleaseTests(unittest.TestCase):
             self.publish()
         self.assertFalse(any(method == "POST" for method, _, _ in self.calls))
 
+    def test_source_version_pins_match_canonical_artifacts(self):
+        root = module_path.parents[1]
+        sources = {
+            "Taracraft/3D-Ultimate-Slicer-Server": "packages/ultimate-slicer-server/release.json",
+            "Taracraft/3D-Ultimate-Center": "deploy/homeassistant/custom_components/ultimate_3d_studio/manifest.json",
+        }
+        self.assertTrue((root / sources["Taracraft/3D-Ultimate-Slicer-Server"]).is_file())
+        for repository, relative in sources.items():
+            path = root / relative
+            # The standalone Slicer projection intentionally excludes HA's manifest.
+            if not path.is_file():
+                self.assertEqual(repository, "Taracraft/3D-Ultimate-Center")
+                continue
+            with self.subTest(repository=repository):
+                actual = json.loads(path.read_text(encoding="utf-8-sig"))["version"]
+                self.assertEqual(publisher.SPECS[repository]["version"], actual)
+
     def test_success_exact_head_and_only_tag_then_release_mutations(self):
         result = self.publish()
         self.assertEqual(result["state"], "created")

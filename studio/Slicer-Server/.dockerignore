@@ -17,3 +17,5 @@
 !PROFILE_SOURCE_BUNDLE.json
 !target_image_sbom.py
 !TARGET_IMAGE_REFERENCE.json
+!supervisor_worker_policy.py
+!supervisor_app_service.py

@@ -30,3 +30,7 @@ Der Ausgangsstand dokumentiert Beta-Meilensteine im Juli 2026 und Version 6.0.0 
 - Externe Spule unter Materialsysteme nutzt dieselbe Farb-, Hersteller-, Filamentart- und Sortenbedienung wie AMS, ausschliesslich aus dem vorhandenen A1-Katalog. Auswahlzustand ist pro Drucker und Ziel isoliert; andere AMS-Slots werden nicht veraendert.
 - Fuer beide Repositories wurden kompakte animierte GIFs aus tatsaechlichen, zugeschnittenen Nutzeraufnahmen vorbereitet. Herkunft und Grenzen sind dokumentiert; die Slicer-Animation behauptet keine eigenstaendige Runtime- oder Engine-Lieferung.
 - Vollstaendiger Frontendlauf: 658 Tests bestanden, Produktionsbuild erfolgreich. Keine echte Drucker-, Slice-, Live-HACS- oder Migrationsaktion.
+## 17. Oktober 2026 - 6.0.3 / Slicer 0.1.0-alpha8 (Quellkandidat)
+- Gepruefte Supervisor-Laufzeit, Worker-Schutz und App-Kontextpaketierer in den kanonischen Quellbaum uebernommen.
+- Geordnetes Stoppen signalisiert Besitzerprozesse statt unbereite Kindprozessgruppen; hartes Gruppencleanup bei Timeout bleibt erhalten.
+- Explizite libseccomp-Abhaengigkeit, reproduzierbare Kontext-/Repositorylieferung und portable Regressionen. Keine App-Installation oder oeffentliche Runtimefreigabe daraus.

@@ -24,7 +24,7 @@ COMPONENT_FILES = (
     "slicer_execution_contract.py", "gcode_artifact_validation.py",
     "printer_model_contract.py", "h2s_native_defaults.json",
 )
-SUPPORT_FILES = ("Dockerfile", ".dockerignore", "container_check.py", "container_runtime.py", "container_probe.py", "container_service.py", "container_engines.py", "LICENSE", "THIRD_PARTY_NOTICES.md", "TARGET_IMAGE_REFERENCE.json", "target_image_sbom.py", "verify_profile_sources.py")
+SUPPORT_FILES = ("Dockerfile", ".dockerignore", "container_check.py", "container_runtime.py", "container_probe.py", "container_service.py", "supervisor_worker_policy.py", "supervisor_app_service.py", "container_engines.py", "LICENSE", "THIRD_PARTY_NOTICES.md", "TARGET_IMAGE_REFERENCE.json", "target_image_sbom.py", "verify_profile_sources.py")
 LICENSE_FILES = {
     "licenses/MIT-Studio.txt": ("2cd47d14537993c48a899d2a3e6b30cf764ea31e18a468b662263e1f14027708", "inherited-license-notice"),
     "licenses/AGPL-BambuStudio.txt": ("57c8ff33c9c0cfc3ef00e650a1cc910d7ee479a8bc509f6c9209a7c2a11399d6", "third-party-license-notice"),

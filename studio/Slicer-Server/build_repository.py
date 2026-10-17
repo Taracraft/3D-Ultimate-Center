@@ -7,6 +7,15 @@ from pathlib import Path, PurePosixPath
 import stat
 
 SOURCE_PATHS = (
+    "Slicer-Server/prepare_supervisor_context.py",
+    "Slicer-Server/supervisor_app_service.py",
+    "Slicer-Server/supervisor_worker_policy.py",
+    "tests/test_studio_supervisor_baseline.py",
+    "tests/test_studio_supervisor_context.py",
+    "tests/test_studio_supervisor_service.py",
+    "tests/test_studio_supervisor_worker_policy.py",
+    "Slicer-Server/SUPERVISOR_RUNTIME.md",
+
     "Slicer-Server/.dockerignore",
     "Slicer-Server/API.md",
     "Slicer-Server/BAMBU_BUILD_REFERENCE.json",

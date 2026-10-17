@@ -35,3 +35,9 @@ Die Zustandsabfragen sind keine globale Supervisor-Sperre. Andere Administratore
 Die vorhandenen Optionen für URL, Secret und TLS werden unabhängig vom App-Pfad verwendet. Zugangsdaten verbleiben in Home Assistant. Die Verbindung sollte erst übernommen werden, wenn Zertifikat, Authentifizierung und API-Kompatibilität passen.
 
 [Entwicklungsstand](RELEASE_STATUS.md) · [Laufzeitkonfiguration](RUNTIME_INSTALLATION.md) · [Hostkopplung](HOST_PAIRING.md)
+
+## Integrated runtime sources
+
+The explicit worker policy, app lifecycle and reproducible context builder are
+now included in the source distribution. See [Supervisor runtime](SUPERVISOR_RUNTIME.md).
+No public image or app release reference is granted by this source integration.

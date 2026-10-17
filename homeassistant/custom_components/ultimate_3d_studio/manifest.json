@@ -1,19 +1,19 @@
 {
-  "domain": "ultimate_3d_studio",
-  "name": "Ultimate 3D Studio",
+  "after_dependencies": [
+    "hassio"
+  ],
   "codeowners": [],
   "config_flow": true,
   "dependencies": [
     "http"
   ],
+  "documentation": "https://github.com/Taracraft/3D-Ultimate-Center",
+  "domain": "ultimate_3d_studio",
   "iot_class": "local_push",
+  "issue_tracker": "https://github.com/Taracraft/3D-Ultimate-Center/issues",
+  "name": "Ultimate 3D Studio",
   "requirements": [
     "paho-mqtt==2.1.0"
   ],
-  "version": "6.0.2",
-  "after_dependencies": [
-    "hassio"
-  ],
-  "documentation": "https://github.com/Taracraft/3D-Ultimate-Center",
-  "issue_tracker": "https://github.com/Taracraft/3D-Ultimate-Center/issues"
+  "version": "6.0.3"
 }
