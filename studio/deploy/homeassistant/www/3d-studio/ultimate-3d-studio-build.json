@@ -2,11 +2,11 @@
   "schema_version": 3,
   "product": "Ultimate 3D Printing Studio",
   "version": "6.0.0",
-  "build_id": "46fe734e54",
+  "build_id": "d1beeb6a9d",
   "entry": "frontend/studio-entry.ts",
   "output": "deploy/homeassistant/www/3d-studio/ultimate-3d-studio.js",
-  "size_bytes": 682769,
-  "sha256": "2a689c385778bae42863e58a0037c5cb441427620810cda3aa3dea93e3a64a89",
+  "size_bytes": 690258,
+  "sha256": "66daaa780a5bdc52d6de96089a91b0e805710bfe7b3e96a982b21b58cc95365f",
   "css": {
     "output": "deploy/homeassistant/www/3d-studio/ultimate-3d-studio.css",
     "size_bytes": 801,
@@ -29,7 +29,7 @@
     "target": "es2022",
     "minified": true,
     "sourcemap": false,
-    "bundled_input_count": 132,
+    "bundled_input_count": 133,
     "inputs": [
       "frontend/ams-workspace.ts",
       "frontend/api-client.ts",
@@ -76,6 +76,7 @@
       "frontend/makerworld-attribution.ts",
       "frontend/makerworld-description-media.ts",
       "frontend/makerworld-detail-dialog-studio.ts",
+      "frontend/makerworld-reauth-dialog.ts",
       "frontend/makerworld-search-filters.ts",
       "frontend/makerworld-studio-adapter2.ts",
       "frontend/makerworld-workspace-core-v2.ts",
@@ -177,5 +178,5 @@
       "__transformMountPatched"
     ]
   },
-  "built_at": "2026-10-17T10:04:13.417Z"
+  "built_at": "2026-10-17T11:24:31.395Z"
 }

@@ -25,3 +25,7 @@ Ein erfolgreicher Quelltest oder Imagebau ersetzt kein installierbares Paket. Ve
 Technische Metadaten wie `release_complete=false` oder `production_approved=false` geben den Umfang der jeweiligen Paketprüfung an. Sie werden nicht durch eine Änderung dieser Dokumentation aufgehoben.
 
 [Installation](INSTALLATION.md) · [Docker](DOCKER_QUICKSTART.md) · [Engine-Pakete](ENGINE_DISTRIBUTION.md)
+
+## Versionierte Quellveroeffentlichung
+
+Der aktuelle gepruefte Quellstand wird unter seiner bestehenden Komponentenkennung 0.1.0-alpha5 als GitHub Release veroeffentlicht. Er enthaelt die beschriebenen Quellen, Container-/Paketierungswerkzeuge und Dokumentation. Engine-Binaerpakete, vollstaendiges Laufzeitimage und Supervisor-App werden damit nicht geliefert oder freigegeben. Externe Bedien-/Systemabnahmen und Testinstallationen sind aus der Releasebewertung ausgenommen; nicht ausgefuehrte Pruefungen bleiben ungeprueft. Der Studio-Release verwendet unabhaengig davon die Integrations-/Frontendversion 6.0.0.

@@ -1,0 +1,33 @@
+name: Publish slicer release
+on:
+  workflow_run:
+    workflows: ["Slicer source contract"]
+    types: [completed]
+    branches: [main]
+permissions: {}
+concurrency:
+  group: publish-slicer-release
+  cancel-in-progress: false
+jobs:
+  release:
+    if: >-
+      github.repository == 'Taracraft/3D-Ultimate-Slicer-Server' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Publish exact successful main source without packaging
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python3 Slicer-Server/publish_release.py

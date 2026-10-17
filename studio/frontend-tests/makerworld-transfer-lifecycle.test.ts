@@ -20,6 +20,7 @@ function setup() {
       "./ha-api-transport.js": { errorMessage: (error: unknown) => error instanceof Error ? error.message : String(error) },
       "./gallery-api.js": { GalleryApi: class { async list() { return { tree: [{ path: "" }] }; } } },
       "./makerworld-studio-adapter2.js": {},
+      "./makerworld-reauth-dialog.js": { makerWorldReauthenticationEntry: () => null },
       "./profile-api.js": { ProfileApi: class { async saveSelection(selection: unknown) { selections.push(selection); } async getCatalog() { return catalog; } } },
       "./workspace-file-handoff.js": { queueWorkspaceFile: (...args: unknown[]) => queued.push(args) },
     },

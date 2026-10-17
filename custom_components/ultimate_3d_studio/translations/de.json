@@ -35,7 +35,8 @@
           "slicer_base_url": "Slicer-Serveradresse (HTTPS)",
           "slicer_api_secret": "Slicer-API-Secret (wird nicht wieder angezeigt)",
           "slicer_connection_test": "Slicer-Verbindung prüfen (ohne Speichern)",
-          "slicer_installer_setup": "Slicer einrichten: Supervisor-App oder externer Server (andere Änderungen nicht speichern)"
+          "slicer_installer_setup": "Slicer einrichten: Supervisor-App oder externer Server (andere Änderungen nicht speichern)",
+          "cloud_reauthenticate": "Bambu-Konto erneut anmelden"
         }
       },
       "cloud_code": {
@@ -93,6 +94,15 @@
         "description": "Nur den lokalen Einrichtungsnachweis an die erneut geprüfte vorhandene, gestoppte App anpassen. Keine Installation, kein Start, kein Löschen. Der Ausgang des ursprünglichen Vorgangs bleibt unbekannt. Laufende Supervisor-Aufträge, abweichende Versionen oder unklare Daten blockieren den Abgleich.",
         "data": {
           "confirm": "Vorhandenen Zustand nach erneuter Prüfung übernehmen"
+        }
+      },
+      "cloud_reauthenticate": {
+        "title": "Bambu-Konto erneut anmelden",
+        "description": "Erneuere nur deinen Bambu-Kontozugang. Andere Einstellungen bleiben erhalten.",
+        "data": {
+          "cloud_email": "Bambu-E-Mail-Adresse",
+          "password": "Bambu-Passwort",
+          "cloud_region": "Kontoregion"
         }
       }
     },

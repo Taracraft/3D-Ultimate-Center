@@ -1,4 +1,4 @@
-"""Read-only verification of an existing Studio HACS zip_release artifact.
+"""Read-only verification of Studio HACS repository or existing ZIP content.
 
 HACS extracts release ZIPs directly into custom_components/<domain>. Repository
 layout and ZIP layout are separate contracts. This verifier never extracts,
@@ -180,14 +180,18 @@ def _imports(payloads: dict[str, bytes]) -> int:
     return count
 
 
-def _configuration(hacs: dict) -> str:
-    if not isinstance(hacs, dict) or hacs.get("zip_release") is not True:
-        raise HacsReleaseError("zip_release must be explicitly true")
-    if not isinstance(hacs.get("name"), str) or not hacs["name"].strip() or hacs.keys() - HACS_KEYS:
+def _configuration(hacs: dict, *, require_zip: bool = True) -> str | None:
+    if not isinstance(hacs, dict) or not isinstance(hacs.get("name"), str) or not hacs["name"].strip() or hacs.keys() - HACS_KEYS:
         raise HacsReleaseError("invalid HACS repository metadata")
-    for key in ("content_in_root", "hide_default_branch", "render_readme"):
+    for key in ("content_in_root", "hide_default_branch", "render_readme", "zip_release"):
         if key in hacs and type(hacs[key]) is not bool:
             raise HacsReleaseError("invalid HACS boolean metadata")
+    if hacs.get("zip_release", False) is False:
+        if require_zip:
+            raise HacsReleaseError("zip_release must be explicitly true")
+        if "filename" in hacs:
+            raise HacsReleaseError("filename is not used in repository download mode")
+        return None
     filename = hacs.get("filename")
     if not isinstance(filename, str) or _name(filename) != filename or "/" in filename or not filename.endswith(".zip"):
         raise HacsReleaseError("safe release filename required")
@@ -347,7 +351,7 @@ def verify_repository(root: Path, expected_files: dict[str, str], *,
     if _linked(root) or not root.is_dir():
         raise HacsReleaseError("invalid repository root")
     hacs = _metadata(root / "hacs.json")
-    filename = _configuration(hacs)
+    filename = _configuration(hacs, require_zip=False)
     # The selected Studio monorepo deliberately uses the documented normal
     # layout. content_in_root is a different repository projection contract.
     if hacs.get("content_in_root", False) is not False:

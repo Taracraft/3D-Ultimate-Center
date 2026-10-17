@@ -2405,6 +2405,7 @@ import "./slicer-cancel.test.js";
 import "./mobile-dialog-lifecycle.test.js";
 
 import "./makerworld-transfer-lifecycle.test.js";
+import "./makerworld-reauth.test.js";
 
 import "./gallery-detail-request.test.js";
 

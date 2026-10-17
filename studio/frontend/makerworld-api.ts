@@ -1,4 +1,4 @@
-import { authenticatedFetch, callEnvelopeApi } from "./ha-api-transport.js";
+import { ApiResponseError, authenticatedFetch, callEnvelopeApi } from "./ha-api-transport.js";
 
 export type MakerWorldStats = Readonly<{
   likes: number;
@@ -192,13 +192,15 @@ export class MakerWorldApi {
     );
     if (!response.ok) {
       let message = `MakerWorld-Datei konnte nicht geladen werden: HTTP ${response.status}`;
+      let serverError: { code?: string; message?: string; details?: Readonly<Record<string, unknown>> } | undefined;
       try {
-        const payload = await response.json() as { error?: { message?: string } };
-        if (payload.error?.message) message = payload.error.message;
+        const payload = await response.json() as { error?: typeof serverError };
+        serverError = payload.error;
+        if (serverError?.message) message = serverError.message;
       } catch (_error) {
         // Keep HTTP fallback.
       }
-      throw new Error(message);
+      throw new ApiResponseError(message, serverError);
     }
     const blob = await response.blob();
     const suffix = format === "stl" ? ".stl" : ".3mf";

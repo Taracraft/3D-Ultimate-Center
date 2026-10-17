@@ -238,6 +238,11 @@ async def download_signed_profile(runtime, account, design_id: str, profile_id: 
         return result
     except asyncio.CancelledError:
         raise
+    except MakerWorldTransferError as exc:
+        if exc.code == "makerworld_account_unauthorized":
+            runtime._check_account(account)
+            exc.config_entry_id = account.entry_id
+        raise
     except TimeoutError as exc:
         raise MakerWorldTransferError("makerworld_download_timeout", "Der MakerWorld-Download hat sein Zeitlimit überschritten. Kein Ersatzprofil wurde geladen.") from exc
     except ClientError as exc:

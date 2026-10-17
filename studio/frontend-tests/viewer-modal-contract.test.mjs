@@ -123,7 +123,7 @@ class TrackedTarget extends EventTarget {
 }
 function popup() {
   return load('makerworld-detail-dialog-studio.ts', {
-    dependencies: {'./makerworld-attribution.js':{},'./makerworld-description-media.js':{},'./ha-api-transport.js':{},'./gallery-api.js':{},'./makerworld-studio-adapter2.js':{},'./profile-api.js':{}},
+    dependencies: {'./makerworld-attribution.js':{},'./makerworld-reauth-dialog.js':{makerWorldReauthenticationEntry:()=>null,openMakerWorldReauthentication:async()=>false},'./makerworld-description-media.js':{},'./ha-api-transport.js':{},'./gallery-api.js':{},'./makerworld-studio-adapter2.js':{},'./profile-api.js':{}},
     expose:'\nexports.probe={bindMakerWorldViewport,closeMakerWorldDialog,dialogStates};'
   }).probe;
 }

@@ -1,6 +1,7 @@
 import { makerWorldLicenseHtml } from "./makerworld-attribution.js";
 import { safeMediaUrl, descriptionImageUrls, missingDescriptionImages } from "./makerworld-description-media.js";
 import { errorMessage } from "./ha-api-transport.js";
+import { makerWorldReauthenticationEntry, openMakerWorldReauthentication } from "./makerworld-reauth-dialog.js";
 import { GalleryApi } from "./gallery-api.js";
 import type { MakerWorldComment, MakerWorldDetail, MakerWorldInstance, MakerWorldRecommendation, MakerWorldSavedItem } from "./makerworld-api.js";
 import { MakerWorldStudioAdapter2 } from "./makerworld-studio-adapter2.js";
@@ -313,12 +314,12 @@ function recommendationsHtml(items: readonly MakerWorldRecommendation[]): string
   </article>`).join("");
 }
 
-type MakerWorldDialogState = { busy: boolean; closed: boolean; discussion?: MakerWorldDiscussionState; cleanupViewport?: () => void };
+type MakerWorldDialogState = { busy: boolean; closed: boolean; reauthentication?: AbortController; discussion?: MakerWorldDiscussionState; cleanupViewport?: () => void };
 const dialogStates = new WeakMap<HTMLElement, MakerWorldDialogState>();
 
 function closeMakerWorldDialog(overlay: HTMLElement): void {
   const state = dialogStates.get(overlay);
-  if (state) { state.closed = true; state.cleanupViewport?.(); }
+  if (state) { state.closed = true; state.cleanupViewport?.(); state.reauthentication?.abort(); }
   const modal = overlay as HTMLDialogElement;
   if (modal.open) modal.close();
   overlay.remove();
@@ -334,7 +335,21 @@ async function runMakerWorldAction(overlay: HTMLElement, action: (active: () => 
   overlay.setAttribute("aria-busy", "true");
   const active = (): boolean => !state.closed && overlay.isConnected;
   try { await action(active); }
-  catch (error) { if (active()) show(dialogOf(overlay), error); }
+  catch (error) {
+    if (active()) {
+      show(dialogOf(overlay), error);
+      const entryId = makerWorldReauthenticationEntry(error);
+      if (entryId) {
+        const controller = new AbortController();
+        state.reauthentication = controller;
+        try {
+          const connected = await openMakerWorldReauthentication(overlay, entryId, controller.signal);
+          if (connected && active()) show(dialogOf(overlay), new Error("Bambu-Konto verbunden. Bitte den gewünschten Import erneut auswählen."));
+        } catch (loginError) { if (active()) show(dialogOf(overlay), loginError); }
+        finally { delete state.reauthentication; }
+      }
+    }
+  }
   finally {
     state.busy = false;
     overlay.removeAttribute("aria-busy");

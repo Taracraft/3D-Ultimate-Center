@@ -322,7 +322,7 @@ class FlowTests(_BindingFixture):
         klass=next(x for x in tree.body if isinstance(x,ast.ClassDef) and x.name=='Ultimate3DStudioOptionsFlow')
         method=next(x for x in klass.body if isinstance(x,ast.AsyncFunctionDef) and x.name=='async_step_init')
         module=ast.Module(body=[ast.ImportFrom(module='__future__',names=[ast.alias(name='annotations')],level=0),method],type_ignores=[])
-        env={'CONF_INSTALLER_SETUP':'slicer_installer_setup'}
+        env={'CONF_INSTALLER_SETUP':'slicer_installer_setup','CONF_CLOUD_REAUTHENTICATE':'cloud_reauthenticate'}
         exec(compile(ast.fix_missing_locations(module),'<actual options init>','exec'),env)
         result=await env['async_step_init'](self.flow,{'slicer_installer_setup':True})
         self.assertEqual(result,{'type':'menu','step_id':'slicer_installation'})

@@ -37,12 +37,22 @@ def _success(data: Any, **meta: Any) -> web.Response:
     })
 
 
-def _error(status: int, code: str, message: str) -> web.Response:
+def _error(status: int, code: str, message: str, *, details: dict[str, Any] | None = None) -> web.Response:
     return web.json_response({
         "data": None,
-        "error": {"code": code, "message": message},
+        "error": {"code": code, "message": message, **({"details": details} if details else {})},
         "meta": {"api_version": "v1", "component_version": VERSION},
     }, status=status)
+
+
+def _transfer_error(error: MakerWorldError) -> web.Response:
+    entry_id = getattr(error, "config_entry_id", "")
+    if (getattr(error, "code", "") == "makerworld_account_unauthorized"
+            and getattr(error, "upstream_status", None) == 401
+            and isinstance(entry_id, str) and re.fullmatch(r"[A-Za-z0-9_-]{1,128}", entry_id)):
+        return _error(502, "makerworld_account_unauthorized", str(error),
+                      details={"upstream_status": 401, "config_entry_id": entry_id})
+    return _error(502, "makerworld_download_failed", str(error))
 
 
 def _admin_error(request: web.Request) -> web.Response | None:
@@ -209,7 +219,7 @@ class MakerWorldInstanceView(HomeAssistantView):
             return _error(400, "invalid_makerworld_instance", str(exc))
         except MakerWorldError as exc:
             _LOGGER.warning("MakerWorld instance download failed for %s: %s", instance_id, exc)
-            return _error(502, "makerworld_download_failed", str(exc))
+            return _transfer_error(exc)
         safe = filename.replace('"', "_")
         return web.Response(
             body=payload,
@@ -255,7 +265,7 @@ class MakerWorldInstanceView(HomeAssistantView):
             return _error(400, "invalid_makerworld_transfer", str(exc))
         except MakerWorldError as exc:
             _LOGGER.warning("MakerWorld gallery transfer failed for %s: %s", instance_id, exc)
-            return _error(502, "makerworld_download_failed", str(exc))
+            return _transfer_error(exc)
         return _success(item, saved=True)
 
 

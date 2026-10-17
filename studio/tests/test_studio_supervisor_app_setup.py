@@ -505,7 +505,7 @@ class FlowTests(SessionFixture):
         tree=ast.parse((COMP/'config_flow.py').read_bytes())
         cls=next(n for n in tree.body if isinstance(n,ast.ClassDef) and n.name=='Ultimate3DStudioOptionsFlow')
         method=next(n for n in cls.body if isinstance(n,ast.AsyncFunctionDef) and n.name=='async_step_init')
-        env={'CONF_INSTALLER_SETUP':'slicer_installer_setup'}
+        env={'CONF_INSTALLER_SETUP':'slicer_installer_setup','CONF_CLOUD_REAUTHENTICATE':'cloud_reauthenticate'}
         module=ast.Module(body=[ast.ImportFrom(module='__future__',names=[ast.alias(name='annotations')],level=0),method],type_ignores=[])
         exec(compile(ast.fix_missing_locations(module),'<options route>','exec'),env)
         result=await env['async_step_init'](self.flow,{'slicer_installer_setup':True})

@@ -1,13 +1,31 @@
-"""Conservatively register the packaged Studio Lovelace resource in storage mode.
+"""Keep the single owned Studio resource on the installed packaged build.
 
-No layout, dashboards, YAML resources, or existing resource entries are changed.
-This module operates on the already initialized Lovelace data object so that
-the small contract can be tested without a running Home Assistant instance.
+Only the exact packaged or former manual Studio URL is owned here. Dashboards,
+YAML resources and all unrelated resources, including PCC, remain untouched.
 """
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 RESOURCE_URL = "/ultimate-3d-studio/assets/ultimate-3d-studio.js"
 LEGACY_RESOURCE_URL = "/local/3d-studio/ultimate-3d-studio.js"
+ASSET_ROOT = Path(__file__).resolve().parent / "assets"
+
+
+def _packaged_resource_url() -> str | None:
+    required = ("ultimate-3d-studio.js", "ultimate-3d-studio.css", "ultimate-3d-studio-build.json")
+    if not all((ASSET_ROOT / name).is_file() for name in required):
+        return None
+    try:
+        build = json.loads((ASSET_ROOT / required[2]).read_text(encoding="utf-8"))
+    except (OSError, ValueError, UnicodeError):
+        return None
+    digest = build.get("sha256") if isinstance(build, dict) else None
+    if (not isinstance(digest, str) or len(digest) != 64
+            or any(char not in "0123456789abcdef" for char in digest)):
+        return None
+    return f"{RESOURCE_URL}?v={digest}"
 
 
 def _resource_path(item: object) -> str:
@@ -20,7 +38,7 @@ def _resource_path(item: object) -> str:
 
 
 async def async_ensure_studio_lovelace_resource(lovelace_data: object | None) -> str:
-    """Add one JS module only when HA uses the writable Lovelace storage mode."""
+    """Register or update one owned JS module in writable Lovelace storage."""
     if lovelace_data is None:
         return "lovelace_not_loaded"
     if getattr(lovelace_data, "resource_mode", None) != "storage":
@@ -35,13 +53,23 @@ async def async_ensure_studio_lovelace_resource(lovelace_data: object | None) ->
     if not isinstance(entries, list):
         return "resources_unavailable"
 
-    for item in entries:
-        if _resource_path(item) == RESOURCE_URL:
-            return "already_registered" if item.get("type") == "module" else "type_conflict"
-    for item in entries:
-        if _resource_path(item) == LEGACY_RESOURCE_URL:
-            # Preserve existing users' dashboards until the controlled live migration.
-            return "legacy_resource_preserved"
+    owned = [item for item in entries if _resource_path(item) in {RESOURCE_URL, LEGACY_RESOURCE_URL}]
+    if len(owned) > 1:
+        return "studio_resource_conflict"
+    if owned and owned[0].get("type") != "module":
+        return "type_conflict"
+    resource_url = _packaged_resource_url()
+    if resource_url is None:
+        return "frontend_build_unavailable"
+    if owned:
+        item = owned[0]
+        if item.get("url") == resource_url:
+            return "already_registered"
+        item_id = item.get("id")
+        if not isinstance(item_id, str) or not item_id:
+            return "resource_identity_invalid"
+        await resources.async_update_item(item_id, {"url": resource_url, "res_type": "module"})
+        return "updated"
 
-    await resources.async_create_item({"url": RESOURCE_URL, "res_type": "module"})
+    await resources.async_create_item({"url": resource_url, "res_type": "module"})
     return "registered"

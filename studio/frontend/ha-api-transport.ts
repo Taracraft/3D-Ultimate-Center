@@ -14,6 +14,17 @@ export type ApiError = Readonly<{
   details?: Readonly<Record<string, unknown>> | undefined;
 }>;
 
+export class ApiResponseError extends Error {
+  readonly code: string | undefined;
+  readonly details: Readonly<Record<string, unknown>> | undefined;
+  constructor(message: string, error?: ApiError | null) {
+    super(message);
+    this.name = "ApiResponseError";
+    this.code = typeof error?.code === "string" ? error.code : undefined;
+    this.details = error?.details;
+  }
+}
+
 export type ApiEnvelope<T> = Readonly<{
   data?: T | null;
   error?: ApiError | null;
@@ -343,8 +354,20 @@ export async function callHomeAssistantApi<T>(
         details: { method, path: normalized, error: message },
       });
     }
-    throw new Error(message);
+    const body = record(record(callApiError)?.body);
+    throw new ApiResponseError(message, record(body?.error) as ApiError | null);
   }
+}
+
+/** HA owns this flow and its secrets. Never send form values to Studio audit. */
+export async function callHomeAssistantOptionsFlow<T>(
+  method: "POST" | "DELETE", flowId: string | null, parameters?: unknown,
+): Promise<T> {
+  if (!homeAssistant) throw new Error("Home-Assistant-API ist noch nicht initialisiert.");
+  if (flowId !== null && !/^[A-Za-z0-9_-]{1,128}$/.test(flowId)) throw new Error("Ungültiger Home-Assistant-Anmeldedialog.");
+  const path = "config/config_entries/options/flow" + (flowId === null ? "" : `/${flowId}`);
+  try { return await homeAssistant.callApi<T>(method.toLowerCase(), path, parameters); }
+  catch { throw new Error("Die Anmeldung konnte nicht fortgesetzt werden. Bitte erneut versuchen oder den Dialog schließen."); }
 }
 
 export async function callEnvelopeApi<T>(
@@ -354,7 +377,7 @@ export async function callEnvelopeApi<T>(
   allowNull = false,
 ): Promise<T | null> {
   const envelope = await callHomeAssistantApi<ApiEnvelope<T>>(method, path, parameters);
-  if (envelope.error) throw new Error(errorMessage(envelope.error));
+  if (envelope.error) throw new ApiResponseError(errorMessage(envelope.error), envelope.error);
   if (envelope.data === undefined || (!allowNull && envelope.data === null)) {
     throw new Error("Die API hat keine verwertbaren Daten geliefert.");
   }

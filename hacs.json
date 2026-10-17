@@ -2,7 +2,6 @@
   "name": "Ultimate 3D Studio",
   "content_in_root": false,
   "render_readme": true,
-  "zip_release": true,
-  "filename": "ultimate-3d-studio.zip",
+  "zip_release": false,
   "hide_default_branch": true
 }

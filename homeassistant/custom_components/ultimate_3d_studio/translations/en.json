@@ -35,7 +35,8 @@
           "slicer_base_url": "Slicer server address (HTTPS)",
           "slicer_api_secret": "Slicer API secret (will not be shown again)",
           "slicer_connection_test": "Check slicer connection (without saving)",
-          "slicer_installer_setup": "Set up slicer: Supervisor app or external server (do not save other changes)"
+          "slicer_installer_setup": "Set up slicer: Supervisor app or external server (do not save other changes)",
+          "cloud_reauthenticate": "Sign in to Bambu account again"
         }
       },
       "cloud_code": {
@@ -93,6 +94,15 @@
         "description": "Update only the local setup receipt to match the rechecked existing stopped app. No installation, startup or deletion. The original operation outcome remains unknown. Active Supervisor jobs, differing versions or ambiguous data block reconciliation.",
         "data": {
           "confirm": "Adopt current state after rechecking"
+        }
+      },
+      "cloud_reauthenticate": {
+        "title": "Sign in to Bambu account again",
+        "description": "Renew your Bambu account authorization. Other settings are preserved.",
+        "data": {
+          "cloud_email": "Bambu email address",
+          "password": "Bambu password",
+          "cloud_region": "Account region"
         }
       }
     },

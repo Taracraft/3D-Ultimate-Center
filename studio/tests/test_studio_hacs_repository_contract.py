@@ -29,7 +29,7 @@ def repository(tmp_path, files=None, *, nested=False):
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_bytes(raw)
     (root / "hacs.json").write_text(json.dumps({"name": "Ultimate 3D Studio", "content_in_root": False,
-        "zip_release": True, "filename": "ultimate-3d-studio.zip", "hide_default_branch": True}), encoding="utf-8")
+        "zip_release": False, "hide_default_branch": True}), encoding="utf-8")
     return root, {name: sha256(raw).hexdigest() for name, raw in files.items()}
 
 
@@ -42,7 +42,7 @@ def test_complete_root_source_is_read_only_and_not_a_release(tmp_path):
     before = {p.relative_to(root).as_posix(): p.read_bytes() for p in root.rglob("*") if p.is_file()}
     result = check(root, expected)
     assert result["repository_structure_verified"] is True
-    assert result["release_filename"] == "ultimate-3d-studio.zip"
+    assert result["release_filename"] is None
     assert result["release_asset_verified"] is False
     assert result["installation_verified"] is False
     assert result["product_release_complete"] is False
@@ -79,7 +79,7 @@ def test_repository_contract_rejects_wrong_sources(tmp_path, change):
     if change == "changed_bytes": (root / "custom_components" / v.DOMAIN / "backend.py").write_text("ready=False\n")
     if change in ("invalid_hacs", "content_in_root"):
         hacs = json.loads((root / "hacs.json").read_text())
-        hacs["zip_release" if change == "invalid_hacs" else "content_in_root"] = False if change == "invalid_hacs" else True
+        hacs["zip_release" if change == "invalid_hacs" else "content_in_root"] = 1 if change == "invalid_hacs" else True
         (root / "hacs.json").write_text(json.dumps(hacs))
     with pytest.raises(v.HacsReleaseError):
         check(root, expected)
@@ -102,10 +102,53 @@ def test_canonical_manifest_has_required_publication_fields():
     assert manifest["version"] == json.loads((ROOT / "package.json").read_text())["version"]
 
 
-def test_selected_repository_metadata_waits_for_actual_release_asset():
+def test_selected_repository_metadata_uses_normal_hacs_downloads():
     hacs = json.loads((ROOT / "packages/ultimate-ha-integration/hacs.json").read_text())
     assert hacs == {"name": "Ultimate 3D Studio", "content_in_root": False, "render_readme": True,
-                   "zip_release": True, "filename": "ultimate-3d-studio.zip", "hide_default_branch": True}
+                   "zip_release": False, "hide_default_branch": True}
+
+
+@pytest.mark.parametrize("metadata", [
+    {"name": "Ultimate 3D Studio", "content_in_root": False},
+    {"name": "Ultimate 3D Studio", "content_in_root": False,
+     "zip_release": True, "filename": "ultimate-3d-studio.zip"},
+])
+def test_repository_verification_supports_default_and_legacy_zip_metadata(tmp_path, metadata):
+    root, expected = repository(tmp_path)
+    (root / "hacs.json").write_text(json.dumps(metadata))
+    result = check(root, expected)
+    assert result["repository_structure_verified"] is True
+    assert result["release_filename"] == metadata.get("filename")
+    assert result["release_asset_verified"] is False
+
+
+@pytest.mark.parametrize("metadata", [
+    {"name": "Ultimate 3D Studio", "zip_release": True},
+    {"name": "Ultimate 3D Studio", "zip_release": 1},
+    {"name": "Ultimate 3D Studio", "zip_release": None},
+    {"name": "Ultimate 3D Studio", "zip_release": False, "filename": "unused.zip"},
+])
+def test_repository_metadata_rejects_ambiguous_modes(tmp_path, metadata):
+    root, expected = repository(tmp_path)
+    (root / "hacs.json").write_text(json.dumps(metadata))
+    with pytest.raises(v.HacsReleaseError):
+        check(root, expected)
+
+
+@pytest.mark.parametrize("metadata", [
+    {"name": "Ultimate 3D Studio", "zip_release": False},
+    {"name": "Ultimate 3D Studio"},
+])
+def test_zip_verification_rejects_normal_metadata_before_archive_access(tmp_path, monkeypatch, metadata):
+    def forbidden(*_args, **_kwargs):
+        raise AssertionError("repository metadata must not access an archive")
+    monkeypatch.setattr(v, "_regular_file", forbidden)
+    monkeypatch.setattr(v.zipfile, "ZipFile", forbidden)
+    with pytest.raises(v.HacsReleaseError, match="zip_release must be explicitly true"):
+        v.verify_release(tmp_path / "not-created.zip", metadata, {},
+            expected_version="6.0.0", expected_build_id="0123456789",
+            expected_archive_sha256="a" * 64)
+    assert not (tmp_path / "not-created.zip").exists()
 
 
 @pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="POSIX FIFO contract")

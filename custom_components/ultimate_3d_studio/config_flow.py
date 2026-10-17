@@ -61,6 +61,7 @@ from .slicer_installation_flow import SlicerInstallationFlowMixin
 _LOGGER = logging.getLogger(__name__)
 CONF_VERIFICATION_CODE = "verification_code"
 CONF_SLICER_TEST_CONNECTION = "slicer_connection_test"
+CONF_CLOUD_REAUTHENTICATE = "cloud_reauthenticate"
 
 
 class Ultimate3DStudioConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -107,6 +108,7 @@ class Ultimate3DStudioOptionsFlow(SlicerInstallationFlowMixin, InstallerOptionsF
         self._pending_options: dict[str, Any] | None = None
         self._pending_email = ""
         self._pending_region = REGION_GLOBAL
+        self._pending_cloud_reauthentication = False
         self._tested_slicer_options: dict[str, Any] | None = None
         self._slicer_test_status = "nicht geprüft"
 
@@ -173,6 +175,8 @@ class Ultimate3DStudioOptionsFlow(SlicerInstallationFlowMixin, InstallerOptionsF
     def _with_tokens(
         options: dict[str, Any],
         tokens: BambuCloudTokens,
+        *,
+        preserve_profile_sync: bool = False,
     ) -> dict[str, Any]:
         return {
             **options,
@@ -180,13 +184,30 @@ class Ultimate3DStudioOptionsFlow(SlicerInstallationFlowMixin, InstallerOptionsF
             CONF_CLOUD_REFRESH_TOKEN: tokens.refresh_token,
             CONF_CLOUD_UID: tokens.uid,
             CONF_CLOUD_ENABLED: True,
-            CONF_CLOUD_PROFILE_SYNC: True,
+            CONF_CLOUD_PROFILE_SYNC: (
+                options.get(CONF_CLOUD_PROFILE_SYNC, DEFAULT_CLOUD_PROFILE_SYNC)
+                if preserve_profile_sync else True
+            ),
+        }
+
+    def _reauthentication_options(self, email: str, region: str) -> dict[str, Any]:
+        """Keep the latest unrelated options when a login attempt completes."""
+        current = self._current()
+        return {
+            **self.config_entry.options,
+            CONF_CLOUD_EMAIL: email,
+            CONF_CLOUD_REGION: region,
+            CONF_CLOUD_PROFILE_SYNC: current.get(
+                CONF_CLOUD_PROFILE_SYNC, DEFAULT_CLOUD_PROFILE_SYNC
+            ),
         }
 
     async def async_step_init(
         self,
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:
+        if type(user_input) is dict and user_input.get(CONF_CLOUD_REAUTHENTICATE) is True:
+            return await self.async_step_cloud_reauthenticate()
         if type(user_input) is dict and user_input.get(CONF_INSTALLER_SETUP) is True:
             return await self.async_step_slicer_installation()
         current = self._tested_slicer_options or self._current()
@@ -334,6 +355,7 @@ class Ultimate3DStudioOptionsFlow(SlicerInstallationFlowMixin, InstallerOptionsF
                     )
                 ),
                 vol.Optional(CONF_INSTALLER_SETUP, default=False): bool,
+                vol.Optional(CONF_CLOUD_REAUTHENTICATE, default=False): bool,
                 vol.Optional(
                     CONF_SLICER_TEST_CONNECTION,
                     default=False,
@@ -398,6 +420,76 @@ class Ultimate3DStudioOptionsFlow(SlicerInstallationFlowMixin, InstallerOptionsF
             errors=errors,
         )
 
+    async def async_step_cloud_reauthenticate(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> config_entries.ConfigFlowResult:
+        """Renew authorization without changing unrelated integration options."""
+        current = self._current()
+        errors: dict[str, str] = {}
+        email = str(current.get(CONF_CLOUD_EMAIL, "")).strip()
+        region = str(current.get(CONF_CLOUD_REGION, REGION_GLOBAL))
+        # A new password attempt invalidates any earlier verification challenge.
+        self._pending_options = None
+        self._pending_email = ""
+        self._pending_cloud_reauthentication = False
+        if user_input is not None:
+            email_input = user_input.get(CONF_CLOUD_EMAIL, "")
+            password_input = user_input.get(CONF_PASSWORD, "")
+            email = email_input.strip() if isinstance(email_input, str) else ""
+            password = password_input if isinstance(password_input, str) else ""
+            region = user_input.get(CONF_CLOUD_REGION, region)
+            if (not email or not password or not isinstance(region, str)
+                    or region not in {REGION_GLOBAL, REGION_CHINA}):
+                errors["base"] = "invalid_auth"
+            else:
+                options = {
+                    CONF_CLOUD_EMAIL: email,
+                    CONF_CLOUD_REGION: region,
+                }
+                auth = BambuCloudAuth(async_get_clientsession(self.hass), region)
+                try:
+                    tokens = await auth.async_login_password(email, password)
+                except VerificationCodeRequired:
+                    self._pending_options = options
+                    self._pending_email = email
+                    self._pending_region = region
+                    self._pending_cloud_reauthentication = True
+                    return await self.async_step_cloud_code()
+                except BambuCloudAuthError:
+                    errors["base"] = "invalid_auth"
+                except Exception:
+                    errors["base"] = "cannot_connect"
+                else:
+                    return self.async_create_entry(
+                        title="",
+                        data=self._with_tokens(
+                            self._reauthentication_options(email, region), tokens,
+                            preserve_profile_sync=True,
+                        ),
+                    )
+                finally:
+                    password = ""
+                    password_input = ""
+        return self.async_show_form(
+            step_id="cloud_reauthenticate",
+            data_schema=vol.Schema({
+                vol.Required(CONF_CLOUD_EMAIL, default=email): selector.TextSelector(
+                    selector.TextSelectorConfig(type=selector.TextSelectorType.EMAIL)
+                ),
+                vol.Required(CONF_PASSWORD): selector.TextSelector(
+                    selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+                ),
+                vol.Required(CONF_CLOUD_REGION, default=region): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=[REGION_GLOBAL, REGION_CHINA],
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+            }),
+            errors=errors,
+        )
+
     async def async_step_cloud_code(
         self,
         user_input: dict[str, Any] | None = None,
@@ -424,9 +516,17 @@ class Ultimate3DStudioOptionsFlow(SlicerInstallationFlowMixin, InstallerOptionsF
                 _LOGGER.exception("Unexpected Studio verification-code error")
                 errors["base"] = "cannot_connect"
             else:
-                options = self._with_tokens(self._pending_options, tokens)
+                login_options = (
+                    self._reauthentication_options(self._pending_email, self._pending_region)
+                    if self._pending_cloud_reauthentication else self._pending_options
+                )
+                options = self._with_tokens(
+                    login_options, tokens,
+                    preserve_profile_sync=self._pending_cloud_reauthentication,
+                )
                 self._pending_options = None
                 self._pending_email = ""
+                self._pending_cloud_reauthentication = False
                 return self.async_create_entry(title="", data=options)
 
         return self.async_show_form(
