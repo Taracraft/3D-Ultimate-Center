@@ -177,9 +177,10 @@ def test_complete_detail_cannot_return_data_after_account_switch(modules,monkeyp
     assert runtime._request_account.get() is None
 
 def test_unresolved_download_loads_selected_detail_then_exact_profile(modules,monkeypatch):
-    runtime,_,session,_=context(modules,monkeypatch,[Response(body=b'{"url":"https://makerworld.bblmw.com/a.3mf"}'),Response(body=model_archive())])
+    expected_archive=model_archive()
+    runtime,_,session,_=context(modules,monkeypatch,[Response(body=b'{"url":"https://makerworld.bblmw.com/a.3mf"}'),Response(body=expected_archive)])
     runtime._json=AsyncMock(return_value=payload())
-    assert asyncio.run(runtime.async_download_instance("instance-A",design_id="123",profile_id="profile-A"))==model_archive()
+    assert asyncio.run(runtime.async_download_instance("instance-A",design_id="123",profile_id="profile-A"))==expected_archive
     assert runtime._json.await_count==1
     assert session.calls[0][1]["params"]=={"model_id":"US3575d30b9f913b"}
 

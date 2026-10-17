@@ -150,7 +150,7 @@
       "identity": {
         "bytes": 6963,
         "kind": "sha256-raw-bytes",
-        "sha256": "935ba58ec232c3fadf56c0fb1584a8a23f58b29dcbbd7d96acf378da61f6ea13"
+        "sha256": "cd0a61a05798d51ab3d33bebb07d06b3c62cec3300522833752a949275660891"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "custom_components/ultimate_3d_studio/assets/ultimate-3d-studio-build.json",
@@ -4177,7 +4177,7 @@
       "identity": {
         "bytes": 6963,
         "kind": "sha256-raw-bytes",
-        "sha256": "935ba58ec232c3fadf56c0fb1584a8a23f58b29dcbbd7d96acf378da61f6ea13"
+        "sha256": "cd0a61a05798d51ab3d33bebb07d06b3c62cec3300522833752a949275660891"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -9151,7 +9151,7 @@
       "identity": {
         "bytes": 6963,
         "kind": "sha256-raw-bytes",
-        "sha256": "935ba58ec232c3fadf56c0fb1584a8a23f58b29dcbbd7d96acf378da61f6ea13"
+        "sha256": "cd0a61a05798d51ab3d33bebb07d06b3c62cec3300522833752a949275660891"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -13884,9 +13884,9 @@
     },
     {
       "identity": {
-        "bytes": 13705,
+        "bytes": 13744,
         "kind": "sha256-raw-bytes",
-        "sha256": "8823f648876f93a393179026a7920f59f5c6727d8d00f2ed5f29d4017f12ef64"
+        "sha256": "109a8e5d8e4bf6f789e128195a945408d854b0961b44e979dbf03f7eb15119bb"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/tests/test_makerworld_account_identity_contract.py",
