@@ -936,9 +936,9 @@
       "sha256": "c34a65548032d1228b03b500fc410af53ed85cdd00ff944d7bfb7e7b84aa7bb1"
     },
     {
-      "bytes": 516682,
+      "bytes": 532905,
       "path": "source-license-map.json",
-      "sha256": "6347a0093a3a571a9f1b38a0a936f211e66c15eda4e558b347d44e7948eb60c9"
+      "sha256": "512d02d16d263db7a47803b6c968eba487834cdb8f818bd755656934d944494a"
     },
     {
       "bytes": 2883,
@@ -4196,6 +4196,11 @@
       "sha256": "bfe4ce567638a05770eec487655c516b6c3cc9e564499df24fe32c2573470c83"
     },
     {
+      "bytes": 3044,
+      "path": "studio/packages/ultimate-ha-integration/HACS_RELEASE_CONTRACT.md",
+      "sha256": "c2198d1242ff49e2360ae9bdc66f1095ac27f43ca6defdfaf285f2580f8964a3"
+    },
+    {
       "bytes": 10174,
       "path": "studio/packages/ultimate-ha-integration/build_hacs_preview.py",
       "sha256": "a240d8fb1e04a3c501c4fa09d661490b6974cc71956b2bff480019f8200f9b1b"
@@ -4204,6 +4209,11 @@
       "bytes": 6592,
       "path": "studio/packages/ultimate-ha-integration/copy_gallery_library.py",
       "sha256": "d591821ab336683e0ec8db1c0151fdf9dcffb74d32dd220ba89c3fb57de500ff"
+    },
+    {
+      "bytes": 15936,
+      "path": "studio/packages/ultimate-ha-integration/verify_hacs_release.py",
+      "sha256": "b91c4e0dd9d47576744e26703be694a48c1a3a3473ecace56506ddc359c38b63"
     },
     {
       "bytes": 3201,
@@ -4839,6 +4849,11 @@
       "bytes": 8477,
       "path": "studio/tests/test_studio_hacs_distribution.py",
       "sha256": "f379b04a610d80fb6a10ec669da71960de1866c3237d271518a09cbd3aaa053d"
+    },
+    {
+      "bytes": 10655,
+      "path": "studio/tests/test_studio_hacs_release_verification.py",
+      "sha256": "17094f620e96d45dd78b83f862d0017ebcd37c812754702ed3e3d6c4de7d075d"
     },
     {
       "bytes": 4091,
@@ -5635,19 +5650,19 @@
   "protected_component_tree": "83eee0b12ba828dd1de1e3c9ba83ca2af45e66df",
   "review_evidence": {
     "credentials": {
-      "sha256": "8977398467aa52c641a8547ff41facf170894aaf350f3eeff0b6143cb49c5197",
+      "sha256": "4f9127be730924093166898b0cb8291ea8009dd30b13e7523713b0097b657f05",
       "verified": true
     },
     "infrastructure": {
-      "sha256": "e691d8c179df8aa309a25bdab0706ec5825d3f1dc30e1a689ea06d016ccdd87c",
+      "sha256": "e93f5a438a3a7ff78cecc803ff81d572512de1f7ef600806200b0565b315c2ad",
       "verified": true
     },
     "isolated_candidate": {
-      "sha256": "4fafd058f142e8dfa8e4ffe03f1b1e3f8fd2db43d9cd3d2d5867ee3e033f1bd5",
+      "sha256": "61ce2c0338251dbfd9f7c13d56ae23465633f9321549bdaaa2239d7c5e10a92e",
       "verified": true
     },
     "licenses": {
-      "sha256": "0841af2a35cea811f961b1edae27a817c46625e8af8932b3e7fcf80aa8d69cda",
+      "sha256": "fee2706b6a46aee4bb271c2de1c233cfac41b5bccaa580371f2f6266926d105b",
       "verified": true
     }
   },

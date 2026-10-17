@@ -1,6 +1,6 @@
 {
   "custom_terms_do_not_replace_inherited_or_third_party_rights": true,
-  "delivered_paths": 1126,
+  "delivered_paths": 1129,
   "derived_profile_modification_notice_date": "2026-10-15",
   "files": [
     {
@@ -11017,6 +11017,19 @@
     },
     {
       "identity": {
+        "bytes": 3044,
+        "kind": "sha256-raw-bytes",
+        "sha256": "c2198d1242ff49e2360ae9bdc66f1095ac27f43ca6defdfaf285f2580f8964a3"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "studio/packages/ultimate-ha-integration/HACS_RELEASE_CONTRACT.md",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "packages/ultimate-ha-integration/HACS_RELEASE_CONTRACT.md"
+    },
+    {
+      "identity": {
         "bytes": 10174,
         "kind": "sha256-raw-bytes",
         "sha256": "a240d8fb1e04a3c501c4fa09d661490b6974cc71956b2bff480019f8200f9b1b"
@@ -11040,6 +11053,19 @@
         "LICENSE"
       ],
       "source_path": "packages/ultimate-ha-integration/copy_gallery_library.py"
+    },
+    {
+      "identity": {
+        "bytes": 15936,
+        "kind": "sha256-raw-bytes",
+        "sha256": "b91c4e0dd9d47576744e26703be694a48c1a3a3473ecace56506ddc359c38b63"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "studio/packages/ultimate-ha-integration/verify_hacs_release.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "packages/ultimate-ha-integration/verify_hacs_release.py"
     },
     {
       "identity": {
@@ -12692,6 +12718,19 @@
         "LICENSE"
       ],
       "source_path": "tests/test_studio_hacs_distribution.py"
+    },
+    {
+      "identity": {
+        "bytes": 10655,
+        "kind": "sha256-raw-bytes",
+        "sha256": "17094f620e96d45dd78b83f862d0017ebcd37c812754702ed3e3d6c4de7d075d"
+      },
+      "notice_class": "project-source-with-inherited-MIT-notice",
+      "path": "studio/tests/test_studio_hacs_release_verification.py",
+      "required_notice_paths": [
+        "LICENSE"
+      ],
+      "source_path": "tests/test_studio_hacs_release_verification.py"
     },
     {
       "identity": {
@@ -14751,7 +14790,7 @@
   "production_approved": false,
   "schema": 2,
   "scope": "file-specific notice inventory for this source-only Git delivery; no engine/image or production approval",
-  "source_files": 940,
+  "source_files": 943,
   "upstream": {
     "commit": "42d319c6692fa8e64790fddf0cdaafd2a4254bcc",
     "derived_source_paths": [
