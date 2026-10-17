@@ -5,7 +5,7 @@ catalog may be supplied by the future installer; user requests select IDs only.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 import hashlib
 import json
 from pathlib import Path
@@ -54,6 +54,26 @@ class FileSpec:
 
 
 @dataclass(frozen=True)
+class SourceArchive:
+    kind: str
+    url: str
+    sha256: str
+    size_bytes: int
+
+
+@dataclass(frozen=True)
+class SourceComponent:
+    id: str
+    package: str
+    component_version: str
+    license: str
+    source_revision: str
+    archives: tuple[SourceArchive, ...]
+    files: tuple[str, ...]
+    notices: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class Artifact:
     id: str
     component_version: str
@@ -65,6 +85,7 @@ class Artifact:
     source_url: str
     source_revision: str
     files: tuple[FileSpec, ...]
+    source_components: tuple[SourceComponent, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -81,6 +102,17 @@ class Release:
     @property
     def installed_bytes(self) -> int:
         return sum(f.size_bytes for a in self.artifacts for f in a.files)
+
+
+def release_document(release: Release) -> dict:
+    """JSON-shaped release record; absent new metadata preserves legacy identities."""
+    if type(release) is not Release:
+        raise CatalogError("invalid_release")
+    data = json.loads(json.dumps(asdict(release), allow_nan=False))
+    for artifact in data["artifacts"]:
+        if not artifact.get("source_components"):
+            artifact.pop("source_components", None)
+    return data
 
 
 @dataclass(frozen=True)
@@ -170,8 +202,102 @@ def _file(value: object) -> FileSpec:
                     _path(row["archive_path"]) if "archive_path" in row else None)
 
 
+# This additive contract covers the three already identified Debian source
+# packages only. It does not widen the original primary-source URL policy or
+# claim source completeness for arbitrary vendor/dependency packages.
+DEBIAN_SOURCE_PACKAGES = {
+    "prusaslicer": {"slic3r-prusa": "https://deb.debian.org/debian/pool/main/s/slic3r-prusa/"},
+    "curaengine": {"cura-engine": "https://deb.debian.org/debian/pool/main/c/cura-engine/",
+                   "cura": "https://deb.debian.org/debian/pool/main/c/cura/"},
+}
+
+
+def _source_components(value: object, engine: str, files: tuple[FileSpec, ...]) -> tuple[SourceComponent, ...]:
+    if type(value) is not list or len(value) > 16:
+        raise CatalogError("invalid_source_components")
+    if not value:
+        return ()
+    known = {f.path: f for f in files}
+    covered, identifiers, result = set(), set(), []
+    source_bytes = 0
+    for item in value:
+        row = _keys(item, "id package component_version license source_revision archives files notices")
+        ident = _text(row["id"])
+        if re.fullmatch(r"[a-z][a-z0-9_-]*", ident) is None or ident in identifiers:
+            raise CatalogError("invalid_source_component_id")
+        identifiers.add(ident)
+        package = _text(row["package"])
+        origin = DEBIAN_SOURCE_PACKAGES.get(engine, {}).get(package)
+        if origin is None:
+            raise CatalogError("unsupported_source_package")
+        version = _version(row["component_version"])
+        epoch_parts = version.split(":")
+        if len(epoch_parts) > 2 or (len(epoch_parts) == 2 and not epoch_parts[0].isdigit()):
+            raise CatalogError("invalid_source_version")
+        filename_version = epoch_parts[-1]
+        upstream_version, separator, debian_revision = filename_version.rpartition("-")
+        if (not separator or not upstream_version or not debian_revision
+                or not upstream_version[0].isdigit()):
+            raise CatalogError("invalid_source_version")
+        archives = row["archives"]
+        if type(archives) is not list or len(archives) != 3:
+            raise CatalogError("invalid_source_archives")
+        parsed_archives, kinds, urls = [], set(), set()
+        for raw in archives:
+            archive = _keys(raw, "kind url sha256 size_bytes")
+            kind = archive["kind"]
+            if type(kind) is not str or kind not in {"descriptor", "upstream", "debian_patches"} or kind in kinds:
+                raise CatalogError("invalid_source_archives")
+            kinds.add(kind)
+            url = _url(archive["url"], (origin,))
+            filename = urlsplit(url).path.rsplit("/", 1)[-1]
+            expected_names = {
+                "descriptor": {package + "_" + filename_version + ".dsc"},
+                "upstream": {package + "_" + upstream_version + ".orig.tar." + suffix for suffix in ("gz", "xz")},
+                "debian_patches": {package + "_" + filename_version + ".debian.tar." + suffix for suffix in ("gz", "xz")},
+            }
+            if filename not in expected_names[kind]:
+                raise CatalogError("source_archive_version_mismatch")
+            if url != origin + filename:
+                raise CatalogError("invalid_source_archive_path")
+            if url in urls:
+                raise CatalogError("invalid_source_archive_name")
+            urls.add(url)
+            sha256 = _digest(archive["sha256"])
+            if sha256 == "0" * 64:
+                raise CatalogError("invalid_digest")
+            size = _number(archive["size_bytes"], MAX_ARTIFACT_BYTES)
+            source_bytes += size
+            if source_bytes > MAX_INSTALLED_BYTES:
+                raise CatalogError("source_size_limit")
+            parsed_archives.append(SourceArchive(kind, url, sha256, size))
+        revision = _digest(row["source_revision"])
+        if revision != next(a.sha256 for a in parsed_archives if a.kind == "descriptor"):
+            raise CatalogError("source_descriptor_mismatch")
+        paths = row["files"]
+        if type(paths) is not list or not 1 <= len(paths) <= len(known):
+            raise CatalogError("source_file_coverage")
+        parsed_paths = tuple(_path(p) for p in paths)
+        if len(set(parsed_paths)) != len(parsed_paths) or any(p not in known or p in covered for p in parsed_paths):
+            raise CatalogError("source_file_coverage")
+        covered.update(parsed_paths)
+        notices = row["notices"]
+        if type(notices) is not list or not 1 <= len(notices) <= len(known):
+            raise CatalogError("invalid_source_notices")
+        parsed_notices = tuple(_path(p) for p in notices)
+        if len(set(parsed_notices)) != len(parsed_notices) or any(
+                p not in known or known[p].role != "license" or not known[p].size_bytes for p in parsed_notices):
+            raise CatalogError("invalid_source_notices")
+        result.append(SourceComponent(ident, package, version,
+            _text(row["license"]), revision, tuple(parsed_archives), parsed_paths, parsed_notices))
+    if covered != set(known):
+        raise CatalogError("source_file_coverage")
+    return tuple(result)
+
+
 def _artifact(value: object, engine: str) -> Artifact:
-    row = _keys(value, "id component_version url sha256 size_bytes format license source_url source_revision files")
+    names = "id component_version url sha256 size_bytes format license source_url source_revision files"
+    row = _keys(value, names + (" source_components" if type(value) is dict and "source_components" in value else ""))
     ident = _text(row["id"])
     if re.fullmatch(r"[a-z][a-z0-9_-]*", ident) is None:
         raise CatalogError("invalid_artifact_id")
@@ -195,6 +321,7 @@ def _artifact(value: object, engine: str) -> Artifact:
         _digest(row["sha256"]), _number(row["size_bytes"], MAX_ARTIFACT_BYTES),
         row["format"], _text(row["license"]),
         _url(row["source_url"], (UPSTREAMS[engine],)), revision, parsed,
+        _source_components(row.get("source_components", []), engine, parsed),
     )
 
 

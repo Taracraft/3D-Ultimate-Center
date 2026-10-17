@@ -21,7 +21,7 @@ Die erwartete Dateiliste ist ein JSON-Objekt mit integrationsrelativen Dateiname
 
 Der Prüfer vergleicht exakt alle Dateien, Domain, zentrale Version, Frontend-Build sowie JavaScript-/CSS-Größen und Prüfsummen. Er prüft relative Python-Modulziele statisch. Bei `from . import NAME` kann NAME ein dynamisches Paketattribut sein; dessen tatsächliche Verfügbarkeit ist erst im Laufzeitimport prüfbar. Er akzeptiert nur Stored/Deflate-Kompression und begrenzt Archivgröße, Anzahl, Einzeldateien, Gesamtinhalt und externe JSON-Metadaten. Absolute Pfade, Traversal, doppelte normalisierte Namen, Links, Sonderdateien und nicht zugeordnete Dateien werden abgewiesen.
 
-Die feste Studio-Version-/Buildbindung, erlaubten Dateitypen und zusätzlichen Pfadgrenzen sind Produktregeln. Sie sind keine Behauptung, dass HACS selbst alle diese Bedingungen erzwingt. Ein positives Prüfergebnis bestätigt den ausgewählten Artefaktvertrag; Repositoryerkennung, echte HACS-Neuinstallation, Update, Wiederherstellung und Produktfreigabe bleiben eigene Nachweise.
+Die feste Studio-Version-/Buildbindung, erlaubten Dateitypen und zusätzlichen Pfadgrenzen sind Produktregeln. Sie sind keine Behauptung, dass HACS selbst alle diese Bedingungen erzwingt. Ein positives Prüfergebnis bestätigt den ausgewählten Artefaktvertrag. Repositoryerkennung, Artefaktvollständigkeit und Produktfreigabe benötigen passende Nachweise. Eine Test-/Neuinstallation wird getrennt als ungeprüft geführt, solange keine echten Ergebnisse vorliegen; sie gehört seit der Entscheidung vom 17.10.2026 nicht zur Releasebewertung oder zum Releaseabschluss. Ein erforderliches installierbares HACS-Asset wird dadurch nicht ersetzt.
 
 ## Primärquellen
 
@@ -34,7 +34,7 @@ Die feste Studio-Version-/Buildbindung, erlaubten Dateitypen und zusätzlichen P
 
 Die veröffentlichte Integrationsquelle liegt zusätzlich unter `custom_components/ultimate_3d_studio/` einschließlich ihrer drei Frontenddateien in `assets/`. Der zusätzliche Quellpfad folgt demselben kanonischen Datei- und Lizenzinventar; er ist kein unabhängig gepflegter Codebestand. Die bestehende Kompatibilitätsprojektion bleibt erhalten. `hacs.json` wird aus `packages/ultimate-ha-integration/hacs.json` an die Repositorywurzel projiziert.
 
-Die Konfiguration verwendet `content_in_root: false`, `zip_release: true`, den stabilen Assetnamen `ultimate-3d-studio.zip` und `hide_default_branch: true`. Ein Quellbranch oder diese Metadaten allein stellen keinen installierbaren Release bereit. Das tatsächliche Asset und die echte HACS-Installation benötigen eigene geprüfte Nachweise.
+Die Konfiguration verwendet `content_in_root: false`, `zip_release: true`, den stabilen Assetnamen `ultimate-3d-studio.zip` und `hide_default_branch: true`. Ein Quellbranch oder diese Metadaten allein stellen keinen installierbaren Release bereit. Das tatsächliche Asset benötigt einen eigenen geprüften Liefernachweis. Eine HACS-Testinstallation bleibt ein separater Testzustand und ist keine Voraussetzung für den Releaseabschluss.
 
 Der lesende Repositorymodus verlangt die vollständige normale Rootstruktur, exakt eine Integration und dieselben extern geprüften Dateihashes wie der ZIP-Modus. Er prüft Manifest, Frontend und relative Modulziele gemeinsam. Er erzeugt keine Rootprojektion und kein Archiv:
 

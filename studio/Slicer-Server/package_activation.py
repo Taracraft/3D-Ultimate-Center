@@ -16,7 +16,7 @@ import secrets
 import shutil
 import stat
 
-from engine_catalog import ENTRYPOINTS, Release, _release
+from engine_catalog import ENTRYPOINTS, Release, _release, release_document
 
 STORE_SCHEMA = 1
 TRANSACTION_STATES = frozenset(("preparing", "ready", "activating", "restoring",
@@ -295,7 +295,7 @@ def _candidate(path: Path) -> Release:
 def _generation_document(releases: dict[str, Release]) -> dict:
     rows = []
     for engine in sorted(releases):
-        rows.append(asdict(releases[engine]))
+        rows.append(release_document(releases[engine]))
     body = {"schema": 1, "releases": rows}
     canonical = json.dumps(body, sort_keys=True, separators=(",", ":")).encode("ascii")
     normalized = json.loads(canonical)

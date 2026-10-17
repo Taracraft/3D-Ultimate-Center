@@ -118,7 +118,8 @@ def bind_release(raw, expected_manifest_sha256, artifact):
     remains responsible for download availability and source/license obligations.
     No default URLs, revision guesses or approval flag changes are supplied.
     """
-    require(type(artifact) is dict and set(artifact) == ARTIFACT_FIELDS, "artifact_metadata_fields")
+    require(type(artifact) is dict and set(artifact) in
+            (ARTIFACT_FIELDS, ARTIFACT_FIELDS | {"source_components"}), "artifact_metadata_fields")
     metadata = copy.deepcopy(artifact)
     selection = project_manifest(raw, expected_manifest_sha256)
     require(metadata["component_version"] == selection["version"] and metadata["format"] == "tar.gz", "bundle_artifact_mismatch")

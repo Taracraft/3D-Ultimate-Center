@@ -130,11 +130,58 @@ function statButtons(detail: MakerWorldDetail): string {
     <button type="button" data-noop="like">♡ ${compactNumber(detail.stats.likes)}</button>
     <button type="button" data-noop="collect">Merken ${compactNumber(detail.stats.collects)}</button>
     <button type="button" data-noop="boost">Boost</button>
-    <button type="button" data-noop="share">Teilen</button>
+    <button type="button" data-model-share="true">Teilen</button>
     <span>↓ ${compactNumber(detail.stats.downloads)}</span>
     <span>💬 ${compactNumber(detail.comment_count || detail.stats.comments || detail.comments.length)}</span>
     <span>🖨 ${compactNumber(detail.stats.prints)}</span>
   </div>`;
+}
+
+/** Share only the public design link; never a HA URL, token or provider write. */
+async function shareMakerWorldLink(
+  detail: MakerWorldDetail,
+  browser: Pick<Navigator, "share" | "clipboard"> | undefined,
+  active: () => boolean,
+): Promise<string> {
+  if (!active()) return "";
+  if (typeof detail.id !== "string" || !/^[0-9]{1,20}$/.test(detail.id)) {
+    throw new Error("Der MakerWorld-Modelllink ist ungültig.");
+  }
+  // The same public design route is constructed by makerworld_detail.py.
+  // Do not trust model_url or the current HA location with its query tokens.
+  const url = `https://makerworld.com/de/models/${detail.id}`;
+  const manual = `Modelllink zum Kopieren: ${url}`;
+  if (typeof browser?.share === "function") {
+    try {
+      await browser.share({ title: detail.title, url });
+      return "Modelllink an die gewählte Teilen-Funktion übergeben.";
+    } catch (error) {
+      if (error && typeof error === "object" && "name" in error && error.name === "AbortError") {
+        return "Teilen wurde abgebrochen oder es wurde kein Ziel gewählt.";
+      }
+      return `Teilen wurde nicht abgeschlossen. ${manual}`;
+    }
+  }
+  if (typeof browser?.clipboard?.writeText === "function") {
+    try {
+      await browser.clipboard.writeText(url);
+      return "Modelllink in die Zwischenablage kopiert.";
+    } catch (_error) {
+      return `Automatisches Kopieren ist nicht verfügbar. ${manual}`;
+    }
+  }
+  return manual;
+}
+
+function bindMakerWorldSharing(dialog: HTMLElement, overlay: HTMLElement, detail: MakerWorldDetail): void {
+  dialog.querySelectorAll<HTMLButtonElement>("[data-model-share]").forEach((button) => button.addEventListener("click", () => {
+    void runMakerWorldAction(overlay, async (active) => {
+      const message = await shareMakerWorldLink(detail, overlay.ownerDocument?.defaultView?.navigator, active);
+      if (!active()) return;
+      const result = dialog.querySelector<HTMLElement>("#result");
+      if (result) result.textContent = message;
+    });
+  }));
 }
 
 function descriptionPanel(detail: MakerWorldDetail): string {
@@ -151,10 +198,10 @@ function descriptionPanel(detail: MakerWorldDetail): string {
 }
 
 type DiscussionSort = "all" | "top" | "new" | "answers";
-type MakerWorldDiscussionState = { sort: DiscussionSort; expandedReplies: Set<string> };
+type MakerWorldDiscussionState = { sort: DiscussionSort; expandedReplies: Set<string>; originalComments: Set<string> };
 
 function createDiscussionState(): MakerWorldDiscussionState {
-  return { sort: "all", expandedReplies: new Set<string>() };
+  return { sort: "all", expandedReplies: new Set<string>(), originalComments: new Set<string>() };
 }
 
 function discussionCount(value: unknown): number {
@@ -179,10 +226,20 @@ function commentHtml(
   depth = 0,
   discussion = createDiscussionState(),
   key = "0",
+  parentIdentity: readonly string[] = [],
 ): string {
+  const identity = [...parentIdentity, comment.id || `position:${key}`];
+  const originalKey = JSON.stringify(identity);
+  const original = typeof comment.original_content === "string" ? Array.from(comment.original_content).slice(0, 5000).join("") : "";
+  const hasOriginal = Boolean(original.trim());
+  const showingOriginal = hasOriginal && discussion.originalComments.has(originalKey);
+  const displayedContent = showingOriginal ? original : comment.content;
+  const originalControl = hasOriginal
+    ? `<button type="button" data-original-toggle="${esc(originalKey)}" aria-pressed="${showingOriginal}" aria-controls="mw-comment-text-${esc(key)}">${showingOriginal ? "Anzeigetext anzeigen" : "Original anzeigen"}</button>`
+    : '<button type="button" disabled title="Originaltext wurde vom Anbieter nicht mitgeliefert.">Original nicht verfügbar</button>';
   const expanded = discussion.expandedReplies.has(key);
   const visibleReplies = expanded ? comment.replies : comment.replies.slice(0, 4);
-  const replies = visibleReplies.map((reply, index) => commentHtml(reply, depth + 1, discussion, `${key}.${index}`)).join("");
+  const replies = visibleReplies.map((reply, index) => commentHtml(reply, depth + 1, discussion, `${key}.${index}`, identity)).join("");
   const hiddenLoaded = comment.replies.length - visibleReplies.length;
   const notLoaded = Math.max(0, discussionCount(comment.reply_count) - comment.replies.length);
   const toggle = comment.replies.length > 4
@@ -196,8 +253,8 @@ function commentHtml(
     <div class="mw-comment-body">
       <div class="mw-comment-head"><strong>${esc(comment.author || "MakerWorld")}</strong>${comment.boosted ? '<span class="mw-boosted">Boosted</span>' : ""}<span>${esc(shortDate(comment.created_at))}</span></div>
       ${comment.rating ? `<div class="mw-stars" aria-label="${comment.rating} von 5">${ratingStars(comment.rating)}</div>` : ""}
-      <p>${esc(comment.content).replace(/\n/g, "<br>")}</p>
-      <div class="mw-comment-actions"><button type="button" disabled title="Originaltext wurde vom Anbieter nicht mitgeliefert.">${comment.original_available ? "Original nicht geladen" : "Original nicht verfügbar"}</button><button type="button" data-noop="reaction">♡ ${compactNumber(comment.like_count)}</button><button type="button" data-noop="reply">Antwort</button><button type="button" data-noop="more">⋯</button></div>
+      <p id="mw-comment-text-${esc(key)}">${esc(displayedContent).replace(/\n/g, "<br>")}</p>
+      <div class="mw-comment-actions">${originalControl}<button type="button" data-noop="reaction">♡ ${compactNumber(comment.like_count)}</button><button type="button" data-noop="reply">Antwort</button><button type="button" data-noop="more">⋯</button></div>
       ${replies ? `<div class="mw-replies" id="mw-replies-${esc(key)}">${replies}</div>` : ""}${toggle}${unloaded}
     </div>
   </article>`;
@@ -228,6 +285,14 @@ function bindDiscussionControls(
     const sort = button.dataset.reviewSort;
     if (sort !== "all" && sort !== "top" && sort !== "new" && sort !== "answers") return;
     discussion.sort = sort;
+    rerender();
+  }));
+  dialog.querySelectorAll<HTMLButtonElement>("[data-original-toggle]").forEach((button) => button.addEventListener("click", () => {
+    if (!active()) return;
+    const key = button.dataset.originalToggle || "";
+    if (!key || key.length > 2048) return;
+    if (discussion.originalComments.has(key)) discussion.originalComments.delete(key);
+    else discussion.originalComments.add(key);
     rerender();
   }));
   dialog.querySelectorAll<HTMLButtonElement>("[data-replies-toggle]").forEach((button) => button.addEventListener("click", () => {
@@ -413,7 +478,7 @@ function render(
   const dialog = overlay.querySelector<HTMLElement>(".mw-dialog")!;
   const printerProfileId = dialog.querySelector<HTMLSelectElement>("#target-printer")?.value ?? catalog.selection.printer_profile_id;
   const focused = (dialog.getRootNode() as ShadowRoot).activeElement;
-  const focusAttribute = ["data-profile", "data-printer", "data-image", "data-tab", "data-review-sort", "data-replies-toggle"].find((name) => focused?.hasAttribute(name));
+  const focusAttribute = ["data-profile", "data-printer", "data-image", "data-tab", "data-review-sort", "data-replies-toggle", "data-original-toggle", "data-model-share"].find((name) => focused?.hasAttribute(name));
   const focusValue = focusAttribute ? focused?.getAttribute(focusAttribute) : null;
   const focusId = focused?.id || "";
   const focusClose = focused?.classList.contains("mw-close");
@@ -476,6 +541,7 @@ function render(
       void openMakerWorldDetail(host, nextId, api, onTag);
     }
   }));
+  bindMakerWorldSharing(dialog, overlay, detail);
   bindDiscussionControls(dialog, discussion, () => {
     render(host, overlay, detail, api, folders, catalog, onTag, selected?.id || "", selectedPrinter, activeTab, selectedImage);
   }, () => {

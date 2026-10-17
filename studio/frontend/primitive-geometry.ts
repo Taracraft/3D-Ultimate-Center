@@ -50,7 +50,8 @@ function cylinder(radius: number, height: number, segments = 64, topRadius = rad
   const bottom: Vec3 = [0, 0, 0], top: Vec3 = [0, 0, height];
   for (let index = 0; index < segments; index += 1) {
     const a0 = index * Math.PI * 2 / segments;
-    const a1 = (index + 1) * Math.PI * 2 / segments;
+    // Reuse the first ring vertex at the seam; sin(2*PI) is not exactly zero.
+    const a1 = ((index + 1) % segments) * Math.PI * 2 / segments;
     const b0: Vec3 = [Math.cos(a0) * radius, Math.sin(a0) * radius, 0];
     const b1: Vec3 = [Math.cos(a1) * radius, Math.sin(a1) * radius, 0];
     const t0: Vec3 = [Math.cos(a0) * topRadius, Math.sin(a0) * topRadius, height];
@@ -66,8 +67,11 @@ function cylinder(radius: number, height: number, segments = 64, topRadius = rad
 function sphere(radius: number, latitude = 32, longitude = 48): MeshGeometry {
   const b: Builder = { positions: [], normals: [] };
   const point = (lat: number, lon: number): Vec3 => {
+    // All longitude samples share the exact same pole and seam positions.
+    if (lat === 0) return [0, 0, 0];
+    if (lat === latitude) return [0, 0, radius * 2];
     const phi = Math.PI * lat / latitude;
-    const theta = Math.PI * 2 * lon / longitude;
+    const theta = Math.PI * 2 * (lon % longitude) / longitude;
     return [radius * Math.sin(phi) * Math.cos(theta), radius * Math.sin(phi) * Math.sin(theta), radius * (1 - Math.cos(phi))];
   };
   for (let lat = 0; lat < latitude; lat += 1) {
@@ -83,8 +87,8 @@ function sphere(radius: number, latitude = 32, longitude = 48): MeshGeometry {
 function torus(majorRadius: number, tubeRadius: number, majorSegments = 64, tubeSegments = 24): MeshGeometry {
   const b: Builder = { positions: [], normals: [] };
   const point = (major: number, tube: number): Vec3 => {
-    const a = Math.PI * 2 * major / majorSegments;
-    const t = Math.PI * 2 * tube / tubeSegments;
+    const a = Math.PI * 2 * (major % majorSegments) / majorSegments;
+    const t = Math.PI * 2 * (tube % tubeSegments) / tubeSegments;
     const ring = majorRadius + tubeRadius * Math.cos(t);
     return [ring * Math.cos(a), ring * Math.sin(a), tubeRadius + tubeRadius * Math.sin(t)];
   };

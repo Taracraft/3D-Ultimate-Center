@@ -46,18 +46,61 @@ function edgeCount(edges: Map<string, { left: VertexKey; right: VertexKey; count
   edges.set(key, { left, right, count: 1 });
 }
 
-function signedAreaOnAxis(points: readonly Vec3[], axis: "x" | "y" | "z"): number {
-  let area = 0;
+type Point2 = readonly [number, number];
+
+function contourProjectionAxis(points: readonly Vec3[]): 0 | 1 | 2 | null {
+  const normal = [0, 0, 0];
   for (let index = 0; index < points.length; index++) {
-    const current = points[index]!;
-    const next = points[(index + 1) % points.length]!;
-    const ax = axis === "x" ? current[1] : current[0];
-    const ay = axis === "z" ? current[1] : current[2];
-    const bx = axis === "x" ? next[1] : next[0];
-    const by = axis === "z" ? next[1] : next[2];
-    area += ax * by - bx * ay;
+    const a = points[index]!, b = points[(index + 1) % points.length]!;
+    normal[0]! += (a[1] - b[1]) * (a[2] + b[2]);
+    normal[1]! += (a[2] - b[2]) * (a[0] + b[0]);
+    normal[2]! += (a[0] - b[0]) * (a[1] + b[1]);
   }
-  return area / 2;
+  const axis = Math.abs(normal[0]!) > Math.abs(normal[1]!)
+    ? (Math.abs(normal[0]!) > Math.abs(normal[2]!) ? 0 : 2)
+    : (Math.abs(normal[1]!) > Math.abs(normal[2]!) ? 1 : 2);
+  if (!Number.isFinite(normal[axis]) || normal[axis] === 0) return null;
+  return axis;
+}
+
+function insideContour(point: Point2, polygon: readonly Point2[]): boolean {
+  let inside = false;
+  for (let index = 0, previous = polygon.length - 1; index < polygon.length; previous = index++) {
+    const a = polygon[index]!, b = polygon[previous]!;
+    if ((a[1] > point[1]) !== (b[1] > point[1])
+      && point[0] < (b[0] - a[0]) * (point[1] - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+  }
+  return inside;
+}
+
+// A triangle fan can fill only a convex contour without holes. Reject the
+// unsupported case instead of producing overlapping disks over a cut-out.
+function fanContoursSupported(contours: readonly Vec3[][]): boolean {
+  for (let index = 0; index < contours.length; index++) {
+    const points = contours[index]!, axis = contourProjectionAxis(points);
+    if (axis === null) return false;
+    const project = (point: Vec3): Point2 => axis === 0 ? [point[1], point[2]] : axis === 1 ? [point[0], point[2]] : [point[0], point[1]];
+    const projected = points.map(project);
+    let direction = 0;
+    const span = Math.max(...projected.map((point) => point[0])) - Math.min(...projected.map((point) => point[0]));
+    const height = Math.max(...projected.map((point) => point[1])) - Math.min(...projected.map((point) => point[1]));
+    const tolerance = Math.max(span * span, height * height) * 1e-6;
+    for (let vertex = 0; vertex < projected.length; vertex++) {
+      const a = projected[vertex]!, b = projected[(vertex + 1) % projected.length]!, c = projected[(vertex + 2) % projected.length]!;
+      const cross = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
+      if (Math.abs(cross) <= tolerance) continue;
+      if (direction && Math.sign(cross) !== direction) return false;
+      direction = Math.sign(cross);
+    }
+    if (!direction) return false;
+    for (let other = 0; other < contours.length; other++) {
+      if (other === index) continue;
+      // Use this contour's dominant projection for both loops, including
+      // rotated models where the world split axis is not a local mesh axis.
+      if (insideContour(project(contours[other]![0]!), projected)) return false;
+    }
+  }
+  return true;
 }
 
 export function generateCapFaces(
@@ -89,6 +132,8 @@ export function generateCapFaces(
     if (edge.count === 1) addBoundaryEdge(boundary, edge.left, edge.right);
   }
 
+  if ([...boundary.values()].some((neighbors) => neighbors.size !== 2)) return { capPositions: new Float32Array(), capCount: 0 };
+
   const loops: VertexKey[][] = [];
   for (const start of [...boundary.keys()]) {
     while ((boundary.get(start)?.size ?? 0) > 0) {
@@ -111,9 +156,12 @@ export function generateCapFaces(
     }
   }
 
+  const contours = loops.map((loop) => loop.map((key) => posMap.get(key)!).filter(Boolean));
+  if (!fanContoursSupported(contours)) return { capPositions: new Float32Array(), capCount: 0 };
+
   const capPositions: number[] = [];
-  for (const loop of loops) {
-    const points = loop.map((key) => posMap.get(key)).filter((point): point is Vec3 => Boolean(point));
+  for (const [contour, loop] of loops.entries()) {
+    const points = contours[contour]!;
     if (points.length < 3) continue;
 
     // Each cap must oppose the boundary winding of its own half, regardless of axis.

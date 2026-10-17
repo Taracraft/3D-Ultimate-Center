@@ -26,6 +26,7 @@ import package_staging as staging
 ARCHIVE = "engine-store.tar.gz"
 CATALOG = "CATALOG.json"
 DESCRIPTION = "DISTRIBUTION.json"
+SOURCE_MANIFEST = "SOURCE_MANIFEST.json"
 READY = "READY.json"
 CHUNK = 65536
 MAX_RECEIPT = 16384
@@ -144,6 +145,38 @@ def description(releases, catalog_digest):
     }
 
 
+def source_manifest(releases, catalog_digest):
+    """Derive source references from the parsed catalog, never approval claims.
+
+    Listed source archive bytes are not copied by the binary distribution. Their
+    availability, contents, corresponding-source closure and licensing need their
+    own independent review. Notice identities bind the shipped selected files.
+    """
+    bindings = []
+    for engine, release in sorted(releases.items()):
+        for artifact in release.artifacts:
+            files = {f.path: f for f in artifact.files}
+            for component in artifact.source_components:
+                row = {"engine": engine, "engine_version": release.version,
+                    "binary_artifact_id": artifact.id, "binary_artifact_sha256": artifact.sha256,
+                    "component_id": component.id, "package": component.package,
+                    "component_version": component.component_version, "license": component.license,
+                    "source_revision": component.source_revision,
+                    "archives": [{"kind": a.kind, "url": a.url, "sha256": a.sha256, "size_bytes": a.size_bytes}
+                                 for a in component.archives],
+                    "files": [{"path": p, "sha256": files[p].sha256, "size_bytes": files[p].size_bytes,
+                               "role": files[p].role} for p in component.files],
+                    "bindings_notices": [{"path": p, "sha256": files[p].sha256,
+                                          "size_bytes": files[p].size_bytes} for p in component.notices]}
+                bindings.append(row)
+    if not bindings:
+        return None
+    return {"schema": 1, "kind": "ultimate-engine-source-reference-manifest",
+        "catalog_sha256": catalog_digest, "bindings": bindings,
+        "source_archive_bytes_included": False, "license_review_complete": False,
+        "product_release_complete": False}
+
+
 def members(releases, raw_catalog):
     """Exact archive members and Unix modes; never OS-default permission guesses."""
     metadata = {
@@ -151,6 +184,11 @@ def members(releases, raw_catalog):
         DESCRIPTION: canonical(description(releases, sha(raw_catalog))),
         "engine/GENERATION.json": canonical(activation._generation_document(releases)),
     }
+    sources = source_manifest(releases, sha(raw_catalog))
+    if sources is not None:
+        raw_sources = canonical(sources)
+        require(len(raw_sources) <= catalog.MAX_CATALOG_BYTES * 2, "source_manifest_limit")
+        metadata[SOURCE_MANIFEST] = raw_sources
     rows = {name: (len(raw), sha(raw), 0o644) for name, raw in metadata.items()}
     for name, release in releases.items():
         for artifact in release.artifacts:

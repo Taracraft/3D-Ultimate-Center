@@ -216,3 +216,14 @@ gebunden werden. Bis dahin bleibt der ausgelieferte Katalog `pending`.
 Die normale Auswahl-CLI meldet deshalb `archive_verified=false`,
 `catalog_updated=false` und `release_approved=false`. Sie kontaktiert
 keinen Host, kein GitHub, keinen Drucker und startet keine Engine.
+
+
+## Mehrteilige Quellenbindung eines Laufzeitarchivs
+
+Ein `Artifact` kann zusätzlich `source_components` enthalten. Das ist für gebündelte Dateien aus unterschiedlichen Quellpaketen vorgesehen, etwa CuraEngine und die separat versionierten Cura-Ressourcen. Bestehende Kataloge ohne dieses Feld behalten ihre bisherige Serialisierung und Generationsidentität.
+
+Jede Komponente benennt `id`, `package`, `component_version`, `license`, `source_revision`, `archives`, `files` und `notices`. Aktuell werden die gezielt zugeordneten Debian-Quellpakete `slic3r-prusa`, `cura-engine` und `cura` unterstützt. Die drei Archive einer Komponente sind die `.dsc`-Beschreibung, das Upstream-Original und die Debian-Patches. Downloadpfad und Dateinamen müssen zum Paket und derselben epochfreien Dateiversion passen; alle Größen und SHA-256-Werte werden ausdrücklich angegeben. `source_revision` bindet den SHA-256-Wert der Beschreibung. Die bisherige primäre `source_url`-Regel bleibt bestehen.
+
+Alle ausgewählten Laufzeitdateien müssen genau einer Komponente zugeordnet sein. Notice-Verweise müssen auf tatsächlich ausgewählte, nicht leere Lizenzdateien zeigen. Die Bindung bleibt beim Staging und in Generationsdaten erhalten. Der Offline-Dateiplan ergänzt daraus `SOURCE_MANIFEST.json` mit den referenzierten Quellen sowie den Datei- und Noticeidentitäten.
+
+Dieser Metadatenvertrag liefert keine Quellarchivbytes mit und ersetzt weder deren tatsächliche Bereitstellung noch die Prüfung der entsprechenden Quellen und Lizenzpflichten. Der zusätzliche Nachweis meldet deshalb `source_archive_bytes_included=false`, `license_review_complete=false` und `product_release_complete=false`. Ein leerer oder ungeprüfter Engine-Katalog wird dadurch nicht freigegeben.

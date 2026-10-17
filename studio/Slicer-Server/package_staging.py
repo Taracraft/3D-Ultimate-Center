@@ -26,7 +26,7 @@ import zipfile
 import zlib
 
 from engine_catalog import (Artifact, CatalogError, Release, DOWNLOAD_PREFIXES,
-                            _release, verify_artifact)
+                            _release, verify_artifact, release_document)
 
 CHUNK = 65536
 MAX_EXPANDED = 2 * 1024**3
@@ -60,7 +60,7 @@ class _Guard:
 def _checked_release(release):
     if type(release) is not Release:
         raise CatalogError("invalid_release")
-    data = asdict(release)
+    data = release_document(release)
     data["system"] = "linux"
     for artifact in data["artifacts"]:
         artifact["files"] = list(artifact["files"])
@@ -509,7 +509,7 @@ def prepare_release(release: Release, parent: Path, *, archives=None, cancelled=
             selection.finish()
             archive_path.unlink()
         guard.check()
-        receipt = {"schema": 1, "state": "prepared", "release": asdict(release),
+        receipt = {"schema": 1, "state": "prepared", "release": release_document(release),
                    "engine_executed": False, "activated": False}
         with (work / "READY.json").open("x", encoding="utf-8", newline="\n") as output:
             json.dump(receipt, output, sort_keys=True, separators=(",", ":"))

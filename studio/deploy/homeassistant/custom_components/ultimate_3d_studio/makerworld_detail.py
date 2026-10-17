@@ -397,8 +397,19 @@ def _rating_value(mapping: dict[str, Any]) -> float:
         return 0.0
 
 
+def _original_content(mapping: dict[str, Any]) -> str | None:
+    for key in ("originalContent", "original_content"):
+        value = mapping.get(key)
+        if isinstance(value, str):
+            bounded = value[:5000]
+            if bounded.strip():
+                return bounded
+    return None
+
+
 def _comment(mapping: dict[str, Any], fallback: str, depth: int = 0) -> dict[str, Any] | None:
     content = _content(mapping)
+    original_content = _original_content(mapping)
     author, avatar = _author(mapping)
     replies_raw = _first(mapping, ("replies", "replyList", "reply_list", "children", "subComments", "sub_comments"), [])
     replies: list[dict[str, Any]] = []
@@ -421,7 +432,8 @@ def _comment(mapping: dict[str, Any], fallback: str, depth: int = 0) -> dict[str
         "reply_count": max(reply_count, len(replies)),
         "rating": _rating_value(mapping),
         "boosted": _bool(_first(mapping, ("boosted", "isBoosted", "is_boosted", "boost"))),
-        "original_available": _bool(_first(mapping, ("translated", "isTranslated", "is_translated", "translation"))),
+        "original_content": original_content,
+        "original_available": original_content is not None,
         "replies": replies[:20],
     }
 

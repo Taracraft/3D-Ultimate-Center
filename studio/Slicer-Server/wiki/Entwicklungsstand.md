@@ -28,3 +28,8 @@ Die dokumentierten Werkzeuge und vorhandenen Teilprüfungen beschreiben den Entw
 Das Ergebnis ist eine klare Liste verfügbarer Bestandteile und noch offener Voraussetzungen. Fehlt ein erforderlicher Download, ist der dokumentierte Installationsweg an dieser Stelle noch nicht vollständig. Ein Prüfimage oder Quellarchiv ersetzt die fehlende Runtime nicht. Widersprechen sich eine ältere Anleitung und der aktuelle belegte Paketstand, muss die Abweichung vor dem nächsten Einrichtungsschritt geklärt werden.
 
 Die [Installation](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/blob/main/Slicer-Server/INSTALLATION.md) benennt die benötigten Dateien und Einstellungen. Das [Handbuch](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/blob/main/Slicer-Server/HANDBUCH.md) verbindet die Arbeitsabläufe. Beurteile die Eignung anhand der tatsächlich verfügbaren Pakete und der dokumentierten Systemvoraussetzungen. Sichere bestehende Konfiguration und Nutzdaten, bevor du eine Änderung planst.
+
+
+## Releasebewertung
+
+Sobald alle übrigen beauftragten Produkt-, Liefer-, Dokumentations- und Veröffentlichungspunkte erfüllt sind, wird der Release veröffentlicht und als abgeschlossen bewertet. Linux-Testserver, Testinstallation und frische Neuinstallation sind seit der Entscheidung vom 17.10.2026 vollständig aus dieser Bewertung und dem Releaseabschluss ausgenommen. Ausstehende Tests bleiben ungeprüft beziehungsweise `not_run`; ein fehlendes installierbares Produktartefakt wird dadurch nicht ersetzt.

@@ -29,6 +29,7 @@ export type MakerWorldComment = Readonly<{
   rating: number;
   boosted: boolean;
   original_available: boolean;
+  original_content?: string | null;
   replies: readonly MakerWorldComment[];
 }>;
 

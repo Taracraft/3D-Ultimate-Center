@@ -162,6 +162,7 @@ SOURCE_PATHS = (
     "tests/test_studio_docker_host_adapter.py",
     "tests/test_studio_docker_lifecycle_integration.py",
     "tests/test_studio_engine_catalog.py",
+    "tests/test_studio_engine_source_components.py",
     "tests/test_studio_engine_provenance.py",
     "tests/test_studio_host_lifecycle.py",
     "tests/test_studio_host_storage.py",

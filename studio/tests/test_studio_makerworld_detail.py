@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+from copy import deepcopy
 import asyncio
 import sys
 import types
@@ -371,3 +372,150 @@ def test_json_extension_and_plain_description_paragraphs_are_preserved() -> None
     assert detail["description"] == "First\n\nSecond"
     assert detail["instances"][0]["printer_model"] == "P1S"
     assert detail["instances"][0]["plate_count"] == 1
+
+
+@pytest.mark.parametrize("original_key", ("originalContent", "original_content"))
+def test_comment_original_text_preserves_explicit_string_for_both_aliases(original_key) -> None:
+    payload = current_detail_payload()
+    original = "  Original line one\n\n<em>Original line two</em>  "
+    payload["data"]["comments"] = [{
+        "commentId": "comment-42",
+        "content": "  Translated\n  comment  ",
+        original_key: original,
+        "translated": False,
+        "likeCount": 7,
+        "replyCount": 3,
+    }]
+    before = deepcopy(payload)
+
+    detail = detail_module._normalize(payload, "2887138")
+    comment = detail["comments"][0]
+
+    assert comment["id"] == "comment-42"
+    assert comment["content"] == "Translated comment"
+    assert comment["original_content"] == original
+    assert comment["original_available"] is True
+    assert comment["like_count"] == 7
+    assert comment["reply_count"] == 3
+    assert detail["comment_count"] == 1
+    assert payload == before
+
+
+@pytest.mark.parametrize("original_key", ("originalContent", "original_content"))
+@pytest.mark.parametrize("invalid_original", (
+    None, "", " \t\n", True, False, 42, 1.5,
+    {}, {"text": "Not an explicit string"}, [], ["Not an explicit string"],
+    " " * 5000 + "Text beyond the retained bound",
+))
+def test_comment_original_text_rejects_empty_non_string_and_out_of_bound_values(
+    original_key, invalid_original
+) -> None:
+    comment = detail_module._comment({
+        "content": "Translated comment",
+        original_key: invalid_original,
+        "translated": True,
+    }, "comment-fallback")
+
+    assert comment is not None
+    assert comment["content"] == "Translated comment"
+    assert comment["original_content"] is None
+    assert comment["original_available"] is False
+
+
+@pytest.mark.parametrize("translation_flag", (
+    "translated", "isTranslated", "is_translated", "translation",
+))
+def test_translation_flag_alone_does_not_make_comment_original_available(translation_flag) -> None:
+    comment = detail_module._comment({
+        "content": "Translated comment",
+        translation_flag: True,
+    }, "comment-fallback")
+
+    assert comment is not None
+    assert comment["original_content"] is None
+    assert comment["original_available"] is False
+
+
+@pytest.mark.parametrize("invalid_camel_case", (None, "", " \n", True, {"text": "Wrong type"}))
+def test_comment_original_text_uses_valid_snake_case_after_invalid_camel_case(invalid_camel_case) -> None:
+    comment = detail_module._comment({
+        "content": "Translated comment",
+        "originalContent": invalid_camel_case,
+        "original_content": "Supplied original",
+    }, "comment-fallback")
+
+    assert comment is not None
+    assert comment["original_content"] == "Supplied original"
+    assert comment["original_available"] is True
+
+
+@pytest.mark.parametrize("original_key", ("originalContent", "original_content"))
+def test_comment_original_text_is_bounded_to_5000_characters(original_key) -> None:
+    original = "Original\n" + "a" * 5000
+    comment = detail_module._comment({
+        "content": "Translated comment",
+        original_key: original,
+    }, "comment-fallback")
+
+    assert comment is not None
+    assert comment["original_content"] == original[:5000]
+    assert len(comment["original_content"]) == 5000
+    assert comment["original_available"] is True
+
+
+def test_comment_original_text_prefers_camel_case_when_both_strings_are_supplied() -> None:
+    comment = detail_module._comment({
+        "content": "Translated comment",
+        "originalContent": "Camel original",
+        "original_content": "Snake original",
+    }, "comment-fallback")
+
+    assert comment is not None
+    assert comment["original_content"] == "Camel original"
+    assert comment["original_available"] is True
+
+
+def test_nested_reply_original_text_keeps_identity_counts_depth_and_payload() -> None:
+    payload = {
+        "commentId": "parent",
+        "content": "Parent translation",
+        "originalContent": "Parent original",
+        "replyCount": 7,
+        "replies": [{
+            "replyId": "child",
+            "content": "Child translation",
+            "original_content": "Child original",
+            "replyCount": 3,
+            "replies": [{
+                "replyId": "grandchild",
+                "content": "Grandchild translation",
+                "originalContent": "Grandchild original",
+                "replyCount": 4,
+                "replies": [{
+                    "replyId": "not-loaded-at-this-depth",
+                    "content": "Beyond existing reply-depth limit",
+                    "originalContent": "Beyond existing reply-depth limit",
+                }],
+            }],
+        }],
+    }
+    before = deepcopy(payload)
+
+    parent = detail_module._comment(payload, "comment-fallback")
+
+    assert parent is not None
+    child = parent["replies"][0]
+    grandchild = child["replies"][0]
+    assert [item["id"] for item in (parent, child, grandchild)] == [
+        "parent", "child", "grandchild",
+    ]
+    assert [item["content"] for item in (parent, child, grandchild)] == [
+        "Parent translation", "Child translation", "Grandchild translation",
+    ]
+    assert [item["original_content"] for item in (parent, child, grandchild)] == [
+        "Parent original", "Child original", "Grandchild original",
+    ]
+    assert all(item["original_available"] is True for item in (parent, child, grandchild))
+    assert [item["reply_count"] for item in (parent, child, grandchild)] == [7, 3, 4]
+    assert grandchild["replies"] == []
+    assert payload == before

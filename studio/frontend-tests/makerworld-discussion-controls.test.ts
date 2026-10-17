@@ -17,6 +17,8 @@ const sandbox: any = { console, descriptionImageUrls: () => [], makerWorldLicens
 runInNewContext(`${compiled}\nglobalThis.discussion = { commentHtml, reviewsPanel,
   createDiscussionState: typeof createDiscussionState === "function" ? createDiscussionState : undefined,
   bindDiscussionControls: typeof bindDiscussionControls === "function" ? bindDiscussionControls : undefined,
+  statButtons,
+  shareMakerWorldLink: typeof shareMakerWorldLink === "function" ? shareMakerWorldLink : undefined,
   render, register: (overlay, state) => dialogStates.set(overlay, state) };`, sandbox);
 const production = sandbox.discussion;
 
@@ -31,25 +33,29 @@ function detail(comments: any[]): any {
   return { comments, comment_count: comments.length, stats: { comments: comments.length } };
 }
 function state(): any {
-  return production.createDiscussionState?.() ?? { sort: "all", expandedReplies: new Set<string>() };
+  return production.createDiscussionState?.() ?? { sort: "all", expandedReplies: new Set<string>(), originalComments: new Set<string>() };
 }
 function controlsFrom(html: string, attribute: string): any[] {
   return [...html.matchAll(new RegExp(`<button[^>]*${attribute}="([^"]+)"[^>]*>`, "g"))].map((match) => {
-    const key = attribute === "data-review-sort" ? "reviewSort" : "repliesToggle";
+    const key = attribute === "data-review-sort" ? "reviewSort" : attribute === "data-original-toggle" ? "originalToggle" : "repliesToggle";
+    const value = match[1]!.replace(/&(?:amp|quot|#39|lt|gt);/g, (entity) =>
+      ({ "&amp;": "&", "&quot;": '"', "&#39;": "'", "&lt;": "<", "&gt;": ">" }[entity] || entity));
     const handlers: (() => void)[] = [];
-    return { dataset: { [key]: match[1] }, addEventListener: (_name: string, handler: () => void) => handlers.push(handler),
+    return { dataset: { [key]: value }, addEventListener: (_name: string, handler: () => void) => handlers.push(handler),
       click: () => handlers.forEach((handler) => handler()) };
   });
 }
 function mount(comments: any[]): any {
   assert.equal(typeof production.bindDiscussionControls, "function", "dialog must bind real discussion controls");
   const current = state();
-  let html = "", sortControls: any[] = [], replyControls: any[] = [], active = true;
-  const dialog = { querySelectorAll: (selector: string) => selector === "[data-review-sort]" ? sortControls : replyControls };
+  let html = "", sortControls: any[] = [], replyControls: any[] = [], originalControls: any[] = [], active = true;
+  const dialog = { querySelectorAll: (selector: string) => selector === "[data-review-sort]" ? sortControls
+    : selector === "[data-replies-toggle]" ? replyControls : originalControls };
   const render = () => {
     html = production.reviewsPanel(detail(comments), current);
     sortControls = controlsFrom(html, "data-review-sort");
     replyControls = controlsFrom(html, "data-replies-toggle");
+    originalControls = controlsFrom(html, "data-original-toggle");
     production.bindDiscussionControls(dialog, current, render, () => active);
   };
   render();
@@ -62,6 +68,11 @@ function mount(comments: any[]): any {
       const button = sortControls.find((item) => item.dataset.reviewSort === key);
       assert.ok(button, `missing sort ${key}`); button.click();
     },
+    original: (identity: string[]) => {
+      const button = originalControls.find((item) => item.dataset.originalToggle === JSON.stringify(identity));
+      assert.ok(button, `missing original toggle ${JSON.stringify(identity)}`); button.click();
+    },
+    oldOriginal: () => originalControls[0],
     oldToggle: () => replyControls[0], stop: () => { active = false; } };
 }
 function visible(html: string, id: string): boolean { return html.includes(`content-${id}<`); }
@@ -157,7 +168,7 @@ test("closed or busy dialog guard prevents stale controls from mutating discussi
 
 test("a translated flag without original text is explicitly disabled rather than a fake action", () => {
   const html = production.reviewsPanel(detail([comment("parent", { original_available: true })]), state());
-  assert.match(html, /<button[^>]*disabled[^>]*>Original nicht geladen<\/button>/);
+  assert.match(html, /<button[^>]*disabled[^>]*>Original nicht verfügbar<\/button>/);
   assert.doesNotMatch(html, /data-noop="original"/);
   assert.match(html, /Originaltext wurde vom Anbieter nicht mitgeliefert/);
 });
@@ -235,4 +246,169 @@ test("the real dialog render wires reply clicks and retains expansion, focus and
   dialog.querySelector('[data-replies-toggle="0"]').click();
   assert.equal(visible(markup, "reply-5"), false);
   assert.equal(panes[".mw-info"].scrollTop, 123);
+});
+
+
+function shareDetail(id = "123"): any {
+  return { id, title: "Public model", model_url: "https://private.invalid/model?token=fixture",
+    stats: { likes: 0, collects: 0, downloads: 0, comments: 0, prints: 0 }, comments: [] };
+}
+
+test("the model share control is a local action rather than a provider-write placeholder", () => {
+  const html = production.statButtons(shareDetail());
+  assert.match(html, /data-model-share="true"/);
+  assert.doesNotMatch(html, /data-noop="share"/);
+});
+
+test("native sharing receives only the canonical public design URL and selected model title", async () => {
+  assert.equal(typeof production.shareMakerWorldLink, "function");
+  const shared: any[] = [], copied: string[] = [];
+  const message = await production.shareMakerWorldLink(shareDetail(), {
+    async share(value: any) { shared.push(plainShare(value)); },
+    clipboard: { async writeText(value: string) { copied.push(value); } },
+  }, () => true);
+  assert.deepEqual(shared, [{ title: "Public model", url: "https://makerworld.com/de/models/123" }]);
+  assert.deepEqual(copied, []);
+  assert.match(message, /übergeben/);
+  assert.doesNotMatch(JSON.stringify(shared), /private\.invalid|token/);
+});
+
+function plainShare(value: any): any { return JSON.parse(JSON.stringify(value)); }
+
+test("without native sharing the explicit click copies only the public model URL", async () => {
+  const copied: string[] = [];
+  const message = await production.shareMakerWorldLink(shareDetail(), {
+    clipboard: { async writeText(value: string) { copied.push(value); } },
+  }, () => true);
+  assert.deepEqual(copied, ["https://makerworld.com/de/models/123"]);
+  assert.match(message, /Zwischenablage kopiert/);
+});
+
+test("cancelled native sharing never silently copies the link or claims successful sharing", async () => {
+  let copied = false;
+  const message = await production.shareMakerWorldLink(shareDetail(), {
+    async share() { throw { name: "AbortError" }; },
+    clipboard: { async writeText() { copied = true; } },
+  }, () => true);
+  assert.equal(copied, false);
+  assert.match(message, /abgebrochen/);
+  assert.doesNotMatch(message, /kopiert|übergeben/);
+});
+
+test("denied native sharing keeps the result explicit and does not attempt another browser action", async () => {
+  let copied = false;
+  const message = await production.shareMakerWorldLink(shareDetail(), {
+    async share() { throw { name: "NotAllowedError", message: "private fixture" }; },
+    clipboard: { async writeText() { copied = true; } },
+  }, () => true);
+  assert.equal(copied, false);
+  assert.match(message, /nicht abgeschlossen/);
+  assert.match(message, /https:\/\/makerworld\.com\/de\/models\/123/);
+  assert.doesNotMatch(message, /private fixture|kopiert/);
+});
+
+test("a rejected clipboard write never claims that copying succeeded", async () => {
+  const message = await production.shareMakerWorldLink(shareDetail(), {
+    clipboard: { async writeText() { throw { name: "NotAllowedError" }; } },
+  }, () => true);
+  assert.match(message, /nicht verfügbar/);
+  assert.match(message, /Modelllink zum Kopieren/);
+  assert.doesNotMatch(message, /Zwischenablage kopiert/);
+});
+
+test("unsupported browser capabilities expose a manual public link without an API request", async () => {
+  const message = await production.shareMakerWorldLink(shareDetail(), undefined, () => true);
+  assert.equal(message, "Modelllink zum Kopieren: https://makerworld.com/de/models/123");
+});
+
+test("closed dialog and invalid design identities cannot start native sharing or clipboard writes", async () => {
+  let actions = 0;
+  const browser = { async share() { actions++; }, clipboard: { async writeText() { actions++; } } };
+  assert.equal(await production.shareMakerWorldLink(shareDetail(), browser, () => false), "");
+  for (const id of ["", "123/../private", "123?token=fixture", "１２３", "1".repeat(21)]) {
+    await assert.rejects(production.shareMakerWorldLink(shareDetail(id), browser, () => true));
+  }
+  assert.equal(actions, 0);
+});
+
+
+test("only an explicitly supplied nonempty original string enables local original-text toggling", () => {
+  for (const original_content of [undefined, null, "", "  \n  ", true, { text: "not a string" }]) {
+    const html = production.reviewsPanel(detail([comment("flag-only", { original_available: true, original_content })]), state());
+    assert.doesNotMatch(html, /data-original-toggle/);
+    assert.match(html, /Original nicht verfügbar/);
+  }
+  const ui = mount([comment("provided", { original_available: false, original_content: "Explicit original" })]);
+  ui.original(["provided"]);
+  assert.match(ui.html(), /Explicit original/);
+  assert.doesNotMatch(ui.html(), /content-provided</);
+  ui.original(["provided"]);
+  assert.match(ui.html(), /content-provided</);
+});
+
+test("original text and its toggle state stay bound to comment identities across sorting and rerender", () => {
+  const comments = [comment("first", { original_content: "Original first", like_count: 1 }),
+    comment("second", { original_content: "Original second", like_count: 9 })];
+  const before = JSON.stringify(comments);
+  const ui = mount(comments);
+  ui.original(["first"]);
+  ui.sort("top");
+  assert.match(ui.html(), /Original first/); assert.doesNotMatch(ui.html(), /Original second/);
+  assert.match(ui.html(), /content-second</);
+  assert.equal(JSON.stringify(comments), before);
+  comments.reverse(); ui.sort("all");
+  assert.match(ui.html(), /Original first/); assert.doesNotMatch(ui.html(), /Original second/);
+  ui.original(["first"]);
+  assert.doesNotMatch(ui.html(), /Original first/);
+});
+
+test("nested comments with the same leaf ID keep independent original state under different parents", () => {
+  const leaf = (text: string) => comment("same-leaf", { original_content: text });
+  const ui = mount([comment("parent-a", { replies: [leaf("Original A")] }),
+    comment("parent-b", { replies: [leaf("Original B")] })]);
+  ui.original(["parent-a", "same-leaf"]);
+  assert.match(ui.html(), /Original A/); assert.doesNotMatch(ui.html(), /Original B/);
+  ui.sort("answers");
+  assert.match(ui.html(), /Original A/); assert.doesNotMatch(ui.html(), /Original B/);
+});
+
+test("a nested original survives reply collapse and expansion without a provider request", () => {
+  const loaded = replies(6); loaded[4] = comment("reply-5", { original_content: "Nested original" });
+  const ui = mount([comment("parent", { replies: loaded, reply_count: 6 })]);
+  ui.toggle(); ui.original(["parent", "reply-5"]);
+  assert.match(ui.html(), /Nested original/);
+  ui.toggle(); assert.doesNotMatch(ui.html(), /Nested original/);
+  ui.toggle(); assert.match(ui.html(), /Nested original/);
+});
+
+test("original provider text is bounded and escaped when displayed", () => {
+  const ui = mount([comment("unsafe-original", {
+    original_content: '<img src=x onerror="bad()">\n<script>bad()</script>' + "x".repeat(5000) + "OMITTEDTAIL",
+  })]);
+  ui.original(["unsafe-original"]);
+  assert.match(ui.html(), /&lt;img src=x onerror=&quot;bad\(\)&quot;&gt;<br>&lt;script&gt;/);
+  assert.doesNotMatch(ui.html(), /<script>|<img src=x|OMITTEDTAIL/);
+});
+
+test("original toggle keys escape unusual provider IDs and still use the correct identity", () => {
+  const id = 'comment-"<&';
+  const ui = mount([comment(id, { original_content: "Safe original" })]);
+  assert.doesNotMatch(ui.html(), /data-original-toggle="\["comment-/);
+  ui.original([id]); assert.match(ui.html(), /Safe original/);
+});
+
+test("closed or busy discussion controls cannot toggle original text", () => {
+  const ui = mount([comment("provided", { original_content: "Never shown" })]);
+  const old = ui.oldOriginal(); ui.stop(); old.click();
+  assert.equal(ui.current.originalComments.size, 0);
+  assert.doesNotMatch(ui.html(), /Never shown/);
+});
+
+
+test("original text bounds preserve Unicode code points", () => {
+  const ui = mount([comment("unicode", { original_content: "😀".repeat(5000) + "OMITTEDTAIL" })]);
+  ui.original(["unicode"]);
+  const displayed = ui.html().match(/<p id="mw-comment-text-0">([^<]*)<\/p>/)?.[1];
+  assert.equal(Array.from(displayed || "").length, 5000);
+  assert.equal(displayed, "😀".repeat(5000));
 });
