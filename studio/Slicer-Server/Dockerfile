@@ -26,6 +26,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libmpfr6 \
     libseccomp2 \
     libnlopt0 \
+    libocct-data-exchange-7.8 \
+    libocct-foundation-7.8 \
+    libocct-modeling-algorithms-7.8 \
+    libocct-modeling-data-7.8 \
+    libocct-ocaf-7.8 \
+    libocct-visualization-7.8 \
     libopenvdb10.0t64 \
     libpolyclipping22 \
     libprotobuf32t64 \

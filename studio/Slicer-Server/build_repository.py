@@ -172,6 +172,7 @@ SOURCE_PATHS = (
     "tests/test_studio_clean_host_preflight.py",
     "tests/test_studio_container_engines.py",
     "tests/test_studio_engine_image_layout.py",
+    "tests/test_studio_occt_runtime_packages.py",
     "tests/test_studio_image_build_pipeline.py",
     "tests/test_studio_image_evidence.py",
     "tests/test_studio_container_maintenance.py",

@@ -68,7 +68,7 @@ class ImageSourceTests(unittest.TestCase):
         block = raw.decode("utf-8-sig").split("apt-get install -y --no-install-recommends \\", 1)[1].split("&& mkdir", 1)[0]
         packages = sorted(set(re.findall(r"(?m)^\s+([a-z][a-z0-9+.-]*)\s+\\$", block)))
         self.assertEqual(reference["required_packages"], packages)
-        self.assertEqual(reference["required_package_count"], 43)
+        self.assertEqual(reference["required_package_count"], 49)
         self.assertFalse(reference["production_approved"])
         self.assertFalse(reference["target_image_verified"])
 

@@ -34,3 +34,8 @@ Der Ausgangsstand dokumentiert Beta-Meilensteine im Juli 2026 und Version 6.0.0 
 - Gepruefte Supervisor-Laufzeit, Worker-Schutz und App-Kontextpaketierer in den kanonischen Quellbaum uebernommen.
 - Geordnetes Stoppen signalisiert Besitzerprozesse statt unbereite Kindprozessgruppen; hartes Gruppencleanup bei Timeout bleibt erhalten.
 - Explizite libseccomp-Abhaengigkeit, reproduzierbare Kontext-/Repositorylieferung und portable Regressionen. Keine App-Installation oder oeffentliche Runtimefreigabe daraus.
+
+
+## 17. Oktober 2026 - 6.0.4 / Slicer 0.1.0-alpha9
+- Die sechs OpenCASCADE-7.8-Laufzeitpaketfamilien für PrusaSlicers mitgelieferten STEP-Importbaustein sind jetzt ausdrücklich im Docker-Bau und in der Image-Paketreferenz enthalten. Der vorherige Kandidat besaß den Wrapper, aber nicht dessen acht benötigte OCCT-Bibliotheken.
+- Regressionen sichern Paketbestand, exakte Dockerfile-Bindung und den unverändert ausschließlich für Bambu gesetzten Bibliothekspfad. Keine neue Engine-, STEP-Import- oder Druckabnahme aus reinen Quellprüfungen ableiten.

@@ -101,3 +101,21 @@ eines gebauten Images, geladenen Plugins, vollstaendigen ABI oder Slices.
 Drei urspruengliche Enginearchive und Hostkanalkandidat bleiben unveraendert;
 Katalogfreigabe und Hostintegration werden dadurch nicht behauptet. Kein
 Eine Paketprüfung startet keine Engine und verändert keinen laufenden Dienst.
+
+
+## OpenCASCADE-Laufzeit für den Prusa-STEP-Import
+
+Der mitgelieferte `OCCTWrapper.so` benötigt acht `libTK*.so.7.8`-Bibliotheken.
+Eine vorhandene Wrapper-Datei oder ihre korrekte FHS-Verknüpfung allein genügt
+nicht. Der Docker-Bau installiert deshalb ausdrücklich die sechs OCCT-7.8-
+Paketfamilien Foundation, Modeling Data, Modeling Algorithms, Visualization,
+OCAF und Data Exchange. Sie sind Bestandteil der erforderlichen SBOM-Paketliste.
+Es wird kein zusätzlicher nativer PrusaSlicer und kein zweiter Slicer installiert.
+
+Ein isoliertes Image mit diesen Paketen bestand die statische Prüfung der
+Plugin-Abhängigkeiten und GNU-Symbolversionen. Das ist kein ausgeführter STEP-
+Import, kein Slice und keine gesamte Runtime- oder Lizenzfreigabe. Versionen,
+Quellen und Copyright-Hinweise der zusätzlichen transitiven Systempakete gehören
+zur jeweiligen realen Image-Lieferung. Der Bambu-spezifische Bibliothekspfad
+bleibt ausschließlich an dessen bestehenden Dispatcher-Aufrufen gesetzt; er
+wird nicht global auf Prusa/Cura übertragen.

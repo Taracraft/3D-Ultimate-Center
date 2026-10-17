@@ -1,5 +1,5 @@
 {
-  "dockerfile_sha256": "f1d63278e8517a7635c586cf7ee7f2c451721786fafaebae5371c1d10dc1d8cc",
+  "dockerfile_sha256": "a268e917f65853be57e17ad3f51790603ac08530bc6fd77801a2fcfd3079bcfd",
   "host_reference_scope": "Read-only Debian 13 host observation; not a target-image lock or release approval.",
   "host_reference_sha256": "aff23c053edc6af1b325e4544d2b3100a86a11be6b676e4c25882a897f78d443",
   "kind": "ultimate-slicer-target-image-package-reference",
@@ -7,11 +7,12 @@
     "Versions are intentionally captured from the separately built immutable target image, not copied from the host.",
     "The host evidence covers ELF/package/copyright provenance for 39 requested libraries; jq was observed separately as 1.7.1-6+deb13u4 with copyright SHA-256 0640a24687148cb525f6e917f982846c7d6682ccb13b939383d7bb596e7b29f5.",
     "Engine binaries, transitive plugins, runtime behavior and operational acceptance remain separate.",
-    "The image resource layout routes Debian Prusa fixed FHS paths to the selected read-only generation. Font files come from fonts-noto-core and fonts-noto-cjk inside the target image, not from copied host font files. Image/runtime verification is still pending."
+    "The image resource layout routes Debian Prusa fixed FHS paths to the selected read-only generation. Font files come from fonts-noto-core and fonts-noto-cjk inside the target image, not from copied host font files. Image/runtime verification is still pending.",
+    "The shipped Prusa OCCTWrapper requires the six explicitly listed OpenCASCADE 7.8 runtime package families. Their final resolved versions and transitive contents must be included in the actual image inventory; a source-only image or a matching plugin hash does not prove that the plugin can resolve its libraries."
   ],
   "platform": "linux/amd64",
   "production_approved": false,
-  "required_package_count": 43,
+  "required_package_count": 49,
   "required_packages": [
     "fonts-noto-cjk",
     "fonts-noto-core",
@@ -37,6 +38,12 @@
     "libjavascriptcoregtk-4.1-0",
     "libmpfr6",
     "libnlopt0",
+    "libocct-data-exchange-7.8",
+    "libocct-foundation-7.8",
+    "libocct-modeling-algorithms-7.8",
+    "libocct-modeling-data-7.8",
+    "libocct-ocaf-7.8",
+    "libocct-visualization-7.8",
     "libopenvdb10.0t64",
     "libpango-1.0-0",
     "libpangocairo-1.0-0",
