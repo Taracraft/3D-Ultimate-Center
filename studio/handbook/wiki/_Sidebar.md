@@ -1,5 +1,7 @@
-- [Ultimate 3D Studio](Home.md)
-- [Installation und Komponenten](Installation.md)
+[**Ultimate 3D Studio**](Home.md)
+
+**Anwender**
+
 - [Erste Schritte](Erste-Schritte.md)
 - [CAD und Modellbearbeitung](CAD.md)
 - [Projekte und Druckplatten](Projekte-und-Druckplatten.md)
@@ -8,6 +10,15 @@
 - [Vorschau und Analyse](Vorschau.md)
 - [Galerie und MakerWorld](Galerie-und-MakerWorld.md)
 - [Tastenkürzel](Tastenkuerzel.md)
+
+**Administration**
+
+- [Installation und Komponenten](Installation.md)
 - [Fehlerhilfe](Fehlerhilfe.md)
-- [Entwicklung](Entwicklung.md)
-- [Lizenz](Lizenz.md)
+
+**Entwicklung**
+
+- [Quellen, Build und Tests](Entwicklung.md)
+- [Lizenz und Herkunft](Lizenz.md)
+
+[Handbuch](https://github.com/Taracraft/3D-Ultimate-Center/blob/main/studio/README.md) · [Funktionskatalog](https://github.com/Taracraft/3D-Ultimate-Center/blob/main/studio/handbook/FEATURES.md)

@@ -1,15 +1,12 @@
-# Der Funktionskatalog
+# Ultimate 3D Studio · Funktionen im Detail
 
-[Handbuch](../README.md) · [CAD-Beispiele](CAD_EXAMPLES.md) · [Slicer-Dokumentation](../Slicer-Server/README.md)
+[Handbuch](../README.md) · [Erstes Projekt](../README.md#erstes-projekt) · [CAD-Beispiele](CAD_EXAMPLES.md) · [Slicer-Dokumentation](../Slicer-Server/README.md)
 
-Hier steht nicht nur „CAD“ oder „Mehrfarben“, sondern welche Arbeitsschritte
-dahinterliegen. **Vorhanden** bedeutet im aktuellen Quellstand implementiert;
-es ist keine pauschale Live-, Hardware- oder Produktivabnahme. Die Bedienung
-steht im Handbuch, die technischen Einstiegspunkte am Ende jeder Gruppe.
+**77 katalogisierte Funktionen, 41 Zusatzanforderungen, offene vollständige Abnahmen.** Diese Seite beschreibt die im Quellstand vorgesehenen Werkzeuge und ihre Bedienaufgaben. Eine Tabellenzeile ist keine bestandene Funktions-, Live-, Hardware- oder Produktabnahme. Der [Auslieferungsstand](../Slicer-Server/RELEASE_STATUS.md) bleibt gesondert maßgeblich.
 
-Die Originalaufnahmen zeigen eine bestehende Installation. Nur die ausdrücklich
-genannten Beispielaktionen wurden für die Bilder tatsächlich bedient. Keine
-neuen Slices oder Drucke wurden für diese Dokumentation ausgeführt.
+Du findest die Funktionen entlang eines Projekts: Modelle übernehmen, Geometrie bearbeiten, Platten aufbauen, Profile und Materialien wählen, Flächen gestalten und ein Ergebnis prüfen. Die ausführlichen Schritte mit Ergebnis und Fehlerpfad stehen im [Handbuch](../README.md).
+
+Die Originalaufnahmen dokumentieren eine bestehende Installation. Ihre Herkunft und Nutzungsgrenzen sind in [SOURCE_NOTICES.md](../../SOURCE_NOTICES.md) beschrieben. Für die Dokumentation wurden keine neuen Slices oder Drucke ausgeführt.
 
 ## 1. Modelle öffnen, Projekte sichern
 
@@ -131,7 +128,7 @@ Quellen: [Malwerkzeuge](../frontend/studio-paint-ui.ts),
 | Diagnosefilter | Merkmale und Stützen getrennt hervorheben | Diagnosefarben sind keine neue Materialzuordnung |
 | Galerie und Ordner | Modelle geordnet verwalten und finden | Private Inhalte bleiben privat |
 | Upload/ZIP/Duplikatprüfung | Modelle in die Bibliothek aufnehmen und Doppelungen erkennen | Grenzen und Dateiprüfungen beachten |
-| MakerWorld | Modelle und Druckprofile ansehen und gezielt übernehmen | Kein unkontrollierter automatischer Download beliebiger Inhalte |
+| MakerWorld | Modelle und Druckprofile ansehen und gezielt übernehmen | Anzeige sozialer Inhalte bedeutet noch keine ausführbaren Reaktionen, Antworten oder Veröffentlichungen |
 | Aufgaben | Warteschlange und Auftragszustände überblicken | Verwaltungsaktion ist nicht gleich Druckstart |
 | Verlauf | Frühere Aufträge und Ergebnisse nachvollziehen | Aufträge enthalten unter Umständen private Dateinamen |
 | Steuerzentrale | Druckerstatus, Fortschritt, Störungen und Kamera überblicken | Abhängig von tatsächlicher Verbindung und Berechtigung |
@@ -142,10 +139,23 @@ Quellen: [Arbeitsbereich](../frontend/studio-mega-workspace-v2.ts),
 [MakerWorld-Ansicht](../frontend/makerworld-workspace-studio.ts),
 [Aufgabenansicht](../frontend/jobs-workspaces-studio.ts).
 
-## Was noch kein fertiger Produktivablauf ist
+## Die passende Anleitung finden
+
+| Aufgabe | Handbuchkapitel |
+| --- | --- |
+| Eine Datei laden oder ein Projekt sichern | [Dateien und Projekte](../README.md#projekte) |
+| Bibliothek oder Anbieterangebot nutzen | [Galerie](../README.md#galerie) · [MakerWorld](../README.md#makerworld) |
+| Modelle und Platten bearbeiten | [CAD](../README.md#cad) |
+| Oberflächen mit Druckmaterial gestalten | [Bemalung](../README.md#bemalung) |
+| Materialquelle und Profile vergleichen | [Materialsysteme](../README.md#material) · [Profile](../README.md#profile) |
+| Ein Ergebnis oder einen Auftrag untersuchen | [Vorschau](../README.md#vorschau) · [Aufgaben](../README.md#aufgaben) |
+| Verbindung und Installation klären | [Einrichtung](../README.md#einrichtung) · [Fehlerhilfe](../README.md#fehlersuche) |
+
+## Offene Abnahmen bleiben sichtbar
 
 Die neue unabhängige Linux-/Docker-Erstinstallation, vollständige freigegebene
 Engine-Lieferkette, verifizierte Cross-Host-TLS-Verbindung, echtes Upgrade und
 Restore, HACS-Neuinstallation und privater Pilot brauchen ihre eigenen
 Abnahmen. Das Repo dokumentiert diese Grenzen, statt sie aus einem grünen
 Quelltest oder einer sichtbaren Schaltfläche abzuleiten.
+

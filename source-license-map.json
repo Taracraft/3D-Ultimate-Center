@@ -1,6 +1,6 @@
 {
   "custom_terms_do_not_replace_inherited_or_third_party_rights": true,
-  "delivered_paths": 1267,
+  "delivered_paths": 1277,
   "derived_profile_modification_notice_date": "2026-10-15",
   "files": [
     {
@@ -44,9 +44,9 @@
     },
     {
       "identity": {
-        "bytes": 3867,
+        "bytes": 4430,
         "kind": "sha256-raw-bytes",
-        "sha256": "ed31c444287360364a64628e21ea21fbbe443f26a3019cd9764d7611dd2515b2"
+        "sha256": "22f84f4ef07cc022036748197218c10bb5f1f3abc0ae1d54686293aff31c4fd0"
       },
       "notice_class": "new-repository-documentation-with-root-MIT-notice",
       "path": "README.md",
@@ -57,9 +57,9 @@
     },
     {
       "identity": {
-        "bytes": 6093,
+        "bytes": 6976,
         "kind": "sha256-raw-bytes",
-        "sha256": "614a77ac7bdb7fa2e0121384e9f287a67d919edd6c0bdfe142e48c6ee42c355c"
+        "sha256": "ea9cac0dada9bf5b91ee5d10ea31b7c899b942ae4fa0d3c56186117ded3a5c74"
       },
       "notice_class": "new-repository-documentation-with-root-MIT-notice",
       "path": "SOURCE_NOTICES.md",
@@ -137,7 +137,7 @@
       "identity": {
         "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "e1564987b7eb56a6f942b7af59cf46292a239f538ee0423bdfb3ed51e7dda033"
+        "sha256": "fab4b7b47549a9a8e71c697a8278db18d4c82af409265499cd3008333be0295a"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "custom_components/ultimate_3d_studio/assets/ultimate-3d-studio-build.json",
@@ -4162,7 +4162,7 @@
       "identity": {
         "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "e1564987b7eb56a6f942b7af59cf46292a239f538ee0423bdfb3ed51e7dda033"
+        "sha256": "fab4b7b47549a9a8e71c697a8278db18d4c82af409265499cd3008333be0295a"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -4277,9 +4277,9 @@
     },
     {
       "identity": {
-        "bytes": 23432,
+        "bytes": 43720,
         "kind": "sha256-raw-bytes",
-        "sha256": "2e78911fc6129beeb76a6269943cc73830ae2b7ac63efda8b0290947132eb7d0"
+        "sha256": "1234c2e544124cafafe79791cd0795761883f636212b8153c5cc8f6ad929a29a"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/README.md",
@@ -4301,6 +4301,20 @@
         "studio/Slicer-Server/THIRD_PARTY_NOTICES.md"
       ],
       "source_path": "Slicer-Server/.dockerignore"
+    },
+    {
+      "identity": {
+        "bytes": 14180,
+        "kind": "sha256-raw-bytes",
+        "sha256": "b9349a8227b0a80f51fbb0d42dd65b2aec62477e3a668274ac394e361c922575"
+      },
+      "notice_class": "declared-new-original-slicer-scope",
+      "path": "studio/Slicer-Server/API.md",
+      "required_notice_paths": [
+        "studio/Slicer-Server/LICENSE",
+        "studio/Slicer-Server/THIRD_PARTY_NOTICES.md"
+      ],
+      "source_path": "Slicer-Server/API.md"
     },
     {
       "identity": {
@@ -4458,6 +4472,20 @@
     },
     {
       "identity": {
+        "bytes": 42435,
+        "kind": "sha256-raw-bytes",
+        "sha256": "7ccbedc31d4143aae8a8b925ba28934c90f45610d5399a19151527faa1d620fe"
+      },
+      "notice_class": "declared-new-original-slicer-scope",
+      "path": "studio/Slicer-Server/HANDBUCH.md",
+      "required_notice_paths": [
+        "studio/Slicer-Server/LICENSE",
+        "studio/Slicer-Server/THIRD_PARTY_NOTICES.md"
+      ],
+      "source_path": "Slicer-Server/HANDBUCH.md"
+    },
+    {
+      "identity": {
         "bytes": 1779,
         "kind": "sha256-raw-bytes",
         "sha256": "3c3147df929bae4b6895d95bb74de843319957fdae76114afe7772b11b9c4abc"
@@ -4528,9 +4556,9 @@
     },
     {
       "identity": {
-        "bytes": 5497,
+        "bytes": 14008,
         "kind": "sha256-raw-bytes",
-        "sha256": "3bf58488a60740cd84483cb475ca1daf9f143b771fafccc4b7bf6cb5f59ad4e4"
+        "sha256": "5138bd79a8616b50912b09752841c6af119d0aabdaffaa700cde0ab349eadd05"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/INSTALLATION.md",
@@ -4711,9 +4739,9 @@
     },
     {
       "identity": {
-        "bytes": 2189,
+        "bytes": 2721,
         "kind": "sha256-raw-bytes",
-        "sha256": "510972684f3ff04b9dd4c1e425f8be228bf1e1c54c97f5a6db2c31e15e9989ce"
+        "sha256": "48f97e8d6c884b795a0d4e09b9108677028619e46c3cf6c126d660b25f818f57"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/README.md",
@@ -4753,9 +4781,9 @@
     },
     {
       "identity": {
-        "bytes": 1770,
+        "bytes": 2233,
         "kind": "sha256-raw-bytes",
-        "sha256": "82fb0583243006ffa48e423c056756e3f39f6b55ab302dbe5fce9e41625d148d"
+        "sha256": "0cddae0364732a6b1a0535a3674a25c9b9c529cb440f8c560386518a2e3610f9"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/REPOSITORY_NOTICES.md",
@@ -4767,9 +4795,9 @@
     },
     {
       "identity": {
-        "bytes": 4386,
+        "bytes": 8234,
         "kind": "sha256-raw-bytes",
-        "sha256": "c57f7afbe3a70f82d5a9681d81b514043629f42d0938832ee30bd10ae0ac1423"
+        "sha256": "b0a0fe2eac158cd3a67de87cd39136b8727baffc7c0d8eabb742c25d3dd328b2"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/REPOSITORY_README.md",
@@ -4809,9 +4837,9 @@
     },
     {
       "identity": {
-        "bytes": 9393,
+        "bytes": 14276,
         "kind": "sha256-raw-bytes",
-        "sha256": "3878d2c5092eb7066d93ce1cfabace4761dc65d931d9c14bfbd61d8d46dd98d2"
+        "sha256": "2215a7b95fe40679ec84d0dca986c4e59bc28dd2102b97ebf705f66e77bc15c4"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/RUNTIME_INSTALLATION.md",
@@ -4893,6 +4921,65 @@
     },
     {
       "identity": {
+        "bytes": 3256867,
+        "kind": "sha256-raw-bytes",
+        "sha256": "34f7e16940f2c1bd5be50c2edd302388a078747dc28ba4a20a4763e4e9451ba1"
+      },
+      "notice_class": "documentation-PDF-with-mixed-text-artwork-and-embedded-font-notices",
+      "path": "studio/Slicer-Server/Ultimate_Slicer_Server_Handbuch.pdf",
+      "required_notice_paths": [
+        "LICENSE",
+        "SOURCE_NOTICES.md",
+        "studio/Slicer-Server/LICENSE",
+        "studio/Slicer-Server/THIRD_PARTY_NOTICES.md",
+        "studio/Slicer-Server/assets/ASSET_NOTICES.md"
+      ],
+      "source_path": "Slicer-Server/Ultimate_Slicer_Server_Handbuch.pdf"
+    },
+    {
+      "identity": {
+        "bytes": 4893,
+        "kind": "sha256-raw-bytes",
+        "sha256": "acd9b0b10563424d4322781c866a4e88c606216a2014019382873efc073f26e5"
+      },
+      "notice_class": "mixed-documentation-artwork-and-embedded-font-notices",
+      "path": "studio/Slicer-Server/assets/ASSET_NOTICES.md",
+      "required_notice_paths": [
+        "SOURCE_NOTICES.md",
+        "studio/Slicer-Server/assets/ASSET_NOTICES.md"
+      ],
+      "source_path": "Slicer-Server/assets/ASSET_NOTICES.md"
+    },
+    {
+      "identity": {
+        "bytes": 1859625,
+        "kind": "sha256-raw-bytes",
+        "sha256": "609635c3bd374a71055630c5dba683cb9baf59ec4396b8e5b2253058d6cb7850"
+      },
+      "notice_class": "AI-assisted-user-supplied-brand-artwork-no-blanket-relicense",
+      "path": "studio/Slicer-Server/assets/slicer-hero.png",
+      "required_notice_paths": [
+        "SOURCE_NOTICES.md",
+        "studio/Slicer-Server/assets/ASSET_NOTICES.md"
+      ],
+      "source_path": "Slicer-Server/assets/slicer-hero.png"
+    },
+    {
+      "identity": {
+        "bytes": 1036818,
+        "kind": "sha256-raw-bytes",
+        "sha256": "d634ff5a1245ea09099f096f00c782c65386dbcfffd48ed182e59d3a88c8a401"
+      },
+      "notice_class": "AI-assisted-user-supplied-brand-artwork-no-blanket-relicense",
+      "path": "studio/Slicer-Server/assets/taracraft-mark.png",
+      "required_notice_paths": [
+        "SOURCE_NOTICES.md",
+        "studio/Slicer-Server/assets/ASSET_NOTICES.md"
+      ],
+      "source_path": "Slicer-Server/assets/taracraft-mark.png"
+    },
+    {
+      "identity": {
         "bytes": 12182,
         "kind": "sha256-raw-bytes",
         "sha256": "dae92dde8b457336dcd36bfaa910a17a53c86216f8b7a2ae10f4427d41903fca"
@@ -4907,9 +4994,9 @@
     },
     {
       "identity": {
-        "bytes": 15192,
+        "bytes": 15665,
         "kind": "sha256-raw-bytes",
-        "sha256": "204adcd663711e83ee525f00ff6f1e5770212820bed5de2562ea5c5b94d981c3"
+        "sha256": "1f5e8f660fb5f152f3bcff39e794bf1d60b067886c801648ed787ffa717aebb4"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/build_repository.py",
@@ -5409,9 +5496,9 @@
     },
     {
       "identity": {
-        "bytes": 528,
+        "bytes": 3149,
         "kind": "sha256-raw-bytes",
-        "sha256": "65294c6c37adddb65f9a8fff818bd92050fb587b8b201efdbed74bccae9564ed"
+        "sha256": "5d305b760d194fe85eb19fc3800e54f4350fcddb20226a7083c366f28e5bd510"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/wiki/Architektur.md",
@@ -5423,9 +5510,9 @@
     },
     {
       "identity": {
-        "bytes": 596,
+        "bytes": 3115,
         "kind": "sha256-raw-bytes",
-        "sha256": "c3d8080d9ae3cfd09ee853ea28e6bc4d3be4289fdb286a3a019f3913f436a5c0"
+        "sha256": "751090fd2dcbcf0773b086754933e419d0b98ad0a8f0e248423b5fb89089b33f"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/wiki/Betrieb-und-Wiederherstellung.md",
@@ -5437,9 +5524,9 @@
     },
     {
       "identity": {
-        "bytes": 548,
+        "bytes": 2834,
         "kind": "sha256-raw-bytes",
-        "sha256": "1f0193ad3ab93b40a306c536dc372fde69a23a2b3d495a32f8a847e9f3a5aa1a"
+        "sha256": "c366aa14d75206aacb27666627467b3966ba6be51f9bcf1010f6c345fcccdf80"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/wiki/Build-und-Tests.md",
@@ -5451,9 +5538,9 @@
     },
     {
       "identity": {
-        "bytes": 711,
+        "bytes": 2992,
         "kind": "sha256-raw-bytes",
-        "sha256": "92ed98668b1fed9cf4a5645ce78ac7d77ec5ac48def7bb0845cdb18a6816e50d"
+        "sha256": "0da754c35125e7884e7150a411821b9ae0f2dae44e85421825787ce95385c537"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/wiki/Docker-Installation.md",
@@ -5465,9 +5552,9 @@
     },
     {
       "identity": {
-        "bytes": 595,
+        "bytes": 2964,
         "kind": "sha256-raw-bytes",
-        "sha256": "2ac60f3b0e4f16a201ffdad559e9c0b3985614559d5c2a2882d23101cf20ca00"
+        "sha256": "7f9b27e4006d1a19607fd98de8c4ba8c5b2e6d4048116537e99d892c0f3d0d2c"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/wiki/Engine-Bestand.md",
@@ -5479,9 +5566,9 @@
     },
     {
       "identity": {
-        "bytes": 629,
+        "bytes": 2967,
         "kind": "sha256-raw-bytes",
-        "sha256": "0bf812d9a9c376da648d72cdad38215a6eea3e51d06084ec2462dc6f58db5480"
+        "sha256": "af25ad4eebdebd9cb9e231ce22e05d664b47a0a844b84f71e863d0d5660585d7"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/wiki/Entwicklungsstand.md",
@@ -5493,9 +5580,9 @@
     },
     {
       "identity": {
-        "bytes": 661,
+        "bytes": 2942,
         "kind": "sha256-raw-bytes",
-        "sha256": "7089a744f2a4181d6a22c254c3fec63dac32df288da23e82a2743c63e6ecedf5"
+        "sha256": "84306d6fcdb7d31d41d50ec36f406a3c61e48cc436fb7ae8630d5064d31ebfff"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/wiki/Fehlerdiagnose.md",
@@ -5507,9 +5594,9 @@
     },
     {
       "identity": {
-        "bytes": 598,
+        "bytes": 2914,
         "kind": "sha256-raw-bytes",
-        "sha256": "ca5e25950005063059345441bd398693a93ce35e5636ff021b16d737a4d82766"
+        "sha256": "66b931891deef0c0312c2c5c2724199032359c5b773840f87b9672f626f8bcc5"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/wiki/Home-Assistant.md",
@@ -5521,9 +5608,9 @@
     },
     {
       "identity": {
-        "bytes": 546,
+        "bytes": 2964,
         "kind": "sha256-raw-bytes",
-        "sha256": "4a4c411bcfdcdef90a74c52b6a998e52c5242aa8770423e0a8a7989b30f3265f"
+        "sha256": "b71ffd21dfc2e206ee77ecd8dbb8dfcf678fdc87a8293d1e5a2553cb5a0e1ed5"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/wiki/Home.md",
@@ -5535,9 +5622,9 @@
     },
     {
       "identity": {
-        "bytes": 562,
+        "bytes": 2861,
         "kind": "sha256-raw-bytes",
-        "sha256": "7a6bfccffccc59295d09edbfb8671109bee2341f6ee5f5e38cc889296a3e69a5"
+        "sha256": "f7e7309f57eddf16ab7fd8fb8caace6857a4779e9579dc90aa92067dad048be8"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/wiki/Lizenz-und-Nutzung.md",
@@ -5549,9 +5636,9 @@
     },
     {
       "identity": {
-        "bytes": 555,
+        "bytes": 3009,
         "kind": "sha256-raw-bytes",
-        "sha256": "83c8bf7c2adac58efd354a7a17d2191eb4de3503743e9d0af91666ea1f17f9ab"
+        "sha256": "0482e94e35c45f8c74daa3bbec306e74397e4fc0f1a458a8f49a47b05645e520"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/wiki/Profile-und-Engines.md",
@@ -5563,9 +5650,9 @@
     },
     {
       "identity": {
-        "bytes": 514,
+        "bytes": 2992,
         "kind": "sha256-raw-bytes",
-        "sha256": "a2d4e1b45ce2ea3b386bc7de8f2152619113b071f5391ed96fdf90df185a80b4"
+        "sha256": "f938ea8bbd316ed2a3aec1f43b8fd5cbd7df04d45d82e41ed5ad3decbdb68335"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/wiki/Quellumfang.md",
@@ -5577,9 +5664,9 @@
     },
     {
       "identity": {
-        "bytes": 537,
+        "bytes": 967,
         "kind": "sha256-raw-bytes",
-        "sha256": "2e7f1e7b725492901fd709653993f786e51875283d3c06db7526bc049b7685b7"
+        "sha256": "8dd62aa39394894cd909c3d5ae09cac977305c75a67f4f2ee68a370719d09f0b"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/wiki/_Sidebar.md",
@@ -8977,7 +9064,7 @@
       "identity": {
         "bytes": 6875,
         "kind": "sha256-raw-bytes",
-        "sha256": "e1564987b7eb56a6f942b7af59cf46292a239f538ee0423bdfb3ed51e7dda033"
+        "sha256": "fab4b7b47549a9a8e71c697a8278db18d4c82af409265499cd3008333be0295a"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -12498,9 +12585,9 @@
     },
     {
       "identity": {
-        "bytes": 11351,
+        "bytes": 12594,
         "kind": "sha256-raw-bytes",
-        "sha256": "90629e9d846bf91d973ac24cd67c8055780a05cf8ad5dabe1b22a70d2de80d19"
+        "sha256": "2e58934b5b7bc7c91db1d4830b623103dabb158f20a37e85e1eaaf776115191a"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/handbook/FEATURES.md",
@@ -12508,6 +12595,63 @@
         "LICENSE"
       ],
       "source_path": "handbook/FEATURES.md"
+    },
+    {
+      "identity": {
+        "bytes": 3371602,
+        "kind": "sha256-raw-bytes",
+        "sha256": "4a7da5a332e6965901659bfef151054d2347291130e042e327dd2871948667b1"
+      },
+      "notice_class": "documentation-PDF-with-mixed-text-artwork-and-embedded-font-notices",
+      "path": "studio/handbook/Ultimate_3D_Studio_Handbuch.pdf",
+      "required_notice_paths": [
+        "LICENSE",
+        "SOURCE_NOTICES.md",
+        "studio/handbook/assets/ASSET_NOTICES.md"
+      ],
+      "source_path": "handbook/Ultimate_3D_Studio_Handbuch.pdf"
+    },
+    {
+      "identity": {
+        "bytes": 4893,
+        "kind": "sha256-raw-bytes",
+        "sha256": "acd9b0b10563424d4322781c866a4e88c606216a2014019382873efc073f26e5"
+      },
+      "notice_class": "mixed-documentation-artwork-and-embedded-font-notices",
+      "path": "studio/handbook/assets/ASSET_NOTICES.md",
+      "required_notice_paths": [
+        "SOURCE_NOTICES.md",
+        "studio/handbook/assets/ASSET_NOTICES.md"
+      ],
+      "source_path": "handbook/assets/ASSET_NOTICES.md"
+    },
+    {
+      "identity": {
+        "bytes": 1931887,
+        "kind": "sha256-raw-bytes",
+        "sha256": "f4049015b7af246c1a71569cccb5a07e496a78b84b889c96b857a57018e50519"
+      },
+      "notice_class": "AI-assisted-user-supplied-brand-artwork-no-blanket-relicense",
+      "path": "studio/handbook/assets/studio-hero.png",
+      "required_notice_paths": [
+        "SOURCE_NOTICES.md",
+        "studio/handbook/assets/ASSET_NOTICES.md"
+      ],
+      "source_path": "handbook/assets/studio-hero.png"
+    },
+    {
+      "identity": {
+        "bytes": 1036818,
+        "kind": "sha256-raw-bytes",
+        "sha256": "d634ff5a1245ea09099f096f00c782c65386dbcfffd48ed182e59d3a88c8a401"
+      },
+      "notice_class": "AI-assisted-user-supplied-brand-artwork-no-blanket-relicense",
+      "path": "studio/handbook/assets/taracraft-mark.png",
+      "required_notice_paths": [
+        "SOURCE_NOTICES.md",
+        "studio/handbook/assets/ASSET_NOTICES.md"
+      ],
+      "source_path": "handbook/assets/taracraft-mark.png"
     },
     {
       "identity": {
@@ -12581,9 +12725,9 @@
     },
     {
       "identity": {
-        "bytes": 734,
+        "bytes": 2475,
         "kind": "sha256-raw-bytes",
-        "sha256": "df3c85948725802bea130183892ab4c2617586c552c8c6d3e13fed5fc92efbe5"
+        "sha256": "bc3d0c1a18de6a7532b51d69929294c66e25c971ce7c68d52ed223dbcb622e8b"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/handbook/wiki/Bemalung.md",
@@ -12594,9 +12738,9 @@
     },
     {
       "identity": {
-        "bytes": 1001,
+        "bytes": 2619,
         "kind": "sha256-raw-bytes",
-        "sha256": "428f150592c250519c38ae914e3d52433030e89a1ccb1506fb67b8745eec8cb9"
+        "sha256": "c547d5797d0b63ad279613faab03967c9b1d682989647d1b8b74566866a120ea"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/handbook/wiki/CAD.md",
@@ -12607,9 +12751,9 @@
     },
     {
       "identity": {
-        "bytes": 692,
+        "bytes": 2844,
         "kind": "sha256-raw-bytes",
-        "sha256": "725a329dd6a402022c4959fa60bfe55eb856323208a6fd0a952d9434d289e12f"
+        "sha256": "3ed1987e1fa69e47d59149044f58e00b893e57d5109730024072c873049646fa"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/handbook/wiki/Entwicklung.md",
@@ -12620,9 +12764,9 @@
     },
     {
       "identity": {
-        "bytes": 871,
+        "bytes": 2579,
         "kind": "sha256-raw-bytes",
-        "sha256": "078ba25da8907c1161df1f71410c2df60cdbebb569d1d4dc6f285668bb6e29f5"
+        "sha256": "310870f46dc1b2823393b15c9a7a73341b23822e08787addeff07fbb54901c2c"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/handbook/wiki/Erste-Schritte.md",
@@ -12633,9 +12777,9 @@
     },
     {
       "identity": {
-        "bytes": 1457,
+        "bytes": 2856,
         "kind": "sha256-raw-bytes",
-        "sha256": "479ee3b562f119743670e23ed33d96a15426f21cdc1f2bb6f60912e6588a7738"
+        "sha256": "f8efd78c9f93d543f6165622010dd9f1e11acc1ed025f5aca5f68e949872eafa"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/handbook/wiki/Fehlerhilfe.md",
@@ -12646,9 +12790,9 @@
     },
     {
       "identity": {
-        "bytes": 715,
+        "bytes": 2616,
         "kind": "sha256-raw-bytes",
-        "sha256": "5997fce8568cac1c792010c13b441e503c4215583877305aee4360918ae83c44"
+        "sha256": "949e891e11a5c16bd67a682c9848c7b7995d1993ddeb1bf9119473d506dfd180"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/handbook/wiki/Galerie-und-MakerWorld.md",
@@ -12659,9 +12803,9 @@
     },
     {
       "identity": {
-        "bytes": 817,
+        "bytes": 2730,
         "kind": "sha256-raw-bytes",
-        "sha256": "5b80585c03740e6d1aee988b885301e3c137247621bedc1734b2dfd0633ddef6"
+        "sha256": "795ce955f02161bf254744d76cc8cc988973d2b3be22bfcb09757afe18bacec6"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/handbook/wiki/Home.md",
@@ -12672,9 +12816,9 @@
     },
     {
       "identity": {
-        "bytes": 1101,
+        "bytes": 2731,
         "kind": "sha256-raw-bytes",
-        "sha256": "0783e87e1adf4972fce40962e4123fc98182c71765ec9b1fc1c7f7dc15d1737f"
+        "sha256": "1558fb0bb8ee7b76f91234ecae559981c82b36295a411e82e4fd2211daa085b1"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/handbook/wiki/Installation.md",
@@ -12685,9 +12829,9 @@
     },
     {
       "identity": {
-        "bytes": 494,
+        "bytes": 2741,
         "kind": "sha256-raw-bytes",
-        "sha256": "b512be647954855f18a8542b754e06cdab7bc0e8eacd1da0bab34baca2c55755"
+        "sha256": "515773ffa7a608dd200291faa3b40825fc0e54187775a89ba8c2667f0856de76"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/handbook/wiki/Lizenz.md",
@@ -12698,9 +12842,9 @@
     },
     {
       "identity": {
-        "bytes": 951,
+        "bytes": 2588,
         "kind": "sha256-raw-bytes",
-        "sha256": "ce8a0da381ae848d63d694af14dcea67f7f852e02bbf6c9c1b5637249275f8c2"
+        "sha256": "9d3a805ae9df5eefc54488cd51b78f56ef1a97f85637aac5768ae7fa3a5ebf82"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/handbook/wiki/Materialien-und-Profile.md",
@@ -12711,9 +12855,9 @@
     },
     {
       "identity": {
-        "bytes": 870,
+        "bytes": 2572,
         "kind": "sha256-raw-bytes",
-        "sha256": "d65a0ce9a9e759e2aecac82808a4e61b50fdbbea31d4a2381d5c13084012bf0e"
+        "sha256": "1e2853183da4044bf5861e342d9d7802a3b0a2c0becd16cb4e55041b1cfb38fc"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/handbook/wiki/Projekte-und-Druckplatten.md",
@@ -12724,9 +12868,9 @@
     },
     {
       "identity": {
-        "bytes": 553,
+        "bytes": 2584,
         "kind": "sha256-raw-bytes",
-        "sha256": "7762ce425a18044ce2dfc88e0a6fde402553b93dd97db294113876560e1c64cd"
+        "sha256": "ee6b268a22d98d7283d05782ad607776b50669a1969d1c70bb72558b54e8bfcc"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/handbook/wiki/Tastenkuerzel.md",
@@ -12737,9 +12881,9 @@
     },
     {
       "identity": {
-        "bytes": 835,
+        "bytes": 2749,
         "kind": "sha256-raw-bytes",
-        "sha256": "c58eb11f384e2bf2ee5ef603490267e7785982f9c23da1a36d142b2aba2c1880"
+        "sha256": "0609dd4100faffa2571ad12f7d93699630a3bc1034a62751ffec38f43620dcb6"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/handbook/wiki/Vorschau.md",
@@ -12750,9 +12894,9 @@
     },
     {
       "identity": {
-        "bytes": 529,
+        "bytes": 808,
         "kind": "sha256-raw-bytes",
-        "sha256": "f2ff978a6fe659860d13ffafd3ff5f328ba315d3d678e40ffba96398f052e184"
+        "sha256": "b44e36d104ad8ab29009819f322d9174001ce754c88118c8f38fd0cc24290b74"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/handbook/wiki/_Sidebar.md",
@@ -12868,9 +13012,9 @@
     },
     {
       "identity": {
-        "bytes": 12046,
+        "bytes": 13553,
         "kind": "sha256-raw-bytes",
-        "sha256": "08089dac8417bec8757749a08f116a0dc7f7fa4d6d8be080db65b9d62b65e789"
+        "sha256": "dc4509e953515f5ac96fad5077eaba34c1d5c837023ae14fa369b0898d2911f9"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/packages/ultimate-slicer-server/README.md",
@@ -16588,7 +16732,7 @@
   "production_approved": false,
   "schema": 2,
   "scope": "file-specific notice inventory for this source-only Git delivery; no engine/image or production approval",
-  "source_files": 945,
+  "source_files": 955,
   "upstream": {
     "commit": "42d319c6692fa8e64790fddf0cdaafd2a4254bcc",
     "derived_source_paths": [

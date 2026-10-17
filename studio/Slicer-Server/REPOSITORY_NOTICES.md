@@ -26,3 +26,8 @@ sources. Preserving paths and original bytes does not relicense those files.
 
 The source manifest records byte identity and component closure, not a legal
 opinion, ownership determination or production deployment approval.
+
+## Documentation artwork and handbooks
+
+The documentation cover illustrations and transparent project mark are delivered with their provenance in `assets/ASSET_NOTICES.md` (also under `Slicer-Server/assets/`). They are promotional branding, not application screenshots or evidence of release approval. Documentation PDFs preserve the applicable text and artwork boundaries; no blanket relicensing of the repository, third-party engines or branding is asserted.
+

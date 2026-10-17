@@ -8,6 +8,7 @@ import stat
 
 SOURCE_PATHS = (
     "Slicer-Server/.dockerignore",
+    "Slicer-Server/API.md",
     "Slicer-Server/BAMBU_BUILD_REFERENCE.json",
     "Slicer-Server/CONTAINER_TESTING.md",
     "Slicer-Server/DATA_PERSISTENCE.md",
@@ -17,6 +18,7 @@ SOURCE_PATHS = (
     "Slicer-Server/ENGINE_LAYOUT.md",
     "Slicer-Server/ENGINE_PROVENANCE.md",
     "Slicer-Server/HA_INSTALLATION_PLAN.md",
+    "Slicer-Server/HANDBUCH.md",
     "Slicer-Server/HOST_LIFECYCLE.md",
     "Slicer-Server/HOST_PAIRING.md",
     "Slicer-Server/HOST_STORAGE.md",
@@ -48,6 +50,10 @@ SOURCE_PATHS = (
     "Slicer-Server/TARGET_BASE_REFERENCE.json",
     "Slicer-Server/TARGET_IMAGE_REFERENCE.json",
     "Slicer-Server/THIRD_PARTY_NOTICES.md",
+    "Slicer-Server/Ultimate_Slicer_Server_Handbuch.pdf",
+    "Slicer-Server/assets/ASSET_NOTICES.md",
+    "Slicer-Server/assets/slicer-hero.png",
+    "Slicer-Server/assets/taracraft-mark.png",
     "Slicer-Server/build_repository.py",
     "Slicer-Server/ENGINE_BUNDLE_BUILD.md",
     "Slicer-Server/ENGINE_BUNDLE_REFERENCE.json",
@@ -186,6 +192,9 @@ ALIASES = {
     "LICENSE": "Slicer-Server/licenses/MIT-Studio.txt",
     "requirements-test.txt": "Slicer-Server/requirements-test.txt",
     ".github/workflows/slicer-source-contract.yml": "Slicer-Server/slicer-source-contract.yml",
+    "assets/ASSET_NOTICES.md": "Slicer-Server/assets/ASSET_NOTICES.md",
+    "assets/slicer-hero.png": "Slicer-Server/assets/slicer-hero.png",
+    "assets/taracraft-mark.png": "Slicer-Server/assets/taracraft-mark.png",
 }
 GENERATED = {
     ".gitattributes": b"* -text\n",
@@ -315,4 +324,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

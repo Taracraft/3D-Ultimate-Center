@@ -1,13 +1,27 @@
 # Ultimate 3D Studio
 
-Ultimate 3D Studio verbindet CAD, Materialien, Druckvorbereitung und Druckerübersicht in Home Assistant.
+![Promo-Illustration](https://raw.githubusercontent.com/Taracraft/3D-Ultimate-Center/main/studio/handbook/assets/studio-hero.png)
 
-![Druckplatte mit vier Grundkörpern](../images/cad-plate.png)
+Ultimate 3D Studio führt Modellbearbeitung, Materialien, Druckvorbereitung und Druckerübersicht in Home Assistant zusammen. Du arbeitest auf einer virtuellen Druckplatte, bereitest Geometrie und Materialflächen vor und prüfst anschließend das Slicing-Ergebnis. Der separate Ultimate Slicer Server übernimmt die Berechnung der Druckbahnen.
 
-## Einstieg
+Das Wiki führt durch einzelne Aufgaben. Das [Handbuch](https://github.com/Taracraft/3D-Ultimate-Center/blob/main/studio/README.md) beschreibt den gesamten Arbeitsablauf und die Zusammenhänge ausführlicher. Der [Funktionskatalog](https://github.com/Taracraft/3D-Ultimate-Center/blob/main/studio/handbook/FEATURES.md) dient zum gezielten Nachschlagen vorhandener Werkzeuge.
 
-[Installation](Installation.md) erklärt die Komponenten und den aktuellen Paketstand. [Erste Schritte](Erste-Schritte.md) führt durch ein kleines Projekt. Die Seiten zu [CAD](CAD.md), [Materialien](Materialien-und-Profile.md), [Bemalung](Bemalung.md) und [Vorschau](Vorschau.md) beschreiben die wichtigsten Arbeitsbereiche.
+## Dein passender Einstieg
 
-Das [Handbuch](../../README.md) enthält die gesamte Bedienungsübersicht. Eine Liste der Werkzeuge steht im [Funktionskatalog](../FEATURES.md).
+| Du möchtest … | Beginne hier | Danach |
+| --- | --- | --- |
+| ein Modell vorbereiten | [Erste Schritte](Erste-Schritte.md) | CAD, Materialien, Vorschau |
+| eine Installation planen | [Installation](Installation.md) | Slicer-Anbindung und Fehlerhilfe |
+| am Projekt mitarbeiten | [Entwicklung](Entwicklung.md) | Architektur, Tests und Lizenz |
 
-Das Projekt befindet sich in Entwicklung. Ein vollständiges Installationspaket mit allen Slicing-Engines ist noch nicht veröffentlicht.
+## Vom Modell zum geprüften Auftrag
+
+Beginne mit einer überschaubaren STL-Datei oder einem Grundkörper. Kontrolliere zuerst die Abmessungen und die Auflage auf dem Druckbett. Wähle anschließend Drucker, Düse, Filament, Prozess und Plattenoberfläche. Speichere diesen Arbeitsstand, bevor du Bemalung oder umfangreiche Änderungen ausprobierst.
+
+Für mehrere Teile helfen zusätzliche Druckplatten und eine eindeutige Objektbenennung. Mehrfarbenmodelle benötigen reale verfügbare Filamente und eindeutige Materialkanäle. Ein fertig bearbeitetes Modell wird erst durch einen passenden Slicing-Auftrag zu einem Druckergebnis mit Schichten und Bahnen. Prüfe dafür die [Vorschau](Vorschau.md).
+
+## Voraussetzungen und Paketstand
+
+Für CAD und Projektverwaltung benötigst du eine eingerichtete Studio-Oberfläche. Slicing setzt zusätzlich einen erreichbaren Server mit geeigneten Engines und Profilen voraus. Die HACS-Repositorystruktur ist vorbereitet; ein vollständiger veröffentlichter HACS-Download und die vollständige Engine-Runtime stehen weiterhin aus. Öffentliche Quellen und erfolgreiche automatisierte Tests bedeuten daher noch keine vollständige Installations- oder Funktionsfreigabe.
+
+Falls ein Schritt scheitert, sichere den Arbeitsstand und grenze den betroffenen Bereich mit der [Fehlerhilfe](Fehlerhilfe.md) ein. Das erwartete Ergebnis des Einstiegs ist ein nachvollziehbar vorbereitetes Projekt. Eine tatsächliche Druckfreigabe erfolgt gesondert.

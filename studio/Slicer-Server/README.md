@@ -1,6 +1,14 @@
 # Ultimate Slicer Server
 
+![Promo-Illustration für Ultimate Slicer Server](assets/slicer-hero.png)
+
+[Ausführliches Handbuch](HANDBUCH.md) · [PDF-Handbuch](Ultimate_Slicer_Server_Handbuch.pdf) · [API-Referenz](API.md)
+
+Die Titelgrafik ist eine [Markenillustration](assets/ASSET_NOTICES.md), kein Produktscreenshot.
+
 Der Server übernimmt Slicing-Aufträge für Ultimate 3D Studio. HTTP-API und Worker sind getrennt; Geometrie-, Material- und Maschinenmodule werden gemeinsam mit der Home-Assistant-Integration verwendet.
+
+**Lieferstand:** API, Worker und Paketwerkzeuge sind als Quellen verfügbar. Das vollständige Engine-Laufzeitpaket ist noch nicht veröffentlicht; [Entwicklungsstand und Grenzen](RELEASE_STATUS.md) gelten auch für diese Dokumentation.
 
 ## Dokumentation
 
@@ -28,3 +36,4 @@ Die vollständige Engine- und App-Auslieferung ist noch in Arbeit. Das Prüfimag
 ## Quellcode und Lizenz
 
 [Quellumfang](REPOSITORY_CONTENTS.md) beschreibt den Repository-Aufbau und die Paketwerkzeuge. Für eigene und übernommene Dateien gelten die jeweils zugeordneten [Lizenzbedingungen](LICENSE) und [Drittanbieterhinweise](THIRD_PARTY_NOTICES.md).
+

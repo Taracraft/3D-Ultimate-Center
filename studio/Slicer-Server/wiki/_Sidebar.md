@@ -1,12 +1,20 @@
 - [Ultimate Slicer Server](Home.md)
-- [Architektur](Architektur.md)
-- [Installation mit Docker](Docker-Installation.md)
-- [Home Assistant verbinden](Home-Assistant.md)
-- [Profile und Engines](Profile-und-Engines.md)
-- [Engine-Pakete](Engine-Bestand.md)
-- [Betrieb und Wiederherstellung](Betrieb-und-Wiederherstellung.md)
-- [Fehlerdiagnose](Fehlerdiagnose.md)
-- [Build und Tests](Build-und-Tests.md)
-- [Quellcode und Verzeichnisse](Quellumfang.md)
-- [Lizenz und Nutzung](Lizenz-und-Nutzung.md)
-- [Entwicklungsstand](Entwicklungsstand.md)
+- **Anwender**
+  - [Home Assistant verbinden](Home-Assistant.md)
+  - [Profile und Engines](Profile-und-Engines.md)
+  - [Fehlerdiagnose](Fehlerdiagnose.md)
+- **Administratoren**
+  - [Installation mit Docker](Docker-Installation.md)
+  - [Architektur und Isolation](Architektur.md)
+  - [Engine-Pakete](Engine-Bestand.md)
+  - [Betrieb und Wiederherstellung](Betrieb-und-Wiederherstellung.md)
+- **Entwickler**
+  - [Quellcode und Verzeichnisse](Quellumfang.md)
+  - [Build und Tests](Build-und-Tests.md)
+  - [Lizenz und Nutzung](Lizenz-und-Nutzung.md)
+- **Stand und Abnahme**
+  - [Entwicklungsstand](Entwicklungsstand.md)
+- **Weiterführend**
+  - [Handbuch](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/blob/main/Slicer-Server/HANDBUCH.md)
+  - [API](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/blob/main/Slicer-Server/API.md)
+  - [Veröffentlichungen](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases)

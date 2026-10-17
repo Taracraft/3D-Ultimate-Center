@@ -111,6 +111,12 @@ slice or printer action was used. Existing runtime screenshots are not proof
 of current source deployment or production acceptance. Existing UI/source
 notices and depicted product marks retain their applicable rights.
 
-The separate private slicer source repository is generated from an explicit
+The separate public slicer source repository is generated from an explicit
 component closure. Its source completeness does not include private runtime
 models/jobs/secrets or grant new rights to distribute engine binaries.
+
+## Handbooks, illustrative artwork and embedded fonts
+
+The Studio and Slicer PDF handbooks combine documentation text, user-supplied branding, AI-assisted illustrative artwork and embedded DejaVu font subsets. Existing text rights follow their documented source scope. This delivery does not apply a blanket MIT, AGPL or custom relicense to the combined PDFs or grant additional rights in branding or depicted marks. The promotional artwork is illustrative and is not a product screenshot or runtime acceptance record.
+
+See [Studio asset and font notices](studio/handbook/assets/ASSET_NOTICES.md) and [Slicer asset and font notices](studio/Slicer-Server/assets/ASSET_NOTICES.md) for the material boundaries and the complete applicable Bitstream Vera copyright and permission notice for the embedded DejaVu fonts. Keep these notices with copies of the corresponding PDFs and artwork.

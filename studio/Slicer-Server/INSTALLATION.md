@@ -1,109 +1,123 @@
-# Installation und Vorpruefung
+# Ultimate Slicer Server einrichten und prüfen
 
-## Status
+Diese Anleitung führt vom passenden Einrichtungsweg zu den dokumentierten Vorprüfungen. Sie richtet sich an Administratoren, die einen vorhandenen Slicer mit Home Assistant verbinden oder den veröffentlichten Quellstand für eine spätere Bereitstellung prüfen möchten. Für den laufenden Betrieb ergänzen [Handbuch](HANDBUCH.md), [Laufzeitkonfiguration](RUNTIME_INSTALLATION.md) und [Betrieb, Updates und Wiederherstellung](OPERATIONS.md) diese Seite.
 
-Docker Compose startet inzwischen den geprueften Dienstkandidaten; siehe
-[RUNTIME_INSTALLATION.md](RUNTIME_INSTALLATION.md). Diese Seite beschreibt den
-weiterhin standardmaessigen Quell-Preflight. Die folgenden Pruefschritte
-starten keine API, keine Engine und keine Auftragsverarbeitung. Es gibt noch
-keinen veroeffentlichten Image-Namen und keinen freigegebenen Image-Digest.
+## 1. Lieferstatus vor Beginn verstehen
 
-## Voraussetzungen fuer die Quellpruefung
+**Ein vollständiger Produktrelease ist noch offen (`FullRelease=false`).** API, Worker, Containerwerkzeuge und native Paketwerkzeuge sind als Quellcode veröffentlicht. Der aktuelle Stand liefert jedoch keinen freigegebenen Runtime-Download, keinen freigegebenen Image-Digest und keine freigegebene Supervisor-Paketreferenz. Das Prüfimage enthält keine Engines; damit ist allein kein echtes Slicing möglich.
 
-- Vollstaendiger Studio-Quellbaum mit Slicer-Server und den bestehenden
-  kanonischen Worker-/Komponentendateien.
-- Python 3.11 oder neuer fuer die Dateipruefung.
-- Ein neues Zielverzeichnis ausserhalb des Repositorys; der Elternordner muss
-  existieren und darf kein Link auf einen anderen Speicherort sein.
-- Keine vorhandene Installation wird fuer diese Pruefung benoetigt.
+Der [Engine-Katalog](engine_catalog.json) enthält `releases=[]`. Bambu Studio, PrusaSlicer und CuraEngine stehen jeweils unter `pending`. Für den nativen Installationsweg gilt `native_deploy_ready=false`; der Containerkandidat bleibt ebenfalls ohne Betriebsfreigabe. Die Installationssperren werden durch die folgenden Prüfungen oder diese Dokumentation nicht aufgehoben.
 
-Vom Studio-Quellwurzelverzeichnis aus:
+Linux/amd64 ist der beschriebene Zielumfang. Andere Architekturen benötigen passende Engines, Bibliotheken und eigene reale Nachweise. Insbesondere ist keine allgemeine ARM-Unterstützung zugesagt. Die Linux-Neuinstallation bleibt der letzte Verifikationstest, nachdem die vorausgehende Produktarbeit abgeschlossen ist. Ein grünes Quellgate, ein gebautes Image oder veröffentlichte Wikiseiten bestätigen keinen vollständigen Produktrelease.
 
-    python Slicer-Server/prepare_context.py --output /tmp/ultimate-slicer-context
-    python /tmp/ultimate-slicer-context/container_check.py check
+## 2. Einrichtungsweg auswählen
 
-Auf Windows kann das Ausgabeziel ein neuer Ordner in einem privaten temporaeren
-Verzeichnis sein. Die kanonischen Quellpfade bleiben innerhalb des Repositorys;
-keine Standortpfade muessen in den Code eingetragen werden.
+| Ausgangslage | Passender Weg | Aktuelle Grenze |
+| --- | --- | --- |
+| Eigenständiger Slicer läuft bereits auf einem anderen Host | Externe HTTPS-Verbindung | TLS, Authentifizierung und API-Kompatibilität müssen passen |
+| Home Assistant besitzt Supervisor und soll eine verwaltete App nutzen | Supervisor-App | Installation mangels freigegebener Paketreferenz gesperrt |
+| Ein Unix-Host wurde bereits ausdrücklich für den Installer provisioniert | Geschützte Hostkopplung | Reale Hosteinrichtung und Abnahmen stehen noch aus |
+| Quellcode soll ohne laufenden Dienst geprüft werden | Quell-Preflight | Kein API-Start, keine Engine und kein Slice |
 
-Erwartet werden source_integrity=verified, container_deploy_ready=false,
-engine_included=false, installation_performed=false und worker_started=false.
-Ein anderes Ergebnis ist keine bestandene Vorpruefung. Nach der Pruefung kann
-ausschliesslich der selbst erzeugte temporaere Kontext wieder entfernt werden.
+Diese Wege sind getrennt. Ein Fehler im Supervisor-Pfad startet keinen Host-Installer. Ohne Supervisor bleiben Studio und externe Slicer-Verbindung grundsätzlich eigenständige Funktionen. HACS ist für die Home-Assistant-Integration vorgesehen und installiert das native Linux-Slicer-Paket nicht.
 
-## Preflight-Image bauen
+## 3. Einen vorhandenen externen HTTPS-Slicer verbinden
 
-Docker Engine und Docker Compose muessen auf dem vorgesehenen Testrechner
-vorhanden sein. Ein Build kann das gewaehlte Basisimage herunterladen. Dies ist
-kein Installationsschritt auf einem produktiven Home-Assistant-Host.
+Benötigt werden die überprüfte HTTPS-Adresse des Servers, dessen API-Secret und ein für Home Assistant vertrauenswürdiges Zertifikat. Das Zertifikat muss zum verwendeten Hostnamen passen. Der Server muss von Home Assistant aus erreichbar sein; passende Bind-Adresse und Firewallregeln gehören zur Einrichtung des Serverhosts.
 
-Waehle ein geprueftes offizielles Python-Linux-Basisimage mit SHA-256-Digest.
-PYTHON_BASE muss einen vollstaendigen Wert wie
-python:<freigegebener-tag>@sha256:<64-hex-zeichen> enthalten. Die Platzhalter
-sind keine lauffaehigen Imageangaben; der konkrete Digest wird bei der
-Container-Abnahme dokumentiert. Es wird keine erfundene Referenz vorgegeben.
+Öffne in Home Assistant **Einstellungen → Geräte & Dienste → Ultimate 3D Studio → Konfigurieren**. Hinterlege die Serveradresse und das API-Secret in den vorhandenen Verbindungsoptionen. Zugangsdaten verbleiben in Home Assistant. Übernimm die Verbindung erst, wenn Zertifikatsprüfung, Authentifizierung und API-Kompatibilität erfolgreich geprüft wurden.
 
-    docker build --build-arg PYTHON_BASE="$PYTHON_BASE" \
-      --tag ultimate-slicer-server-check /tmp/ultimate-slicer-context
+Der dokumentierte Verbindungstest fragt die geschützte Info-API ab. Er installiert keine Software und führt weder einen Slice noch einen Upload oder Druckstart aus. Ein Server kann erreichbar sein, obwohl ihm eine arbeitsfähige Engine fehlt: `GET /api/v1/health` ist öffentlich und kann ohne Engine `degraded` melden; `GET /api/v1/info` benötigt `Authorization: Bearer <Secret>`. Ein HTTP-Erfolg allein bestätigt keine vollständige Slicing-Funktion.
 
-Danach aus dem Studio-Quellwurzelverzeichnis:
+Für einen entfernten Host wird die Zertifikatsprüfung beibehalten. Beim nativen Dienst ist eine Bind-Adresse außerhalb von Loopback ohne vollständige gültige TLS-Konfiguration gesperrt. Alternativ ist laut nativer Dokumentation eine TLS-Terminierung durch einen Reverse-Proxy möglich, während der Slicer an `127.0.0.1` gebunden bleibt. Die konkrete Cross-Host-TLS-Abnahme bleibt ein offener Nachweis.
 
-    SLICER_CHECK_IMAGE=ultimate-slicer-server-check \
-      docker compose -f Slicer-Server/compose.preview.yaml run --rm preflight
+## 4. Supervisor-App: Voraussetzungen und Vorgangsstatus
 
-Die Compose-Datei hat weder Ports noch Daten-/Engine-Mounts. Sie verwendet
-einen unprivilegierten Benutzer, ein nur lesbares Dateisystem, keine
-Netzwerkschnittstelle ausser Loopback und keine zusaetzlichen Capabilities.
-pull_policy=never verhindert einen impliziten Download des Preflight-Images.
-Die Datei ist als JSON geschrieben; JSON ist ein gueltiges YAML-Format.
+Der App-Pfad verwendet den von Home Assistant bereitgestellten Supervisor-Client. Zusätzliche Core-Mounts, Shellzugang oder ein eingebundener Docker-Socket sind dafür nicht vorgesehen. Vorgänge benötigen einen aktiven Administrator; Repository, App-Slug und Version müssen mit der serverseitig freigegebenen Paketreferenz übereinstimmen.
 
-Ein erfolgreicher Lauf belegt nur die Integritaet des eingebauten Quellpakets.
-Ein SHA-Manifest kann fehlende Softwarelizenzen oder fehlende Betriebssystem-
-und Engine-Abhaengigkeiten nicht ersetzen.
+Aktuell fehlt diese Referenz. Daher darf weder das Prüfimage ohne Engines noch ein selbst gewählter Paketname als Ersatz dienen. Der Dialog kann eine bestätigte Installation erst anbieten, wenn die passende freigegebene Referenz vorliegt. Eine Installation und der Start einer App sind getrennte Vorgänge; der beschriebene Adapter startet, aktualisiert oder entfernt keine App.
 
-## Installation des spaeteren Betriebsimages
+Bei einem unterbrochenen Vorgang bleibt eine lokale `pending`-Absicht erhalten. Ein Timeout oder geschlossener Dialog ist kein Anlass, die Installation erneut zu senden. Ist die erwartete App später vollständig installiert und gestoppt vorhanden, kann ein Administrator den dokumentierten Bestandsabgleich bestätigen. Dessen Ergebnis `reconciled_stopped` bestätigt den abgeglichenen gestoppten Bestand; der Ausgang der ursprünglichen Anfrage bleibt unbekannt. Ein bereits laufender Container erscheint als `running_unverified`. Aus diesem Zustand werden keine Zugangsdaten und keine funktionierende Verbindung abgeleitet.
 
-Diese Schritte werden erst nach der Container-Abnahme konkret auslieferbar:
+Details zur Prüfung der App, Version, Schutzbedingungen und Supervisor-Jobs stehen in [Home-Assistant-Einrichtung](SUPERVISOR_APP_SETUP.md).
 
-1. Passendes Image fuer die nachgewiesene Prozessorarchitektur waehlen.
-   Linux/amd64 ist der erste vorgesehene Testumfang; ARM-Unterstuetzung
-   wird erst nach einem echten Engine-Test zugesagt.
-2. Image-Digest, Signatur/Herkunft, Komponentenliste und Lizenzhinweise pruefen.
-3. Persistente Verzeichnisse fuer Konfiguration, Profile, Auftraege und
-   Ergebnisse einrichten; Programmcode und Engine schreibgeschuetzt halten.
-4. API-Secret lokal erzeugen und als Datei einbinden. TLS-Zertifikat mit einem
-   vom Home-Assistant-Host vertrauten Namen bereitstellen.
-5. API und netzisolierten Worker ueber die gepruefte Betriebs-Compose-Datei
-   starten. Der Docker-Socket wird nicht in den Dienst eingebunden.
-6. Health, Authentifizierung und API-Kompatibilitaet pruefen.
-7. In Home Assistant unter Einstellungen -> Geraete & Dienste ->
-   Ultimate 3D Studio -> Konfigurieren Adresse und Secret setzen.
-8. Erstinstallation, Neustart sowie Backup/Restore protokollieren.
+## 5. Bereits provisionierten Unix-Host koppeln
 
-Eine Compose-Kandidatendatei ist vorhanden und synthetisch geprueft; die
-Betriebsfreigabe und vollstaendige Engine-Abnahme stehen noch aus. Die Preview-Datei
-darf nicht durch Hinzufuegen privilegierter Rechte zur Installation umgedeutet
-werden. Die konkrete Engine und ihre Bibliotheken sind ebenfalls noch offen.
+Dieser Weg setzt eine ausdrücklich vorbereitete Hostumgebung voraus. Die lokale Tokenregistrierung stellt keine automatische Host-Erkennung, HTTP-Route oder allgemeine Shell bereit. Sie gehört in eine geschützte Installer-Steuerablage außerhalb der Engine-, Profil- und Datenmounts; Worker und Browser erhalten darauf keinen Zugriff.
 
-## Verbindung und Grenzen
+Die Implementierung beschreibt eine gebundene lokale Installations-ID, Principals mit festgelegten Rechten und geschützte Tokenübergabe. Eine lokale ID allein bestätigt jedoch nicht die Identität eines entfernten TLS-Hosts. Produktive Provisionierung, Rechte, gesicherter Transport und Wiederherstellung benötigen ihre eigenen Nachweise. Deshalb enthält diese Anleitung keinen vereinfachten Kopplungs- oder Installationsbefehl. Der maßgebliche Vertrag steht in [Hostkopplung](HOST_PAIRING.md) und [Installer-Transport](INSTALLER_TRANSPORT.md).
 
-Auf einem entfernten Host benoetigt der Dienst HTTPS mit gueltigem,
-vertrauenswuerdigem Zertifikat. Ein Verbindungscheck startet keinen Slice.
-Slicer-Installation, Slice, Druckerupload und Druckstart sind getrennte Aktionen.
+## 6. Quell-Preflight ohne Dienstinstallation
 
-Ein Docker-Container neben Home Assistant ist kein Teil des HA-Core-Containers.
-Bei Home Assistant OS muss ein eigener unterstuetzter App-Auslieferungsweg
-oder ein separater Linux-Docker-Host vorgesehen werden.
+Für die Dateiprüfung werden ein vollständiger Quellbaum und Python 3.11 oder neuer benötigt. Das Ausgabeziel muss neu sein und außerhalb des Repositorys liegen. Sein Elternverzeichnis muss existieren; verlinkte Pfadketten sind unzulässig. Weder eine vorhandene Slicer-Installation noch Docker werden für diese erste Dateiprüfung benötigt.
 
-## Bei Fehlern
+Die folgenden Originalbefehle gelten ab der Repositorywurzel, im Studio-Gesamtrepository ab `studio/`:
 
-source_digest_mismatch bedeutet: Eine kanonische Quelle passt nicht zu ihrem
-vorhandenen Pruefmanifest. Nicht einfach die Pruefsumme austauschen; zuerst
-Ursache und autoritativen Quellstand ermitteln.
+```sh
+python Slicer-Server/prepare_context.py --output /tmp/ultimate-slicer-context
+python /tmp/ultimate-slicer-context/container_check.py check
+```
 
-output_already_exists bedeutet: Fuer einen erneuten Build einen anderen neuen
-privaten Kontext verwenden oder den eigenen vorherigen Kontext bewusst entfernen.
-Es werden keine bestehenden Ziele automatisch geleert.
+Auf Windows kann stattdessen ein neuer Ordner in einem privaten temporären Verzeichnis als Ausgabeziel verwendet werden. Standortpfade werden dafür nicht in den Programmcode eingetragen. Erwartet werden folgende Ergebnisse:
 
-unexpected_context_file bedeutet: Im Kontext liegt eine nicht erlaubte Datei.
-Insbesondere Konfigurationen und Secrets gehoeren nicht in das Image.
+| Feld | Erwarteter Wert | Bedeutung |
+| --- | --- | --- |
+| `source_integrity` | `verified` | Quellen passen zum Prüfvertrag |
+| `container_deploy_ready` | `false` | Keine Container-Betriebsfreigabe |
+| `engine_included` | `false` | Keine Engine enthalten |
+| `installation_performed` | `false` | Keine Installation erfolgt |
+| `worker_started` | `false` | Kein Worker gestartet |
+
+Ein abweichendes Ergebnis wird untersucht. Prüfsummen werden nicht lediglich an veränderte Dateien angepasst. Für einen weiteren Kontext ist ein neues Ziel zu verwenden; vorhandene Ziele werden nicht automatisch geleert. Konfigurationen, Secrets und Nutzermodelle gehören außerhalb des Build-Kontexts.
+
+## 7. Optionales Prüfimage bauen
+
+Dieser Entwicklerweg benötigt Docker Engine und Docker Compose auf einem separaten vorgesehenen Testrechner. Ein Build kann das gewählte Basisimage herunterladen. Als `PYTHON_BASE` ist eine überprüfte offizielle Python-Linux-Referenz mit SHA-256-Digest erforderlich. Der vorhandene Quelltext nennt dafür das Format `python:<freigegebener-tag>@sha256:<64-hex-zeichen>`; dies ist ein Platzhalter und kein verwendbarer Downloadnachweis.
+
+Mit einem tatsächlich geprüften Wert lauten die dokumentierten Originalbefehle:
+
+```sh
+docker build --build-arg PYTHON_BASE="$PYTHON_BASE" \
+  --tag ultimate-slicer-server-check /tmp/ultimate-slicer-context
+```
+
+Anschließend ab der Repositorywurzel:
+
+```sh
+SLICER_CHECK_IMAGE=ultimate-slicer-server-check \
+  docker compose -f Slicer-Server/compose.preview.yaml run --rm preflight
+```
+
+Die Preview-Konfiguration besitzt keine veröffentlichten Ports und keine Daten- oder Engine-Mounts. Sie arbeitet mit unprivilegiertem Benutzer, schreibgeschütztem Dateisystem und ohne zusätzliche Capabilities. `pull_policy=never` verlangt das zuvor lokal gebaute Prüfimage. Der erfolgreiche Lauf prüft dessen eingebautes Quellpaket. Fehlende Engines, Bibliotheken, Profile, Lizenznachweise und Betriebsabnahmen werden dadurch nicht ersetzt. Die Preview-Datei wird nicht durch zusätzliche Rechte zu einer freigegebenen Installation.
+
+## 8. Containerkandidat und Daten vorbereiten
+
+Die bestehende [Laufzeitdokumentation](RUNTIME_INSTALLATION.md) beschreibt einen Kandidaten mit API, Worker und Telemetrie. Der Worker läuft im dokumentierten Containerpfad ohne Netzwerkzugriff; Programmcode und Engine werden nur lesbar eingebunden. Beide Dienste laufen ohne Root, zusätzliche Capabilities und Docker-Socket. Der gemeinsame PID-Namensraum und dieselbe UID sind dennoch keine vollständige Sicherheitsgrenze zwischen gleichberechtigten Prozessen.
+
+Für einen späteren isolierten Lauf werden getrennte Pfade benötigt: `data/` für neue persistente Daten, `engine/` für den vollständigen Enginebestand, `tls/` für Zertifikat und Schlüssel sowie eine eigene Datei `api-token`. Die dokumentierte UID/GID lautet `65532:65532`. Der Token benötigt mindestens 32 zufällige druckbare ASCII-Zeichen und eingeschränkte Dateirechte. Der Engine-Hostpfad ist die gemeinsame Wurzel der drei Familienverzeichnisse, kein direktes Bambu-Entpackverzeichnis.
+
+Ein leerer Enginepfad kann einen Leerlauftest ermöglichen, aber keinen Slice. Fehlende Bind-Mounts werden nicht automatisch angelegt. Eine Standardbindung an Loopback macht den Dienst ausschließlich auf dem Docker-Host erreichbar. Der konkrete Startablauf bleibt in der Laufzeitdokumentation; vor einer freigegebenen Bereitstellung fehlen insbesondere Engine-, Lizenz-, HA-Verbindungs-, Neuinstallations- und Restore-Nachweise.
+
+## 9. Native Pakete nur innerhalb ihres Prüfvertrags
+
+Die nativen Werkzeuge liegen in [`packages/ultimate-slicer-server/`](../packages/ultimate-slicer-server/README.md). Der Installer prüft notwendige Programme, feste Systempfade und die Voraussetzungen seiner Isolation. Er installiert keine Betriebssystempakete automatisch. Aus dem Verzeichnis mit `install_native.py` lautet die dokumentierte rein lesende Hostprüfung:
+
+```sh
+python3 install_native.py --check-host
+```
+
+Ein erfolgreicher Lauf meldet `host_dependencies: ready` und `installation_performed: false`. Das bestätigt vorhandene Hostabhängigkeiten, keine vollständige Betriebsfähigkeit. Die Installation benötigt zusätzlich einen extern bestätigten Archivhash, rechtmäßig nutzbare Engine-Dateien, deren unabhängiges Manifest sowie vollständige Maschinen-, Prozess- und Filamentprofile. `native_deploy_ready=false` sperrt die Installations- und Upgradeaktionen weiterhin. Eine bestehende Installation wird nicht als Erstinstallationsziel überschrieben.
+
+## 10. Fehler einordnen und späteren Betrieb absichern
+
+| Zustand | Bedeutung und nächster Schritt |
+| --- | --- |
+| `source_digest_mismatch` | Quellbytes und Manifest passen nicht; Ursache und maßgeblichen Quellstand prüfen |
+| `output_already_exists` | Neues Ausgabeziel verwenden oder den eigenen alten Kontext bewusst entfernen |
+| `unexpected_context_file` | Unerlaubte Zusatzdatei im Kontext untersuchen; Secrets gehören nicht hinein |
+| Health `degraded` | Erreichbarkeit kann vorhanden sein, Enginefähigkeit fehlt oder ist eingeschränkt |
+| Recovery-Marker oder `*.slicing.json` | Weitere Jobs gesperrt; Dienste stoppen, Daten sichern und alten Prozess-/Jobzustand untersuchen |
+
+Vor einem späteren Update werden aktive und wartende Jobs erfasst und persistente Daten konsistent gesichert. Zum Rückweg gehören der passende Softwarestand und die dazugehörigen Daten. API-Token, TLS-Schlüssel und Sicherungen bleiben geschützt. Ein Fehlerbericht enthält üblicherweise Version, Architektur, Image-Digest, API-Protokoll, Fehlercode und bereinigte Logauszüge. Das Entfernen eines Containers löscht persönliche Profile, Modelle und Historie nicht automatisch.
+
+Der erste echte Slice setzt die vollständige geprüfte Runtime voraus. Seine Abnahme umfasst Engine und Profile, Ergebnisprüfung sowie kontrollierten Abbruch und Wiederanlauf. Diese Schritte bleiben von Verbindungstest, Installation und Druckstart getrennt. Die maßgeblichen Rechte stehen in [Repository-Lizenzgrenzen](REPOSITORY_NOTICES.md), [Slicer-Lizenz](LICENSE) und [Drittanbieterhinweisen](THIRD_PARTY_NOTICES.md); das Repository besitzt keine pauschale MIT-Zuordnung.

@@ -1,366 +1,501 @@
-# Ultimate 3D Studio – das Handbuch
+# Ultimate 3D Studio · Handbuch
 
-**Vom ersten Modell zur vorbereiteten Druckplatte: Import, CAD, Materialien, Bemalung, Vorschau und Auftragsübersicht in Home Assistant.**
+**Dein Modell. Deine Materialien. Deine Druckplatte.**
 
-[Zur Repo-Startseite](../README.md) · [Detaillierter Funktionskatalog](handbook/FEATURES.md) · [CAD-Beispiele](handbook/CAD_EXAMPLES.md) · [Architektur](ARCHITECTURE.md) · [Slicer-Server](Slicer-Server/README.md)
+Ultimate 3D Studio bringt Modellbibliothek, CAD-Bearbeitung, Materialzuordnung und Druckvorbereitung in Home Assistant zusammen. Dieses Handbuch begleitet dich vom ersten Grundkörper bis zur Prüfung eines vorhandenen Slicer-Ergebnisses. Du kannst direkt mit dem [ersten Projekt](#erstes-projekt) beginnen oder über die [Arbeitsbereiche](#arbeitsbereiche) eine bestimmte Aufgabe nachschlagen.
 
-![Echte Studio-Druckplatte mit Würfel, Zylinder, Ring und Kegel](handbook/images/cad-plate.png)
+[Projektstartseite](../README.md) · [Funktionskatalog](handbook/FEATURES.md) · [CAD-Beispiele](handbook/CAD_EXAMPLES.md) · [Slicer-Dokumentation](Slicer-Server/README.md)
 
-*Beispielansicht der Oberfläche vom Oktober 2026. [CAD-Beispiele](handbook/CAD_EXAMPLES.md).*
+![Vier synthetische Grundkörper auf der Studio-Druckplatte](handbook/images/cad-plate.png)
 
-## Inhalt
+*Originalaufnahme einer bestehenden Installation. Herkunft und Bildhinweise stehen in [SOURCE_NOTICES.md](../SOURCE_NOTICES.md). Die Aufnahme dokumentiert die Oberfläche, nicht die Abnahme des aktuellen Quellstands.*
 
-- [Was das Studio kann](#funktionen)
-- [Einrichtung und Voraussetzungen](#einrichtung)
-- [Schnellstart ohne Druckstart](#schnellstart)
-- [Modelle, Werkzeuge und Druckplatten](#modelle)
-- [Materialsysteme und Profile](#material)
-- [Bemalung und Mehrfarben](#malen)
+**Aktueller Stand:** Die geprüfte Matrix umfasst 77 Funktionen und 41 Zusatzanforderungen. Viele vollständige Funktionsabnahmen sind offen. Beschriebene Quellfunktionen, ein erfolgreiches Gesamtgate und veröffentlichte Dokumentation sind keine vollständige Produktabnahme. Das Studio wird weiterentwickelt; reale Installations-, Hardware- und Betriebsnachweise werden gesondert geführt. Den Auslieferungsstand nennt [RELEASE_STATUS.md](Slicer-Server/RELEASE_STATUS.md).
+
+## Orientierung
+
+- [Arbeitsbereiche und Begriffe](#arbeitsbereiche)
+- [Dein erstes Projekt](#erstes-projekt)
+- [Modelle importieren und Projekte speichern](#projekte)
+- [Galerie und Druckerspeicher](#galerie)
+- [MakerWorld gezielt nutzen](#makerworld)
+- [CAD: Objekte bearbeiten und Druckplatten aufbauen](#cad)
+- [Bemalung, Formen und Text](#bemalung)
+- [Materialkanäle, AMS und externe Spule](#material)
+- [Profile, Düse und G-Code](#profile)
 - [Vorschau und Analyse](#vorschau)
-- [Galerie, SD-Karte und MakerWorld](#quellen)
 - [Aufgaben, Verlauf und Druckerübersicht](#aufgaben)
-- [Tastenkürzel](#tasten)
-- [Typische Fragen und Fehlerhilfe](#hilfe)
-- [Entwicklung und Downloads](#stand)
+- [Kamera](#kamera)
+- [Einrichtung, HACS und Slicer-Verbindung](#einrichtung)
+- [Bedienung am Smartphone](#mobil)
+- [Sichern, aktualisieren und Fehler melden](#betrieb)
+- [Fehlersuche](#fehlersuche)
+- [Tastenkürzel und Glossar](#nachschlagen)
 
-<a id="funktionen"></a>
-## 1. Was das Studio kann
+<a id="arbeitsbereiche"></a>
+## 1. Deinen Arbeitsbereich finden
 
-Die Navigation umfasst neun Arbeitsbereiche. Auf schmalen Bildschirmen liegen die Einträge in einer horizontal scrollbaren Leiste.
+Die Oberfläche besitzt neun sichtbare Arbeitsbereiche. Auf einem breiten Bildschirm stehen sie links; auf schmalen Bildschirmen liegen sie in einer waagerecht scrollbaren Leiste. Der Bereich **3D-Studio** vereint Vorbereitung, Farbbearbeitung und Vorschau. Für diese Ansichten musst du keinen zweiten CAD-Bereich suchen.
 
-| Bereich | Dafür ist er da |
+| Arbeitsbereich | Hier erledigst du das |
 | --- | --- |
-| **Steuerzentrale** | Verbundene Drucker, gemeldeten Zustand, Druckfortschritt, Störungen und Kamera überblicken |
-| **Galerie** | Lokale Modelle verwalten, Ordner und Dateien organisieren und Modelle ins Studio übernehmen |
-| **3D-Studio** | Modelle und Grundkörper bearbeiten, Druckplatten aufbauen, Materialien zuordnen und Slices vorbereiten |
-| **Materialsysteme** | Konfiguration, erkannte Hardware, belegte Materialfächer und externe Spule voneinander unterscheiden |
-| **Profile** | Drucker, Düsen, Filamente, Druckparameter, Sounds, G-Code-Bausteine und Druckplatten verwalten |
-| **Aufgaben** | Warteschlange und Auftragszustände ansehen und unterstützte Verwaltungsaktionen ausführen |
-| **Verlauf** | Vergangene Aufträge und gespeicherte Ergebnisse nachvollziehen |
-| **System** | Verbindungs- und Diagnoseinformationen einsehen |
-| **Slicing-Server** | Den getrennten Slicer und seine gemeldeten Zustände überblicken |
+| **Steuerzentrale** | Verbundenen Drucker, Fortschritt, Druckphasen, Störungen und Kamera überblicken |
+| **Galerie** | Bibliothek durchsuchen, Dateien organisieren sowie SD-Karte und MakerWorld öffnen |
+| **3D-Studio** | Modelle bearbeiten, mehrere Druckplatten aufbauen, bemalen und die Vorschau prüfen |
+| **Materialsysteme** | Konfiguriertes System, erkannte Hardware, belegte Fächer und externe Spule vergleichen |
+| **Profile** | Drucker-, Düsen-, Filament-, Druck- und Plattenprofile sowie Sound- und G-Code-Bausteine verwalten |
+| **Aufgaben** | Warteschlange und die verfügbaren Auftragsaktionen ansehen |
+| **Verlauf** | Vergangene Einträge und ihren gemeldeten Ausgang nachvollziehen |
+| **System** | Verbindungen und Diagnoseinformationen untersuchen |
+| **Slicing-Server** | Serverzustand, Modelle, Engines, Slicer-Aufträge und Diagnose ansehen |
 
-Der [ausführliche Funktionskatalog](handbook/FEATURES.md) schlüsselt die einzelnen Funktionen, ihren Nutzen, Grenzen und Quell-Einstiegspunkte auf. Die [CAD-Beispielanleitung](handbook/CAD_EXAMPLES.md) zeigt die Druckplatte mit echten Grundkörpern statt einer leeren Arbeitsfläche.
+Vier Dinge begleiten dich durch das Studio: Eine **Datei** liefert Geometrie oder Projektdaten. Ein **Projekt** enthält deinen bearbeitbaren Arbeitsstand. Eine **Druckplatte** bildet einen getrennten Aufbau innerhalb des Projekts. Ein **Auftrag** beschreibt die Verarbeitung oder einen späteren Druckablauf. Merke dir diese Trennung besonders bei Import, Löschen und Wiederholen: Eine Galeriedatei bleibt eine andere Einheit als das daraus bearbeitete Objekt.
 
-### Die wichtigsten Werkzeuge auf einen Blick
+Die Kopfzeile der Karte zeigt Version und Build. Diese Angaben helfen beim Vergleichen einer Anleitung mit deiner Installation. Ein Screenshot einer älteren Installation kann andere Profilwerte oder einen anderen Arbeitsstand zeigen. Entscheidend für deine Bedienung ist die tatsächlich geladene Oberfläche.
 
-| Aufgabe | Vorhandene Werkzeuge |
+<a id="erstes-projekt"></a>
+## 2. Dein erstes Projekt in sieben Schritten
+
+Für den Einstieg genügt ein Würfel. So lernst du Auswahl, Transformation und Speichern kennen, ohne eine Datei aus dem Internet zu benötigen. Die folgenden Schritte erzeugen weder einen Slice noch einen Druckauftrag.
+
+1. Öffne **3D-Studio** und sichere gegebenenfalls den bereits geöffneten Arbeitsstand.
+2. Wähle **Einfügen → Würfel**. Der Grundkörper erscheint auf der aktiven Druckplatte.
+3. Klicke den Würfel in der Objektliste an. Prüfe, dass genau dieses Objekt ausgewählt ist.
+4. Wähle **Verschieben**, **Drehen** oder **Skalieren**. Mit **Frei**, **X**, **Y** und **Z** begrenzt du die Bearbeitung auf die gewünschte Richtung.
+5. Nutze **Zentrieren** und **Auf Druckbett**. Prüfe anschließend Lage und Abmessungen.
+6. Vergleiche Drucker, Düse, Druckprofil, Druckplattenoberfläche und Filamentzuordnung mit deinem geplanten Aufbau.
+7. Wähle **Datei → Projekt auf HA speichern** und kontrolliere die Rückmeldung.
+
+**Ergebnis:** Ein gespeicherter, bearbeitbarer Studio-Arbeitsstand. Er ist die Grundlage für weitere Geometrie, Materialzuordnung und eine spätere Druckvorbereitung.
+
+**Wenn etwas fehlt:** Bei einer leeren Arbeitsfläche zuerst die aktive Druckplatte und die Objektliste prüfen. **Ansicht → Alles einpassen** richtet die Kamera wieder auf die Szene aus. Ist das Speichern fehlgeschlagen, die sichtbare Fehlermeldung beachten und den geöffneten Stand erhalten, bis der Fehler geklärt ist.
+
+Das gleiche Prinzip funktioniert mit mehreren Grundkörpern. Erzeuge unter **Einfügen** zusätzlich einen Zylinder, einen Ring und einen Kegel. Wähle **Anordnen**, betrachte die Abstände und passe die Ansicht ein. Die [CAD-Beispielseite](handbook/CAD_EXAMPLES.md) zeigt diesen Aufbau mit Originalaufnahmen.
+
+<a id="projekte"></a>
+## 3. Dateien, Modelle und Projekte
+
+Das Menü **Datei** führt zu lokaler STL-/3MF-Auswahl, Galerie, SD-Karte und MakerWorld. Außerdem findest du dort Projektaktionen und den Objektexport. Wähle den Eingang nach dem, was du übernehmen möchtest: eine Geometrie, einen gespeicherten Studio-Stand oder ein bestimmtes Anbieterprofil.
+
+**STL** beschreibt Modellgeometrie. Prüfe nach dem Import Größe, Orientierung und Materialzuordnung. **3MF** kann darüber hinaus Objektstruktur und Materialinformationen enthalten. Welche Angaben übernommen werden, hängt vom Dateiinhalt und dem unterstützten Importumfang ab. Herstellererweiterungen oder fremde Projekteinstellungen sind keine allgemeine Kompatibilitätszusage.
+
+Ein lokales Modell öffnen:
+
+1. Sichere den bestehenden Arbeitsstand, bevor du ihn durch einen anderen ersetzt.
+2. Öffne **Datei → Lokale STL/3MF öffnen** und wähle die passende Datei.
+3. Warte auf das Ergebnis und prüfe Objektliste, aktive Platte und sichtbare Geometrie.
+4. Vergleiche Abmessungen sowie Drucker-, Düsen- und Materialauswahl.
+5. Speichere den übernommenen Stand als Studio-Projekt.
+
+**Ergebnis:** Die unterstützten Inhalte stehen für die weitere Bearbeitung bereit. Eine Importbestätigung bedeutet noch keine Druckbarkeitsprüfung.
+
+**Fehlerpfad:** Bei einer abgewiesenen Datei die gemeldete Ursache behandeln. Öffne anschließend nicht blind weitere Dateien in denselben ungeklärten Vorgang. Prüfe zuerst, welcher Projektstand noch sichtbar ist und ob die gewünschte Auswahl erhalten blieb.
+
+**Projekt auf HA speichern** hält deinen Studio-Arbeitsstand fest; **HA-Projekt öffnen** lädt einen solchen Stand. **Objekt exportieren** ist ein eigener Weg für Modellgeometrie. Entscheide deshalb vor dem Export, ob du später weiterarbeiten oder ein Modell in einem anderen Werkzeug verwenden möchtest. Ein exportiertes Modell enthält nicht automatisch fertige Druckbahnen.
+
+Benutze für größere Bearbeitungsschritte nachvollziehbare Projektstände. Sichere beispielsweise den importierten Aufbau, bevor du Teile trennst oder eine aufwendige Bemalung beginnst. Rückgängig und Wiederholen helfen innerhalb der Bearbeitung; eine dauerhafte Sicherung bleibt die Grundlage, wenn du das Gerät oder den Browser wechselst.
+
+<a id="galerie"></a>
+## 4. Eine übersichtliche Modellbibliothek
+
+Die Galerie bündelt drei Zugänge: **Galerie**, **SD-Karte** und **MakerWorld**. In der lokalen Galerie stehen Ordnerbaum, Suchfeld und Sortierung bereit. Mit **Raster** und **Liste** wechselst du die Darstellung. Die Auswahl **Name A–Z**, **Neueste zuerst** oder **Größte zuerst** hilft beim Wiederfinden größerer Bestände.
+
+Dateien in die Bibliothek aufnehmen:
+
+1. Öffne den gewünschten Zielordner oder lege mit **Neuer Ordner** einen passenden an.
+2. Wähle **Hochladen** und die gewünschten Dateien. Die Galerieauswahl bietet STL, 3MF und OBJ an; der direkte Studio-Dateieingang bietet STL und 3MF.
+3. Beobachte Fortschritt, aktuellen Dateinamen und die Liste erfolgreicher Übernahmen.
+4. Prüfe bei einem vorhandenen Ziel die angebotene Ersetzen-Entscheidung.
+5. Öffne den übernommenen Eintrag über **3D-Studio** oder **Im 3D-Studio öffnen**.
+
+**Ergebnis:** Die Datei liegt in der Bibliothek und kann in einen Studio-Arbeitsstand übernommen werden. Ein Galerie-Upload überträgt das Modell nicht automatisch zum Drucker.
+
+**Fehlerpfad:** Bei einem teilweise fehlgeschlagenen Upload unterscheiden, welche Dateien erfolgreich waren und welche nicht. Einen vollständigen Stapel nicht allein wegen einer einzelnen Fehlermeldung nochmals ersetzen. Die Galerie meldet außerdem, wenn eine laufende Änderung zunächst beendet werden muss.
+
+Für mehrere Einträge gibt es **Alle auswählen**, **Auswahl aufheben**, **Kopieren**, **Verschieben** und **Löschen**. Kontrolliere vor einer Sammelaktion die Auswahlanzahl und den Zielordner. Die Bestätigungsdialoge nennen betroffene Pfade beziehungsweise Einträge. Ein Dateiname allein ist kein ausreichender Grund, eine vermeintliche Dublette zu entfernen.
+
+**Duplikate prüfen** beginnt mit einer Analyse. **ZIP-Export** und **ZIP-Import** unterstützen die Übertragung einer Bibliotheksauswahl. Beim Import zeigt die Oberfläche die geplante Zahl der Dateien und Ordner sowie vorhandene Konflikte. Lies insbesondere den Hinweis auf Dateien, die ersetzt würden, bevor du bestätigst.
+
+Die **SD-Karte** gehört zum angebundenen Druckerspeicher. Ihr Inhalt und die verfügbaren Aktionen hängen vom Druckerzugang ab. Eine Datei auf der SD-Karte, eine Galeriedatei und ein gespeichertes Projekt sind unterschiedliche Bestände. Prüfe bei jeder Löschaktion, welchen davon du gerade bearbeitest.
+
+<a id="makerworld"></a>
+## 5. MakerWorld: vom Fund zur bewussten Auswahl
+
+MakerWorld erreichst du über die Galerie oder den gleichnamigen Studio-Zugang. Die Suche verwendet kombinierbare Suchbegriffe und Tags. Mit **Filter hinzufügen** übernimmst du einen Begriff; einzelne Filter lassen sich entfernen, **Alle Filter entfernen** setzt die Kombination zurück. Die angebotene Sortierung umfasst Relevanz, Name, Downloads und Likes.
+
+**Mehr laden** ruft weitere Treffer ab. Eine bereits sichtbare Trefferliste ist daher nicht automatisch der vollständige Bestand. Falls eine Suche leer bleibt, entferne zunächst einzelne Filter, bevor du einen Fehler des Imports vermutest. Suche und Übernahme sind getrennte Schritte.
+
+Ein Modell gezielt übernehmen:
+
+1. Öffne die Details des gewünschten Designs und prüfe Titel, Urheberangaben und Lizenzhinweise.
+2. Wähle unter **Druckdateien** die konkrete Variante. Die Druckerfilter helfen, geeignete Angebote einzugrenzen.
+3. Vergleiche Druckermodell, Plattenzahl und die gelieferten Angaben zum Druckprofil.
+4. Wähle das **Ziel-Druckerprofil** für die Übernahme.
+5. Nutze **Im Studio öffnen** für die Bearbeitung, **Galerie** für die Bibliothek oder **3MF** für den entsprechenden Dateidownload.
+6. Prüfe im Studio die tatsächlich übernommenen Platten, Düse, Druckprofil und Materialkanäle.
+
+**Ergebnis:** Die bewusst gewählte Variante wird über den vorgesehenen Weg übernommen. Das Designbild allein bestimmt nicht, welche 3MF-Variante du geladen hast.
+
+**Fehlerpfad:** Meldet der Dialog ein fehlendes Ziel-Druckerprofil, ergänze diese Auswahl. Bei Anmeldung, Kontozustand, Region, Ratenlimit oder Anbieterfehler gilt die konkrete Meldung. Eine andere Modellvariante zu öffnen ersetzt keine gültige Anmeldung und klärt keine widersprüchliche Profilzuordnung.
+
+Ein Design kann mehrere Druckprofile beziehungsweise Varianten enthalten. Empfehlungen verweisen auf andere Designs und sind keine zusätzlichen Modellteile der aktuellen Auswahl. Kontrolliere beim Wechsel zwischen Details weiterhin, welches Design und welche Druckdatei aktiv sind.
+
+Die Detailoberfläche kann Beschreibungen, Kommentare, Bewertungen, Antworten und Empfehlungen des Anbieters anzeigen. Sichtbare soziale Bedienelemente sind derzeit keine Zusage, dass du Reaktionen, Antworten, Fotos oder Rezensionen aus dem Studio veröffentlichen kannst. Die aktuelle Quelle enthält dafür ausdrücklich noch nicht ausgeführte Aktionen. Für dieses Handbuch gelten Lesen, Auswählen und die beschriebenen Importwege als getrennte Funktionen.
+
+Beachte die Lizenz des konkreten Modells vor Verwendung oder Weitergabe. Ein Downloadknopf erweitert weder Nutzungsrechte noch Rechte an Vorschaubildern oder Marken. Bewahre bei eigenen Sammlungen die zugehörigen Herkunftsangaben auf.
+
+<a id="cad"></a>
+## 6. CAD: den Aufbau auf der Druckplatte gestalten
+
+Im 3D-Studio stehen Objektliste, Arbeitsfläche, Werkzeugleisten und Prozessoptionen nebeneinander. Obere, linke und rechte Leisten lassen sich ein- und ausklappen. Verwende diese Möglichkeit, wenn du mehr Platz für die Szene benötigst; die Modellgeometrie bleibt dabei erhalten.
+
+![Originalaufnahme des CAD-Arbeitsbereichs](handbook/images/cad-overview.png)
+
+### Auswählen und transformieren
+
+Wähle ein Objekt in der Liste oder auf der Arbeitsfläche. **Strg+Klick** und **Shift+Klick** unterstützen die Mehrfachauswahl. Achte auf den sichtbaren Auswahlzustand, bevor du dieselbe Aktion auf mehrere Modelle anwendest. Modelle und Malbereiche besitzen eigene Einträge.
+
+| Werkzeug | Wirkung und anschließende Kontrolle |
 | --- | --- |
-| Geometrie bearbeiten | Auswahl, Verschieben, Drehen, Skalieren, Spiegeln an X/Y/Z |
-| Auf dem Bett ausrichten | Zentrieren, Auf Druckbett, Flach legen, automatisch anordnen |
-| Geometrie untersuchen | Messen, Mesh prüfen/reparieren, geometrisch teilen |
-| Formen erzeugen | Würfel, Zylinder, Kugel, Kegel, Ring, Platte, First-Layer-Testgeometrie |
-| Eine Szene organisieren | Mehrfachauswahl, Duplizieren, Kopieren, Ausschneiden, Einfügen, Löschen |
-| Arbeitsstand sichern | Rückgängig/Wiederholen, Projekt auf HA speichern, HA-Projekt öffnen, Objektexport |
-| Oberfläche bemalen | Pinsel, Stift, Radierer, Rechteck, Kreis, Linie, Text |
-| Druck vorbereiten | Drucker-/Düsen-/Filament-/Prozess-/Plattenwahl, Haftung, Stützen und weitere Prozessoptionen |
-| Ergebnis prüfen | Materialfarben, Schichten, Toolpaths, Diagnosefilter und Analyseinformationen |
+| **Verschieben** | Position verändern; Bettgrenzen und Auflage prüfen |
+| **Drehen** | Orientierung verändern; Unterseite und Überhänge betrachten |
+| **Skalieren** | Abmessungen ändern; Größe und Proportionen vergleichen |
+| **Spiegeln X/Y/Z** | Geometrie an der gewählten Achse spiegeln; Zuordnungen prüfen |
+| **Zentrieren** | Auswahl mittig ausrichten; Abstände zu anderen Objekten prüfen |
+| **Auf Druckbett** | Unterseite auf die Bettebene setzen |
+| **Flach legen** | Eine geeignete flache Orientierung herstellen; Ergebnis betrachten |
+| **Anordnen** | Objekte auf der Platte verteilen; Bettrand und Zwischenräume prüfen |
 
-Die Werkzeuge arbeiten auf unterschiedlichen Ebenen: Ein Objekt gehört zu einer Druckplatte; ein Malbereich gehört zu Modellflächen; ein Slice ist ein eigener Auftrag. Diese Unterscheidung hilft besonders beim Löschen, beim Plattenwechsel und beim erneuten Laden einer Vorschau.
+So richtest du mehrere Modelle aus:
+
+1. Lade die Modelle auf die gewünschte aktive Platte.
+2. Kontrolliere einzeln ihre Abmessungen und setze sie auf das Druckbett.
+3. Wähle die betroffenen Objekte und verwende bei Bedarf **Anordnen**.
+4. Prüfe die Szene aus mehreren Blickrichtungen und mit **Alles einpassen**.
+5. Speichere den Aufbau vor weiteren Eingriffen.
+
+**Ergebnis:** Eine übersichtlich angeordnete Platte. Geometrische Platzierung ersetzt noch keine Prüfung von Stützen, Druckreihenfolge oder realen Maschinenfreiräumen.
+
+### Duplizieren, teilen und reparieren
+
+**Duplizieren** erzeugt eine weitere Instanz der Auswahl. Kopieren, Ausschneiden und Einfügen unterstützen das Umorganisieren. Prüfe anschließend den Platzbedarf. **Messen** hilft, Auswahl und Dimensionen einzuschätzen. **Teilen** beziehungsweise **Geometrisch teilen** zerlegt ein geeignetes ausgewähltes Modell; die Werkzeugleiste verlangt dafür genau eine Modellauswahl.
+
+**Mesh prüfen** bearbeitet unterstützte Geometrieprobleme. Bewahre vor Reparatur oder Teilung einen gespeicherten Ausgangsstand auf und kontrolliere das Ergebnis. Eine Reparatur kann unpassende oder widersprüchliche Materialzuordnungen nicht durch bloßes Anzeigen eines fehlerfreien Bildes auflösen.
+
+### Druckplatten und eigene Grundkörper
+
+**Druckplatte → Neue Druckplatte** oder das Plus an der Plattenleiste legt einen weiteren Aufbau an. Vor jedem Import und Slice die aktive Platte prüfen. Beim Entfernen einer Platte auch ihre enthaltenen Objekte berücksichtigen. Das Entfernen einer Platte ist keine allgemeine Bereinigung ungenutzter Bibliotheksdateien.
+
+Unter **Einfügen** gibt es Würfel, Zylinder, Kugel, Kegel, Ring und Platte. Die Form **Platte** ist ein Modellgrundkörper und nicht die Maschinenoberfläche. Der **First-Layer-Test** erzeugt eine düsenabhängige Testgeometrie mit TaraCraft-T und eigener Prozessvorbereitung. Wähle zuvor eine unterstützte Düse; bei bereits belegter Platte legt der Quellablauf dafür eine zusätzliche Platte an. Prüfe Bettgröße und Werte vor einer späteren Verwendung.
+
+<a id="bemalung"></a>
+## 7. Bemalung: Material auf Modellflächen legen
+
+Bemalung weist Modellflächen einem Druckmaterial zu. Die sichtbare Farbe folgt dem gewählten Materialkanal. Eine frei gewählte Bildschirmfarbe ist damit nicht gleichbedeutend mit einem verfügbaren Filament. Im Malwerkzeug ist die Farbanzeige entsprechend an **Druckfilament** gebunden.
+
+Bereite die Materialquelle und die tatsächlich verfügbaren Kanäle vor, bevor du größere Flächen bemalst. Bei **Kein belegter AMS-Slot** zunächst die Materialsysteme und die belegten Fächer prüfen. Eine Materialquelle nur im Projekt auszuwählen erzeugt keine passende Hardwarebelegung.
+
+Eine Fläche bemalen:
+
+1. Wähle das gewünschte Modell auf der aktiven Platte.
+2. Wähle unter **Druckfilament** den passenden belegten Materialkanal.
+3. Aktiviere **Malen AN** und wähle **Pinsel** oder **Stift**.
+4. Passe **Größe** an und ziehe über die sichtbare Modelloberfläche.
+5. Betrachte die Fläche aus geeigneten Blickrichtungen und prüfe die Malbereiche in der Liste.
+6. Speichere den Arbeitsstand.
+
+**Ergebnis:** Modellflächen sind einem ausgewählten Materialkanal zugeordnet. Erst der weitere Export- und Slicer-Ablauf zeigt, ob die Zuordnung für einen konkreten Auftrag vollständig verarbeitet werden kann.
+
+**Fehlerpfad:** Bleibt die Wirkung aus, prüfe zuerst Modellauswahl, Malmodus und Materialkanal. Versuche nicht, fehlende Kanäle durch eine andere Bildschirmfarbe zu ersetzen. Ist Verschieben oder Drehen gesperrt, verlasse den Malmodus mit **Malen AUS** und wähle anschließend das Transformationswerkzeug.
+
+### Pinsel, Formen und Radierer
+
+**Pinsel** und **Stift** sind für freie Striche vorgesehen. **Radierer** entfernt Bemalung lokal. Mit **Rechteck**, **Kreis** und **Linie** ziehst du vom Startpunkt zum gewünschten Ende. Prüfe das Ergebnis auf der Modelloberfläche: Eine Form auf einem gewölbten Objekt lässt sich nicht allein anhand ihres Aufziehrahmens beurteilen.
+
+Die Werkzeuggröße hilft, Details oder größere Flächen zu bearbeiten. Beginne bei kleinen Motiven mit einem überschaubaren Bereich. Betrachte Kanten und gekrümmte Flächen anschließend genauer. Ein gelungenes Farbbild ist keine Aussage über die mechanische Druckqualität.
+
+### Text platzieren
+
+1. Gib im Feld **Text** die gewünschte kurze Beschriftung ein.
+2. Passe **Schriftgröße** an und wähle das Werkzeug **Text**.
+3. Kontrolliere erneut **Druckfilament**.
+4. Klicke an die gewünschte Stelle der Modelloberfläche.
+5. Prüfe die vollständige Beschriftung aus mehreren Blickrichtungen und speichere.
+
+**Ergebnis:** Eine materialgebundene Beschriftung der Modelloberfläche. Das Textwerkzeug ist keine Zusage für frei extrudierte dreidimensionale Schriftkörper.
+
+**Fehlerpfad:** Bei unpassender Position zunächst rückgängig machen oder den betreffenden Malbereich bearbeiten. Nicht durch zusätzliche übereinanderliegende Beschriftungen versuchen, einen ungeklärten ersten Versuch zu verdecken.
+
+Malbereiche bleiben von importierten Modellobjekten getrennt. Prüfe vor **Entf** oder **Löschen**, ob du Bemalung, ein Modell oder mehrere Einträge ausgewählt hast. Mehrfarbige Arbeit benötigt eindeutige geeignete Materialkanäle; eine einzelne externe Spule stellt keinen automatischen Mehrfarbenweg bereit.
+
+<a id="material"></a>
+## 8. Materialsysteme: Konfiguration und Wirklichkeit vergleichen
+
+Der Bereich **Materialsysteme** trennt vier Angaben: **Konfiguriertes System**, **Live erkannt**, **Aktive Studio-Quelle** und **Belegte Fächer**. Diese Trennung erklärt viele scheinbare Widersprüche. Ein konfiguriertes AMS ist nicht zwangsläufig erreichbar; eine geladene externe Spule kann vorhanden sein, während die aktive Studio-Platte weiterhin eine andere Quelle verwendet.
+
+![Originalaufnahme der Materialsystem-Ansicht](handbook/images/materials.png)
+
+Vor einer Materialzuordnung:
+
+1. Wähle in **Materialsysteme** den richtigen Drucker.
+2. Verwende bei Bedarf **Materialsysteme synchronisieren**.
+3. Vergleiche konfiguriertes System und Live-Erkennung.
+4. Öffne die tatsächlich gemeldeten Fächer beziehungsweise die externe Spule.
+5. Prüfe Material, Farbe, Belegung und die Information zur geladenen Zuführung.
+6. Vergleiche diese Angaben mit der aktiven Studio-Quelle und den gewählten Filamentprofilen.
+
+**Ergebnis:** Du weißt, welche Quelle der Aufbau verwendet und welche Materialien das System tatsächlich meldet.
+
+**Fehlerpfad:** Fehlen Fächer oder werden keine Materialien gemeldet, zuerst Verbindung und Aktualität prüfen. Leere oder unbekannte Einträge sind keine zusätzlichen Farbkanäle. Ein Systemtyp in einer Auswahlliste beweist keine vollständige reale Hardwareunterstützung für jede Variante.
+
+Die Slotansicht unterscheidet **belegt**, **leer** und **zur Düse geladen**. RFID-Daten können Angaben verbindlich vorgeben. Die Oberfläche kennzeichnet gesperrte Felder, beispielsweise bei erkanntem RFID oder während eines laufenden Drucks. Lies den jeweiligen Hinweis, statt widersprüchliche Angaben an anderer Stelle zu erzwingen.
+
+Die **externe Spule** ist ein eigener Zuführweg mit eigener Profilzuordnung. Kontrolliere besonders eine Meldung, dass sie zwar am Drucker geladen, aber noch nicht als Studio-Quelle gewählt ist. Materialquelle, reale Zuführung und Profil sollen denselben geplanten Aufbau beschreiben. Die Auswahl im Studio lädt das Filament nicht allein dadurch mechanisch in den Drucker.
+
+Die für einen Auftrag gespeicherten Materialfarben gehören zu dessen Zustand. Wenn du später eine andere Spule einlegst, muss ein früheres Ergebnis weiterhin anhand seiner damaligen Zuordnung beurteilt werden. Das ist besonders beim Wiederholen eines älteren Auftrags relevant.
+
+<a id="profile"></a>
+## 9. Profile passend kombinieren
+
+Profile beantworten verschiedene Fragen: Welche Maschine arbeitet? Welche Düse ist eingesetzt? Welches Filament wird verwendet? Welche Qualität und welche Oberfläche sind gewünscht? Wähle diese Angaben getrennt. Eine plausible Filamentbezeichnung ersetzt keine passende Maschinen- oder Düsenwahl.
+
+![Originalaufnahme der Profilverwaltung](handbook/images/profiles.png)
+
+| Profilgruppe | Wofür sie zuständig ist |
+| --- | --- |
+| **Drucker** | Maschinenmodell und Druckraum |
+| **Düse** | Durchmesser und Düsenmaterial |
+| **Filamentprofile** | Hersteller, Material, Variante und Materialeigenschaften |
+| **Druckprofile** | Schichthöhe, Wände, Infill, Geschwindigkeit und Qualität |
+| **Druckplatten** | Oberfläche, Abmessungen und zugehörige Werte |
+| **Startsound / Endsound** | Gesonderte Sound-Bausteine |
+| **G-Code 1 / G-Code 2** | Maschinenstart beziehungsweise Maschinenende gemäß Profilvertrag |
+
+Eine Kombination prüfen:
+
+1. Wähle Maschine beziehungsweise Zieldrucker und die tatsächlich eingesetzte Düse.
+2. Wähle Druckplattenprofil und Druckprofil.
+3. Ordne für die verwendete Quelle passende Filamentprofile zu.
+4. Vergleiche Schichthöhe und weitere Werte mit den angezeigten Grenzen.
+5. Prüfe eigene Prozessüberschreibungen und speichere den Projektstand.
+
+**Ergebnis:** Ein nachvollziehbarer Profilaufbau. Für den A1 sind Quellverträge für 0,2, 0,4, 0,6 und 0,8 mm vorhanden. Daraus folgt keine pauschale Abnahme jeder Düse, Oberfläche oder Hardwarefamilie.
+
+**Fehlerpfad:** Bei ungeeigneten Vorschlägen zuerst Maschine, Düsenprofil, Materialquelle und Profilherkunft vergleichen. Ein manuell gesetzter Wert darf eine gemeldete Unverträglichkeit nicht nur optisch überdecken.
+
+Ein leeres Überschreibungsfeld verwendet den vorgesehenen Profilstandard. Ein Platzhalter ist kein bereits eingetragener eigener Wert. Wenn du beispielsweise eine Schichthöhe ausdrücklich setzt, behalte diese Abweichung bei späteren Profilwechseln im Blick. Prüfe auch Werte, die du in einem früheren Versuch gesetzt hast.
+
+### Cloud und eigene Profile
+
+**Cloud synchronisieren** ist eine bewusste Aktion im Bereich **Profile**. Lokale Profile und bereits synchronisierte Cloudprofile sind unterscheidbar. Ein lokal verfügbarer synchronisierter Stand bedeutet nicht, dass der Anbieter gerade erreichbar ist. Kontrolliere bei Fehlern Anmeldung und Rückmeldung, bevor du denselben Vorgang wiederholst.
+
+### Sechs getrennte G-Code- und Sound-Abschnitte
+
+Der Profilvertrag trennt Maschinenstart, Maschinenende, Filamentstart, Filamentende sowie Startsound und Endsound. Filamentbezogene Start-/Endteile gehören zum Filamentprofil. Die getrennten Sound- und Maschinenbausteine dürfen nicht allein durch eine Filamentauswahl unbemerkt ersetzt werden.
+
+Ändere solche Inhalte nur, wenn du ihre Wirkung für die konkrete Maschine kennst. Ein Sound-Baustein besteht ebenfalls aus ausführungsrelevanten Befehlen. Die Oberfläche ersetzt dabei keine Prüfung des später tatsächlich erzeugten Auftrags.
+
+<a id="vorschau"></a>
+## 10. Den richtigen Zustand ansehen
+
+Im Studio wechselst du zwischen **Vorbereiten**, **Farben** und **Vorschau**. Die Vorbereitung zeigt den Aufbau; die Farbansicht hilft bei Materialzuordnung und Bemalung. Die Vorschau benötigt passende bereits geslicte Daten, um Druckbahnen darzustellen. Eine leere Toolpath-Ansicht bei einem noch nicht geslicten Modell ist deshalb kein Beleg für verlorene Geometrie.
+
+Ein vorhandenes Ergebnis prüfen:
+
+1. Öffne die gewünschte Platte beziehungsweise den dazugehörigen Auftrag.
+2. Wechsle in **Vorschau** und prüfe, welches Ergebnis tatsächlich geladen wurde.
+3. Betrachte Schichten, Materialfarben und vorhandene Analyseinformationen.
+4. Nutze die angebotenen Diagnosefilter und vergleiche anschließend wieder mit der Materialdarstellung.
+5. Lies Warnungen und ausstehende Prüfungen, bevor du den nächsten bewussten Verarbeitungsschritt erwägst.
+
+**Ergebnis:** Du beurteilst ein bestimmtes Ergebnis mit seiner Materialzuordnung. Der Blick auf eine Modellfläche ist von der Prüfung einer Druckbahn zu unterscheiden.
+
+**Fehlerpfad:** Bei fehlenden Bahnen zuerst Auftrag, Ergebnisverfügbarkeit, Schichtauswahl und Filter kontrollieren. Bei unerwarteten Farben den aktiven Ansichtsmodus und die im Auftrag gespeicherten Kanäle vergleichen. Eine später geänderte AMS-Bestückung ist keine verlässliche Farbquelle für einen früheren Auftrag.
+
+Vergleiche eine gewählte Schicht bei Bedarf mit dem Modellaufbau unter **Vorbereiten**, um ihre Lage einzuordnen. Eine transparente Darstellung der verbleibenden Gesamtgeometrie ist für den aktuellen Stand hier nicht als geprüft zugesagt. Ausgeblendete Bahnen oder Diagnosefarben ändern nicht automatisch das gespeicherte Material. Fehlende oder unbekannte Farbkanäle sollen als ungeklärt erkennbar bleiben.
+
+Warnungen können eine bewusste Entscheidung verlangen. Bei einem Dialog zu Stützen insbesondere die genannten Objekte lesen und den vorgesehenen Schritt wählen. Ein minimierter oder geschlossener Hinweis ist nicht automatisch eine bestandene Analyse. Speichere bei umfangreichen Änderungen den Aufbau und prüfe nach einer neuen Vorbereitung erneut das passende Ergebnis.
+
+<a id="aufgaben"></a>
+## 11. Aufgaben, Verlauf und Druckerübersicht
+
+**Aufgaben** zeigt Warteschlange und Auftragszustände; **Verlauf** hilft beim Rückblick. Je nach Zustand sind **Erneut einreihen** oder **Aus Warteschlange** verfügbar. Die Bestätigung für erneutes Einreihen weist darauf hin, dass der Druck dadurch noch nicht automatisch startet.
+
+Ein älteres Vorhaben erneut betrachten:
+
+1. Suche den Eintrag im passenden Bereich und prüfe Datei, Drucker, Zustand und Datum.
+2. Vergleiche den damaligen Aufbau mit den aktuell verfügbaren Materialien und Profilen.
+3. Öffne vorhandene Details beziehungsweise Ergebnisse, bevor du eine Wiederholung wählst.
+4. Bestätige eine angebotene Aktion erst für den tatsächlich gewünschten Eintrag.
+5. Kontrolliere anschließend den gemeldeten neuen Zustand.
+
+**Ergebnis:** Die Verwaltungsaktion ist nachvollziehbar zugeordnet. Ein Warteschlangeneintrag ist noch keine physische Druckfreigabe.
+
+**Fehlerpfad:** Nach einer unklaren Antwort zuerst die Liste aktualisieren und das Ergebnis prüfen. Nicht allein aufgrund einer unterbrochenen Browserantwort davon ausgehen, dass die erste Aktion folgenlos geblieben ist.
+
+Unterscheide stets: einen Warteschlangeneintrag entfernen, einen gespeicherten Eintrag löschen, einen Slicer-Auftrag abbrechen, einen laufenden Druck abbrechen und eine Datei vom Drucker löschen. Diese Aktionen betreffen unterschiedliche Zustände. Ein bereinigter Verlauf beweist keinen gestoppten Drucker.
+
+Die **Steuerzentrale** zeigt gemeldete Laufzeitbereitschaft, Drucker, Onlinezustand, Störungen, Restzeit, Layer und Tempo. Der dargestellte Druckablauf ergänzt diese Übersicht. Bei widersprüchlichen Informationen zuerst Verbindung und Aktualität klären. Nicht jede Phase wird vom Gerät als eigener Zustand gemeldet.
+
+Der grundsätzliche Ablauf bleibt: Projekt vorbereiten, auf einer dafür eingerichteten Installation bewusst slicen, Ergebnis prüfen, Druckvorbereitung prüfen und erst anschließend die vorgesehenen getrennten Druckfreigaben bestätigen. Profilwechsel, Verbindungstest oder das Öffnen einer Vorschau sind keine solche Freigabe.
+
+<a id="kamera"></a>
+## 12. Die Kamera sinnvoll verwenden
+
+In der Steuerzentrale findest du die **Druckerkamera**. Je nach verfügbarem Kamerazugang zeigt sie neue Bilder und zugehörige Statusinformationen. **Einblenden** beziehungsweise **Ausblenden** steuert die Sichtbarkeit. **Aktualisieren** fordert einen Abruf an; **Vollbild** steht bei verfügbarer Darstellung bereit.
+
+1. Öffne die Steuerzentrale und blende die Kamera ein.
+2. Prüfe das Kamerabild und die Statusanzeige gemeinsam.
+3. Vergleiche vorhandene Frame- beziehungsweise Zeitangaben, wenn du Aktualität beurteilst.
+4. Nutze bei Bedarf **Aktualisieren**, ohne den Druckzustand aus dem Bild allein abzuleiten.
+
+**Ergebnis:** Eine zusätzliche visuelle Beobachtung des Druckers. Telemetrie und Kamera ergänzen sich; ein Kamerabild ersetzt keine Statusmeldung des Geräts.
+
+**Fehlerpfad:** Bei einem stehen gebliebenen Bild prüfen, ob tatsächlich neue Frames oder erfolgreiche Abrufe gemeldet werden. Ein erhaltenes letztes Bild kann älter sein. Bei **Keine Studio-Kamera verfügbar** den angebundenen Kamera- und Druckerzugang untersuchen. Die Kamera kann nur Daten anzeigen, die die Installation bereitstellt.
+
+Beim Teilen eines Screenshots auch die Umgebung im Kamerabild beachten. Eigene Modelle, Dateinamen und andere private Inhalte können sichtbar sein, selbst wenn keine Zugangsdaten auf der Seite stehen.
 
 <a id="einrichtung"></a>
-## 2. Einrichtung und Voraussetzungen
+## 13. Einrichtung: Integration, Frontend und Slicer
 
-Das Studio besteht aus der **Home-Assistant-Integration mit Frontend** und einem **separaten Slicer-Dienst**. Der Entwicklungs-PC ist keine vorgesehene Laufzeitabhängigkeit.
+Das Studio besteht aus der Home-Assistant-Integration, der Browseroberfläche und einem separaten Slicer-Dienst. HACS betrifft die Auslieferung der Integration. Der Slicer benötigt seine eigene Installation, passende Engines und Profile. Eine sichtbare Lovelace-Karte installiert diese Bestandteile nicht nachträglich.
 
-Für eine neue Installation zuerst den dokumentierten Status prüfen:
+Prüfe vor einer neuen Einrichtung den [aktuellen Auslieferungsstand](Slicer-Server/RELEASE_STATUS.md), die [Installationshinweise](handbook/wiki/Installation.md) und den [Docker-Schnellstart](Slicer-Server/DOCKER_QUICKSTART.md). Repositoryquellen, Root-Metadaten und ein geprüftes Archiv sind unterschiedliche Nachweise. Der dokumentierte HACS-Vertrag allein bestätigt noch kein vorhandenes vollständiges Releasepaket und keine frische Installation.
 
-- [Aktueller Docker-Schnellstart](Slicer-Server/DOCKER_QUICKSTART.md)
-- [Vollständiger separater Slicer-Quellumfang](Slicer-Server/REPOSITORY_CONTENTS.md)
-- [Slicer-Installation und Quell-Preflight](Slicer-Server/INSTALLATION.md)
-- [Compose-Dienstkandidat und Laufzeitvertrag](Slicer-Server/RUNTIME_INSTALLATION.md)
-- [Sauberer manueller Linux-Testserver](Slicer-Server/LINUX_SETUP.md)
-- [Betrieb, Sicherung und Wiederherstellung](Slicer-Server/OPERATIONS.md)
+### HACS und Lovelace
 
-Die neue Compose-Auslieferung ist noch nicht für produktives Slicing freigegeben. Ein vorhandener nativer Slicer wird durch das Lesen dieser Anleitung weder übernommen noch automatisch migriert.
-
-### Wenn Integration und Frontend bereits eingerichtet sind
-
-Die Verbindung zum Slicer wird serverseitig unter **Einstellungen → Geräte & Dienste → Ultimate 3D Studio → Konfigurieren** gepflegt. Adresse und Secret gehören dort hinein. Der Browser benötigt keinen eigenen Slicer-Token.
-
-Eine bereits korrekt ausgelieferte und registrierte Frontend-Ressource stellt diese Lovelace-Karte bereit:
+Bei einer verfügbaren geprüften Releaseauslieferung übernimmt HACS die Integrationsdateien über den vorgesehenen Installationsweg. Danach müssen Integration und Frontend in Home Assistant korrekt geladen sein. Die registrierte Oberfläche stellt folgenden Kartentyp bereit:
 
 ```yaml
 type: custom:ultimate-3d-studio-card
 title: Ultimate 3D Studio
 ```
 
-Die Karte allein installiert weder Integration noch Frontend noch Slicer. Fehlt das Custom Element, zuerst Ressource, installierten Build und Integrationszustand prüfen.
+Füge diese Karte erst hinzu, wenn ihre Ressource vorhanden ist. Meldet Home Assistant ein fehlendes Custom Element, zuerst installierte Integration, Frontend-Ressource und geladenen Build vergleichen. Wiederholtes Einfügen derselben Kartenkonfiguration behebt keine fehlenden Dateien.
 
-### Arbeiten mit dem Repository
+### Den Slicer serverseitig verbinden
 
-Nach dem Klonen ist `studio/` das Arbeitsverzeichnis für relative Komponentenbefehle. Ausgabeverzeichnisse für Pakete und Docker-Kontexte müssen neu sein und **außerhalb des ganzen Klons** liegen. Dafür einen absoluten Pfad verwenden. Relative Beispiele aus Komponenten-Anleitungen entsprechend anpassen.
+1. Öffne in Home Assistant **Einstellungen → Geräte & Dienste → Ultimate 3D Studio → Konfigurieren**.
+2. Pflege die vorgesehene Slicer-Adresse und das zugehörige Secret in der Integration.
+3. Verwende für eine entfernte Verbindung den dokumentierten verifizierten HTTPS-/TLS-Weg.
+4. Prüfe danach die gemeldete Verbindung unter **System** und **Slicing-Server**.
+5. Vergleiche Serverversion, angebotene Fähigkeiten und Engines mit der geplanten Verwendung.
 
-<a id="schnellstart"></a>
-## 3. Schnellstart ohne Druckstart
+**Ergebnis:** Die Integration kann den konfigurierten Dienst über ihren serverseitigen Zugang ansprechen. Ein erreichbarer Server ist noch keine Abnahme jedes Druckprofils oder jeder Engine.
 
-Zum Kennenlernen genügt ein Grundkörper. Du brauchst dafür keinen echten Slice.
+**Fehlerpfad:** Bei Authentifizierungs- oder Zertifikatsfehlern Adresse, Zugang und Vertrauenskette an dieser Stelle klären. Das Secret gehört nicht in eine Browseradresse, einen Screenshot oder die Lovelace-Kartenkonfiguration. Verbindungsprobleme nicht durch Abschalten der TLS-Prüfung verdecken.
 
-1. Öffne **3D-Studio**.
-2. Wähle **Einfügen → Würfel**. Alternativ öffne über **Datei → Lokale STL/3MF öffnen** eine eigene passende Datei.
-3. Markiere das Objekt in der Objektliste oder in der Arbeitsfläche.
-4. Probiere **Verschieben**, **Drehen** und **Skalieren** aus. Die Achsenwahl begrenzt die Bearbeitung auf X, Y oder Z.
-5. Nutze **Zentrieren** und **Auf Druckbett**, um das Modell auf der aktiven Platte auszurichten.
-6. Prüfe die gewählten Drucker-, Düsen-, Filament-, Druckprofil- und Plattenwerte.
-7. Speichere den Arbeitsstand über **Datei → Projekt auf HA speichern**.
+Der Bereich **Slicing-Server** bietet außerdem Servermodelle, Aufträge, Suche, Filter und Diagnose. Dort sichtbare Engine-Auswahlen belegen keine installierten oder vollständig freigegebenen Engines. **Hochladen** und **Slicing starten** sind eigene Aktionen. Zum ersten Kennenlernen des Studios benötigst du sie nicht.
 
-**Ergebnis:** Du hast ein vorbereitetes Projekt. Ein gespeichertes Projekt ist noch kein G-Code und startet keinen Druck.
+<a id="mobil"></a>
+## 14. Am Smartphone und in der Home-Assistant-App
 
-Für den späteren nächsten Schritt werden Slicer, Engine, Profile und die jeweilige Installation benötigt. Die Schaltfläche **Aktive Platte slicen** ist eine eigene bewusste Aktion. Druckvorbereitung, Druckerübertragung und Druckstart folgen getrennt.
+Auf schmalen Bildschirmen liegt die Arbeitsbereichsnavigation waagerecht. Wische innerhalb dieser Leiste, um weitere Einträge zu erreichen. Der Inhalt darunter besitzt eigene scrollbare Bereiche. Unterscheide deshalb zwischen der Navigation, einer Profilliste und der eigentlichen Arbeitsfläche.
 
-<a id="modelle"></a>
-### Modelle öffnen und speichern
+Für eine schnelle Kontrolle eignen sich Steuerzentrale, Auftragslisten und Materialübersicht. Für präzise CAD-Bearbeitung helfen ein größerer Bildschirm und die im Arbeitsbereich angebotenen Werkzeuge. Eine Desktop-Geste wie die rechte Maustaste hat auf einem Touchgerät keinen automatisch zugesicherten gleichwertigen Ersatz.
 
-Im Menü **Datei** findest du die lokale STL-/3MF-Auswahl, den Zugang zu Galerie, SD-Karte und MakerWorld sowie Projekt- und Objektaktionen.
+So behältst du auf engem Raum den Überblick:
 
-- **STL** liefert Modellgeometrie. Material- und Prozesswahl anschließend im Studio prüfen.
-- **3MF** kann zusätzlich Struktur und Materialinformationen enthalten. Welche Daten übernommen werden, hängt vom Inhalt und dem unterstützten Importvertrag ab.
-- **Projekt auf HA speichern / HA-Projekt öffnen** dient dem Studio-Arbeitsstand.
-- **Objekt exportieren** ist ein separater Exportweg. Ein exportiertes Modell oder Projekt ist nicht automatisch ein geslictes Druckergebnis.
+1. Wähle den gewünschten Arbeitsbereich in der oberen Leiste.
+2. Prüfe im Studio zuerst aktive Platte und Modellauswahl.
+3. Klappe unbenötigte Leisten ein, wenn sie den Blick auf die Szene verdecken.
+4. Blende benötigte Objekt- oder Einstellungsleisten gezielt wieder ein.
+5. Speichere vor einem größeren Wechsel des Geräts oder Arbeitskontexts.
 
-Vor einem größeren Umbau einen benannten Arbeitsstand speichern. Rückgängig/Wiederholen hilft bei der Bearbeitung, ersetzt aber keine dauerhafte Sicherung.
+**Ergebnis:** Eine auf den verfügbaren Platz angepasste Ansicht mit demselben fachlichen Projektaufbau.
 
-### Auswählen und transformieren
+**Fehlerpfad:** Springt die Navigation unerwartet zurück oder bleibt ein Kamerabild stehen, notiere Arbeitsbereich, ausgeführte Geste und Build. Diese Beobachtung ist ein konkreter Fehlerbericht. Vollständige Touch-, Scroll- und Kameraabnahmen bleiben eigene Prüfpunkte; die vorhandenen Quellregeln sind keine pauschale Zusage für jede App- und Gerätekombination.
 
-Klicke ein Objekt an. **Strg+Klick** und **Shift+Klick** unterstützen die Mehrfachauswahl in der Objektliste. Wähle dann das passende Werkzeug:
+<a id="betrieb"></a>
+## 15. Arbeitsstände sichern und Änderungen nachvollziehen
 
-| Werkzeug | Typischer Einsatz |
-| --- | --- |
-| **Verschieben** | Position auf der Druckplatte ändern |
-| **Drehen** | Orientierung ändern |
-| **Skalieren** | Abmessungen anpassen |
-| **Spiegeln X/Y/Z** | Geometrie an einer Achse spiegeln |
-| **Zentrieren** | Die Auswahl mittig anordnen |
-| **Auf Druckbett** | Das Objekt auf die Bettebene setzen |
-| **Flach legen** | Eine geeignete Auflageausrichtung herstellen |
-| **Anordnen** | Mehrere Objekte automatisch auf der Platte verteilen |
+Speichere Projekte nach klaren Bearbeitungsschritten und behalte die ursprünglichen Modelle. Ein Bibliotheksexport, ein Studio-Projekt und eine Sicherung der gesamten Installation erfüllen verschiedene Zwecke. Prüfe bei einer geplanten Wiederherstellung, welche Daten du tatsächlich gesichert hast.
 
-Nach Transformationen auch Malbereiche, Abmessungen, Bettgrenzen und Materialzuordnung prüfen. Ein geometrisch passendes Modell ist damit noch nicht auf Druckbarkeit oder reale Maschinenfreiheit abgenommen.
+Für den Slicer dokumentiert [Betrieb und Wiederherstellung](Slicer-Server/OPERATIONS.md) die eigenen Daten- und Betriebsverträge. Befolge für eine konkrete Installation deren Anleitung. Ein Browserprojekt bildet nicht automatisch Serverprofile, Engines, Auftragsdaten und Verbindungsinformationen vollständig ab.
 
-### Messen, teilen und Mesh prüfen
+Vor einer Aktualisierung:
 
-**Messen** hilft beim Abgleich der Auswahl. **Geometrisch teilen** zerlegt ein ausgewähltes Modell. **Mesh prüfen / reparieren** bearbeitet unterstützte Geometrieprobleme.
+1. Notiere installierte Version und Build sowie den bisherigen funktionierenden Zustand.
+2. Sichere die betroffenen Projekte und den vorgesehenen Installationsbestand nach dessen Anleitung.
+3. Lies Änderungen und Auslieferungsstatus des gewählten Standes.
+4. Aktualisiere nur über den dazugehörigen beschriebenen Weg.
+5. Prüfe anschließend Integration, Frontend, Projektöffnung und Slicer-Verbindung getrennt.
 
-Eine Reparatur ist keine Zusage, dass jedes beliebige Modell wasserdicht oder druckbar wird. Bei widersprüchlichen Materialzuweisungen kann eine Operation zum Schutz der Zuordnung stoppen. Das Original behalten und das Ergebnis prüfen.
+**Ergebnis:** Du kannst Änderungen einem konkreten Stand zuordnen und weißt, wo eine mögliche Abweichung auftritt.
 
-### Mehrere Druckplatten
+**Fehlerpfad:** Bei einem Problem nicht gleichzeitig Profile, Serveradresse und Frontendstand verändern. Halte die beobachtete Abweichung fest und arbeite von der betroffenen Komponente aus. Eine neue Oberfläche beweist nicht, dass ein separater Worker oder eine Engine ebenfalls aktualisiert wurde.
 
-Über **Neue Druckplatte** oder das Plus an der Plattenleiste weitere Platten anlegen. Vor Aktionen immer auf die aktive Platte achten.
+Ein guter Fehlerbericht nennt Arbeitsbereich, genaue Aktion, erwartetes Ergebnis, sichtbare Meldung und Build. Ergänze bei Bedarf eine kurze Folge reproduzierbarer Schritte. Entferne private Dateinamen, Kontoinformationen und Geheimnisse aus geteilten Bildern oder Diagnoseauszügen. Die Rohdaten unter Serverdiagnose sind zum Nachsehen hilfreich, aber nicht ungeprüft für öffentliche Beiträge geeignet.
 
-- Die Objektliste bezieht sich auf die aktuelle Platte.
-- Platte und enthaltene Objekte sind eigene Einheiten.
-- **Aktive Platte slicen** bezieht sich auf die gewählte Platte.
-- Vor dem Entfernen einer Platte deren Objekte und gespeicherten Projektstand prüfen.
+<a id="fehlersuche"></a>
+## 16. Fehler eingrenzen
 
-### Grundkörper und First-Layer-Test
+Beginne mit der unmittelbar betroffenen Funktion. Ein Slicer-Verbindungsfehler, eine nicht geladene Kamera und ein fehlerhafter Dateiimport können verschiedene Ursachen haben. Prüfe, was weiterhin funktioniert, und erhalte den aktuellen Arbeitsstand.
 
-Die Einfügen-Auswahl bietet Würfel, Zylinder, Kugel, Kegel, Ring und Platte. Die First-Layer-Testgeometrie erzeugt einen vorbereitbaren Modellaufbau. Ihre Erzeugung ist noch kein Testdruck. Drucker, Düse, Bettabmessungen und Prozess müssen zum späteren tatsächlichen Einsatz passen.
+| Beobachtung | Erster sinnvoller Schritt | Danach |
+| --- | --- | --- |
+| **Arbeitsfläche wirkt leer** | Aktive Platte und Objektliste prüfen | **Alles einpassen**; Importergebnis vergleichen |
+| **Lokale Datei öffnet nicht** | Dateityp und konkrete Fehlermeldung prüfen | Verbliebenen Projektstand kontrollieren; Original behalten |
+| **Galerieeintrag fehlt** | Ordner, Suchfilter und Sortierung prüfen | **Aktualisieren**; erfolgreichen Upload nachsehen |
+| **MakerWorld zeigt keine Treffer** | Kombinierte Filter einzeln entfernen | Anmeldung und Anbieterantwort prüfen |
+| **MakerWorld-Übernahme stoppt** | Gewählte Druckdatei und Ziel-Druckerprofil prüfen | Fehlermeldung zu Zugriff oder Profilzuordnung behandeln |
+| **Objekt lässt sich nicht bewegen** | Malmodus und Werkzeug prüfen | **Malen AUS**, dann Transformation wählen |
+| **Bemalung funktioniert nicht** | Modell, Druckfilament und Malmodus prüfen | Belegte Kanäle in Materialsysteme vergleichen |
+| **Kein belegter AMS-Slot** | Reale Belegung und Aktualität prüfen | Materialquelle und Profilzuordnung klären |
+| **Profilwerte überraschen** | Maschine, Düse und aktives Profil vergleichen | Eigene Überschreibungen kontrollieren |
+| **Slicen ist deaktiviert** | Objekte, aktive Platte, laufende Vorgänge und Profile prüfen | Gemeldete Serververfügbarkeit untersuchen |
+| **Vorschau hat keine Bahnen** | Vorhandenes Ergebnis und gewählten Auftrag prüfen | Schichtauswahl und Filter vergleichen |
+| **Farben wirken anders** | Material- oder Diagnoseansicht unterscheiden | Auftragsgebundene Palette prüfen |
+| **Kamera steht** | Frame-/Zeitangaben und Fehlerzustand lesen | Sichtbarkeit und gezielten Abruf prüfen |
+| **Auftragsaktion bleibt unklar** | Liste aktualisieren und Zustand prüfen | Keine ungeklärte verändernde Aktion mehrfach auslösen |
+| **Karte ist nicht verfügbar** | Integration und registrierte Ressource prüfen | Tatsächlich geladenen Frontend-Build vergleichen |
+| **Slicer meldet offline** | Dienstzustand und Integrationskonfiguration prüfen | Authentifizierung, TLS und Enginezustand getrennt klären |
 
-<a id="material"></a>
-## 5. Materialsysteme und Profile
+### Eine blockierte Vorbereitung klären
 
-![Materialsysteme mit getrennten Anzeigen für Konfiguration, Erkennung und tatsächlich belegte Fächer](handbook/images/materials.png)
+1. Lies die vollständige Meldung und merke dir die betroffene Platte beziehungsweise das Objekt.
+2. Prüfe die darin genannte Auswahl oder Voraussetzung.
+3. Ändere eine nachvollziehbare Ursache und kontrolliere den Projektstand.
+4. Wiederhole den vorgesehenen Schritt erst, wenn die erste Aktion und ihr Ergebnis geklärt sind.
 
-*Beispiel einer bestehenden Installation: Erkannte Hardware und geladene Materialien sind getrennte Angaben. Ein leeres Fach wird nicht als belegt dargestellt.*
+**Ergebnis:** Ein verständlicher nächster Versuch mit derselben bewussten Zielauswahl.
 
-### AMS und externe Spule bewusst unterscheiden
+**Wenn die Ursache offen bleibt:** Speichere soweit möglich den Arbeitsstand und erstelle einen bereinigten Fehlerbericht. Eine Schaltfläche wiederholt zu betätigen liefert keinen zusätzlichen Nachweis, dass vorherige Aktionen beendet sind.
 
-Die Quelle bleibt explizit: **AMS/Materialsystem** oder **Externe Spule**. Ein angezeigter Systemtyp und die aktuell belegten Materialkanäle sind unterschiedliche Informationen.
+Bei einer Störung während eines realen Drucks haben die verlässliche Geräteanzeige und die dafür vorgesehenen Bedienelemente Vorrang. Die Fehlerhilfe dieses Handbuchs ist keine zusätzliche Druckfreigabe und führt keine automatische Wiederaufnahme aus.
 
-1. Den richtigen Drucker wählen.
-2. Konfiguriertes System und tatsächlich gemeldete Hardware vergleichen.
-3. Belegte Fächer beziehungsweise externe Spule prüfen.
-4. Passende Filamentprofile zuordnen.
-5. Vor mehrfarbiger Bearbeitung die tatsächlichen verfügbaren Kanäle prüfen.
+<a id="nachschlagen"></a>
+## 17. Tastenkürzel und Begriffe
 
-Unbekannte oder fehlende Telemetrie wird nicht durch erfundene Slot-, RFID- oder Farbwerte ergänzt. Die Auswahl einer Systemfamilie belegt keine vollständige reale Abnahme sämtlicher Geräte dieser Familie. Eine einzelne externe Spule macht aus einem Modell keinen Mehrfarbendruck.
-
-### Profile getrennt auswählen
-
-![Profilverwaltung mit Drucker-, Düsen-, Filament-, Prozess-, Sound-, G-Code- und Plattenbereichen](handbook/images/profiles.png)
-
-Die Profilverwaltung bietet diese Gruppen:
-
-| Gruppe | Inhalt |
-| --- | --- |
-| **Drucker** | Maschinenmodell und Druckraum |
-| **Düse** | Durchmesser und Düsenmaterial |
-| **Filamentprofile** | Material, Hersteller, Variante und Druckeigenschaften |
-| **Druckprofile** | Schichthöhe, Wände, Infill, Geschwindigkeit und Qualität |
-| **Startsound / Endsound** | Getrennte Sound-Bausteine |
-| **G-Code 1 / G-Code 2** | Maschinen-Start und Maschinen-Ende |
-| **Druckplatten** | Oberfläche, Abmessungen und zugehörige Werte |
-
-Drucker und Düse separat prüfen. Ein Materialprofil ersetzt weder die Düsenwahl noch das Druckprofil. Für den A1 bestehen Quellverträge für 0,2/0,4/0,6/0,8 mm; daraus folgt keine pauschale Hardwarefreigabe für andere Modelle.
-
-### Lokale Profile und Cloud
-
-Lokale, Standard- und bereits übernommene Cloud-Profile sind unterscheidbar. **Cloud synchronisieren** ist eine manuelle Aktion im Bereich **Profile**. Die Anmeldung, Verfügbarkeit und Antwort des Anbieters bestimmen, was übernommen werden kann.
-
-Ein synchronisiertes Profil ist noch keine Zusage, dass alle Werte für die gewählte Drucker-/Düsen-/Materialkombination geeignet sind. Vor der Nutzung die Auswahl und die angezeigten Werte vergleichen.
-
-### Prozessoptionen
-
-Im Studio lassen sich die angebotenen Prozessoptionen wie Haftung, Stützen, Schichthöhen und weitere Druckparameter bearbeiten. Vorhandene Profilwerte und ausdrückliche eigene Überschreibungen haben unterschiedliche Bedeutung.
-
-Ein Feld mit **Standard** oder einem Platzhalter zeigt nicht zwangsläufig einen selbst gesetzten Wert. Prüfe, welches Profil aktiv ist und welche Überschreibungen du vorgenommen hast. G-Code- und Sound-Bausteine sind ausführungsrelevante Druckeinstellungen und sollten nur mit Verständnis ihrer Wirkung geändert werden.
-
-<a id="malen"></a>
-## 6. Bemalung und Mehrfarben
-
-Die Malwerkzeuge weisen Modellflächen einem vorhandenen Druckmaterial zu. Die Farbe folgt dem gewählten Materialkanal; die Farbanzeige ist keine freie Wunschfarbe.
-
-### So gehst du vor
-
-1. Modell auf der aktiven Platte auswählen.
-2. Materialquelle und tatsächlich belegte Materialkanäle prüfen.
-3. Unter **Druckfilament** den passenden Kanal wählen.
-4. **Malen AN** aktivieren und ein Werkzeug wählen.
-5. Auf die Modelloberfläche malen.
-6. Malbereiche in der Objektliste kontrollieren und den Arbeitsstand speichern.
-7. Vor einer späteren Freigabe die exportierte Materialzuordnung und die geslicte Vorschau prüfen.
-
-| Werkzeug | Bedienung |
-| --- | --- |
-| **Pinsel** | Mit eingestellter Größe über die Oberfläche ziehen |
-| **Stift** | Feinere freie Striche ziehen |
-| **Radierer** | Bemalung im bearbeiteten Bereich entfernen |
-| **Rechteck / Kreis** | Mit Klick-Ziehen einen Bereich aufziehen |
-| **Linie** | Start- und Endpunkt durch Ziehen festlegen |
-| **Text** | Text und Schriftgröße wählen, dann auf die Oberfläche klicken |
-
-Während des Malens sind konkurrierende Dreh-/Verschiebeaktionen gesperrt. Zum Transformieren den Malmodus wieder verlassen.
-
-### Modelle und Malbereiche bleiben getrennt
-
-Importierte Modelle behalten ihre eigenen Objekteinträge. Bemalungen werden als **Malbereiche** geführt. Achte beim Auswählen und Löschen darauf, welche Ebene markiert ist. Mehrfachauswahl und Löschbefehle sollen nicht versehentlich ein Modell anstelle eines Malbereichs treffen.
-
-Unbekannte, fehlende oder widersprüchliche Materialkanäle sind ein Grund, vor dem Export beziehungsweise Slicing zu stoppen. Sichtbare Farbe allein beweist noch keinen ausführbaren Mehrfarbenauftrag.
-
-<a id="vorschau"></a>
-## 7. Vorschau und Analyse verstehen
-
-Die drei Ansichten haben unterschiedliche Zwecke:
-
-| Ansicht | Was du prüfst |
-| --- | --- |
-| **Vorbereiten** | Geometrie, Position, Plattenaufbau und Einstellungen |
-| **Farben** | Materialzuordnung und Bemalung des Modells |
-| **Vorschau** | Vorhandene geslicte Daten, Schichten und Toolpaths |
-
-Eine leere oder noch nicht geslicte Platte besitzt keine fertigen Druckbahnen. **Farben** ist deshalb kein Ersatz für die Vorschau des tatsächlichen Slicing-Ergebnisses.
-
-### Materialfarben statt späterer AMS-Werte
-
-Die Druckvorschau verwendet die zum Auftrag gehörenden Filamentfarben. Ein später anders bestücktes AMS soll die Farben eines gespeicherten Jobs nicht nachträglich verändern. Unbekannte Kanäle bleiben erkennbar unbekannt.
-
-Eine bewusst gewählte Diagnoseansicht darf andere Bedeutungen hervorheben, etwa Druckmerkmale. Sie ist dann als Diagnose zu verstehen, nicht als geänderte Materialzuordnung.
-
-### Schichten und Restgeometrie
-
-Die Vorschau unterstützt die Betrachtung ausgewählter Schichten und transparente verbleibende Geometrie zur räumlichen Orientierung. Dadurch lässt sich eine aktive Schicht im Zusammenhang mit der gesamten Modellhöhe betrachten. Filter und Stützenansichten beeinflussen, welche Bahnen sichtbar sind.
-
-### Analyse und Warnungen
-
-Analyseinformationen, Warnungen und ihr Bestätigungsstatus getrennt lesen. Ein noch ausstehender Check ist kein bestandenes Ergebnis. Werden betroffene Objekte in einer Stützenwarnung aufgelistet, die Entscheidung im Dialog bewusst treffen. Erst danach den vorgesehenen Ablauf fortsetzen.
-
-Die Bilder dieses Handbuchs zeigen keine geslicten privaten Aufträge. Ein sichtbarer Arbeitsbereich ist kein Nachweis für die Qualität eines realen Slices.
-
-<a id="quellen"></a>
-### Galerie: deine Modellbibliothek
-
-Die Galerie bietet Modellübersicht, Ordnernavigation und Dateiverwaltung. Je nach Eintrag stehen Vorschau, Übernahme ins Studio, Umbenennen, Verschieben, Ersetzen oder Löschen zur Verfügung. ZIP-Import und Mehrfachaktionen unterstützen die Organisation größerer Bestände.
-
-**Duplikate prüfen** ist zunächst eine Analyse. Gleiche oder ähnliche Einträge nicht allein wegen ihres Namens löschen. Vor Ersetzen, Verschieben und Löschen Quelle, Ziel und Auswahl kontrollieren.
-
-Ein Datei-Upload und ein Drucker-Upload sind verschiedene Vorgänge: Ein Modell in die Galerie zu laden startet keinen Druck.
-
-### SD-Karte / Druckerspeicher
-
-**SD-Karte** öffnet den angebundenen Druckerspeicher. Verfügbarkeit und Aktionen hängen vom Drucker und seiner Verbindung ab. Datei anzeigen, herunterladen, im Studio verwenden und vom Drucker löschen sind unterschiedliche Aktionen. Das Entfernen einer Druckerdatei ist keine Galerie-Bereinigung.
-
-### MakerWorld
-
-MakerWorld ist über die entsprechende Schaltfläche erreichbar. Suche, Filter, Modelldetails, Druckprofile und zugehörige Informationen helfen bei der Auswahl. Kommentare, Empfehlungen und weitere Anbieterinhalte sind abhängig von der tatsächlich gelieferten Antwort und dem Kontozustand.
-
-Vor einer Übernahme auf **Modell und konkretes Druckprofil** achten. Ein angezeigtes Design, eine Instanz und ein Druckprofil sind nicht dasselbe. Die bewusste Auswahl soll beim Öffnen weiterer Details erhalten bleiben.
-
-Lizenz- und Herkunftsangaben des Modells vor Speichern, Verwenden oder Weitergeben prüfen. Eine Importmöglichkeit verleiht keine zusätzlichen Nutzungsrechte.
-
-Bei abgelaufener Anmeldung, Ratenlimit oder Anbieterfehler zunächst den gemeldeten Zustand behandeln. Wiederholtes Klicken ersetzt keine gültige Anmeldung und keine bestätigte Profilzuordnung.
-
-<a id="aufgaben"></a>
-### Aufgaben und Verlauf
-
-**Aufgaben** zeigt Warteschlange und Auftragszustände. **Verlauf** dient dem Rückblick auf vergangene Einträge. Je nach Zustand sind Verwaltungsaktionen verfügbar, beispielsweise erneut einreihen oder einen Eintrag entfernen.
-
-Vor jeder Aktion unterscheiden:
-
-- einen Warteschlangeneintrag entfernen;
-- einen gespeicherten Verlaufseintrag entfernen;
-- einen Slicer-Auftrag abbrechen;
-- einen laufenden Druck am Drucker abbrechen;
-- eine Datei vom Drucker löschen.
-
-Diese Aktionen betreffen unterschiedliche Daten und Systeme. Einen entfernten Verlaufseintrag nicht als Beleg für einen gestoppten Druck verstehen.
-
-### Steuerzentrale und Kamera
-
-Die Steuerzentrale bündelt gemeldete Druckerzustände, Fortschritt, Restzeit, Schichten und Störungen. Die Kamera zeigt die verfügbare Live- beziehungsweise Snapshot-Ansicht. Netzwerk- und Gerätezustand bestimmen die Aktualität.
-
-Bei einem fehlgeschlagenen Abruf auf den Zeitstempel und Fehlerzustand achten. Eine erhaltene alte Anzeige ist kein neuer erfolgreicher Messwert. Ein offline erkannter Drucker soll nicht aufgrund alter Daten als aktiv druckend erscheinen.
-
-### Slicen und Drucken bleiben getrennt
-
-1. Das Projekt und die aktive Platte vorbereiten.
-2. Auf einer dafür eingerichteten und abgenommenen Installation bewusst slicen.
-3. Ergebnis, Materialkanäle und Analyse prüfen.
-4. Druckvorbereitung und gewünschtes Ziel prüfen.
-5. Den Druck über die vorgesehenen getrennten Freigabeschritte bestätigen.
-
-Verbindungstest, Profilwechsel und bloßes Öffnen der Vorschau sind keine Druckfreigabe.
-
-<a id="tasten"></a>
-## 10. Tastenkürzel
-
-Die Kürzel beziehen sich auf die Studio-Bearbeitung. In Textfeldern und während blockierender Vorgänge gelten andere Eingabezustände.
+Die Kürzel gelten für die Studio-Bearbeitung im passenden Eingabekontext. In einem Textfeld soll die Texteingabe Vorrang haben. Nutze die angebotenen Menüs, wenn du ohne Tastatur arbeitest.
 
 | Eingabe | Aktion |
 | --- | --- |
 | **Strg+Z** | Rückgängig |
-| **Strg+Umschalt+Z** | Wiederholen |
-| **Strg+C** | Auswahl kopieren |
-| **Strg+X** | Auswahl ausschneiden |
-| **Strg+V** | Einfügen |
+| **Strg+Umschalt+Z** oder **Strg+Y** | Wiederholen |
+| **Strg+C / Strg+X / Strg+V** | Kopieren / Ausschneiden / Einfügen |
+| **Strg+D** | Auswahl duplizieren |
 | **Strg+A** | Alles im aktuellen Auswahlkontext auswählen |
-| **Entf** | Markierte Auswahl löschen |
-| **Strg+Klick / Shift+Klick** | Mehrfachauswahl in der Objektliste |
+| **Entf** | Auswahl löschen |
+| **Strg+Klick / Shift+Klick** | Mehrfachauswahl |
+| **Rechte Maustaste** in der Arbeitsfläche | Ansicht bedienen |
+| **Mausrad** | Zoom |
 
-Die entsprechenden Menüeinträge bleiben als Alternative erreichbar. Vor dem Löschen prüfen, ob Modelle oder Malbereiche ausgewählt sind. Rückgängig/Wiederholen kann während einer laufenden Vorbereitung blockiert sein, um den zugrunde liegenden Arbeitsstand zu erhalten.
-
-<a id="hilfe"></a>
-## 11. Typische Fragen und Fehlerhilfe
-
-| Beobachtung | Das zuerst prüfen |
+| Begriff | Bedeutung im Studio |
 | --- | --- |
-| **„Aktive Platte slicen“ ist deaktiviert** | Aktive Platte, vorhandene Objekte, Profil-/Materialwahl, laufende Vorgänge und gemeldete Slicer-Verfügbarkeit |
-| **Slicer ist offline** | Verbindung und Zustand unter Slicing-Server/System; Galerie, Profile und unabhängige Modellarbeit getrennt davon betrachten |
-| **Kein belegter AMS-Slot** | Tatsächlich gemeldete Fächer, Materialquelle und Zuordnung; keine Farben oder Slots erfinden |
-| **Bemalung lässt sich nicht wie erwartet nutzen** | Malmodus, aktives Druckfilament, Auswahl und eindeutige Materialkanäle |
-| **Objekt lässt sich beim Malen nicht drehen** | Malmodus verlassen, dann Transformationswerkzeug wählen |
-| **Vorschau enthält keine Druckbahnen** | Prüfen, ob wirklich geslicte Daten des gewünschten Auftrags vorliegen |
-| **Farbe unterscheidet sich von der aktuellen Spule** | Auftragsgebundene Palette, aktiver Ansichtsmodus und unbekannte Kanäle prüfen |
-| **Werte wirken unerwartet** | Aktives Drucker-/Düsen-/Filament-/Druckprofil und eigene Überschreibungen vergleichen |
-| **Cloud- oder MakerWorld-Daten fehlen** | Anmeldung, Anbieterantwort, Region und konkrete Fehlermeldung prüfen |
-| **Kamera oder Telemetrie bleibt stehen** | Aktualität, letzten erfolgreichen Abruf und Fehlerzustand prüfen |
-| **Die Lovelace-Karte fehlt** | Integration, registrierte Frontend-Ressource und tatsächlich geladenen Build prüfen |
-| **Eine Aktion endet mit Fehler** | Ergebnis und bestehenden Zustand prüfen, bevor dieselbe verändernde Aktion erneut ausgelöst wird |
+| **Aktive Druckplatte** | Der aktuell ausgewählte Aufbau, auf den plattenbezogene Aktionen wirken |
+| **Build** | Kennung der tatsächlich geladenen Softwareausgabe |
+| **Druckprofil** | Prozesswerte für die geplante Druckqualität |
+| **Engine** | Die Software, die vorbereitete Eingaben zu Druckbahnen verarbeitet |
+| **Filamentprofil** | Materialeigenschaften und zugehörige ausführungsrelevante Materialangaben |
+| **Galerie** | Modellbibliothek mit Dateien und Ordnern |
+| **G-Code** | Befehlsdaten für einen konkreten Maschinenablauf |
+| **HACS** | Auslieferungsweg für die Home-Assistant-Integration |
+| **Malbereich** | Gesondert verwaltete materialgebundene Bearbeitung von Modellflächen |
+| **Materialkanal** | Eindeutige Zuordnung einer Fläche zu einem verfügbaren Druckmaterial |
+| **Profilüberschreibung** | Ein ausdrücklich gesetzter Wert anstelle des Profilstandards |
+| **Projekt** | Gespeicherter bearbeitbarer Studio-Arbeitsstand |
+| **Slice** | Ein Verarbeitungsergebnis mit Druckbahnen; getrennt vom physischen Druckstart |
+| **Toolpath** | Räumlicher Verlauf einer Druckbahn |
 
-Für einen hilfreichen Fehlerbericht genügen der betroffene Bereich, die konkrete Aktion, die sichtbare Fehlermeldung und der installierte Build. Keine Tokens, API-Secrets oder privaten Schlüssel veröffentlichen; bei Bildern private Dateinamen und sonstige vertrauliche Inhalte aussparen.
-
-<a id="stand"></a>
-## 12. Entwicklung und Downloads
-
-Das Projekt befindet sich in Entwicklung. Eine vollständige HACS- und Slicer-Veröffentlichung mit allen benötigten Engines steht noch aus. Die Quellen lassen sich für Entwicklung und Tests verwenden; der [Entwicklungsstand](Slicer-Server/RELEASE_STATUS.md) nennt die aktuellen Einschränkungen.
-
-[Studio-Wiki](https://github.com/Taracraft/3D-Ultimate-Center/wiki) · [Slicer-Wiki](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/wiki) · [Lizenzhinweise](../SOURCE_NOTICES.md)
+Weiterlesen: [Funktionen im Detail](handbook/FEATURES.md) · [CAD-Beispiele](handbook/CAD_EXAMPLES.md) · [Slicer und Betrieb](Slicer-Server/README.md) · [Lizenzhinweise](../SOURCE_NOTICES.md)

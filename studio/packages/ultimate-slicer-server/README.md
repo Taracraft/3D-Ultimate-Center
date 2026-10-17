@@ -1,130 +1,126 @@
 # Ultimate Slicer Server – natives Linux-Paket
 
-Dieses Verzeichnis enthält die **versionsneutrale, unabhängige** Linux-Distribution des Slicers. Sie wird nicht durch HACS installiert; HACS installiert später nur die Home-Assistant-Integration.
+Dieses Verzeichnis enthält die Paketwerkzeuge für eine eigenständige native Linux-Bereitstellung des Ultimate Slicer Server. Der Dienst stellt API, Jobverarbeitung und Worker unabhängig von der Home-Assistant-Integration bereit. HACS ist für die separate HA-Integration vorgesehen und installiert dieses native Slicer-Paket nicht.
 
-## Was bereits existiert
+Der Quellcode ist öffentlich verfügbar. Ein freigegebener vollständiger Runtime-Download mit Slicing-Engine liegt noch nicht vor. **Der Freigabestatus bleibt `native_deploy_ready=false`; ein vollständiger Produktrelease ist offen (`FullRelease=false`).** Die abschließende Neuinstallation auf einem unabhängigen Linux-System bleibt der letzte Verifikationstest nach Fertigstellung der vorausgehenden Arbeit. Veröffentlichte Quellen, ein geprüftes Archiv oder ein grünes Quellgate bestätigen diesen Betriebsnachweis nicht.
 
-- `build_native_package.py` erzeugt ein deterministisches, quellenbasiertes Archiv. Jeder Payload und jede der fünf eigenständigen, unprivilegierten systemd-Units ist SHA-256-geprüft.
-- `install_native.py` ist ein eigenständiger **Root-Installer für eine Erstinstallation**. Standardmäßig prüft er ein Archiv **nur lesend**. Er verlangt immer einen extern bestätigten Archiv-SHA-256.
-- Für eine tatsächliche Erstinstallation muss eine **separate, rechtmäßig nutzbare Linux-Slicing-Engine** mit unabhängiger SHA-256-Dateiliste und vollständigen Maschinen-, Prozess- und Filamentprofilen angegeben werden. Die Engine gehört bewusst **nicht** zum öffentlichen Quellarchiv.
-- Vor der Installation werden vorhandene Installationen, Daten und systemd-Dienste ausdrücklich abgelehnt. Keine bestehenden Konfigurationen oder Jobs überschreiben.
-- Der Installer erzeugt einen starken lokalen API-Schlüssel, speichert ihn unter `/etc/ultimate-slicer-server/config.json` mit gruppenbeschränkten Rechten und setzt `127.0.0.1` als Standardbindung.
-- Der Dienst erhält `User=ultimate-slicer`, `NoNewPrivileges=yes`, `ProtectSystem=strict`, separate Programm-/Datenverzeichnisse sowie systemd-verwaltete State-/Cache-Verzeichnisse. Ein erster Installationslauf **aktiviert oder startet die Dienste nicht automatisch**.
+[Handbuch](../../Slicer-Server/HANDBUCH.md) · [Linux-Testablauf](LINUX_TESTING.md) · [Installation und Einrichtung](../../Slicer-Server/INSTALLATION.md) · [Entwicklungsstand](../../Slicer-Server/RELEASE_STATUS.md)
 
-## Laufzeitabhängigkeiten und Freigabesperre
+## Lieferumfang und Voraussetzungen
 
-Der native Linux-Dienst verwendet die Python-Standardbibliothek und externe Linux-Systemwerkzeuge. Für eine frische Installation sind insbesondere python3, jq, awk, grep, find, sort, head, tail, cut, tr, du, id, unshare, mkfifo, systemctl, useradd und userdel erforderlich. Auch die fest in den systemd-Units referenzierten Linux-Binärdateien müssen ausführbar sein.
+`build_native_package.py` erzeugt ein deterministisches Quellarchiv. Seine Payloads und die fünf eigenständigen unprivilegierten systemd-Units werden über SHA-256 identifiziert. Die Prüfung macht den Umfang des Archivs nachvollziehbar; sie bestätigt weder eine ausführbare Engine noch die Rechte zur Weitergabe jeder enthaltenen oder zusätzlich benötigten Komponente.
 
-**Der Installer prüft diese Voraussetzungen vor Änderungen an Programmen, Benutzern, Daten und Diensten.** Fehlt eine notwendige Abhängigkeit, bricht er kontrolliert ab. Es erfolgen weder automatische Paketinstallationen noch Downloads.
+`install_native.py` enthält einen eigenständigen Root-Installer für Erstinstallationen sowie getrennte Wege für Programm-Updates und Programm-Rollback. Ohne Installationsflag prüft er ein übergebenes Archiv nur lesend. Dafür verlangt er einen extern bestätigten Archiv-SHA-256. Eine Prüfsumme, die lediglich aus einer unbekannten Datei selbst berechnet wurde, ersetzt diesen Liefernachweis nicht.
 
-Ein lesend verifiziertes Paket ist **nicht automatisch installationsfreigegeben**. Die Entwicklungspakete tragen in den Paketmetadaten native_deploy_ready=false. Damit sind --install und --upgrade auch bei vollständiger Engine-Angabe gesperrt. Erst nach den offenen unabhängigen Linux-, Lizenz-, TLS-, HACS- und Restore-Abnahmen darf ein kontrollierter Releaseprozess einen freigegebenen Quellstand erzeugen. Ein vorhandener Wiederherstellungspfad bleibt davon getrennt.
+Für einen späteren tatsächlichen Betrieb werden eine rechtmäßig nutzbare Linux-Slicing-Engine, eine unabhängige SHA-256-Dateiliste sowie vollständige Maschinen-, Prozess- und Filamentprofile benötigt. Die Engine gehört nicht zum öffentlichen nativen Quellarchiv. Der ausgelieferte gemeinsame [Engine-Katalog](../../Slicer-Server/engine_catalog.json) enthält derzeit `releases=[]`; Bambu Studio, PrusaSlicer und CuraEngine sind jeweils `pending`. Die verfügbaren Werkzeuge und Archivreferenzen sind daher noch kein freigegebener Runtime-Download.
 
-## Versionsmetadaten ohne versionierte Pfade
+Linux/amd64 ist der beschriebene Zielumfang. Eine allgemeine Zusage für ARM oder andere Architekturen setzt passende Engineprogramme, Bibliotheken und echte Tests voraus und wird aus dem Quellstand nicht abgeleitet.
 
-Die native Slicer-Version wird ausschließlich in der mitgelieferten Datei `release.json` gepflegt. Diese enthält den Software-Versionswert und die numerische API-Protokollkompatibilität, aber keine Zugangsdaten. Der Paket-Bundler prüft ihre Syntax und nimmt die SHA-256-identifizierte Datei in das unabhängige Quellpaket auf.
+## Hostabhängigkeiten lesend prüfen
 
-Der API-Server liest diese Metadaten aus seinem konfigurierten Programmverzeichnis. Das native Statusskript verwendet **dieselbe Datei** für die Info- und Health-API. Eine bestehende historische Hostinstallation ohne `release.json` bleibt über ihre bisherigen Konfigurations- bzw. Statusmetadaten kompatibel und erhält keine erfundene aktuelle Releaseversion.
+Der Dienst verwendet die Python-Standardbibliothek sowie Linux-Systemwerkzeuge. Benötigt werden unter anderem `python3`, `jq`, `awk`, `grep`, `find`, `sort`, `head`, `tail`, `cut`, `tr`, `du`, `id`, `unshare`, `mkfifo`, `systemctl`, `useradd` und `userdel`. Der Installer prüft insgesamt 25 erforderliche Kommandos sowie die festen ausführbaren Programmpfade der systemd-Units.
 
-Neue Programm-, Datei-, Dienst-, Klassen-, Variablen-, API- und Assetnamen bleiben versionsneutral. Die tatsächliche Version wird nur als Datenwert transportiert und in der Studio-Oberfläche beziehungsweise im Verbindungsstatus angezeigt. Das Slicer-Paket kann unabhängig von der Home-Assistant-Integration aktualisiert werden.
+Die notwendigen Systempakete werden vom Administrator bewusst bereitgestellt. Der Installer installiert keine Debian-Pakete automatisch und lädt keine fehlenden Abhängigkeiten herunter. Fehlt eine Voraussetzung, erfolgt ein kontrollierter Abbruch vor Änderungen an Benutzern, Programmen, Daten oder Diensten.
 
-## Rootless-Netzwerkisolation (Pflicht)
+Die dokumentierte Hostprüfung wird aus dem Verzeichnis mit `install_native.py` ausgeführt:
 
-Der Worker nutzt für seine Slicing-Unterprozesse weiterhin einen eigenen Netzwerk-Namespace. Der bereits installierte privilegierte Altbetrieb behält den bisherigen Aufruf. Im neuen Linux-Paket läuft der Dienst aber mit `User=ultimate-slicer` und verwendet **User- und Netzwerk-Namespace gemeinsam**, ohne dem Dienst Rootrechte auf dem Host zu erteilen.
+```sh
+python3 install_native.py --check-host
+```
 
-- Vor der Erstinstallation führt der Root-Installer eine reine `runuser`-/`unshare`-Probe als eingeschränkter Dienstbenutzer aus; kein Slicing, kein Netzwerkzugriff und kein Druckbefehl.
-- Zusätzlich prüft `ultimate-slicer-dispatch.service` per `ExecStartPre` die tatsächlichen Dienstrechte bei jedem Start.
-- Unterstützt die Zielumgebung diese sichere Namespace-Erzeugung nicht, bricht die Installation beziehungsweise der Dispatcher **ohne unsicheren Netzwerk-Fallback** ab.
-- Die Windows-Tests verwenden nur isolierte Dateibäume und simulierte Systembefehle. Die reale Kernel-/AppArmor-/systemd-Prüfung muss auf der unabhängigen Linux-Testumgebung nachgewiesen werden.
+Bei Erfolg erscheinen `host_dependencies: ready` und `installation_performed: false`. Die Prüfung führt keine Slicer- oder Druckeraktion aus. Sie ersetzt weder eine Engine-/Lizenzprüfung noch den tatsächlichen Nachweis von systemd, Kernelisolation, TLS und Wiederherstellung. Der vollständige vorgesehene Testablauf steht in [LINUX_TESTING.md](LINUX_TESTING.md).
 
-## HTTPS für externe Slicer-Verbindungen
+## Archiv bauen und prüfen
 
-Ein frisch installierter Slicer bindet ausschließlich auf Loopback. Authentifizierung mit dem API-Secret gilt auch lokal. Eine andere Bind-Adresse ohne gültiges TLS-Zertifikat und zugehörigen privaten Schlüssel wird **bereits beim Start verweigert**.
+Die folgenden Originalbefehle zeigen den lokalen Paketbuild und die lesende Archivprüfung. Sie setzen ein eigenes Arbeitsverzeichnis mit den Paketwerkzeugen voraus. Der Quellpfad und der extern bestätigte SHA-256 sind Platzhalter für tatsächlich überprüfte Eingaben. Ausgabe und Arbeitsdateien gehören in einen eigenen privaten Arbeitsbereich; vorhandene Pakete oder Installationen werden dafür nicht überschrieben.
 
-Für Remote-Verbindungen können folgende zusätzliche Einstellungen in der geschützten Datei /etc/ultimate-slicer-server/config.json festgelegt werden:
-
-    {
-      "host": "0.0.0.0",
-      "port": 8443,
-      "tls_certfile": "/etc/ultimate-slicer-server/tls/server.crt",
-      "tls_keyfile": "/etc/ultimate-slicer-server/tls/server.key"
-    }
-
-**Wichtig:** Dies ist kein vollständiger Konfigurationsersatz! Insbesondere das vom Installer erzeugte API-Secret sowie alle bestehenden Konfigurationseinstellungen bleiben erhalten. Der Schlüssel wird nicht in Git, in das Frontend oder in Diagnoseexporte übernommen. Die TLS-Schlüsseldatei muss für den eingeschränkten Dienstbenutzer lesbar, aber nicht für andere Benutzer zugänglich sein; beispielsweise root:ultimate-slicer und Modus 0640.
-
-Das Zertifikat muss zum vom Nutzer angegebenen Hostnamen passen und von Home Assistant vertrauenswürdig geprüft werden können. Der Slicer erlaubt TLS erst ab Version 1.2. Unter Einstellungen → Geräte & Dienste → Ultimate 3D Studio → Konfigurieren wird die HTTPS-Serveradresse samt API-Secret hinterlegt. Der Verbindungstest fragt nur die geschützte Info-API ab, ohne Drucker-, Upload- oder Slicing-Aktionen.
-
-Alternativ kann ein TLS-Reverse-Proxy auf dem Slicer-Host terminieren, während der native Slicer strikt an 127.0.0.1 gebunden bleibt.
-
-Remote-Betrieb bleibt ein Freigabeblocker bis zur tatsächlichen TLS-Handshakeprüfung, korrekten Firewallregeln und isolierten systemd-Abnahme. Fehlende, unvollständige und ungültige Zertifikate sowie Remote-Klartextbindungen führen zum Startabbruch.
-
-## Verzeichnisgrenzen
-
-| Aufgabe | Verzeichnis |
-|---|---|
-| Geprüfter Programmcode + gesondert beschaffte Engine | `/opt/ultimate-slicer-server` |
-| Lokales Secret und Netzwerkoptionen | `/etc/ultimate-slicer-server` |
-| Jobs, Uploads, Status, Historie | `/var/lib/ultimate-slicer-server` |
-| Native Dienste und Timer | `/etc/systemd/system/ultimate-slicer-*.service` bzw. `.timer` |
-
-## Native Linux-Abhängigkeiten
-
-Auf einer frischen Debian-Installation werden Python, JSON-/Shell-Werkzeuge und Linux-Namespace-Funktionen benötigt. Die folgenden Systempakete muss der Administrator bewusst vorinstallieren:
-
-Der native Installer installiert keine Debian-Systempakete automatisch. Er prüft vor dem Anlegen von Benutzern, Dateien oder systemd-Diensten alle **25 erforderlichen Kommandos** und die für die Units verwendeten festen Pfade.
-
-Eine vollständig lesende Vorprüfung auf dem vorgesehenen Linux-Host ohne Slicer- oder Druckeraktionen:
-
-    python3 install_native.py --check-host
-
-Bei Erfolg werden die Statusfelder `host_dependencies: ready` und `installation_performed: false` ausgegeben. Fehlende Programme führen zu einem sicheren Abbruch. Die Prüfung ersetzt weder die vollständige Engine-/Lizenzprüfung noch die systemd-/TLS-Abnahme.
-
-## Rein lesende Vorprüfung
-
-Nach lokalem Paketbuild kann die Vorprüfung ohne Root und ohne Dienstveränderung erfolgen:
-
-```bash
+```sh
 python3 build_native_package.py --source-root /pfad/zum/quellbaum --output ./ultimate-slicer-server.tar.gz
 sha256sum ./ultimate-slicer-server.tar.gz
 python3 install_native.py --archive ./ultimate-slicer-server.tar.gz --archive-sha256 <extern-geprüfter-sha256>
 ```
 
-Der letzte Aufruf bestätigt lediglich den Archivvertrag. Das Flag `--install` wird **nicht** ohne validierte Engine-Prüfsummen, Lizenzfreigabe und gesonderten Linux-Installations-/Restore-Test verwendet.
+Der letzte Aufruf bestätigt ausschließlich den Archivvertrag. Er legt keinen Slicer-Benutzer an, installiert keine Units und startet keinen Dienst. Die Ausgabe wird zusammen mit dem geprüften Archivstand und dessen Herkunft beurteilt. Ein erfolgreicher lesender Prüflauf macht das Paket nicht automatisch installationsfähig.
 
-## Code-only-Upgrade und Wiederherstellung
+Die Entwicklungspakete tragen `native_deploy_ready=false`. Damit bleiben `--install` und `--upgrade` auch dann gesperrt, wenn eine vollständige Engine angegeben wurde. Die Sperre wird weder durch einen Dokumentationstext noch durch das bloße Ergänzen eines Flags aufgehoben. Ein vorhandener Wiederherstellungspfad wird getrennt von der Erstinstallations- und Upgradefreigabe betrachtet.
 
-Der Installer unterstützt jetzt zusätzlich explizite, getrennte Betriebsarten für **Programm-Updates** und **Programm-Rollback**. Die produktive Konfiguration, das Secret, vorhandene Jobs, Profileinstellungen und die systemd-Units werden dabei nicht verändert.
+## Verhalten einer später freigegebenen Erstinstallation
 
-- **Code-only-Upgrade:** Nur bei nachgewiesen vollständig inaktiven nativen Diensten und Timern, ohne ausstehende Jobs, mit bereits geschützter Konfigurationsdatei, gepinnten Engine-Dateien und byteidentischen systemd-Definitionen. Die neue Code-/Engine-Struktur wird vollständig neben dem alten Programmverzeichnis aufgebaut; das bisherige Verzeichnis bleibt als rootgeschütztes, atomar umbenanntes Backup unter \`/opt/.ultimate-slicer-server-backups\` erhalten.
-- **Identisches Paket:** Wird nach SHA-Vergleich ohne Dateienwechsel und ohne neues Backup als \`unchanged=true\` zurückgemeldet.
-- **Rollback:** Ausschließlich ein nachweislich aus diesem geschützten Upgrade-Backup stammendes \`code\`-Verzeichnis darf wiederhergestellt werden. Auch der ersetzte neuere Programmstand wird behalten. Secret und Benutzerdaten bleiben unverändert.
-- **systemd-Änderungen:** Werden von diesem Code-only-Upgrade absichtlich verweigert und benötigen einen später separat geprüften Service-Migrationsvertrag.
-- **In allen Betriebsarten:** Kein automatischer Dienststart, kein Druckerzugriff und kein Test-Slice.
+Der Erstinstallationsweg lehnt belegte Programmziele, vorhandene Daten und vorhandene systemd-Dienste ab. Er ist keine Migration einer laufenden Installation. Bestehende Konfigurationen, Jobs und Profile werden nicht als neue leere Installation übernommen oder überschrieben.
 
-Beispiel einer später auf einer gesondert freigegebenen Linux-Testumgebung durchzuführenden Aktualisierung:
+Die Implementierung erzeugt bei einer zulässigen Erstinstallation einen starken lokalen API-Schlüssel und speichert ihn unter `/etc/ultimate-slicer-server/config.json` mit eingeschränkten Gruppenrechten. Als Standardbindung ist `127.0.0.1` vorgesehen. Der Dienst erhält `User=ultimate-slicer`, `NoNewPrivileges=yes`, `ProtectSystem=strict` sowie getrennte Programm-, State- und Cacheverzeichnisse.
 
-\`\`\`bash
+Eine Erstinstallation aktiviert und startet die Dienste nicht automatisch. Installation, Dienststart, Verbindungsprüfung, Slicing, Druckerupload und Druckstart bleiben getrennte Aktionen. Diese Beschreibung dokumentiert die vorhandene Implementierung; sie erteilt keine aktuelle Betriebsfreigabe.
+
+## Netzwerkisolation der Engineprozesse
+
+Der Worker verwendet für Slicing-Unterprozesse einen eigenen Netzwerk-Namespace. Im neuen nativen Paket läuft der Dienst als eingeschränkter Benutzer `ultimate-slicer` und verbindet User- und Netzwerk-Namespace, ohne dem Dienst Rootrechte auf dem Host zu geben. Der bereits vorhandene privilegierte Altbetrieb behält seinen bisherigen Aufrufvertrag; er wird durch dieses Paket nicht automatisch umgebaut.
+
+Vor einer zulässigen Erstinstallation sieht der Root-Installer eine `runuser`-/`unshare`-Probe als eingeschränkter Dienstbenutzer vor. Diese Probe führt keinen Slice, Netzwerkzugriff oder Druckbefehl aus. Zusätzlich prüft `ultimate-slicer-dispatch.service` beim Start über `ExecStartPre` die tatsächlichen Dienstrechte.
+
+Kann die Zielumgebung die sichere Namespace-Erzeugung nicht bereitstellen, brechen Installation beziehungsweise Dispatcher ab. Ein unisolierter Ersatzweg ist nicht vorgesehen. Isolierte Tests mit simulierten Systembefehlen belegen die portable Logik; die tatsächlichen Kernel-, AppArmor- und systemd-Bedingungen müssen auf der unabhängigen Linux-Umgebung nachgewiesen werden.
+
+## HTTPS und Home-Assistant-Verbindung
+
+Eine frische native Installation bindet standardmäßig nur an Loopback. Das API-Secret wird auch bei lokalen authentifizierten Anfragen benötigt. Eine andere Bind-Adresse ohne gültiges TLS-Zertifikat und zugehörigen privaten Schlüssel wird bereits beim Start verweigert. Fehlende, unvollständige oder ungültige Zertifikate sowie eine Remote-Klartextbindung sind keine unterstützten Einrichtungswege.
+
+Die vorhandene Dokumentation zeigt folgende zusätzliche Netzwerkoptionen für die geschützte Konfigurationsdatei:
+
+```json
+{
+  "host": "0.0.0.0",
+  "port": 8443,
+  "tls_certfile": "/etc/ultimate-slicer-server/tls/server.crt",
+  "tls_keyfile": "/etc/ultimate-slicer-server/tls/server.key"
+}
+```
+
+Dieses Fragment ist kein vollständiger Konfigurationsersatz. Das vom Installer erzeugte API-Secret und alle übrigen Einstellungen bleiben erhalten. Die Schlüsseldatei muss für den Dienstbenutzer lesbar und für andere Benutzer geschützt sein; dokumentiertes Beispiel sind `root:ultimate-slicer` und Modus `0640`. Der Schlüssel gehört weder in Git noch ins Frontend oder in Diagnoseexporte.
+
+Das Zertifikat muss zum eingetragenen Hostnamen passen und von Home Assistant vertrauenswürdig geprüft werden können. Der Slicer erlaubt TLS ab Version 1.2. Alternativ kann ein TLS-Reverse-Proxy auf dem Slicer-Host terminieren, während der native Dienst strikt an `127.0.0.1` gebunden bleibt.
+
+In Home Assistant werden unter **Einstellungen → Geräte & Dienste → Ultimate 3D Studio → Konfigurieren** die HTTPS-Adresse und das API-Secret hinterlegt. Der Verbindungstest fragt die geschützte Info-API ab. Er löst keinen Upload, Slice oder Druckstart aus. Eine reale Verbindung von einem anderen HA-Host einschließlich Zertifikatskette und Firewall bleibt ein eigener offener Nachweis.
+
+## Verzeichnisse und Versionsmetadaten
+
+| Aufgabe | Vorgesehener Pfad |
+| --- | --- |
+| Programmcode und separat beschaffte Engine | `/opt/ultimate-slicer-server` |
+| Lokales Secret, Netzwerkoptionen und TLS-Dateien | `/etc/ultimate-slicer-server` |
+| Jobs, Uploads, Status und Historie | `/var/lib/ultimate-slicer-server` |
+| Native Dienste und Timer | `/etc/systemd/system/ultimate-slicer-*.service` beziehungsweise `.timer` |
+
+Die zentrale Datei `release.json` enthält Softwareversion und numerische API-Protokollkompatibilität. Sie enthält keine Zugangsdaten. Der Bundler prüft ihre Syntax und nimmt ihre Dateiidentität in das Quellpaket auf. API-Server und natives Statusskript verwenden dieselben Metadaten für Info und Health.
+
+Eine historische Hostinstallation ohne diese Datei bleibt bei ihren bisherigen Metadaten; ihr wird keine neue aktuelle Releaseversion zugeschrieben. Programm-, Dienst-, Datei-, API- und Assetnamen bleiben versionsneutral. Die tatsächliche Version wird als Datenwert transportiert und kann unabhängig von der HA-Integration aktualisiert werden.
+
+## Programm-Update und Rückweg
+
+Der Code-only-Upgradeweg setzt vollständig inaktive native Dienste und Timer, keine ausstehenden Jobs, eine geschützte Konfiguration, gepinnte Engine-Dateien und byteidentische systemd-Definitionen voraus. Er verändert die produktive Konfiguration, das API-Secret, vorhandene Jobs, Profileinstellungen und Units nicht. Änderungen an systemd-Definitionen werden abgewiesen und benötigen einen eigenen geprüften Migrationsvertrag.
+
+Der neue Programm- und Enginebestand wird neben dem bisherigen Verzeichnis aufgebaut. Der bisherige Stand bleibt als rootgeschütztes, atomar umbenanntes Backup unter `/opt/.ultimate-slicer-server-backups` erhalten. Ein identisches Paket wird nach SHA-Vergleich als `unchanged=true` ohne Dateiaustausch und ohne neues Backup gemeldet.
+
+Das folgende erhaltene Originalbeispiel beschreibt einen späteren ausdrücklich freigegebenen Testlauf. Es ist mit dem aktuellen Freigabestatus keine ausführbare Upgradefreigabe:
+
+```sh
 python3 install_native.py --archive /pfad/ultimate-slicer-server.tar.gz \
   --archive-sha256 <extern-bestätigter-SHA-256-Wert> \
   --upgrade --engine-root /pfad/zur-geprüften-engine \
   --engine-sha256-manifest /pfad/zur-geprüften-engine/SHA256SUMS \
   --accept-engine-license
-\`\`\`
+```
 
-Die Ausgabe enthält den privaten Backuppfad für einen ausdrücklich freigegebenen Wiederherstellungslauf:
+Rollback akzeptiert ausschließlich ein nachweislich aus dem geschützten Upgrade-Backup stammendes `code`-Verzeichnis. Auch der ersetzte neuere Programmstand bleibt erhalten. Das dokumentierte Originalbeispiel lautet:
 
-\`\`\`bash
+```sh
 python3 install_native.py --rollback \
   --code-backup /opt/.ultimate-slicer-server-backups/<freigegebener-backupordner>/code
-\`\`\`
+```
 
-Diese Beispiele sind **keine Freigabe für die produktive HA-VM**. Der vollständige, unabhängige Debian-Lauf mit echten Rechten, Lizenzen, Engine-Daten, Arbeitsprofilen sowie Neustart und Restoration bleibt ein Release-Gate.
+Keiner dieser Wege startet automatisch Dienste oder führt einen Slice aus. Ein Programm-Rollback ersetzt keinen vollständigen Datenrestore. Systemd- und Datenformatmigration sowie Wiederanlauf mit tatsächlichen Engine- und Jobdaten benötigen ihre eigenen Abnahmen.
 
-## Noch ausstehende Freigabeschritte
+## Offene Nachweise und Lizenzgrenzen
 
-1. Reale isolierte Debian-Erstinstallation unter Linux/root, inkl. Rechte-, systemd-, Health- und Wiederanlauftests.
-2. Engine-Lizenz, Dateiprovenienz und vollständige Hardware-/Materialprofile überprüfen; keine automatischen Downloads oder Engine-Binärdateien im öffentlichen Quellpaket.
-3. Code-only-Upgrade und -Rollback sind mit synthetischen Jobdaten getestet. Systemd-/Datenformatmigration und vollständige Linux-Wiederanlaufabnahme bleiben offen; der Erstinstallationsmodus verweigert weiterhin belegte Installationsziele.
-4. Authentifizierter HTTPS-Zugang von einer anderen Home-Assistant-Installation mit einem verifizierten Zertifikat; kein öffentlicher Klartextserver.
-5. HACS-Komplettpaket, frontendseitige dynamische Buildanzeige, HA-Live-Pilot und anschließender kontrollierter GitHub-main-Release.
+Vor der Betriebsfreigabe bleiben Engineherkunft und Lizenzpflichten, vollständige Hardware-/Materialprofile, reale Rechte und Isolation, systemd-Start, Health, HTTPS von einem zweiten Host sowie Upgrade-, Rollback- und Restoreverhalten zu prüfen. HACS-Paketierung und HA-Live-Pilot sind eigenständige Teile der Gesamtintegration. Die abschließende Linux-Neuinstallation mit echten Bedingungen bleibt der letzte Verifikationstest; aus vorherigen Quellprüfungen wird kein bestandener Installationstest abgeleitet.
 
-**Freigabestatus: `native_deploy_ready=false`.** Alle Änderungen in diesem Schritt betreffen ausschließlich PC-Quellen und private Offline-Tests; die laufende HA-Instanz und GitHub bleiben unverändert.
+Für die Rechte gelten [Repository-Lizenzgrenzen](../../Slicer-Server/REPOSITORY_NOTICES.md), die [Slicer-Lizenz](../../Slicer-Server/LICENSE), [Drittanbieterhinweise](../../Slicer-Server/THIRD_PARTY_NOTICES.md) und die ursprünglichen komponentenbezogenen Hinweise. Vorbestehende Rechte werden durch eine Quellprojektion nicht ersetzt. Das gesamte Repository besitzt keine pauschale MIT-Zuordnung. Engineprogramme, Betriebssystempakete und Bibliotheken benötigen vor ihrer Verteilung einen eigenen Herkunfts- und Lizenznachweis.
