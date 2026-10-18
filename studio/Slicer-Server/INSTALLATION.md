@@ -2,9 +2,9 @@
 
 ## Installation mit dem TaraCraft-Assistenten
 
-**Home Assistant Container hat keinen Supervisor und keinen Menüpunkt Apps.**
-Der Slicer läuft als eigener Docker-Compose-Dienst. Für diesen Weg muss keine
-Supervisor-App installiert und kein App-Repository unter System gesucht werden.
+**Home Assistant und Slicer laufen als getrennte Docker-Container auf deinem vorhandenen Linuxserver.**
+Du administrierst Linux, Docker, Netzwerk und weitere Dienste weiterhin selbst.
+Der Assistent installiert und verbindet HACS, Studio und den Slicer.
 
 Wenn dir die aktuelle einzelne Datei `TaraCraft-Install.sh` bereitgestellt wurde,
 kopiere sie auf den Linux/amd64-Server und starte sie dort im Terminal:
@@ -50,7 +50,7 @@ Sitzung und Fortsetzen wählen; vorhandene Einstellungen werden wiederverwendet.
 
 ## Geführte Einrichtung nach der Installation
 
-**Wichtig: Dieser Installer richtet Home Assistant Container ein. Diese Installation hat keinen Supervisor und keinen Menüpunkt Apps. Der Slicer wird als eigener Docker-Compose-Dienst installiert. Du brauchst für diesen Weg keine Supervisor-App und kein App-Repository.**
+**Installationsweg: Home Assistant Container und ein eigener Docker-Compose-Slicer auf deinem vorhandenen Linuxserver. Linux bleibt vollständig selbst administrierbar.**
 
 Der Installer installiert HACS und Studio bereits als Dateien. Für die erste
 Einrichtung musst du weder das Repository suchen noch Dashboard-YAML kopieren.
@@ -166,7 +166,7 @@ Für einen frischen Anfang gibt es zwei unterschiedliche Wege im Hauptmenü:
 
 ## Quellen für die Einrichtung
 
-- [Home Assistant Container und Supervisor](https://www.home-assistant.io/integrations/hassio/)
+- [Home Assistant Container auf Linux](https://www.home-assistant.io/installation/linux/#install-home-assistant-container)
 - [Persönliche HACS-Geräteanmeldung](https://www.hacs.dev/docs/use/configuration/basic/)
 - [Geprüfter HACS-Repository-Adapter](https://github.com/hacs/integration/blob/2.0.5/custom_components/hacs/websocket/repositories.py)
 
@@ -182,7 +182,7 @@ Diese Anleitung führt vom passenden Einrichtungsweg zu den dokumentierten Vorpr
 
 Studio wird unabhängig als HACS-Integration 6.0.5 ausgeliefert. Die Slicer-Quellen tragen alpha10; das unveränderte Runtime-Image enthält API-Metadaten alpha9. Image-ID: `sha256:cb37fa6b9aee8c40035a5f337a67d9fc13c4429e06098024731e556f8e8bfb49`. Es wurde dafür kein identischer Neubau vorgenommen. Externe Installations-, UI- und Pilotprüfungen bleiben `not_run` und sind keine zusätzlichen Releasegates. Eine Gesamtfertigstellung wird daraus nicht abgeleitet.
 
-Für die ausgelieferte Docker-Runtime gilt die verlinkte Anleitung mit dem vorhandenen Image und dessen eigener Compose-Datei. Die folgenden Abschnitte dokumentieren zusätzlich den Quell-Preflight sowie getrennte Supervisor- und native Paketwege. Deren leere Auswahlkataloge und gesperrte Installationsaktionen gelten nicht als fehlende Engineausstattung des Runtime-Images. Für den nativen Installationsweg gilt weiterhin `native_deploy_ready=false`; eine Supervisor-Paketreferenz ist noch nicht veröffentlicht.
+Für die ausgelieferte Docker-Runtime gilt die verlinkte Anleitung mit dem vorhandenen Image und dessen eigener Compose-Datei. Die folgenden Abschnitte dokumentieren zusätzlich den Quell-Preflight und den getrennten nativen Paketweg. Deren leere Auswahlkataloge und gesperrte Installationsaktionen gelten nicht als fehlende Engineausstattung des Runtime-Images. Für den nativen Installationsweg gilt weiterhin `native_deploy_ready=false`.
 
 
 ## 2. Einrichtungsweg auswählen
@@ -190,11 +190,10 @@ Für die ausgelieferte Docker-Runtime gilt die verlinkte Anleitung mit dem vorha
 | Ausgangslage | Passender Weg | Aktuelle Grenze |
 | --- | --- | --- |
 | Eigenständiger Slicer läuft bereits auf einem anderen Host | Externe HTTPS-Verbindung | TLS, Authentifizierung und API-Kompatibilität müssen passen |
-| Home Assistant besitzt Supervisor und soll eine verwaltete App nutzen | Supervisor-App | Installation mangels freigegebener Paketreferenz gesperrt |
 | Ein Unix-Host wurde bereits ausdrücklich für den Installer provisioniert | Geschützte Hostkopplung | Reale Hosteinrichtung und Abnahmen stehen noch aus |
 | Quellcode soll ohne laufenden Dienst geprüft werden | Quell-Preflight | Kein API-Start, keine Engine und kein Slice |
 
-Diese Wege sind getrennt. Ein Fehler im Supervisor-Pfad startet keinen Host-Installer. Ohne Supervisor bleiben Studio und externe Slicer-Verbindung grundsätzlich eigenständige Funktionen. HACS ist für die Home-Assistant-Integration vorgesehen und installiert das native Linux-Slicer-Paket nicht.
+Home Assistant Container und der Docker-Compose-Slicer werden getrennt verwaltet und über HTTPS verbunden. HACS verwaltet die Home-Assistant-Integration. Die zusätzlichen Entwicklerprüfungen installieren keinen Hostdienst.
 
 ## 3. Einen vorhandenen externen HTTPS-Slicer verbinden
 
@@ -206,23 +205,13 @@ Der dokumentierte Verbindungstest fragt die geschützte Info-API ab. Er installi
 
 Für einen entfernten Host wird die Zertifikatsprüfung beibehalten. Beim nativen Dienst ist eine Bind-Adresse außerhalb von Loopback ohne vollständige gültige TLS-Konfiguration gesperrt. Alternativ ist laut nativer Dokumentation eine TLS-Terminierung durch einen Reverse-Proxy möglich, während der Slicer an `127.0.0.1` gebunden bleibt. Die konkrete Cross-Host-TLS-Abnahme bleibt ein offener Nachweis.
 
-## 4. Supervisor-App: Voraussetzungen und Vorgangsstatus
-
-Der App-Pfad verwendet den von Home Assistant bereitgestellten Supervisor-Client. Zusätzliche Core-Mounts, Shellzugang oder ein eingebundener Docker-Socket sind dafür nicht vorgesehen. Vorgänge benötigen einen aktiven Administrator; Repository, App-Slug und Version müssen mit der serverseitig freigegebenen Paketreferenz übereinstimmen.
-
-Aktuell fehlt diese Referenz. Daher darf weder das Prüfimage ohne Engines noch ein selbst gewählter Paketname als Ersatz dienen. Der Dialog kann eine bestätigte Installation erst anbieten, wenn die passende freigegebene Referenz vorliegt. Eine Installation und der Start einer App sind getrennte Vorgänge; der beschriebene Adapter startet, aktualisiert oder entfernt keine App.
-
-Bei einem unterbrochenen Vorgang bleibt eine lokale `pending`-Absicht erhalten. Ein Timeout oder geschlossener Dialog ist kein Anlass, die Installation erneut zu senden. Ist die erwartete App später vollständig installiert und gestoppt vorhanden, kann ein Administrator den dokumentierten Bestandsabgleich bestätigen. Dessen Ergebnis `reconciled_stopped` bestätigt den abgeglichenen gestoppten Bestand; der Ausgang der ursprünglichen Anfrage bleibt unbekannt. Ein bereits laufender Container erscheint als `running_unverified`. Aus diesem Zustand werden keine Zugangsdaten und keine funktionierende Verbindung abgeleitet.
-
-Details zur Prüfung der App, Version, Schutzbedingungen und Supervisor-Jobs stehen in [Home-Assistant-Einrichtung](SUPERVISOR_APP_SETUP.md).
-
-## 5. Bereits provisionierten Unix-Host koppeln
+## 4. Bereits provisionierten Unix-Host koppeln
 
 Dieser Weg setzt eine ausdrücklich vorbereitete Hostumgebung voraus. Die lokale Tokenregistrierung stellt keine automatische Host-Erkennung, HTTP-Route oder allgemeine Shell bereit. Sie gehört in eine geschützte Installer-Steuerablage außerhalb der Engine-, Profil- und Datenmounts; Worker und Browser erhalten darauf keinen Zugriff.
 
 Die Implementierung beschreibt eine gebundene lokale Installations-ID, Principals mit festgelegten Rechten und geschützte Tokenübergabe. Eine lokale ID allein bestätigt jedoch nicht die Identität eines entfernten TLS-Hosts. Produktive Provisionierung, Rechte, gesicherter Transport und Wiederherstellung benötigen ihre eigenen Nachweise. Deshalb enthält diese Anleitung keinen vereinfachten Kopplungs- oder Installationsbefehl. Der maßgebliche Vertrag steht in [Hostkopplung](HOST_PAIRING.md) und [Installer-Transport](INSTALLER_TRANSPORT.md).
 
-## 6. Quell-Preflight ohne Dienstinstallation
+## 5. Quell-Preflight ohne Dienstinstallation
 
 Für die Dateiprüfung werden ein vollständiger Quellbaum und Python 3.11 oder neuer benötigt. Das Ausgabeziel muss neu sein und außerhalb des Repositorys liegen. Sein Elternverzeichnis muss existieren; verlinkte Pfadketten sind unzulässig. Weder eine vorhandene Slicer-Installation noch Docker werden für diese erste Dateiprüfung benötigt.
 
@@ -245,7 +234,7 @@ Auf Windows kann stattdessen ein neuer Ordner in einem privaten temporären Verz
 
 Ein abweichendes Ergebnis wird untersucht. Prüfsummen werden nicht lediglich an veränderte Dateien angepasst. Für einen weiteren Kontext ist ein neues Ziel zu verwenden; vorhandene Ziele werden nicht automatisch geleert. Konfigurationen, Secrets und Nutzermodelle gehören außerhalb des Build-Kontexts.
 
-## 7. Optionales Prüfimage bauen
+## 6. Optionales Prüfimage bauen
 
 Dieser Entwicklerweg benötigt Docker Engine und Docker Compose auf einem separaten vorgesehenen Testrechner. Ein Build kann das gewählte Basisimage herunterladen. Als `PYTHON_BASE` ist eine überprüfte offizielle Python-Linux-Referenz mit SHA-256-Digest erforderlich. Der vorhandene Quelltext nennt dafür das Format `python:<freigegebener-tag>@sha256:<64-hex-zeichen>`; dies ist ein Platzhalter und kein verwendbarer Downloadnachweis.
 
@@ -265,7 +254,7 @@ SLICER_CHECK_IMAGE=ultimate-slicer-server-check \
 
 Die Preview-Konfiguration besitzt keine veröffentlichten Ports und keine Daten- oder Engine-Mounts. Sie arbeitet mit unprivilegiertem Benutzer, schreibgeschütztem Dateisystem und ohne zusätzliche Capabilities. `pull_policy=never` verlangt das zuvor lokal gebaute Prüfimage. Der erfolgreiche Lauf prüft dessen eingebautes Quellpaket. Fehlende Engines, Bibliotheken, Profile, Lizenznachweise und Betriebsabnahmen werden dadurch nicht ersetzt. Die Preview-Datei wird nicht durch zusätzliche Rechte zu einer freigegebenen Installation.
 
-## 8. Älteren Containerkandidaten für die Quellentwicklung vorbereiten
+## 7. Älteren Containerkandidaten für die Quellentwicklung vorbereiten
 
 Dieser Abschnitt gilt für den Kandidaten mit externen Engine-Binds. Für das veröffentlichte Image mit eingebauten Engines gilt ausschließlich die oben verlinkte Runtime-Anleitung.
 
@@ -275,7 +264,7 @@ Für einen späteren isolierten Lauf werden getrennte Pfade benötigt: `data/` f
 
 Ein leerer Enginepfad kann einen Leerlauftest ermöglichen, aber keinen Slice. Fehlende Bind-Mounts werden nicht automatisch angelegt. Eine Standardbindung an Loopback macht den Dienst ausschließlich auf dem Docker-Host erreichbar. Der konkrete Startablauf bleibt in der Laufzeitdokumentation; vor einer freigegebenen Bereitstellung fehlen insbesondere Engine-, Lizenz-, HA-Verbindungs-, Neuinstallations- und Restore-Nachweise.
 
-## 9. Native Pakete nur innerhalb ihres Prüfvertrags
+## 8. Native Pakete nur innerhalb ihres Prüfvertrags
 
 Die nativen Werkzeuge liegen in [`packages/ultimate-slicer-server/`](../packages/ultimate-slicer-server/README.md). Der Installer prüft notwendige Programme, feste Systempfade und die Voraussetzungen seiner Isolation. Er installiert keine Betriebssystempakete automatisch. Aus dem Verzeichnis mit `install_native.py` lautet die dokumentierte rein lesende Hostprüfung:
 
@@ -285,7 +274,7 @@ python3 install_native.py --check-host
 
 Ein erfolgreicher Lauf meldet `host_dependencies: ready` und `installation_performed: false`. Das bestätigt vorhandene Hostabhängigkeiten, keine vollständige Betriebsfähigkeit. Die Installation benötigt zusätzlich einen extern bestätigten Archivhash, rechtmäßig nutzbare Engine-Dateien, deren unabhängiges Manifest sowie vollständige Maschinen-, Prozess- und Filamentprofile. `native_deploy_ready=false` sperrt die Installations- und Upgradeaktionen weiterhin. Eine bestehende Installation wird nicht als Erstinstallationsziel überschrieben.
 
-## 10. Fehler einordnen und späteren Betrieb absichern
+## 9. Fehler einordnen und späteren Betrieb absichern
 
 | Zustand | Bedeutung und nächster Schritt |
 | --- | --- |

@@ -41,9 +41,9 @@ Die [Funktionsübersicht](studio/handbook/FEATURES.md) nennt Umfang und Grenzen.
 
 ## Installation mit dem TaraCraft-Assistenten
 
-**Home Assistant Container hat keinen Supervisor und keinen Menüpunkt Apps.**
-Der Slicer läuft als eigener Docker-Compose-Dienst. Für diesen Weg muss keine
-Supervisor-App installiert und kein App-Repository unter System gesucht werden.
+**Home Assistant und Slicer laufen als getrennte Docker-Container auf deinem vorhandenen Linuxserver.**
+Du administrierst Linux, Docker, Netzwerk und weitere Dienste weiterhin selbst.
+Der Assistent installiert und verbindet HACS, Studio und den Slicer.
 
 Wenn dir die aktuelle einzelne Datei `TaraCraft-Install.sh` bereitgestellt wurde,
 kopiere sie auf den Linux/amd64-Server und starte sie dort im Terminal:

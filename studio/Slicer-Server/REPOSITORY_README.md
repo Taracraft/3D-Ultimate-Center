@@ -26,14 +26,14 @@ Studio wird unabhängig als HACS-Integration 6.0.5 ausgeliefert. Die Slicer-Quel
 
 Der Release enthält 24 einzeln geprüfte Downloads mit insgesamt 4.754.562.403 Bytes. Jeder Download wurde nach dem Upload ohne Anmeldung vollständig gegen Größe und SHA-256 geprüft. Das Runtime-Image ist vom weiterhin verfügbaren Source-Preflight-Image zu unterscheiden: Nur die Runtime enthält die drei Engines und ihre Laufzeitbibliotheken.
 
-Der Quellkatalog `Slicer-Server/engine_catalog.json` bleibt der noch leere Auswahlkatalog für den getrennten Paket-/Installerweg. Für diese Docker-Lieferung gilt der imagegebundene Release-Download `CATALOG.json`; ein leerer Quellkatalog bedeutet nicht, dass dem veröffentlichten Image Engines fehlen. Native Installations- und Supervisor-Paketfreigaben werden hierdurch nicht verändert. Eine allgemeine ARM-Unterstützung ist nicht zugesagt.
+Der Quellkatalog `Slicer-Server/engine_catalog.json` bleibt der noch leere Auswahlkatalog für den getrennten Paket-/Installerweg. Für diese Docker-Lieferung gilt der imagegebundene Release-Download `CATALOG.json`; ein leerer Quellkatalog bedeutet nicht, dass dem veröffentlichten Image Engines fehlen. Eine allgemeine ARM-Unterstützung ist nicht zugesagt.
 
 
 ## Installation mit dem TaraCraft-Assistenten
 
-**Home Assistant Container hat keinen Supervisor und keinen Menüpunkt Apps.**
-Der Slicer läuft als eigener Docker-Compose-Dienst. Für diesen Weg muss keine
-Supervisor-App installiert und kein App-Repository unter System gesucht werden.
+**Home Assistant und Slicer laufen als getrennte Docker-Container auf deinem vorhandenen Linuxserver.**
+Du administrierst Linux, Docker, Netzwerk und weitere Dienste weiterhin selbst.
+Der Assistent installiert und verbindet HACS, Studio und den Slicer.
 
 Wenn dir die aktuelle einzelne Datei `TaraCraft-Install.sh` bereitgestellt wurde,
 kopiere sie auf den Linux/amd64-Server und starte sie dort im Terminal:
@@ -62,7 +62,7 @@ für die eigene Umgebung eingerichtet.
 
 Die eigenständig installierbare Docker-Lieferung beginnt mit der [Runtime-Installationsanleitung](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/v0.1.0-alpha10/RUNTIME_RELEASE_README.md). Sie beschreibt Download, vollständige Hashprüfung, Laden der exakten Image-ID und die mitgelieferte Compose-Konfiguration. Eigene Daten, TLS-Dateien und API-Secret werden auf dem Zielhost eingerichtet. Ultimate 3D Studio verbindet sich anschließend über HTTPS mit dem Dienst.
 
-Die folgenden Quellprüfungen und älteren Paket-/Supervisor-Anleitungen dokumentieren getrennte Entwickler- und Verwaltungswege. Sie ersetzen die Runtime-Anleitung nicht. Die Supervisor-App besitzt weiterhin keine freigegebene Paketreferenz. Die normale Docker-Installation benötigt keine Hostkopplung und keinen zusätzlichen Installer-Dienst.
+Die folgenden Quellprüfungen dokumentieren zusätzliche Entwicklerwege. Für die Installation auf deinem Linuxserver gilt die Runtime-Anleitung mit Docker Compose. Die normale Docker-Installation benötigt keine Hostkopplung und keinen zusätzlichen Installer-Dienst.
 
 
 ## Quellen nachvollziehbar prüfen
