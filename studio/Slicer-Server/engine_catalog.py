@@ -105,13 +105,30 @@ class Release:
 
 
 def release_document(release: Release) -> dict:
-    """JSON-shaped release record; absent new metadata preserves legacy identities."""
+    """Internal receipt record; absent new metadata preserves legacy identities."""
     if type(release) is not Release:
         raise CatalogError("invalid_release")
     data = json.loads(json.dumps(asdict(release), allow_nan=False))
     for artifact in data["artifacts"]:
         if not artifact.get("source_components"):
             artifact.pop("source_components", None)
+    return data
+
+
+def catalog_release_document(release: Release) -> dict:
+    """Validator-compatible release record for engine_catalog.json."""
+    receipt = release_document(release)
+    data = {
+        "engine": receipt["engine"],
+        "version": receipt["version"],
+        "system": "linux",
+        "architecture": receipt["architecture"],
+        "artifacts": receipt["artifacts"],
+    }
+    for artifact in data["artifacts"]:
+        for file_spec in artifact["files"]:
+            if file_spec.get("archive_path") is None:
+                file_spec.pop("archive_path", None)
     return data
 
 

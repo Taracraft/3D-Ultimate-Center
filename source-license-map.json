@@ -150,7 +150,7 @@
       "identity": {
         "bytes": 6963,
         "kind": "sha256-raw-bytes",
-        "sha256": "f03d0d1a67b6538367d6a4cc5785ffcd37ea6318639b9a6e79841983641f5da8"
+        "sha256": "7bf0d083626641fc4a27de0bb3a586eafd65fad7d137a7622440f502fa4601f8"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "custom_components/ultimate_3d_studio/assets/ultimate-3d-studio-build.json",
@@ -176,7 +176,7 @@
       "identity": {
         "bytes": 701158,
         "kind": "sha256-raw-bytes",
-        "sha256": "14be2f7d4a6e92a477e733ef4a8972a40fb02036f90ebec68c2666ca7e4d3031"
+        "sha256": "bdd3a8524d355e7e9351de19249c15f9eb7a144ab0015ce44fe2f51e5800386b"
       },
       "notice_class": "generated-frontend-bundle-with-inherited-MIT-and-vendored-ISC",
       "path": "custom_components/ultimate_3d_studio/assets/ultimate-3d-studio.js",
@@ -895,7 +895,7 @@
       "identity": {
         "bytes": 438,
         "kind": "sha256-raw-bytes",
-        "sha256": "66a4aa39ea833eaecc123bd2acfdfb32f58e7041f451f81cf4dc45c12ae5a3f8"
+        "sha256": "0f5a86bd689db8d8d20cbd8bc105d238c675e196a6672da4dd760b17ff99e507"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "custom_components/ultimate_3d_studio/manifest.json",
@@ -3174,7 +3174,7 @@
       "identity": {
         "bytes": 438,
         "kind": "sha256-raw-bytes",
-        "sha256": "66a4aa39ea833eaecc123bd2acfdfb32f58e7041f451f81cf4dc45c12ae5a3f8"
+        "sha256": "0f5a86bd689db8d8d20cbd8bc105d238c675e196a6672da4dd760b17ff99e507"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/custom_components/ultimate_3d_studio/manifest.json",
@@ -4177,7 +4177,7 @@
       "identity": {
         "bytes": 6963,
         "kind": "sha256-raw-bytes",
-        "sha256": "f03d0d1a67b6538367d6a4cc5785ffcd37ea6318639b9a6e79841983641f5da8"
+        "sha256": "7bf0d083626641fc4a27de0bb3a586eafd65fad7d137a7622440f502fa4601f8"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -4203,7 +4203,7 @@
       "identity": {
         "bytes": 701158,
         "kind": "sha256-raw-bytes",
-        "sha256": "14be2f7d4a6e92a477e733ef4a8972a40fb02036f90ebec68c2666ca7e4d3031"
+        "sha256": "bdd3a8524d355e7e9351de19249c15f9eb7a144ab0015ce44fe2f51e5800386b"
       },
       "notice_class": "generated-frontend-bundle-with-inherited-MIT-and-vendored-ISC",
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio.js",
@@ -4255,9 +4255,9 @@
     },
     {
       "identity": {
-        "bytes": 4054,
+        "bytes": 4774,
         "kind": "sha256-raw-bytes",
-        "sha256": "7c43eb51f8d8ac21ec85a76570cbf203960143829e99ffc5742b8493b1cb4af1"
+        "sha256": "a16a957eaf71c753dcfe683ac2ccffc949d1fbc48a8cdfe5b588493e9f95cc78"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/CHANGELOG-DE.md",
@@ -4268,9 +4268,9 @@
     },
     {
       "identity": {
-        "bytes": 1898,
+        "bytes": 2562,
         "kind": "sha256-raw-bytes",
-        "sha256": "fa84afc77a62e1b5c074f2dfcc67e7e89220c57370f17820f1c058a90642dfba"
+        "sha256": "37281a7ea38f70f51136f253ed0a7d9a0f2b29761198485a7b51dba90ce77204"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/CHANGELOG.md",
@@ -5220,9 +5220,9 @@
     },
     {
       "identity": {
-        "bytes": 18789,
+        "bytes": 19374,
         "kind": "sha256-raw-bytes",
-        "sha256": "ebe21c8af152fd3b95d5f7f7cfef9dfd1957d5e8714dd0b1ab857e53ad886bc1"
+        "sha256": "19d67c1659b7726015c9f71be43ed2ad6fc7a53073eb7542cfa974f2d9ded415"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/engine_catalog.py",
@@ -5484,9 +5484,9 @@
     },
     {
       "identity": {
-        "bytes": 9243,
+        "bytes": 9244,
         "kind": "sha256-raw-bytes",
-        "sha256": "b44c794a2495f13a863bb46a2410915365d6e466be7c1cc8e52bf9f8110a32a0"
+        "sha256": "cdc0f599e5b1d038adaeb6575b04da412d29e3b042d88914c7df8179b0a6af2b"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/publish_release.py",
@@ -7983,7 +7983,7 @@
       "identity": {
         "bytes": 438,
         "kind": "sha256-raw-bytes",
-        "sha256": "66a4aa39ea833eaecc123bd2acfdfb32f58e7041f451f81cf4dc45c12ae5a3f8"
+        "sha256": "0f5a86bd689db8d8d20cbd8bc105d238c675e196a6672da4dd760b17ff99e507"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/manifest.json",
@@ -9220,7 +9220,7 @@
       "identity": {
         "bytes": 6963,
         "kind": "sha256-raw-bytes",
-        "sha256": "f03d0d1a67b6538367d6a4cc5785ffcd37ea6318639b9a6e79841983641f5da8"
+        "sha256": "7bf0d083626641fc4a27de0bb3a586eafd65fad7d137a7622440f502fa4601f8"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
@@ -9246,7 +9246,7 @@
       "identity": {
         "bytes": 701158,
         "kind": "sha256-raw-bytes",
-        "sha256": "14be2f7d4a6e92a477e733ef4a8972a40fb02036f90ebec68c2666ca7e4d3031"
+        "sha256": "bdd3a8524d355e7e9351de19249c15f9eb7a144ab0015ce44fe2f51e5800386b"
       },
       "notice_class": "generated-frontend-bundle-with-inherited-MIT-and-vendored-ISC",
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio.js",
@@ -13213,7 +13213,7 @@
       "identity": {
         "bytes": 15139,
         "kind": "sha256-raw-bytes",
-        "sha256": "6b780e4ef667abe77b989e4539bcbc654753a7a45d3b97a034e860565828b95c"
+        "sha256": "45e3a737707803088366d4e140b058af16577c81726bcb048a47d53dbdaf19fb"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/package-lock.json",
@@ -13226,7 +13226,7 @@
       "identity": {
         "bytes": 470,
         "kind": "sha256-raw-bytes",
-        "sha256": "93ef3b1208adefa406d4c5c1e7c7e8e2254653841cfc4e1005b5c42e9012b38b"
+        "sha256": "b16280177a2ddd4ccb02c1368bb2864faff9092a5f0e0bd2af1a030c728dc027"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/package.json",
@@ -13381,9 +13381,9 @@
     },
     {
       "identity": {
-        "bytes": 53,
+        "bytes": 54,
         "kind": "sha256-raw-bytes",
-        "sha256": "f476e926c87e970d90cf0bf182ef9ca8e74889ad819e15dfc6024d3ed92a5411"
+        "sha256": "dec0034f251a992d42a531f92a0748e8d31227b3bca6f4a5996b1ff7f2060fe2"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/packages/ultimate-slicer-server/release.json",
@@ -14629,9 +14629,9 @@
     },
     {
       "identity": {
-        "bytes": 16084,
+        "bytes": 17537,
         "kind": "sha256-raw-bytes",
-        "sha256": "724901dafe689da364260630dd91e2cfac7d0fa3ba69e650b45f38dad957adbc"
+        "sha256": "6b7d05ba5c200abf87d0029d6ab24e13070fdb1760bcc72f3b608db62c358277"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/tests/test_studio_engine_catalog.py",

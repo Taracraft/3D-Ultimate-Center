@@ -24,3 +24,8 @@ The baseline records beta milestones during July 2026 and version 6.0.0 on 6 Oct
 ## 7 October 2026
 - Migrated the active Studio integration, frontend and worker identifiers to a version-neutral namespace while retaining the release version in central metadata.
 - Historical deployment and visual checks do not prove acceptance of the current source candidate.
+
+## 18 October 2026 - 6.0.5 / Slicer 0.1.0-alpha10
+- The catalog serializer now emits the required Linux system field and omits an unset archive_path instead of serializing null. Internal delivery receipts retain their existing format.
+- Regression coverage verifies catalog validation and the separate receipt contract. Integration, frontend and Slicer source metadata use consistent new versions without moving existing tags.
+- This is a source correction. The existing private runtime archive retains its own identity and historical metadata. A complete public Docker runtime download and the outstanding Expat decision are not supplied by this source release.

@@ -1,12 +1,12 @@
 {
   "schema_version": 3,
   "product": "Ultimate 3D Printing Studio",
-  "version": "6.0.4",
-  "build_id": "5ac600506e",
+  "version": "6.0.5",
+  "build_id": "d8967374b6",
   "entry": "frontend/studio-entry.ts",
   "output": "deploy/homeassistant/www/3d-studio/ultimate-3d-studio.js",
   "size_bytes": 701158,
-  "sha256": "14be2f7d4a6e92a477e733ef4a8972a40fb02036f90ebec68c2666ca7e4d3031",
+  "sha256": "bdd3a8524d355e7e9351de19249c15f9eb7a144ab0015ce44fe2f51e5800386b",
   "css": {
     "output": "deploy/homeassistant/www/3d-studio/ultimate-3d-studio.css",
     "size_bytes": 801,
@@ -179,5 +179,5 @@
       "__transformMountPatched"
     ]
   },
-  "built_at": "2026-10-17T20:51:37.235Z"
+  "built_at": "2026-10-18T11:41:15.419Z"
 }

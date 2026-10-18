@@ -246,6 +246,30 @@ class CatalogTests(unittest.TestCase):
             catalog.verify_artifact(io.BytesIO(PAYLOAD), replace(artifact, size_bytes=True))
 
 
+    def test_release_document_round_trips_with_platform_and_sparse_optionals(self):
+        release = parse(document("bambu_studio")).releases[0]
+        serialized = catalog.catalog_release_document(release)
+        self.assertEqual(serialized["system"], "linux")
+        self.assertEqual(set(serialized), {"engine", "version", "system", "architecture", "artifacts"})
+        for artifact in serialized["artifacts"]:
+            self.assertNotIn("source_components", artifact)
+            for file_spec in artifact["files"]:
+                self.assertNotIn("archive_path", file_spec)
+        root = {"schema": 1, "releases": [serialized],
+                "pending": [engine for engine in catalog.ENTRYPOINTS if engine != release.engine]}
+        self.assertEqual(parse(root).releases[0], release)
+
+    def test_release_document_preserves_explicit_archive_path(self):
+        value = document()
+        value["releases"][0]["artifacts"][0]["files"][1]["archive_path"] = "payload/resources/data.txt"
+        release = parse(value).releases[0]
+        serialized = catalog.catalog_release_document(release)
+        files = serialized["artifacts"][0]["files"]
+        self.assertEqual(files[1]["archive_path"], "payload/resources/data.txt")
+        root = {"schema": 1, "releases": [serialized],
+                "pending": [engine for engine in catalog.ENTRYPOINTS if engine != release.engine]}
+        self.assertEqual(parse(root).releases[0], release)
+
     def test_dedicated_slicer_repository_downloads_for_all_families(self):
         for engine in catalog.ENTRYPOINTS:
             with self.subTest(engine=engine):

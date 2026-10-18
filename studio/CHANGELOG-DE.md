@@ -39,3 +39,8 @@ Der Ausgangsstand dokumentiert Beta-Meilensteine im Juli 2026 und Version 6.0.0 
 ## 17. Oktober 2026 - 6.0.4 / Slicer 0.1.0-alpha9
 - Die sechs OpenCASCADE-7.8-Laufzeitpaketfamilien für PrusaSlicers mitgelieferten STEP-Importbaustein sind jetzt ausdrücklich im Docker-Bau und in der Image-Paketreferenz enthalten. Der vorherige Kandidat besaß den Wrapper, aber nicht dessen acht benötigte OCCT-Bibliotheken.
 - Regressionen sichern Paketbestand, exakte Dockerfile-Bindung und den unverändert ausschließlich für Bambu gesetzten Bibliothekspfad. Keine neue Engine-, STEP-Import- oder Druckabnahme aus reinen Quellprüfungen ableiten.
+
+## 18. Oktober 2026 - 6.0.5 / Slicer 0.1.0-alpha10
+- Der Katalog-Serializer erzeugt Linux-Katalogeintraege mit dem erforderlichen system-Feld und ohne ungesetztes archive_path:null. Interne Liefer-Receipts behalten ihren bisherigen Vertrag.
+- Regressionen pruefen die Katalogvalidierung und die Trennung vom internen Receiptformat. Integrations-, Frontend- und Slicer-Quellmetadaten erhalten konsistente neue Versionswerte; bestehende Tags bleiben unveraendert.
+- Dies ist eine Quellkorrektur. Das bereits vorhandene private Runtimearchiv behaelt seine eigene Identitaet und seine historischen Metadaten. Ein oeffentlicher vollstaendiger Docker-Download wird damit nicht geliefert; die Expat-Entscheidung bleibt offen.
