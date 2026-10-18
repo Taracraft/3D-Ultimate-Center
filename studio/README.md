@@ -1,5 +1,7 @@
 # Ultimate 3D Studio · Handbuch
 
+> **Aktuelle Einrichtung:** Home Assistant Container besitzt keinen Supervisor und kein Apps-Menü. Mit der separat bereitgestellten `TaraCraft-Install.sh` führt die [ausführliche Anleitung](Slicer-Server/INSTALLATION.md) durch die weitgehend automatisierte HACS-/MQTT-/Slicer-/Dashboard-Einrichtung. Die folgenden älteren manuellen Wege bleiben Alternativen.
+
 **Dein Modell. Deine Materialien. Deine Druckplatte.**
 
 Ultimate 3D Studio bringt Modellbibliothek, CAD-Bearbeitung, Materialzuordnung und Druckvorbereitung in Home Assistant zusammen. Dieses Handbuch begleitet dich vom ersten Grundkörper bis zur Prüfung eines vorhandenen Slicer-Ergebnisses. Du kannst direkt mit dem [ersten Projekt](#erstes-projekt) beginnen oder über die [Arbeitsbereiche](#arbeitsbereiche) eine bestimmte Aufgabe nachschlagen.

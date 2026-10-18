@@ -39,6 +39,35 @@ Die [Funktionsübersicht](studio/handbook/FEATURES.md) nennt Umfang und Grenzen.
 - **Eine Installation einrichten:** Beginne mit [Integration, HACS und Slicer-Verbindung](studio/README.md#einrichtung) und dem [Slicer-Schnellstart](studio/Slicer-Server/DOCKER_QUICKSTART.md).
 - **Ein Problem eingrenzen:** Die [Fehlerhilfe](studio/README.md#fehlersuche) führt von der Beobachtung zum nächsten prüfbaren Schritt.
 
+## Installation mit dem TaraCraft-Assistenten
+
+**Home Assistant Container hat keinen Supervisor und keinen Menüpunkt Apps.**
+Der Slicer läuft als eigener Docker-Compose-Dienst. Für diesen Weg muss keine
+Supervisor-App installiert und kein App-Repository unter System gesucht werden.
+
+Wenn dir die aktuelle einzelne Datei `TaraCraft-Install.sh` bereitgestellt wurde,
+kopiere sie auf den Linux/amd64-Server und starte sie dort im Terminal:
+
+```sh
+sudo bash TaraCraft-Install.sh
+```
+
+Mit `bash TaraCraft-Install.sh --demo` lässt sich die Oberfläche vorher ansehen;
+`bash TaraCraft-Install.sh --self-test` führt isolierte Prüfungen aus. Der Assistent
+zeigt den aktuellen Schritt oben und das echte, scrollbar bleibende Shell-Protokoll
+darunter. Bei einer vorhandenen zugehörigen Sitzung **Fortsetzen** wählen.
+
+Die [ausführliche Anleitung für Container, HACS, MQTT, Slicer und Dashboard](studio/Slicer-Server/INSTALLATION.md)
+beschreibt die geführte Einrichtung, persönliche GitHub-Geräteanmeldung,
+automatische Repository-Übernahme und das vollständige Zurücksetzen. Die
+Automatisierungen gelten für den aktuellen separat bereitgestellten Assistenten
+mit seinen gebundenen Setup-Ergänzungen. Sie sind keine Behauptung, dass der
+unveränderte HACS-Tag 6.0.5 diese neuen Formulare bereits enthält.
+
+Für eine Installation ohne diesen Assistenten bleibt der unten verlinkte normale
+HACS-/Docker-Weg gültig. Anmeldedaten, Docker-Host und Netzverbindungen werden immer
+für die eigene Umgebung eingerichtet.
+
 ## Quellen und Entwicklung
 
 | Pfad | Inhalt |

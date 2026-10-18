@@ -57,9 +57,9 @@
     },
     {
       "identity": {
-        "bytes": 4830,
+        "bytes": 6352,
         "kind": "sha256-raw-bytes",
-        "sha256": "fbee3f4c6ece0ce759d07b2b64f024d02d233661c300f9c41c404947831c24d2"
+        "sha256": "354004f0836bfe98c2f0a43b67977291f7defb7828d031264a0b773f6beae41d"
       },
       "notice_class": "new-repository-documentation-with-root-MIT-notice",
       "path": "README.md",
@@ -4294,9 +4294,9 @@
     },
     {
       "identity": {
-        "bytes": 43720,
+        "bytes": 44084,
         "kind": "sha256-raw-bytes",
-        "sha256": "1234c2e544124cafafe79791cd0795761883f636212b8153c5cc8f6ad929a29a"
+        "sha256": "4db4bed897913d9abf0ad35c487c5bad55269c85318763baaad129e3831b7049"
       },
       "notice_class": "project-source-with-inherited-MIT-notice",
       "path": "studio/README.md",
@@ -4573,9 +4573,9 @@
     },
     {
       "identity": {
-        "bytes": 14808,
+        "bytes": 26479,
         "kind": "sha256-raw-bytes",
-        "sha256": "c53730bd366c5e2daf0ed70184aaff8c6cec888f3fb0c18059f4e687fe8869a5"
+        "sha256": "50bd3a704355007ccff388d0be037f8a935bf1d10a681144eb9f717d25891e49"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/INSTALLATION.md",
@@ -4812,9 +4812,9 @@
     },
     {
       "identity": {
-        "bytes": 9106,
+        "bytes": 10686,
         "kind": "sha256-raw-bytes",
-        "sha256": "4f7045d311dda6f491f46e0a9c3fb0ad19b5e0868b2c1e46bc79021f88eaa0a3"
+        "sha256": "30f16cd9724ecb242e624e63b3cd00c41aa194f509029b68e95f669ec42d1f37"
       },
       "notice_class": "declared-new-original-slicer-scope",
       "path": "studio/Slicer-Server/REPOSITORY_README.md",

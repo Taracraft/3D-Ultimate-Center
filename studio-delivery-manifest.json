@@ -21,9 +21,9 @@
       "sha256": "2cd47d14537993c48a899d2a3e6b30cf764ea31e18a468b662263e1f14027708"
     },
     {
-      "bytes": 4830,
+      "bytes": 6352,
       "path": "README.md",
-      "sha256": "fbee3f4c6ece0ce759d07b2b64f024d02d233661c300f9c41c404947831c24d2"
+      "sha256": "354004f0836bfe98c2f0a43b67977291f7defb7828d031264a0b773f6beae41d"
     },
     {
       "bytes": 6976,
@@ -1621,9 +1621,9 @@
       "sha256": "c34a65548032d1228b03b500fc410af53ed85cdd00ff944d7bfb7e7b84aa7bb1"
     },
     {
-      "bytes": 607167,
+      "bytes": 607168,
       "path": "source-license-map.json",
-      "sha256": "ddb7959607e4cd35e2f8195d3c9af09ed9cbba1e7e02afeb5db10ac7a4804e3f"
+      "sha256": "b174804e79d6ca3874f3dd129e6cb6e3215f7d4d6e1890d8eeb3e777dac6a63f"
     },
     {
       "bytes": 2883,
@@ -1646,9 +1646,9 @@
       "sha256": "6bc1bf52572a3f31e26788f35cc31843a034f5b9fc2f8caa12c8c6830eb5b95c"
     },
     {
-      "bytes": 43720,
+      "bytes": 44084,
       "path": "studio/README.md",
-      "sha256": "1234c2e544124cafafe79791cd0795761883f636212b8153c5cc8f6ad929a29a"
+      "sha256": "4db4bed897913d9abf0ad35c487c5bad55269c85318763baaad129e3831b7049"
     },
     {
       "bytes": 410,
@@ -1746,9 +1746,9 @@
       "sha256": "04a332cb724bdc8ee54fb49bf76662dbca89f1ff0555c4a57e9d934299681428"
     },
     {
-      "bytes": 14808,
+      "bytes": 26479,
       "path": "studio/Slicer-Server/INSTALLATION.md",
-      "sha256": "c53730bd366c5e2daf0ed70184aaff8c6cec888f3fb0c18059f4e687fe8869a5"
+      "sha256": "50bd3a704355007ccff388d0be037f8a935bf1d10a681144eb9f717d25891e49"
     },
     {
       "bytes": 5768,
@@ -1831,9 +1831,9 @@
       "sha256": "0cddae0364732a6b1a0535a3674a25c9b9c529cb440f8c560386518a2e3610f9"
     },
     {
-      "bytes": 9106,
+      "bytes": 10686,
       "path": "studio/Slicer-Server/REPOSITORY_README.md",
-      "sha256": "4f7045d311dda6f491f46e0a9c3fb0ad19b5e0868b2c1e46bc79021f88eaa0a3"
+      "sha256": "30f16cd9724ecb242e624e63b3cd00c41aa194f509029b68e95f669ec42d1f37"
     },
     {
       "bytes": 6337,

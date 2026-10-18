@@ -29,6 +29,35 @@ Der Release enthält 24 einzeln geprüfte Downloads mit insgesamt 4.754.562.403 
 Der Quellkatalog `Slicer-Server/engine_catalog.json` bleibt der noch leere Auswahlkatalog für den getrennten Paket-/Installerweg. Für diese Docker-Lieferung gilt der imagegebundene Release-Download `CATALOG.json`; ein leerer Quellkatalog bedeutet nicht, dass dem veröffentlichten Image Engines fehlen. Native Installations- und Supervisor-Paketfreigaben werden hierdurch nicht verändert. Eine allgemeine ARM-Unterstützung ist nicht zugesagt.
 
 
+## Installation mit dem TaraCraft-Assistenten
+
+**Home Assistant Container hat keinen Supervisor und keinen Menüpunkt Apps.**
+Der Slicer läuft als eigener Docker-Compose-Dienst. Für diesen Weg muss keine
+Supervisor-App installiert und kein App-Repository unter System gesucht werden.
+
+Wenn dir die aktuelle einzelne Datei `TaraCraft-Install.sh` bereitgestellt wurde,
+kopiere sie auf den Linux/amd64-Server und starte sie dort im Terminal:
+
+```sh
+sudo bash TaraCraft-Install.sh
+```
+
+Mit `bash TaraCraft-Install.sh --demo` lässt sich die Oberfläche vorher ansehen;
+`bash TaraCraft-Install.sh --self-test` führt isolierte Prüfungen aus. Der Assistent
+zeigt den aktuellen Schritt oben und das echte, scrollbar bleibende Shell-Protokoll
+darunter. Bei einer vorhandenen zugehörigen Sitzung **Fortsetzen** wählen.
+
+Die [ausführliche Anleitung für Container, HACS, MQTT, Slicer und Dashboard](https://github.com/Taracraft/3D-Ultimate-Center/blob/main/studio/Slicer-Server/INSTALLATION.md)
+beschreibt die geführte Einrichtung, persönliche GitHub-Geräteanmeldung,
+automatische Repository-Übernahme und das vollständige Zurücksetzen. Die
+Automatisierungen gelten für den aktuellen separat bereitgestellten Assistenten
+mit seinen gebundenen Setup-Ergänzungen. Sie sind keine Behauptung, dass der
+unveränderte HACS-Tag 6.0.5 diese neuen Formulare bereits enthält.
+
+Für eine Installation ohne diesen Assistenten bleibt der unten verlinkte normale
+HACS-/Docker-Weg gültig. Anmeldedaten, Docker-Host und Netzverbindungen werden immer
+für die eigene Umgebung eingerichtet.
+
 ## Der passende Einstieg
 
 Die eigenständig installierbare Docker-Lieferung beginnt mit der [Runtime-Installationsanleitung](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/v0.1.0-alpha10/RUNTIME_RELEASE_README.md). Sie beschreibt Download, vollständige Hashprüfung, Laden der exakten Image-ID und die mitgelieferte Compose-Konfiguration. Eigene Daten, TLS-Dateien und API-Secret werden auf dem Zielhost eingerichtet. Ultimate 3D Studio verbindet sich anschließend über HTTPS mit dem Dienst.
