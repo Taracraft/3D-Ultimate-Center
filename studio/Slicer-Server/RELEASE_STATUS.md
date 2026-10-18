@@ -1,43 +1,23 @@
 # Entwicklungsstand
 
-Ultimate Slicer Server befindet sich in Entwicklung. Der Quellcode für API, Worker, Containerbau, Engine-Verwaltung und Home-Assistant-Anbindung ist verfügbar. Ein vollständiges installierbares Laufzeitpaket mit den vorgesehenen Slicing-Engines ist noch nicht veröffentlicht.
+**Docker-Lieferung vom 18.10.2026:** Das vorhandene Linux/amd64-Runtime-Image mit Bambu Studio, PrusaSlicer und CuraEngine ist unter [v0.1.0-alpha10](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/tag/v0.1.0-alpha10) veröffentlicht. [Installation und genaue Versionszuordnung](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/v0.1.0-alpha10/RUNTIME_RELEASE_README.md), [Prüfsummen](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/v0.1.0-alpha10/SHA256SUMS) und zugehörige Quellen/Lizenznachweise gehören zur Lieferung. Das dokumentierte Expat-Restrisiko ist für diesen Kandidaten akzeptiert, technisch aber nicht behoben; siehe [Risikodokumentation](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/v0.1.0-alpha10/EXPAT_RISK_ACCEPTANCE.json).
 
-## Verfügbare Komponenten
+Studio wird unabhängig als HACS-Integration 6.0.5 ausgeliefert. Die Slicer-Quellen tragen alpha10; das unveränderte Runtime-Image enthält API-Metadaten alpha9. Image-ID: `sha256:cb37fa6b9aee8c40035a5f337a67d9fc13c4429e06098024731e556f8e8bfb49`. Es wurde dafür kein identischer Neubau vorgenommen. Externe Installations-, UI- und Pilotprüfungen bleiben `not_run` und sind keine zusätzlichen Releasegates. Eine Gesamtfertigstellung wird daraus nicht abgeleitet.
 
-- HTTP-API, Jobverwaltung und getrennte Worker-Prozesse.
-- Dockerfile, Compose-Konfiguration und Werkzeuge für einen definierten Build-Kontext.
-- Engine-Katalog, Archivprüfung, Paketierung und Generationsverwaltung.
-- Home-Assistant-Einrichtung mit externem Serverpfad und Supervisor-Verwaltung.
-- Automatisierte Tests für Geometrie, Jobabläufe, Speicher und Schnittstellen.
+## Veröffentlichte Docker-Lieferung
 
-## Einschränkungen
+Alle 24 Release-Dateien einschließlich Image, Enginearchiven, zugehörigen Quellen, Lizenzhinweisen und SHA256SUMS wurden öffentlich vollständig zurückgelesen und gegen ihre Prüfsummen geprüft. Für den manuellen Docker-Einstieg gilt die [Runtime-Anleitung](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/v0.1.0-alpha10/RUNTIME_RELEASE_README.md). Die Runtime enthält alle drei Enginefamilien und ihre Laufzeitbibliotheken. Quellenversion und eingebettete API-Version werden dort ausdrücklich getrennt ausgewiesen.
 
-Das Source-Preflight-Image enthält keine Engine-Binaries. Es prüft Dateien und Abhängigkeiten, ist aber kein vollständiges Runtime-Image. Für Slicing werden zusätzlich passende Engine-Dateien, Profile, Ressourcen und Bibliotheken benötigt.
+## Getrennte Quell- und Paketwege
 
-Der ausgelieferte Engine-Katalog enthält noch keine freigegebenen Pakete. Auch für die Supervisor-App ist noch keine freigegebene Paketreferenz hinterlegt. Bis zur vollständigen Paketbereitstellung bleiben die entsprechenden Installationsaktionen gesperrt.
+Das Source-Preflight-Image enthält weiterhin keine Engine-Binaries. Es prüft Quellen und ist vom vollständigen Runtime-Image zu unterscheiden. Der leere Quell-Auswahlkatalog bleibt dem separaten Paket-/Installerweg zugeordnet; für die Docker-Runtime gilt der imagegebundene Release-Katalog.
 
-Die aktuellen Quellen zielen auf Linux/amd64. Unterstützung weiterer Architekturen hängt von den verfügbaren Engine- und Bibliothekspaketen ab.
+Eine freigegebene Supervisor-App-Paketreferenz ist noch nicht veröffentlicht. Die native Installation bleibt durch `native_deploy_ready=false` gesperrt. Historische Quellmanifestfelder wie `release_complete=false` oder `production_approved=false` beschreiben den jeweiligen Prüfvertrag und werden nicht durch eine Änderung dieser Dokumentation aufgehoben. Sie sind keine zusätzlichen Freigabeschalter für den hier belegten Docker-Download.
 
-## Builds und Veröffentlichungen
+## Prüfgrenzen und Updates
 
-Ein erfolgreicher Quelltest oder Imagebau ersetzt kein installierbares Paket. Verfügbare Downloads werden auf der [Release-Seite](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases) mit Version, Inhalt und Prüfsummen beschrieben.
+Linux/amd64 ist der gelieferte Umfang. Weitere Architekturen sind nicht zugesagt. Externe Installation, Cross-Host-TLS, UI/iPhone, echte Slices und Pilotprüfungen werden durch die Downloadprüfung nicht bestätigt. Ausstehende Prüfungen bleiben als `not_run` dokumentiert und werden nicht zu neuen Releasegates oder fehlender Implementierung umgedeutet. Die Matrix umfasst weiterhin 118 Zeilen.
 
-Technische Metadaten wie `release_complete=false` oder `production_approved=false` geben den Umfang der jeweiligen Paketprüfung an. Sie werden nicht durch eine Änderung dieser Dokumentation aufgehoben.
+Die Expat-Entscheidung ist eine Annahme des dokumentierten Restrisikos für genau diesen Runtimekandidaten. Sie bedeutet weder Risikofreiheit noch eine Sicherheitskorrektur. Spätere belegte Korrekturen können über eine neue geprüfte Engine-/Runtime-Lieferung integriert werden; vorhandene Images, Prüfsummen und Rückwege bleiben erhalten.
 
-[Installation](INSTALLATION.md) · [Docker](DOCKER_QUICKSTART.md) · [Engine-Pakete](ENGINE_DISTRIBUTION.md)
-
-## Versionierte Quellveroeffentlichung
-
-Der geprüfte Quellstand wird mit den Metadaten aus [release.json](../packages/ultimate-slicer-server/release.json) als eigene Komponente veröffentlicht. Er enthält die beschriebenen Quellen, Container-/Paketierungswerkzeuge und Dokumentation. Studio besitzt eine unabhängige Integrations-/Frontendkennung. Externe Bedien-/Systemabnahmen und Testinstallationen gehören nicht zur Releasebewertung; nicht ausgeführte Prüfungen bleiben ungeprüft.
-
-## Enginebestand in einen Image-Kontext einbinden
-
-Die [Runtime-Kontextbrücke](RUNTIME_CONTEXT.md) verbindet einen geprüften Source-Kontext mit einer vollständigen, separat geprüften Drei-Engine-Distribution. Sie bindet die vier Eingabeprüfsummen, bewahrt Quellen- und Lizenzmetadaten und erzeugt eine Compose-Variante ohne verdeckende Engine-Binds. Die Trennung von API und Worker sowie dessen Netzwerksperre bleiben erhalten.
-
-Das Werkzeug führt keine Engine aus und baut kein Image. Der lesende Imagechecker prüft den eingebundenen Dateibestand, keine ABI-Kompatibilität oder Betriebsfreigabe. Freigegebene Engine-Binärpakete, ein vollständiger Runtime-Download und eine installierbare Supervisor-App-Referenz werden durch diese Quellerweiterung nicht geliefert.
-
-## Supervisor source integration
-
-The source-bound app builder, explicit worker confinement and corrected graceful
-shutdown are included. This closes the previous private-candidate-only source gap,
-not the outstanding public Engine/Runtime/App delivery or license review.
+[Installation](INSTALLATION.md) · [Docker-Quellweg](DOCKER_QUICKSTART.md) · [Engine-Pakete](ENGINE_DISTRIBUTION.md)

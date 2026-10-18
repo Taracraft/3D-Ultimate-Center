@@ -4,11 +4,12 @@ Diese Anleitung führt vom passenden Einrichtungsweg zu den dokumentierten Vorpr
 
 ## 1. Lieferstatus vor Beginn verstehen
 
-**Ein vollständiger Produktrelease ist noch offen (`FullRelease=false`).** API, Worker, Containerwerkzeuge und native Paketwerkzeuge sind als Quellcode veröffentlicht. Der aktuelle Stand liefert jedoch keinen freigegebenen Runtime-Download, keinen freigegebenen Image-Digest und keine freigegebene Supervisor-Paketreferenz. Das Prüfimage enthält keine Engines; damit ist allein kein echtes Slicing möglich.
+**Docker-Lieferung vom 18.10.2026:** Das vorhandene Linux/amd64-Runtime-Image mit Bambu Studio, PrusaSlicer und CuraEngine ist unter [v0.1.0-alpha10](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/tag/v0.1.0-alpha10) veröffentlicht. [Installation und genaue Versionszuordnung](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/v0.1.0-alpha10/RUNTIME_RELEASE_README.md), [Prüfsummen](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/v0.1.0-alpha10/SHA256SUMS) und zugehörige Quellen/Lizenznachweise gehören zur Lieferung. Das dokumentierte Expat-Restrisiko ist für diesen Kandidaten akzeptiert, technisch aber nicht behoben; siehe [Risikodokumentation](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/v0.1.0-alpha10/EXPAT_RISK_ACCEPTANCE.json).
 
-Der [Engine-Katalog](engine_catalog.json) enthält `releases=[]`. Bambu Studio, PrusaSlicer und CuraEngine stehen jeweils unter `pending`. Für den nativen Installationsweg gilt `native_deploy_ready=false`; der Containerkandidat bleibt ebenfalls ohne Betriebsfreigabe. Die Installationssperren werden durch die folgenden Prüfungen oder diese Dokumentation nicht aufgehoben.
+Studio wird unabhängig als HACS-Integration 6.0.5 ausgeliefert. Die Slicer-Quellen tragen alpha10; das unveränderte Runtime-Image enthält API-Metadaten alpha9. Image-ID: `sha256:cb37fa6b9aee8c40035a5f337a67d9fc13c4429e06098024731e556f8e8bfb49`. Es wurde dafür kein identischer Neubau vorgenommen. Externe Installations-, UI- und Pilotprüfungen bleiben `not_run` und sind keine zusätzlichen Releasegates. Eine Gesamtfertigstellung wird daraus nicht abgeleitet.
 
-Linux/amd64 ist der beschriebene Zielumfang. Andere Architekturen benötigen passende Engines, Bibliotheken und eigene reale Nachweise. Insbesondere ist keine allgemeine ARM-Unterstützung zugesagt. Die Linux-Neuinstallation bleibt der letzte Verifikationstest, nachdem die vorausgehende Produktarbeit abgeschlossen ist. Ein grünes Quellgate, ein gebautes Image oder veröffentlichte Wikiseiten bestätigen keinen vollständigen Produktrelease.
+Für die ausgelieferte Docker-Runtime gilt die verlinkte Anleitung mit dem vorhandenen Image und dessen eigener Compose-Datei. Die folgenden Abschnitte dokumentieren zusätzlich den Quell-Preflight sowie getrennte Supervisor- und native Paketwege. Deren leere Auswahlkataloge und gesperrte Installationsaktionen gelten nicht als fehlende Engineausstattung des Runtime-Images. Für den nativen Installationsweg gilt weiterhin `native_deploy_ready=false`; eine Supervisor-Paketreferenz ist noch nicht veröffentlicht.
+
 
 ## 2. Einrichtungsweg auswählen
 
@@ -90,7 +91,9 @@ SLICER_CHECK_IMAGE=ultimate-slicer-server-check \
 
 Die Preview-Konfiguration besitzt keine veröffentlichten Ports und keine Daten- oder Engine-Mounts. Sie arbeitet mit unprivilegiertem Benutzer, schreibgeschütztem Dateisystem und ohne zusätzliche Capabilities. `pull_policy=never` verlangt das zuvor lokal gebaute Prüfimage. Der erfolgreiche Lauf prüft dessen eingebautes Quellpaket. Fehlende Engines, Bibliotheken, Profile, Lizenznachweise und Betriebsabnahmen werden dadurch nicht ersetzt. Die Preview-Datei wird nicht durch zusätzliche Rechte zu einer freigegebenen Installation.
 
-## 8. Containerkandidat und Daten vorbereiten
+## 8. Älteren Containerkandidaten für die Quellentwicklung vorbereiten
+
+Dieser Abschnitt gilt für den Kandidaten mit externen Engine-Binds. Für das veröffentlichte Image mit eingebauten Engines gilt ausschließlich die oben verlinkte Runtime-Anleitung.
 
 Die bestehende [Laufzeitdokumentation](RUNTIME_INSTALLATION.md) beschreibt einen Kandidaten mit API, Worker und Telemetrie. Der Worker läuft im dokumentierten Containerpfad ohne Netzwerkzugriff; Programmcode und Engine werden nur lesbar eingebunden. Beide Dienste laufen ohne Root, zusätzliche Capabilities und Docker-Socket. Der gemeinsame PID-Namensraum und dieselbe UID sind dennoch keine vollständige Sicherheitsgrenze zwischen gleichberechtigten Prozessen.
 

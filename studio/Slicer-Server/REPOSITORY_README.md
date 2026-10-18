@@ -20,23 +20,21 @@ Bedienung und Verbindungsverwaltung erfolgen in Ultimate 3D Studio. Der Server s
 
 ## Aktueller Lieferumfang
 
-**Der Quellstand ist veröffentlicht; ein vollständiger Produktrelease ist noch offen (`FullRelease=false`).** Es gibt derzeit keinen freigegebenen Runtime-Download, keinen freigegebenen Image-Digest und keine freigegebene Supervisor-Paketreferenz. Das vorhandene Prüfimage enthält keine Slicing-Engines und kann allein keine Modelle slicen.
+**Docker-Lieferung vom 18.10.2026:** Das vorhandene Linux/amd64-Runtime-Image mit Bambu Studio, PrusaSlicer und CuraEngine ist unter [v0.1.0-alpha10](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/tag/v0.1.0-alpha10) veröffentlicht. [Installation und genaue Versionszuordnung](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/v0.1.0-alpha10/RUNTIME_RELEASE_README.md), [Prüfsummen](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/v0.1.0-alpha10/SHA256SUMS) und zugehörige Quellen/Lizenznachweise gehören zur Lieferung. Das dokumentierte Expat-Restrisiko ist für diesen Kandidaten akzeptiert, technisch aber nicht behoben; siehe [Risikodokumentation](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/v0.1.0-alpha10/EXPAT_RISK_ACCEPTANCE.json).
 
-| Bereich | Was aktuell vorliegt | Was noch fehlt |
-| --- | --- | --- |
-| API und Worker | Quellen, Jobverwaltung und Prüfwerkzeuge | Vollständige reale Funktionsabnahme |
-| Docker | Build-Kontext und Compose-Dienstkandidat | Freigegebenes Image mit vollständigem Enginebestand |
-| Engines | Katalog-, Archiv- und Distributionswerkzeuge | Freigegebene Einträge für alle drei Familien |
-| Home Assistant | Externe Verbindung und Supervisor-Verwaltung im Quellcode | Freigegebene App-Paketreferenz und reale Abnahmen |
-| Natives Linux-Paket | Paketierung, lesende Vorprüfung und Installationslogik | Betriebsfreigabe; `native_deploy_ready=false` |
+Studio wird unabhängig als HACS-Integration 6.0.5 ausgeliefert. Die Slicer-Quellen tragen alpha10; das unveränderte Runtime-Image enthält API-Metadaten alpha9. Image-ID: `sha256:cb37fa6b9aee8c40035a5f337a67d9fc13c4429e06098024731e556f8e8bfb49`. Es wurde dafür kein identischer Neubau vorgenommen. Externe Installations-, UI- und Pilotprüfungen bleiben `not_run` und sind keine zusätzlichen Releasegates. Eine Gesamtfertigstellung wird daraus nicht abgeleitet.
 
-Der ausgelieferte [Engine-Katalog](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/blob/main/Slicer-Server/engine_catalog.json) enthält `releases=[]`; `bambu_studio`, `prusaslicer` und `curaengine` stehen unter `pending`. Vorhandene Archivnachweise und erfolgreiche Quellprüfungen ersetzen weder diese Freigabe noch einen echten Slice. Linux/amd64 ist der beschriebene Zielumfang. Eine allgemeine ARM-Unterstützung ist nicht zugesagt.
+Der Release enthält 24 einzeln geprüfte Downloads mit insgesamt 4.754.562.403 Bytes. Jeder Download wurde nach dem Upload ohne Anmeldung vollständig gegen Größe und SHA-256 geprüft. Das Runtime-Image ist vom weiterhin verfügbaren Source-Preflight-Image zu unterscheiden: Nur die Runtime enthält die drei Engines und ihre Laufzeitbibliotheken.
+
+Der Quellkatalog `Slicer-Server/engine_catalog.json` bleibt der noch leere Auswahlkatalog für den getrennten Paket-/Installerweg. Für diese Docker-Lieferung gilt der imagegebundene Release-Download `CATALOG.json`; ein leerer Quellkatalog bedeutet nicht, dass dem veröffentlichten Image Engines fehlen. Native Installations- und Supervisor-Paketfreigaben werden hierdurch nicht verändert. Eine allgemeine ARM-Unterstützung ist nicht zugesagt.
+
 
 ## Der passende Einstieg
 
-Die [Installationsanleitung](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/blob/main/Slicer-Server/INSTALLATION.md) führt durch drei getrennte Wege. Für einen bereits betriebenen eigenständigen Slicer wird in Home Assistant dessen HTTPS-Adresse mit API-Secret eingerichtet. Die Supervisor-App ist der vorgesehene verwaltete Weg für eine geeignete Home-Assistant-Installation; ihre Installation bleibt bis zur freigegebenen Paketreferenz gesperrt. Die Kopplung eines bereits provisionierten Unix-Hosts benötigt eine eigenständige geschützte Hosteinrichtung und ist kein automatischer Ersatz für einen fehlgeschlagenen App-Vorgang.
+Die eigenständig installierbare Docker-Lieferung beginnt mit der [Runtime-Installationsanleitung](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/releases/download/v0.1.0-alpha10/RUNTIME_RELEASE_README.md). Sie beschreibt Download, vollständige Hashprüfung, Laden der exakten Image-ID und die mitgelieferte Compose-Konfiguration. Eigene Daten, TLS-Dateien und API-Secret werden auf dem Zielhost eingerichtet. Ultimate 3D Studio verbindet sich anschließend über HTTPS mit dem Dienst.
 
-Wer an den Quellen arbeitet, beginnt mit einer isolierten Dateiprüfung. Wer eine laufende Installation betreut, liest zuerst [Betrieb, Updates und Wiederherstellung](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/blob/main/Slicer-Server/OPERATIONS.md). Linux-Testserver, Testinstallationen und frische Neuinstallationen gehören seit der Entscheidung vom 17.10.2026 nicht zur Releasebewertung oder zum Releaseabschluss. Nicht ausgeführte Prüfungen bleiben separat als ungeprüft beziehungsweise `not_run` dokumentiert. Ein grünes Gesamtgate oder ein veröffentlichtes Wiki bestätigt keine vollständige Produktabnahme.
+Die folgenden Quellprüfungen und älteren Paket-/Supervisor-Anleitungen dokumentieren getrennte Entwickler- und Verwaltungswege. Sie ersetzen die Runtime-Anleitung nicht. Die Supervisor-App besitzt weiterhin keine freigegebene Paketreferenz. Die normale Docker-Installation benötigt keine Hostkopplung und keinen zusätzlichen Installer-Dienst.
+
 
 ## Quellen nachvollziehbar prüfen
 
