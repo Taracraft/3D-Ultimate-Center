@@ -1,6 +1,6 @@
 # Geführte Studio-Einrichtung
 
-**Quellstand:** Studio 6.0.6 / Slicer 0.1.0-alpha11 mit X1C,
+**Quellstand:** Geführte Studio-Einrichtung mit X1C,
 mehreren AMS-Einheiten, externer Spule und RTSPS-Kamera. Veröffentlichte Stände
 und deren Nachweise stehen in den GitHub-Releases der beiden Projekte.
 Die nachfolgend genannten 6.0.5-/alpha10-
@@ -52,7 +52,7 @@ Datei. Das Secret erscheint weder auf der Startseite noch im Shell-Protokoll.
    anlegen. Bei einem ergänzten bestehenden HA nach den neuen Integrationsdateien
    selbst einen vollständigen HA-Neustart auslösen.
 2. Öffne die angezeigte **Einrichtungsseite**. Beim neuen HA ist das
-   `/local/taracraft-setup/index.html` unter derselben HA-Adresse. Dort auf
+   `/local/3d-studio-setup/index.html` unter derselben HA-Adresse. Dort auf
    **Geführte Einrichtung starten** klicken. Alternativ in HA:
    **Einstellungen → Geräte & Dienste → Integration hinzufügen → Ultimate 3D Studio**.
 3. Einen Instanznamen vergeben und **Geführte Einrichtung** eingeschaltet lassen.
@@ -158,3 +158,13 @@ Für einen frischen Anfang gibt es zwei unterschiedliche Wege im Hauptmenü:
 - [Home Assistant Container auf Linux](https://www.home-assistant.io/installation/linux/#install-home-assistant-container)
 - [Persönliche HACS-Geräteanmeldung](https://www.hacs.dev/docs/use/configuration/basic/)
 - [Geprüfter HACS-Repository-Adapter](https://github.com/hacs/integration/blob/2.0.5/custom_components/hacs/websocket/repositories.py)
+
+### Technische Studio-Namen
+
+Neue Installationen verwenden `/local/3d-studio-setup/index.html`, den
+Container `ultimate-3d-studio-homeassistant`, den HA-Standardpfad
+`/opt/ultimate-3d-studio/home-assistant` und die private Sitzungsablage
+`/var/lib/ultimate-3d-studio-setup`. TaraCraft bleibt das Branding und Copyright.
+Bereits zugeordnete alte Sitzungen, Besitznachweise, Sicherungen und Container
+bleiben lesbar; ihre gespeicherten Datenpfade werden nicht stillschweigend
+umbenannt. Der Assistent zeigt auch dort den neuen Setup-Link an.

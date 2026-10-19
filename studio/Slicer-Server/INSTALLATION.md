@@ -1,6 +1,6 @@
 # Ultimate Slicer Server einrichten und prüfen
 
-**Quellstand:** Studio 6.0.6 / Slicer 0.1.0-alpha11 mit X1C,
+**Quellstand:** Geführte Studio-Einrichtung mit X1C,
 mehreren AMS-Einheiten, externer Spule und RTSPS-Kamera. Veröffentlichte Stände
 und deren Nachweise stehen in den GitHub-Releases der beiden Projekte.
 Die nachfolgend genannten 6.0.5-/alpha10-
@@ -73,7 +73,7 @@ Datei. Das Secret erscheint weder auf der Startseite noch im Shell-Protokoll.
    anlegen. Bei einem ergänzten bestehenden HA nach den neuen Integrationsdateien
    selbst einen vollständigen HA-Neustart auslösen.
 2. Öffne die angezeigte **Einrichtungsseite**. Beim neuen HA ist das
-   `/local/taracraft-setup/index.html` unter derselben HA-Adresse. Dort auf
+   `/local/3d-studio-setup/index.html` unter derselben HA-Adresse. Dort auf
    **Geführte Einrichtung starten** klicken. Alternativ in HA:
    **Einstellungen → Geräte & Dienste → Integration hinzufügen → Ultimate 3D Studio**.
 3. Einen Instanznamen vergeben und **Geführte Einrichtung** eingeschaltet lassen.
@@ -297,3 +297,13 @@ Ein erfolgreicher Lauf meldet `host_dependencies: ready` und `installation_perfo
 Vor einem späteren Update werden aktive und wartende Jobs erfasst und persistente Daten konsistent gesichert. Zum Rückweg gehören der passende Softwarestand und die dazugehörigen Daten. API-Token, TLS-Schlüssel und Sicherungen bleiben geschützt. Ein Fehlerbericht enthält üblicherweise Version, Architektur, Image-Digest, API-Protokoll, Fehlercode und bereinigte Logauszüge. Das Entfernen eines Containers löscht persönliche Profile, Modelle und Historie nicht automatisch.
 
 Der erste echte Slice setzt die vollständige geprüfte Runtime voraus. Seine Abnahme umfasst Engine und Profile, Ergebnisprüfung sowie kontrollierten Abbruch und Wiederanlauf. Diese Schritte bleiben von Verbindungstest, Installation und Druckstart getrennt. Die maßgeblichen Rechte stehen in [Repository-Lizenzgrenzen](REPOSITORY_NOTICES.md), [Slicer-Lizenz](LICENSE) und [Drittanbieterhinweisen](THIRD_PARTY_NOTICES.md); das Repository besitzt keine pauschale MIT-Zuordnung.
+
+### Technische Studio-Namen
+
+Neue Installationen verwenden `/local/3d-studio-setup/index.html`, den
+Container `ultimate-3d-studio-homeassistant`, den HA-Standardpfad
+`/opt/ultimate-3d-studio/home-assistant` und die private Sitzungsablage
+`/var/lib/ultimate-3d-studio-setup`. TaraCraft bleibt das Branding und Copyright.
+Bereits zugeordnete alte Sitzungen, Besitznachweise, Sicherungen und Container
+bleiben lesbar; ihre gespeicherten Datenpfade werden nicht stillschweigend
+umbenannt. Der Assistent zeigt auch dort den neuen Setup-Link an.

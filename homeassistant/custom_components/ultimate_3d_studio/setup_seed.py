@@ -5,10 +5,13 @@ import os
 import stat
 import uuid
 
-SEED_NAME = '.taracraft-studio-setup.json'
+SEED_NAME = '.ultimate-3d-studio-setup.json'
+LEGACY_SEED_NAME = '.taracraft-studio-setup.json'
 
 def read_setup_seed(config_dir):
     path = Path(config_dir) / SEED_NAME
+    if not path.exists() and not path.is_symlink():
+        path = Path(config_dir) / LEGACY_SEED_NAME
     try:
         info = path.lstat()
         if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or info.st_size > 8192
