@@ -14,23 +14,23 @@ HOST = "deploy/homeassistant/host/3d-printer-slicing-server"
 COMPONENT = "deploy/homeassistant/custom_components/ultimate_3d_studio"
 HOST_FILES = (
     "server.py", "job_control.py", "dispatch-job.sh", "progress-pipe-reader.py",
-    "refresh-state.sh", "append-slicing-journal.sh", "bambu_lab_h2s_04.json",
-    "profiles/printers/bambu_lab_a1_04.json", "profiles/printers/bambu_lab_h2s_04.json",
+    "refresh-state.sh", "append-slicing-journal.sh", "bambu_lab_h2s_04.json", "bambu_lab_x1c_04.json",
+    "profiles/printers/bambu_lab_a1_04.json", "profiles/printers/bambu_lab_h2s_04.json", "profiles/printers/bambu_lab_x1c_04.json",
 )
 COMPONENT_FILES = (
     "bed-temperature-contract.sh", "materialize-bambu-machine.py",
     "materialize-bambu-multimaterial.py", "three_mf_mesh_graph.py",
     "filament_parameter_contract.py", "native_filament_defaults.json",
     "slicer_execution_contract.py", "gcode_artifact_validation.py",
-    "printer_model_contract.py", "h2s_native_defaults.json",
+    "printer_model_contract.py", "h2s_native_defaults.json", "x1c_native_defaults.json",
 )
-SUPPORT_FILES = ("Dockerfile", ".dockerignore", "container_check.py", "container_runtime.py", "container_probe.py", "container_service.py", "supervisor_worker_policy.py", "supervisor_app_service.py", "container_engines.py", "LICENSE", "THIRD_PARTY_NOTICES.md", "TARGET_IMAGE_REFERENCE.json", "target_image_sbom.py", "verify_profile_sources.py")
+SUPPORT_FILES = ("Dockerfile", ".dockerignore", "container_check.py", "container_runtime.py", "container_probe.py", "container_service.py", "supervisor_worker_policy.py", "supervisor_app_service.py", "container_engines.py", "LICENSE", "THIRD_PARTY_NOTICES.md", "TARGET_IMAGE_REFERENCE.json", "target_image_sbom.py", "verify_profile_sources.py", "materialize_profile_sources.py")
 LICENSE_FILES = {
     "licenses/MIT-Studio.txt": ("2cd47d14537993c48a899d2a3e6b30cf764ea31e18a468b662263e1f14027708", "inherited-license-notice"),
     "licenses/AGPL-BambuStudio.txt": ("57c8ff33c9c0cfc3ef00e650a1cc910d7ee479a8bc509f6c9209a7c2a11399d6", "third-party-license-notice"),
 }
 PROFILE_SOURCE_FILE = "PROFILE_SOURCE_BUNDLE.json"
-PROFILE_SOURCE_SHA256 = "b7ecec0be50f76e4bb4ed85df68f88f28bc34ff34f42a754a3cbdddf9796fa1f"
+PROFILE_SOURCE_SHA256 = "a8a33210d3825e94c5b5b97d958a62a01e2140c7263ec8ba03072a74acff35b9"
 LIMIT = 16 * 1024 * 1024
 
 class ContextError(ValueError):
@@ -193,3 +193,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

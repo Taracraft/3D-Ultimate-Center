@@ -15,5 +15,5 @@
     "typecheck:pretty": "tsc --project tsconfig.json --noEmit --pretty"
   },
   "type": "module",
-  "version": "6.0.5"
+  "version": "6.0.6"
 }

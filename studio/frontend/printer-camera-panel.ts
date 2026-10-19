@@ -212,7 +212,7 @@ export class PrinterCameraPanel extends HTMLElement {
         return entityId.includes("3d_studio_studio")
           || entityId.includes("ultimate_3d_studio")
           || entityId.includes("bambu_a1_native_live_camera")
-          || provider === "bambu_native_tls_jpeg";
+          || provider === "bambu_native_tls_jpeg" || provider === "bambu_native_rtsps";
       })
       .sort((left, right) => {
         const leftAvailable = !["unavailable", "unknown"].includes(left[1].state) ? 0 : 1;
@@ -396,4 +396,5 @@ export class PrinterCameraPanel extends HTMLElement {
 if (!customElements.get("printer-camera-panel")) {
   customElements.define("printer-camera-panel", PrinterCameraPanel);
 }
+
 

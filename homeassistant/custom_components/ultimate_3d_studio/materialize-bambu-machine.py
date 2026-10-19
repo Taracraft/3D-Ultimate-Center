@@ -66,11 +66,12 @@ def main() -> None:
     resolved = resolve(machine_dir, machine_path, set())
     if len(sys.argv) == 5:
         from slicer_execution_contract import job_hardware_limits, digest
-        from printer_model_contract import canonical_model, h2s_defaults
+        from printer_model_contract import canonical_model, h2s_defaults, native_defaults
         job = load_json(Path(sys.argv[4]))
         job_hardware_limits(job)
-        if canonical_model((job.get("target_printer") or {}).get("model")) == "H2S":
-            expected = h2s_defaults()["machines"][str(float(job["target_printer"]["nozzle_diameter_mm"]))]
+        model = canonical_model((job.get("target_printer") or {}).get("model"))
+        if model in {"H2S", "X1C"}:
+            expected = native_defaults(model)["machines"][str(float(job["target_printer"]["nozzle_diameter_mm"]))]
             if digest(resolved) != expected["resolved_sha256"]:
                 raise ValueError("Die native H2S-Maschinenquelle wurde verändert.")
     resolved.pop("inherits", None)
@@ -83,9 +84,12 @@ def main() -> None:
                 raise ValueError("Ungültiger Maschinen-G-Code-Vertrag.")
             body = {key: value for key, value in contract.items() if key != "sha256"}
             digest = hashlib.sha256(json.dumps(body, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
-            if digest != contract.get("sha256") or body.get("schema") != 1 or body.get("printer_model") not in {"A1", "H2S"}:
+            if digest != contract.get("sha256") or body.get("schema") != 1 or body.get("printer_model") not in {"A1", "H2S", "X1C"}:
                 raise ValueError("Maschinen-G-Code-Vertrag nicht validiert.")
-            if not machine_path.name.startswith("Bambu Lab " + body["printer_model"] + " ") or "mini" in machine_path.name.casefold():
+            if body["printer_model"] == "X1C" and body.get("nozzle_diameter_mm") != job["target_printer"].get("nozzle_diameter_mm"):
+                raise ValueError("X1 Carbon G-code nozzle mismatch")
+            model_name = "X1 Carbon" if body["printer_model"] == "X1C" else body["printer_model"]
+            if not machine_path.name.startswith("Bambu Lab " + model_name + " ") or "mini" in machine_path.name.casefold():
                 raise ValueError("A1-G-Code passt nicht zum nativen Maschinenprofil.")
             settings = body.get("settings")
             if not isinstance(settings, dict) or set(settings) != {"machine_start_gcode", "machine_end_gcode"}:
@@ -99,3 +103,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

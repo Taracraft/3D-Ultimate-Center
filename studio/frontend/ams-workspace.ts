@@ -72,6 +72,10 @@ function telemetrySystemLabel(printer: DetailedDirectPrintPrinter | null): strin
   if (kind === "amslite") return "AMS Lite";
   if (kind === "amslitecompatible") return "AMS-/BMCU-kompatibel (4 Slots erkannt)";
   if (kind === "ams") return "AMS (Original / Gen 1)";
+  if (kind === "ams2pro") return "AMS 2 Pro";
+  if (kind === "amsht") return "AMS HT";
+  if (kind === "amsunknown") return "AMS (Generation unbekannt)";
+  if (kind === "amsmixed") return "Mehrere AMS-Typen";
   return printer?.ams.available ? text(printer.ams.kind) || "Materialsystem erkannt" : "Kein Materialsystem erkannt";
 }
 
@@ -84,7 +88,6 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
   #printers: DetailedDirectPrintPrinter[] = [];
   #printerId = "";
   #catalog: StudioProfileCatalog | null = null;
-  #filamentCatalog: ManualA1FilamentProfile[] = [];
   readonly #filamentSelections = new Map<string, Readonly<{ vendor: string; filamentId: string }>>();
   readonly #filamentColors = new Map<string, string>();
   #workspace: PersistedStudioWorkspace | null = null;
@@ -121,7 +124,6 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
         loadStudioWorkspace(),
       ]);
       this.#printers = [...status.items];
-      this.#filamentCatalog = [...(status.filament_catalog?.items ?? [])];
       this.#catalog = catalog;
       this.#workspace = workspace;
       if (!this.#printers.some((item) => item.printer_id === this.#printerId)) {
@@ -172,11 +174,15 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
   }
 
   #detectedSystem(): string {
-    return this.#stateForPrinter("detected_ams_type") || telemetrySystemLabel(this.#printer());
+    return this.#printer()?.ams.available ? telemetrySystemLabel(this.#printer()) : this.#stateForPrinter("detected_ams_type") || telemetrySystemLabel(this.#printer());
   }
 
   #sourceLabel(): string {
     return this.#activePlate()?.materialSource === "external_spool" ? "Externe Spule" : "AMS / Materialsystem";
+  }
+
+  #currentFilaments(): ManualA1FilamentProfile[] {
+    return [...(this.#printer()?.filament_catalog?.items ?? [])];
   }
 
   #filamentSelection(
@@ -187,7 +193,7 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
   ): ManualA1FilamentProfile | null {
     const requested = this.#filamentSelections.get(key);
     return resolveFilamentSelection(
-      this.#filamentCatalog,
+      this.#currentFilaments(),
       kind,
       currentFilamentId,
       currentMaterial,
@@ -197,13 +203,13 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
   }
 
   #manufacturerOptions(kind: FilamentSettingTargetKind, selected: string): string {
-    return (selected ? "" : '<option value="" selected>Hersteller wählen</option>') + vendorsForTarget(this.#filamentCatalog, kind)
+    return (selected ? "" : '<option value="" selected>Hersteller wählen</option>') + vendorsForTarget(this.#currentFilaments(), kind)
       .map((vendor) => `<option value="${esc(vendor)}" ${vendor === selected ? "selected" : ""}>${esc(vendor)}</option>`)
       .join("");
   }
 
   #filamentOptions(kind: FilamentSettingTargetKind, vendor: string, selectedId: string): string {
-    return (selectedId ? "" : '<option value="" selected>Filament wählen</option>') + filamentsForTarget(this.#filamentCatalog, kind)
+    return (selectedId ? "" : '<option value="" selected>Filament wählen</option>') + filamentsForTarget(this.#currentFilaments(), kind)
       .filter((item) => item.vendor === vendor)
       .map((item) => `<option value="${esc(item.id)}" ${item.id === selectedId ? "selected" : ""}>${esc(item.name)} · ${esc(item.material_type)}</option>`)
       .join("");
@@ -224,7 +230,7 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
     const locked = rfidDetected || printerBlocked;
     const busy = this.#settingBusy === key;
     const selected = this.#filamentSelection(kind, key, currentFilamentId, material);
-    if (!this.#filamentCatalog.length) return '<section class="material-setting locked"><small>Der validierte A1-Filamentkatalog ist nicht verfügbar. Materialsysteme synchronisieren; ohne Katalog werden keine Filamentarten erfunden oder geschrieben.</small></section>';
+    if (!this.#currentFilaments().length) return '<section class="material-setting locked"><small>Der validierte druckerspezifische Filamentkatalog ist nicht verfügbar. Materialsysteme synchronisieren; ohne Katalog werden keine Filamentarten erfunden oder geschrieben.</small></section>';
     const vendor = selected?.vendor ?? this.#filamentSelections.get(key)?.vendor ?? "";
     const chosenColor = rfidDetected ? color : this.#filamentColors.get(key) ?? color;
     return `<section class="material-setting ${locked ? "locked" : ""}">
@@ -232,7 +238,7 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
       <label><span>Filament</span><select data-setting-filament data-setting-kind="${kind}" data-setting-key="${esc(key)}" ${locked || busy ? "disabled" : ""}>${this.#filamentOptions(kind, vendor, selected?.id ?? "")}</select></label>
       <label><span>Farbe</span><input type="color" value="${safeColor(chosenColor)}" data-setting-color data-setting-key="${esc(key)}" ${locked || busy ? "disabled" : ""}></label>
       <button type="button" data-setting-apply data-setting-kind="${kind}" data-setting-target="${esc(targetId)}" data-setting-key="${esc(key)}" ${locked || busy || !selected ? "disabled" : ""}>${busy ? "Wird gesetzt …" : "Am Drucker setzen"}</button>
-      <small>${printerBlocked ? "Während eines laufenden Drucks gesperrt; Hersteller, Filamentart und Farbe können erst danach geändert werden." : locked ? "RFID erkannt: Hersteller, Filamentart und Farbe kommen verbindlich vom Tag und können hier nicht überschrieben werden." : "Auswahl ausschließlich aus dem offiziellen, für Bambu Lab A1 instanziierten Systemkatalog. Reguläres TPU bleibt auf die externe Spule begrenzt; TPU for AMS ist im Materialsystem zulässig."}</small>
+      <small>${printerBlocked ? "Während eines laufenden Drucks gesperrt; Hersteller, Filamentart und Farbe können erst danach geändert werden." : locked ? "RFID erkannt: Hersteller, Filamentart und Farbe kommen verbindlich vom Tag und können hier nicht überschrieben werden." : "Auswahl ausschließlich aus dem offiziellen, für diesen Drucker instanziierten Systemkatalog. Reguläres TPU bleibt auf die externe Spule begrenzt; TPU for AMS ist im Materialsystem zulässig."}</small>
     </section>`;
   }
 
@@ -269,7 +275,7 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
       slot.active,
       `<span>Material<b>${esc(slot.material || "–")}</b></span><span>Farbe<b>${esc(slot.color || "–")}</b></span><span>Rest<b>${slot.remaining_reliable ? value(slot.remaining_percent, " %") : "nicht zuverlässig"}</b></span><span>RFID<b>${esc(rfidLabel(slot))}</b></span>`,
     ));
-    if (external?.available || profile) {
+    if (external?.configurable || external?.available || profile) {
       const selected = this.#activePlate()?.materialSource === "external_spool";
       const loaded = Boolean(external?.loaded);
       const material = external?.material || (profile ? filamentMaterial(profile) : "") || "Filament";
@@ -282,11 +288,17 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
         color,
         status,
         loaded,
-        `<span>Material<b>${esc(material)}</b></span><span>Farbe<b>${esc(external?.color || color || "–")}</b></span><span>Tray-ID<b>${esc(external?.tray_id || "EXT")}</b></span><span>Filament-ID<b>${esc(external?.filament_id || "–")}</b></span><span>RFID<b>${external?.rfid_detected ? "erkannt" : "nicht erkannt"}</b></span>${this.#materialControls("external_spool", "external", material, external?.filament_id || "", external?.color || color, Boolean(external?.rfid_detected), Boolean(external?.available))}`,
+        `<span>Material<b>${esc(material)}</b></span><span>Farbe<b>${esc(external?.color || color || "–")}</b></span><span>Tray-ID<b>${esc(external?.tray_id || "EXT")}</b></span><span>Filament-ID<b>${esc(external?.filament_id || "–")}</b></span><span>RFID<b>${external?.rfid_detected ? "erkannt" : "nicht erkannt"}</b></span>${this.#materialControls("external_spool", "external", material, external?.filament_id || "", external?.color || color, Boolean(external?.rfid_detected), true)}`,
       ));
     }
     if (!feeds.length) return '<div class="notice">Aktuell werden weder belegte Materialfächer noch eine externe Spule gemeldet.</div>';
     return `<section class="material-flow"><div class="spool-row">${feeds.join("")}</div><div class="extruder"><i></i><b>Extruder</b><span>Grün = laut Druckertelemetrie tatsächlich geladener Zuführweg</span></div></section>`;
+  }
+
+  #unitFacts(): string {
+    const units = this.#printer()?.ams.units ?? [];
+    if (!units.length) return "";
+    return `<section class="grid">${units.map((unit) => `<section class="metric"><span>Einheit ${esc(unit.unit_id)}</span><b>${esc(unit.model)}</b><div class="facts"><span>Temperatur<b>${value(unit.temperature, " °C", 1)}</b></span><span>Feuchtigkeit<b>${unit.humidity_percent !== null ? value(unit.humidity_percent, " %") : unit.humidity_level !== null ? `Stufe ${esc(unit.humidity_level)}` : "nicht gemeldet"}</b></span><span>Trocknung · Restzeit<b>${unit.drying_remaining_minutes !== null ? value(unit.drying_remaining_minutes, " min") : "nicht gemeldet"}</b></span><span>Generation<b>${unit.generation_known ? "aus Gerätedaten erkannt" : "nicht eindeutig gemeldet"}</b></span></div></section>`).join("")}</section>`;
   }
 
   #systemCards(configured: string, detected: string, externalSelected: boolean, externalLoaded: boolean): string {
@@ -374,7 +386,7 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
     const telemetryAvailable = Boolean(printer?.ams.available || externalTelemetry?.available);
     this.#root.innerHTML = `<style>
       :host{display:block;min-height:100%;background:#071018;color:#eef6ff;font:13px/1.4 Inter,Segoe UI,sans-serif}*{box-sizing:border-box}.page{display:grid;gap:14px;padding:18px}.head{display:flex;align-items:flex-start;gap:12px}.head>div:first-child{margin-right:auto}.head h2{margin:0 0 3px}.head p{margin:0;color:#8ca2b7}.actions{display:flex;gap:8px;align-items:center}select,button{min-height:36px;padding:7px 10px;border:1px solid #31506e;border-radius:6px;background:#12263a;color:#eef6ff;font-weight:700}button{cursor:pointer}.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.metric{padding:12px;border:1px solid #29445c;border-radius:8px;background:#0c1925}.metric span,.metric b{display:block}.metric span{color:#8197aa;font-size:10px;text-transform:uppercase}.metric b{margin-top:3px;font-size:15px}.systems{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}.system-card{padding:10px;border:1px solid #29445c;border-radius:8px;background:#0c1925}.system-card.marked{border-color:#3a93bd;background:linear-gradient(180deg,#102b3a,#0c1925)}.system-card summary{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:10px;align-items:center;cursor:pointer;list-style:none}.system-card summary::-webkit-details-marker,.slot summary::-webkit-details-marker,.spool-feed summary::-webkit-details-marker{display:none}.system-card summary>span>strong,.badges{display:block}.badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.system-card span{padding:2px 5px;border-radius:999px;font-size:9px}.system-card strong{font-size:12px}.system-more{margin:10px 0 0 58px;padding-top:8px;border-top:1px solid #22384b;color:#91a5b9}.chevron{font-style:normal;color:#91a5b9;transition:transform .15s}.system-card[open] .chevron,.slot[open] .chevron{transform:rotate(180deg)}.supported{background:#192a38;color:#91a5b9}.configured{background:#473813;color:#ffd978}.detected,.selected{background:#123d2a;color:#7df0ab}.system-icon{position:relative;width:46px;height:46px;border-radius:50%;border:6px solid #8792a0;background:#17232d}.system-icon i{position:absolute;inset:9px;border:2px solid #657381;border-radius:50%}.system-icon b{position:absolute;inset:0;display:grid;place-items:center;font-size:9px}.material-flow{padding:14px;border:1px solid #29445c;border-radius:9px;background:linear-gradient(180deg,#101d29,#0a151f);overflow:auto}.spool-row{display:flex;justify-content:center;gap:24px;min-width:max-content}.spool-feed{display:grid;justify-items:center;align-content:start;min-width:130px;color:#91a5b9}.spool-feed summary{display:grid;justify-items:center;cursor:pointer;list-style:none}.spool-feed.active{color:#69e79b}.spool{display:grid;grid-template-columns:13px 60px 13px;align-items:center;height:66px}.spool>i{height:60px;border:3px solid #d9e0e6;border-radius:50%;background:#54606c}.spool>strong{display:grid;place-items:center;height:54px;margin:0 -3px;background:var(--filament);border:3px solid #cbd5dd;border-radius:4px;color:#fff;font-size:10px;text-shadow:0 1px 3px #000}.spool-feed summary>b{color:#eef6ff}.spool-feed summary>span,.spool-feed summary>small{font-size:10px}.spool-feed summary>small{color:#607a90}.spool-more{display:grid;gap:4px;width:100%;margin-top:7px;padding:7px;border:1px solid #22384b;border-radius:6px;background:#0b1722}.spool-more span{display:flex;justify-content:space-between;gap:8px;font-size:10px}.spool-more b{color:#eef6ff}.feed-line{width:5px;height:34px;margin-top:5px;border-radius:4px;background:transparent}.spool-feed.active .feed-line{background:#26d36f;box-shadow:0 0 8px #26d36f88}.extruder{display:grid;justify-items:center;gap:3px;margin-top:8px}.extruder i{width:28px;height:36px;border:3px solid #d9e0e6;border-radius:8px;background:radial-gradient(circle,#27d16f 0 5px,#31404c 6px)}.extruder span{color:#8197aa;font-size:10px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}.slot{padding:12px;border:1px solid #29445c;border-radius:9px;background:linear-gradient(180deg,#10202e,#0a151f)}.slot.active{border-color:#54d66c}.slot.empty{opacity:.65}.slot summary{display:grid;grid-template-columns:18px minmax(0,1fr) auto auto;gap:9px;align-items:center;cursor:pointer;list-style:none}.slot summary b,.slot summary small{display:block}.slot summary small{color:#91a5b9}.slot em{font-style:normal;color:#75dca0;font-size:10px}.color{width:18px;height:34px;border-radius:4px;background:var(--slot)}.facts{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:11px}.facts span{padding:7px;border:1px solid #22384b;border-radius:5px;color:#8197aa;font-size:10px}.facts b{display:block;margin-top:2px;color:#eef6ff;font-size:12px}.facts .ok{color:#73dfa0}.facts .warn{color:#f4bd63}.slot footer{display:grid;gap:3px;margin-top:9px;color:#71879b;font:10px Consolas,monospace}.material-setting{display:grid;grid-template-columns:minmax(120px,.8fr) minmax(180px,1.4fr) 82px auto;gap:7px;align-items:end;margin-top:10px;padding:9px;border:1px solid #2d506a;border-radius:7px;background:#0b1a26}.material-setting label{display:grid;gap:3px}.material-setting label span{color:#8197aa;font-size:9px;text-transform:uppercase}.material-setting select,.material-setting input,.material-setting button{width:100%;min-height:34px}.material-setting input{padding:2px;border:1px solid #31506e;border-radius:5px;background:#12263a}.material-setting small{grid-column:1/-1;color:#8097aa}.material-setting.locked{opacity:.72}.notice,.error{padding:12px;border:1px solid #29445c;border-radius:8px;background:#0d1a27}.notice strong{color:#eef6ff}.source-warning{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #9b6a24;border-radius:8px;background:#2b2212;color:#ffe3a3}.source-warning strong{display:block;color:#fff0c7}.source-warning span{display:block;margin-top:2px;font-size:11px}.source-warning a{margin-left:auto;white-space:nowrap;padding:8px 10px;border:1px solid #c58a32;border-radius:6px;background:#493315;color:#fff0c7;font-weight:800;text-decoration:none}.error{border-color:#8f3f4b;background:#31171c;color:#ffd7dc}@media(max-width:760px){.head{display:grid}.actions{flex-wrap:wrap}.summary{grid-template-columns:repeat(2,1fr)}}
-    </style><section class="page"><header class="head"><div><h2>Materialsysteme & Filamente</h2><p>Konfiguration, Live-Erkennung, geladene Filamente und RFID-Daten getrennt und ohne automatische Annahmen.</p></div><div class="actions"><select id="printer">${this.#printers.map((item) => `<option value="${esc(item.printer_id)}" ${item.printer_id === this.#printerId ? "selected" : ""}>${esc(item.name)}</option>`).join("") || '<option value="">Kein Drucker</option>'}</select><button id="refresh" ${this.#loading ? "disabled" : ""}>${this.#loading ? "Synchronisiere …" : "Materialsysteme synchronisieren"}</button></div></header>${this.#error ? `<div class="error">${esc(this.#error)}</div>` : ""}${this.#settingStatus ? `<div class="notice"><strong>${esc(this.#settingStatus)}</strong></div>` : ""}<section class="summary"><div class="metric"><span>Konfiguriertes System</span><b>${esc(configured)}</b></div><div class="metric"><span>Live erkannt</span><b>${esc(detected)}</b></div><div class="metric"><span>Aktive Studio-Quelle</span><b>${esc(this.#sourceLabel())}</b></div><div class="metric"><span>Belegte Fächer</span><b>${printer?.ams.occupied_slot_count ?? 0} / ${printer?.ams.slot_count ?? 0}</b></div></section>${sourceMismatch ? `<div class="source-warning"><div><strong>Geladene externe Spule ist noch nicht die Studio-Quelle</strong><span>Der Drucker meldet ${esc(externalTelemetry?.material || "Filament")} in ${esc(externalTelemetry?.color || "unbekannter Farbe")}; die aktive Druckplatte verwendet weiterhin AMS / Materialsystem. Deshalb folgt die Modellfarbe der AMS-/Modellzuordnung.</span></div><a href="#/studio">Im Studio „Externe Spule“ wählen</a></div>` : ""}<section class="systems">${this.#systemCards(configured, detected, externalSelected, Boolean(externalTelemetry?.loaded))}</section>${this.#feedDiagram(slots, external, externalTelemetry)}${telemetryAvailable ? `<section class="grid">${slots.map((slot) => this.#slot(slot)).join("")}</section>` : `<div class="notice"><strong>${esc(configured)}</strong> ist konfiguriert. Der Drucker meldet aktuell keine Materialfächer; deshalb werden keine Slots, RFID-Daten oder geladenen AMS-Filamente erfunden.</div>`}<div class="notice">RFID- und Ladezustände stammen ausschließlich aus der regulären Druckertelemetrie. Materialart und Farbe werden nur nach Vorschau und ausdrücklicher Bestätigung geschrieben. Diese Seite sendet keine Lade-, Entlade-, RFID-Schreib- oder Scanbefehle. Letzte Synchronisation: ${this.#updatedAt ? new Date(this.#updatedAt).toLocaleTimeString("de-DE") : "–"}.</div></section>`;
+    </style><section class="page"><header class="head"><div><h2>Materialsysteme & Filamente</h2><p>Konfiguration, Live-Erkennung, geladene Filamente und RFID-Daten getrennt und ohne automatische Annahmen.</p></div><div class="actions"><select id="printer">${this.#printers.map((item) => `<option value="${esc(item.printer_id)}" ${item.printer_id === this.#printerId ? "selected" : ""}>${esc(item.name)}</option>`).join("") || '<option value="">Kein Drucker</option>'}</select><button id="refresh" ${this.#loading ? "disabled" : ""}>${this.#loading ? "Synchronisiere …" : "Materialsysteme synchronisieren"}</button></div></header>${this.#error ? `<div class="error">${esc(this.#error)}</div>` : ""}${this.#settingStatus ? `<div class="notice"><strong>${esc(this.#settingStatus)}</strong></div>` : ""}<section class="summary"><div class="metric"><span>Konfiguriertes System</span><b>${esc(configured)}</b></div><div class="metric"><span>Live erkannt</span><b>${esc(detected)}</b></div><div class="metric"><span>Aktive Studio-Quelle</span><b>${esc(this.#sourceLabel())}</b></div><div class="metric"><span>Belegte Fächer</span><b>${printer?.ams.occupied_slot_count ?? 0} / ${printer?.ams.slot_count ?? 0}</b></div></section>${sourceMismatch ? `<div class="source-warning"><div><strong>Geladene externe Spule ist noch nicht die Studio-Quelle</strong><span>Der Drucker meldet ${esc(externalTelemetry?.material || "Filament")} in ${esc(externalTelemetry?.color || "unbekannter Farbe")}; die aktive Druckplatte verwendet weiterhin AMS / Materialsystem. Deshalb folgt die Modellfarbe der AMS-/Modellzuordnung.</span></div><a href="#/studio">Im Studio „Externe Spule“ wählen</a></div>` : ""}<section class="systems">${this.#systemCards(configured, detected, externalSelected, Boolean(externalTelemetry?.loaded))}</section>${this.#unitFacts()}${this.#feedDiagram(slots, external, externalTelemetry)}${telemetryAvailable ? `<section class="grid">${slots.map((slot) => this.#slot(slot)).join("")}</section>` : `<div class="notice"><strong>${esc(configured)}</strong> ist konfiguriert. Der Drucker meldet aktuell keine Materialfächer; deshalb werden keine Slots, RFID-Daten oder geladenen AMS-Filamente erfunden.</div>`}<div class="notice">RFID- und Ladezustände stammen ausschließlich aus der regulären Druckertelemetrie. Materialart und Farbe werden nur nach Vorschau und ausdrücklicher Bestätigung geschrieben. Diese Seite sendet keine Lade-, Entlade-, RFID-Schreib- oder Scanbefehle. Letzte Synchronisation: ${this.#updatedAt ? new Date(this.#updatedAt).toLocaleTimeString("de-DE") : "–"}.</div></section>`;
     this.#root.querySelectorAll<HTMLDetailsElement>("details[data-detail-key]").forEach((details) => {
       details.addEventListener("toggle", () => updateDetailsOpenState(
         this.#openDetailKeys,
@@ -391,8 +403,8 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
       select.addEventListener("change", () => {
         const key = select.dataset.settingKey || "";
         const kind = select.dataset.settingKind as FilamentSettingTargetKind;
-        const first = resolveFilamentSelection(this.#filamentCatalog, kind, "", select.dataset.settingMaterial || "", select.value);
-        if (!key || !vendorsForTarget(this.#filamentCatalog, kind).includes(select.value)) return;
+        const first = resolveFilamentSelection(this.#currentFilaments(), kind, "", select.dataset.settingMaterial || "", select.value);
+        if (!key || !vendorsForTarget(this.#currentFilaments(), kind).includes(select.value)) return;
         this.#filamentSelections.set(key, { vendor: select.value, filamentId: first?.id ?? "" });
         this.#render();
       });
@@ -400,7 +412,7 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
     this.#root.querySelectorAll<HTMLSelectElement>("[data-setting-filament]").forEach((select) => {
       select.addEventListener("change", () => {
         const key = select.dataset.settingKey || "";
-        const item = this.#filamentCatalog.find((candidate) => candidate.id === select.value);
+        const item = this.#currentFilaments().find((candidate) => candidate.id === select.value);
         if (key && item) {
           this.#filamentSelections.set(key, { vendor: item.vendor, filamentId: item.id });
           this.#render();
@@ -426,3 +438,4 @@ export class Ultimate3DAmsWorkspace extends HTMLElement {
 if (!customElements.get("ultimate-3d-ams-workspace")) {
   customElements.define("ultimate-3d-ams-workspace", Ultimate3DAmsWorkspace);
 }
+

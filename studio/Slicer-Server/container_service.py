@@ -130,8 +130,18 @@ def persistent_data(base):
     """Validate the complete persistent runtime tree without creating or adopting it."""
     base = _data_directory(base)
     expected = {"DATA_STATE.json", ".data-init.lock", "data", "api", "web", "run"}
-    if {path.name for path in base.iterdir()} != expected:
+    actual = {path.name for path in base.iterdir()}
+    if actual - expected - {"last_job.json"} or not expected <= actual:
         raise ValueError("data_unrecognized_store")
+    if "last_job.json" in actual:
+        # dispatch-job.sh publishes this terminal result after the first job.
+        # It is owned metadata, not a reason to stop the next dispatcher.
+        last = json.loads(_regular_bytes(base / "last_job.json", 65536,
+                                         "last_job", private=True))
+        if (not isinstance(last, dict) or not isinstance(last.get("job_id"), str)
+                or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}", last["job_id"]) is None
+                or last.get("status") not in {"completed", "failed", "cancelled"}):
+            raise ValueError("last_job_invalid")
     lock = (base / ".data-init.lock").lstat()
     if not stat.S_ISREG(lock.st_mode) or lock.st_nlink != 1 or lock.st_size > 1:
         raise ValueError("data_lock_rejected")
@@ -190,6 +200,53 @@ def initialize_data(base, *, maintenance_request_id=None):
             canonical().JobControl(base).begin_maintenance(maintenance_request_id)
         return {"initialized": True, "state": "ready",
                 "dispatch_blocked": maintenance_request_id is not None}
+
+def recover_data_layout(base, *, verified_legacy_error=False):
+    """Recover only the proven first-job metadata failure with no active owner.
+
+    The host installer must first verify the stopped owned worker and its exact
+    legacy traceback. Both kernel file locks independently reject a live worker.
+    Unknown recovery errors and unfinished jobs stay blocked.
+    """
+    if verified_legacy_error is not True:
+        raise ValueError("legacy_layout_failure_proof_required")
+    base = persistent_data(base)
+    jc = canonical()
+    control = jc.JobControl(base)
+    marker = control.run / "container-recovery.json"
+    journal = control.run / "data-layout-recovery.json"
+    with jc.file_lock(control.run / "container-service.guard", nonblocking=True):
+        with jc.file_lock(control.run / "dispatcher.guard", nonblocking=True):
+            if not marker.exists():
+                return {"recovered": False, "state": "no_recovery_marker"}
+            recovery_raw = _regular_bytes(marker, 4096, "recovery", private=True)
+            recovery = json.loads(recovery_raw)
+            if (not isinstance(recovery, dict) or recovery.get("requires_recovery") is not True
+                    or recovery.get("error") != "RecoveryRequired"
+                    or recovery.get("reason") not in {None, "supervisor_failed:1"}):
+                raise ValueError("unrecognized_recovery_error")
+            for status in ("slicing", "cancelling", "interrupted"):
+                if any(control.jobs.glob("*." + status + ".json")):
+                    raise ValueError("unfinished_job_requires_recovery")
+            last_raw = _regular_bytes(base / "last_job.json", 65536, "last_job", private=True)
+            last = json.loads(last_raw)
+            job_id, state = last["job_id"], last["status"]
+            terminal = control.jobs / (job_id + "." + state + ".json")
+            _regular_bytes(terminal, 4 * 1024 * 1024, "terminal_job", private=True)
+            result_raw = _regular_bytes(control.output / (job_id + ".result.json"), 65536,
+                                        "terminal_result", private=True)
+            if json.loads(result_raw) != last or journal.exists():
+                raise ValueError("terminal_result_reconciliation_required")
+            jc.atomic_json(journal, {"schema": 1, "recovery": recovery,
+                "job_id": job_id, "terminal_status": state,
+                "last_result_sha256": hashlib.sha256(last_raw).hexdigest(),
+                "recovered_at": jc.utcnow()})
+            # Preserve evidence before clearing exactly the checked marker.
+            if _regular_bytes(marker, 4096, "recovery", private=True) != recovery_raw:
+                raise ValueError("recovery_marker_changed")
+            marker.unlink()
+            _data_sync(control.run)
+    return {"recovered": True, "state": "metadata_layout_reconciled"}
 
 def _profile_directory(path):
     path = Path(path)
@@ -350,6 +407,7 @@ def configure_environment(base, profile_base=PROFILE_BASE):
     os.environ.update(STUDIO_WORKER_BASE=str(base), STUDIO_WORKER_SOURCE_ROOT=str(PAYLOAD),
                       STUDIO_WORKER_PROFILE_ROOT=str(profiles),
                       STUDIO_WORKER_H2S_PROFILE=str(profiles / "bambu_lab_h2s_04.json"),
+                      STUDIO_WORKER_X1C_PROFILE=str(profiles / "bambu_lab_x1c_04.json" if (profiles / "bambu_lab_x1c_04.json").is_file() else PAYLOAD / "bambu_lab_x1c_04.json"),
                       STUDIO_BAMBU_ROOT="/engine/bambu_studio", STUDIO_WORKER_ISOLATION="container")
 
 def terminal_requires_recovery(result):
@@ -448,8 +506,12 @@ def run_worker(base, *, interval=1.0, refresh_interval=5.0, profile_base=PROFILE
             except BaseException as exc:
                 # Only a controlled recovery can clear this latch. Never silently
                 # advance to the next queued job after an unknown child outcome.
+                reason = str(exc)
+                if re.fullmatch(r"[a-z0-9_:.-]{1,120}", reason) is None:
+                    reason = type(exc).__name__
                 jc.atomic_json(recovery, {"requires_recovery": True, "error": type(exc).__name__,
-                                          "updated_at": jc.utcnow()})
+                                          "reason": reason, "updated_at": jc.utcnow()})
+                emit("worker-recovery-required", error=type(exc).__name__, reason=reason)
                 raise
             finally:
                 telemetry_stop.set()
@@ -507,9 +569,11 @@ def check_worker(base):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["api", "worker", "dispatch", "worker-check", "init-data", "init-profiles",
+    parser.add_argument("command", choices=["api", "worker", "dispatch", "worker-check", "init-data", "init-profiles", "recover-data-layout",
         "maintenance-begin", "maintenance-end", "maintenance-status"])
     parser.add_argument("--request-id", help="Trusted installer maintenance correlation ID")
+    parser.add_argument("--verified-legacy-error", action="store_true",
+                        help="Host verified the exact stopped-worker metadata traceback")
     parser.add_argument("--profiles", type=Path, default=PROFILE_BASE)
     parser.add_argument("--base", type=Path, default=Path("/var/lib/ultimate-slicer"))
     parser.add_argument("--token-file", type=Path, default=Path("/run/secrets/api-token"))
@@ -517,6 +581,10 @@ def main():
     parser.add_argument("--key", type=Path, default=Path("/run/tls/server.key"))
     args = parser.parse_args()
     os.umask(0o077)
+    if args.command == "recover-data-layout":
+        emit("data-layout-recovery", **recover_data_layout(args.base,
+             verified_legacy_error=args.verified_legacy_error))
+        return
     if args.command == "init-data":
         request_id = os.environ.get("STUDIO_BOOTSTRAP_REQUEST_ID") or None
         emit("data-ready", **initialize_data(args.base,

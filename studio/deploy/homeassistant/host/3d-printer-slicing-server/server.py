@@ -75,6 +75,9 @@ RUN = BASE / "run"
 PROFILES = Path(CONFIG.get("profile_root", str(BASE / "profiles" / "printers")))
 ENGINE_ROOT = Path(CONFIG.get("engine_root", str(BASE / "engines" / "bambu-studio" / "squashfs-root")))
 BAMBU_PROFILE_ROOT = ENGINE_ROOT / "resources" / "profiles"
+X1C_PROFILE = PROFILES / "bambu_lab_x1c_04.json"
+if not X1C_PROFILE.is_file():
+    X1C_PROFILE = SOURCE_ROOT / "bambu_lab_x1c_04.json"
 H2S_PROFILE = (PROFILES if CONFIG.get("persistent_profiles") is True else SOURCE_ROOT) / "bambu_lab_h2s_04.json"
 _raw_token = CONFIG.get("token")
 if (
@@ -165,7 +168,11 @@ A1_NOZZLE_CONTRACTS = {
 
 H2S_NOZZLE_CONTRACTS = {0.2: {'machine': 'BBL/machine/Bambu Lab H2S 0.2 nozzle.json', 'process': 'BBL/process/0.10mm Standard @BBL H2S 0.2 nozzle.json', 'min_layer': 0.04, 'max_layer': 0.14}, 0.4: {'machine': 'BBL/machine/Bambu Lab H2S 0.4 nozzle.json', 'process': 'BBL/process/0.20mm Standard @BBL H2S.json', 'min_layer': 0.08, 'max_layer': 0.28}, 0.6: {'machine': 'BBL/machine/Bambu Lab H2S 0.6 nozzle.json', 'process': 'BBL/process/0.30mm Standard @BBL H2S 0.6 nozzle.json', 'min_layer': 0.12, 'max_layer': 0.42}, 0.8: {'machine': 'BBL/machine/Bambu Lab H2S 0.8 nozzle.json', 'process': 'BBL/process/0.40mm Standard @BBL H2S 0.8 nozzle.json', 'min_layer': 0.16, 'max_layer': 0.56}}
 
+X1C_NOZZLE_CONTRACTS = {0.2: {'machine': 'BBL/machine/Bambu Lab X1 Carbon 0.2 nozzle.json', 'process': 'BBL/process/0.10mm Standard @BBL X1C 0.2 nozzle.json', 'min_layer': 0.04, 'max_layer': 0.14}, 0.4: {'machine': 'BBL/machine/Bambu Lab X1 Carbon 0.4 nozzle.json', 'process': 'BBL/process/0.20mm Standard @BBL X1C.json', 'min_layer': 0.08, 'max_layer': 0.28}, 0.6: {'machine': 'BBL/machine/Bambu Lab X1 Carbon 0.6 nozzle.json', 'process': 'BBL/process/0.30mm Standard @BBL X1C 0.6 nozzle.json', 'min_layer': 0.12, 'max_layer': 0.42}, 0.8: {'machine': 'BBL/machine/Bambu Lab X1 Carbon 0.8 nozzle.json', 'process': 'BBL/process/0.40mm Standard @BBL X1C 0.8 nozzle.json', 'min_layer': 0.16, 'max_layer': 0.56}}
+
 def printer_profile_path(identifier):
+    if identifier == "bambu_lab_x1c_04":
+        return X1C_PROFILE
     if identifier == "bambu_lab_h2s_04":
         return H2S_PROFILE
     return PROFILES / f"{identifier}.json"
@@ -238,6 +245,8 @@ def _a1_nozzle_job_contract(target_printer: dict, process_overrides: dict):
     )
     if model in {"h2s", "bambulabh2s", "bambuh2s"}:
         contracts = H2S_NOZZLE_CONTRACTS
+    elif model in {"x1c", "bambulabx1c", "bambux1c", "x1carbon", "bambulabx1carbon"}:
+        contracts = X1C_NOZZLE_CONTRACTS
     elif model in {"a1", "bambulaba1", "bambua1"}:
         contracts = A1_NOZZLE_CONTRACTS
     else:
@@ -639,7 +648,7 @@ def list_files() -> list[dict]:
 
 def list_printers() -> list[dict]:
     printers = []
-    for path in sorted({*PROFILES.glob("*.json"), *([H2S_PROFILE] if H2S_PROFILE.is_file() else [])}):
+    for path in sorted({*PROFILES.glob("*.json"), *([H2S_PROFILE] if H2S_PROFILE.is_file() else []), *([X1C_PROFILE] if X1C_PROFILE.is_file() else [])}):
         profile = read_json(path, {})
         printers.append({
             "id": path.stem,
@@ -911,8 +920,8 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             nozzle_contract = None
-            if printer_profile in {"bambu_lab_a1_04", "bambu_lab_h2s_04"}:
-                expected_model = "h2s" if printer_profile == "bambu_lab_h2s_04" else "a1"
+            if printer_profile in {"bambu_lab_a1_04", "bambu_lab_h2s_04", "bambu_lab_x1c_04"}:
+                expected_model = {"bambu_lab_h2s_04": "h2s", "bambu_lab_a1_04": "a1", "bambu_lab_x1c_04": "x1c"}[printer_profile]
                 actual_model = re.sub(r"[^a-z0-9]+", "", str(target_printer.get("model") or target_printer.get("name") or "").casefold())
                 if actual_model not in {expected_model, "bambu" + expected_model, "bambulab" + expected_model}:
                     self.send_json(400, {"error": "printer_profile_model_mismatch"})
@@ -1001,3 +1010,4 @@ with ThreadingHTTPServer((LISTEN_HOST, LISTEN_PORT), Handler) as server:
     protocol = "https" if TLS_CONTEXT is not None else "http-loopback"
     print(f"Native slicer {VERSION}: {protocol} listener ready", flush=True)
     server.serve_forever()
+

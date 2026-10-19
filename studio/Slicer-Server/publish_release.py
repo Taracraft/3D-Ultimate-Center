@@ -19,7 +19,7 @@ SPECS = {
         "workflow": "Studio source contract",
         "workflow_path": ".github/workflows/studio-source-contract.yml",
         "version_path": "homeassistant/custom_components/ultimate_3d_studio/manifest.json",
-        "version": "6.0.5",
+        "version": "6.0.6",
         "name": "Ultimate 3D Studio",
         "prerelease": False,
         "contents": "Home-Assistant-Integration, gebautes Studio-Frontend, CAD-/Profilquellen, Handbuch und Wiki-Quellen.",
@@ -28,7 +28,7 @@ SPECS = {
         "workflow": "Slicer source contract",
         "workflow_path": ".github/workflows/slicer-source-contract.yml",
         "version_path": "packages/ultimate-slicer-server/release.json",
-        "version": "0.1.0-alpha10",
+        "version": "0.1.0-alpha11",
         "name": "Ultimate Slicer Server",
         "prerelease": True,
         "contents": "API-/Workerquellen, Container- und Paketwerkzeuge, geprüfte Profilquellen, Installations- und Betriebsdokumentation sowie Wiki-Quellen.",
@@ -168,3 +168,4 @@ if __name__ == "__main__":
     except (PublicationError, OSError, ValueError, KeyError) as error:
         print("Release abgebrochen: " + str(error), file=sys.stderr)
         sys.exit(1)
+

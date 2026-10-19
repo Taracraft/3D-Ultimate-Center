@@ -159,11 +159,13 @@ def native_filament_authorities() -> dict[str, Any]:
     if data.get("schema") != 1 or not isinstance(data.get("profiles"), dict):
         raise ValueError("Die native Filamentautorität ist ungültig.")
     try:
-        from .printer_model_contract import h2s_defaults
+        from .printer_model_contract import h2s_defaults, x1c_defaults
     except ImportError:
         def h2s_defaults():
             return json.loads(Path(__file__).with_name("h2s_native_defaults.json").read_text())
-    return {**data["profiles"], **h2s_defaults()["filaments"]}
+        def x1c_defaults():
+            return json.loads(Path(__file__).with_name("x1c_native_defaults.json").read_text())
+    return {**data["profiles"], **h2s_defaults()["filaments"], **x1c_defaults()["filaments"]}
 
 
 def preflight_filament_settings(payload: dict[str, Any]) -> dict[str, Any]:
@@ -235,3 +237,4 @@ def validate_shared_bed_temperatures(profiles: list[dict[str, Any]], bed_type: s
         targets = [numbers(profile.get(parameter), parameter)[0] for profile in profiles]
         if any(abs(value - targets[0]) > 1e-6 for value in targets[1:]):
             raise ValueError("Die Materialprofile verlangen unterschiedliche Betttemperaturen. Für das gemeinsame Druckbett müssen alle gewählten Filamentprofile für diese Platte dieselben Normal- und Erstschichttemperaturen festlegen.")
+

@@ -53,6 +53,7 @@ def _read_exact(connection: ssl.SSLSocket, length: int) -> bytes:
 
 
 class NativePrinterCameraClient:
+    port = _CAMERA_PORT
     def __init__(
         self,
         *,
@@ -92,7 +93,8 @@ class NativePrinterCameraClient:
             self._condition.notify_all()
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=12)
-        self._thread = None
+        if self._thread is not None and not self._thread.is_alive():
+            self._thread = None
         self._set_connected(False)
 
     @property
@@ -109,7 +111,7 @@ class NativePrinterCameraClient:
         with self._condition:
             return CameraRuntimeStatus(
                 host=self.host,
-                port=_CAMERA_PORT,
+                port=self.port,
                 connected=self._connected,
                 frames_received=self._frames_received,
                 sequence=self._sequence,
@@ -171,7 +173,7 @@ class NativePrinterCameraClient:
 
     def _stream_once(self) -> None:
         context = self._ssl_context()
-        with socket.create_connection((self.host, _CAMERA_PORT), timeout=8) as raw_socket:
+        with socket.create_connection((self.host, self.port), timeout=8) as raw_socket:
             with context.wrap_socket(raw_socket, server_hostname=self.host) as connection:
                 connection.settimeout(12)
                 connection.sendall(self._auth_packet())
@@ -199,7 +201,7 @@ class NativePrinterCameraClient:
                 _LOGGER.warning(
                     "Studio native camera connection to %s:%s interrupted: %s",
                     self.host,
-                    _CAMERA_PORT,
+                    self.port,
                     exc,
                 )
             finally:
@@ -207,3 +209,4 @@ class NativePrinterCameraClient:
             if self._stop_event.wait(delay):
                 break
             delay = min(_MAX_RECONNECT_DELAY, delay * 1.7)
+

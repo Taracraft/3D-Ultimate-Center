@@ -96,6 +96,22 @@ def validate_rendered_bambu_gcode(
     # declaration alone must never grant that machine's hardware authority.
     model_key = re.sub(r"[^a-z0-9]+", " ", str(expected_printer_model or "").casefold()).strip()
     h2s = model_key in {"h2s", "bambu h2s", "bambu lab h2s"}
+    x1c = model_key in {"x1c", "x1 carbon", "bambu x1c", "bambu lab x1c", "bambu lab x1 carbon"}
+    if x1c:
+        maxima = {"max_nozzle_temperature_c": 300., "max_bed_temperature_c": 110.,
+                  "width_mm": 256., "depth_mm": 256., "height_mm": 256.}
+        for key, maximum in maxima.items():
+            raw = hardware_limits.get(key) if isinstance(hardware_limits, dict) else None
+            try:
+                value = float(raw)
+            except (ValueError, TypeError):
+                raise GCodeValidationError("Für den X1 Carbon fehlt die explizite Hardwaregrenze.") from None
+            if isinstance(raw, bool) or not math.isfinite(value) or value <= 0 or value > maximum:
+                raise GCodeValidationError("Ungültige X1-Carbon-Hardwaregrenze.")
+    x1c_reset = False
+    x1c_motors = False
+    x1c_calibration = False
+
     if h2s and (hardware_limits is None or "max_chamber_temperature_c" not in hardware_limits):
         raise GCodeValidationError("Für den H2S fehlt die explizite Hardware-/Kammertemperaturprüfung.")
     if h2s:
@@ -328,7 +344,32 @@ def validate_rendered_bambu_gcode(
             unresolved_examples.append(text[:240])
         if "M1002 GCODE_CLAIM_ACTION" in upper:
             markers["bambu_action_protocol"] = True
-        if command.startswith("G392 ") or command.startswith("M9833"):
+        if x1c:
+            if command.startswith("M290 ") and all(re.search(r"(?:^|\s)" + key + r"[+-]?[0-9.]+(?:\s|$)", command) for key in "XYZ"):
+                x1c_reset = True
+            if command.startswith("M17 ") and all(re.search(r"(?:^|\s)" + key + r"[0-9.]+(?:\s|$)", command) for key in "XYZ"):
+                x1c_motors = True
+            if x1c_reset and x1c_motors:
+                markers["machine_initialization"] = True
+            if re.match(r"^G29 A(?:\s|$)", command) and all(re.search(r"(?:^|\s)" + key + r"[+-]?[0-9.]+(?:\s|$)", command) for key in "XYIJ"):
+                markers["bed_level_command"] = True
+            if re.match(r"^M980\.3(?:\s|$)", command):
+                markers["flow_calibration_command"] = True
+            if re.match(r"^M900 L[0-9.]+(?:\s|$)", command) and markers["flow_calibration_flag"]:
+                x1c_calibration = True
+            if x1c_calibration and re.match(r"^G[01](?:\s|$)", command):
+                extrusion = _EXTRUSION.search(command)
+                if extrusion and float(extrusion[1]) > 0 and re.search(r"(?:^|\s)[XY][+-]?[0-9.]", command):
+                    markers["prime_or_calibration_line"] = True
+            if re.match(r"^M(?:141|191)(?:\s|$)", command):
+                for raw in re.findall(r"(?:^|\s)[SR]([^\s]+)", command):
+                    try:
+                        target = float(raw)
+                    except ValueError:
+                        raise GCodeValidationError("Ungültige X1-Carbon-Kammertemperatur.") from None
+                    if not math.isfinite(target) or target != 0:
+                        raise GCodeValidationError("Der X1 Carbon besitzt keinen aktiv beheizbaren Bauraum.")
+        if not x1c and (command.startswith("G392 ") or command.startswith("M9833")):
             markers["machine_initialization"] = True
         if command.startswith("M104 "):
             markers["hotend_heat"] = True
@@ -352,11 +393,11 @@ def validate_rendered_bambu_gcode(
             markers["bed_level_command"] = True
         if "JUDGE_FLAG EXTRUDE_CALI_FLAG" in upper:
             markers["flow_calibration_flag"] = True
-        if not h2s and (command.startswith("M983 ") or command.startswith("M984 ")):
+        if not h2s and not x1c and (command.startswith("M983 ") or command.startswith("M984 ")):
             markers["flow_calibration_command"] = True
         if not h2s and ("WIPE NOZZLE" in upper or "BRUSH MATERIAL WIPE" in upper):
             markers["nozzle_wipe"] = True
-        if not h2s and ("EXTRUDE CALI TEST" in upper or command.startswith("M900 C")):
+        if not h2s and not x1c and ("EXTRUDE CALI TEST" in upper or command.startswith("M900 C")):
             markers["prime_or_calibration_line"] = True
 
         if command.startswith(("G0 ", "G1 ")):
@@ -379,7 +420,8 @@ def validate_rendered_bambu_gcode(
         def canonical_model(value: str) -> str:
             name = re.sub(r"[^a-z0-9]+", " ", value.casefold()).strip()
             name = re.sub(r"^bambu(?: lab)?\s+", "", name)
-            return name.replace(" ", "")
+            compact = name.replace(" ", "")
+            return "x1c" if compact == "x1carbon" else compact
         if not declared_model or canonical_model(declared_model) != canonical_model(expected_printer_model):
             raise GCodeValidationError("Das G-Code-Artefakt gehört nicht nachweislich zum gewählten Druckermodell.")
     if limits is not None:
@@ -506,3 +548,4 @@ if __name__ == "__main__":
                                              expected_printer_model=(job.get("target_printer") or {}).get("model"),
                                          expected_bed_temperature_key=BED_TEMPERATURE_KEYS.get((job.get("process_overrides") or {}).get("bambu_bed_type")))
     print(json.dumps(report.as_dict()))
+

@@ -5,7 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 try:
-    from .printer_model_contract import canonical_model, h2s_defaults
+    from .printer_model_contract import canonical_model, h2s_defaults, x1c_defaults
 except ImportError:
     import importlib.util as _model_import
     from pathlib import Path as _ModelPath
@@ -14,6 +14,7 @@ except ImportError:
     _spec.loader.exec_module(_authority)
     canonical_model = _authority.canonical_model
     h2s_defaults = _authority.h2s_defaults
+    x1c_defaults = _authority.x1c_defaults
 
 _DATA = json.loads(Path(__file__).with_name("a1_gcode_defaults.json").read_text(encoding="utf-8"))
 SLOT_KEYS = {
@@ -36,6 +37,20 @@ GCODE_DEFAULT_PROFILES += tuple({
     "created_at": None, "updated_at": None,
     "payload": {"gcode_slot": slot, "printer_model": "H2S", key: h2s_defaults()["parts"][slot]},
 } for slot, key in SLOT_KEYS.items())
+GCODE_DEFAULT_PROFILES += tuple({
+    "id": "builtin.x1c." + slot, "name": _NAMES[slot].replace("A1", "X1 Carbon"), "kind": "process",
+    "source": "builtin", "builtin": True, "base_id": None, "version": "20261019",
+    "created_at": None, "updated_at": None,
+    "payload": {"gcode_slot": slot, "printer_model": "X1C", key: x1c_defaults()["parts"][slot]},
+} for slot, key in SLOT_KEYS.items())
+GCODE_DEFAULT_PROFILES += tuple({
+    "id": "builtin.x1c." + diameter.replace(".", "_") + ".gcode_1",
+    "name": "X1 Carbon Maschinen-Start " + diameter + " mm", "kind": "process",
+    "source": "builtin", "builtin": True, "base_id": None, "version": "20261019",
+    "created_at": None, "updated_at": None,
+    "payload": {"gcode_slot": "gcode_1", "printer_model": "X1C", "nozzle_diameter_mm": float(diameter),
+                "custom_gcode_1": x1c_defaults()["parts_by_nozzle"][diameter]["gcode_1"]},
+} for diameter, authority in x1c_defaults()["machines"].items())
 FILAMENT_GCODE_DEFAULTS = {key: _DATA[key] for key in ("filament_start_gcode", "filament_end_gcode")}
 
 
@@ -49,7 +64,7 @@ def resolve_gcode_presets(catalog: dict, model: str) -> dict | None:
     if not isinstance(ids, dict) or set(ids) - set(SLOT_KEYS):
         raise ValueError("Ungültige G-Code-Profilauswahl.")
     model = canonical_model(model)
-    if model not in {"A1", "H2S"}:
+    if model not in {"A1", "H2S", "X1C"}:
         if any(ids.values()):
             raise ValueError("Die Maschinen-G-Code-Vorlagen sind ausschließlich für den A1.")
         return None
@@ -66,9 +81,20 @@ def resolve_gcode_presets(catalog: dict, model: str) -> dict | None:
         if profile_id in by_id:
             raise ValueError("Eine G-Code-Profil-ID ist mehrfach vorhanden.")
         by_id[profile_id] = profile
+    nozzle_diameter = None
+    if model == "X1C":
+        nozzle = by_id.get(selection.get("nozzle_profile_id"), {}).get("payload", {})
+        try:
+            nozzle_diameter = float(nozzle["diameter_mm"])
+        except (ValueError, TypeError, KeyError):
+            raise ValueError("Der X1-Carbon-G-Code benötigt eine eindeutige Düse.") from None
+        if str(nozzle_diameter) not in x1c_defaults()["machines"]:
+            raise ValueError("Nicht unterstützte X1-Carbon-Düse.")
     parts, selected = {}, {}
     for slot, key in SLOT_KEYS.items():
         profile_id = ids.get(slot, "builtin." + model.casefold() + "." + slot)
+        if model == "X1C" and slot == "gcode_1" and profile_id == "builtin.x1c.gcode_1":
+            profile_id = "builtin.x1c." + str(nozzle_diameter).replace(".", "_") + ".gcode_1"
         if profile_id is not None and not isinstance(profile_id, str):
             raise ValueError("Die ausgewaehlte G-Code-Profil-ID ist ungueltig.")
         if not profile_id:
@@ -83,6 +109,8 @@ def resolve_gcode_presets(catalog: dict, model: str) -> dict | None:
         payload = profile.get("payload", {})
         if payload.get("gcode_slot") != slot or payload.get("printer_model") != model:
             raise ValueError("Das G-Code-Profil passt nicht zum Abschnitt oder Drucker.")
+        if model == "X1C" and slot == "gcode_1" and payload.get("nozzle_diameter_mm") != nozzle_diameter:
+            raise ValueError("Der X1-Carbon-Maschinenstart passt nicht zur gewählten Düse.")
         value = payload.get(key)
         if not isinstance(value, str) or len(value.encode()) > 200000:
             raise ValueError("Der G-Code-Abschnitt ist ungültig oder zu groß.")
@@ -94,10 +122,13 @@ def resolve_gcode_presets(catalog: dict, model: str) -> dict | None:
     ):
         if parts[slot].count(marker) != 1:
             raise ValueError("Der Maschinenablauf muss genau eine Sound-Einfügestelle enthalten.")
-        code = parts[slot].replace(marker, parts[sound])
+        code = parts[slot].replace(marker + "\n", parts[sound]) if model == "X1C" and marker + "\n" in parts[slot] else parts[slot].replace(marker, parts[sound])
         if ";@U3D_" in code or not code.strip():
             raise ValueError("Die Maschinen-G-Code-Vorlage ist unvollständig.")
         settings[native] = code
     body = {"schema": 1, "printer_model": model, "selected_profiles": selected, "settings": settings}
+    if model == "X1C":
+        body["nozzle_diameter_mm"] = nozzle_diameter
     body["sha256"] = hashlib.sha256(json.dumps(body, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
     return body
+

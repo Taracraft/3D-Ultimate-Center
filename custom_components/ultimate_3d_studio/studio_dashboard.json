@@ -1,0 +1,7 @@
+{
+  "title": "Ultimate 3D Studio",
+  "views": [{
+    "title": "Studio", "path": "studio", "type": "panel",
+    "cards": [{"type": "custom:ultimate-3d-studio-card", "title": "Ultimate 3D Studio"}]
+  }]
+}

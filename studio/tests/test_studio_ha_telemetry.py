@@ -82,7 +82,8 @@ def test_a1_bmcu_four_slots_and_two_occupied() -> None:
     telemetry = _load_telemetry_module()
     result = telemetry.normalize_ams(_realistic_a1_bmcu_payload())
     assert result["available"] is True
-    assert result["kind"] == "ams_lite_compatible"
+    assert result["kind"] == "ams_unknown"
+    assert result["units"][0]["generation_known"] is False
     assert result["unit_count"] == 1
     assert result["slot_count"] == 4
     assert result["occupied_slot_count"] == 2

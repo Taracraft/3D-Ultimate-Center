@@ -19,9 +19,9 @@ LINE = re.compile(r"(?P<hash>[0-9a-f]{64})  (?P<path>[a-zA-Z0-9_.\-/]+)\Z")
 HOST_MANIFEST_EXPECTED = {
     "server.py", "dispatch-job.sh", "progress-pipe-reader.py",
     "refresh-state.sh", "append-slicing-journal.sh",
-    "bambu_lab_h2s_04.json",
+    "bambu_lab_h2s_04.json", "bambu_lab_x1c_04.json",
     "profiles/printers/bambu_lab_a1_04.json",
-    "profiles/printers/bambu_lab_h2s_04.json",
+    "profiles/printers/bambu_lab_h2s_04.json", "profiles/printers/bambu_lab_x1c_04.json",
     "systemd/3d-printer-slicing-server.service",
     "systemd/3d-printer-slicing-dispatch.service",
     "systemd/3d-printer-slicing-dispatch.timer",
@@ -41,7 +41,7 @@ DEPENDENCIES_EXPECTED = {
     "materialize-bambu-multimaterial.py", "three_mf_mesh_graph.py",
     "filament_parameter_contract.py", "native_filament_defaults.json",
     "slicer_execution_contract.py", "gcode_artifact_validation.py",
-    "printer_model_contract.py", "h2s_native_defaults.json",
+    "printer_model_contract.py", "h2s_native_defaults.json", "x1c_native_defaults.json",
     "job_control.py",
 }
 
@@ -148,7 +148,7 @@ def build(root: Path, destination: Path) -> dict:
         raise ValueError("invalid native package release fields")
     files["payload/release.json"] = release_bytes
 
-    expected_files = 8 + len(deps) + len(NATIVE_UNITS_EXPECTED) + 2
+    expected_files = len(HOST_MANIFEST_EXPECTED) - 5 + len(deps) + len(NATIVE_UNITS_EXPECTED) + 2
     if len(files) != expected_files:
         raise ValueError("unexpected independent native-slicer package closure")
 
@@ -209,3 +209,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

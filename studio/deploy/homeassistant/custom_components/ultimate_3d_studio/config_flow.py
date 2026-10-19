@@ -55,6 +55,7 @@ from .slicer_connection_settings import (
     validate_slicer_api_secret,
 )
 
+from .setup_flow import GuidedSetupMixin
 from .slicer_installer_flow import CONF_INSTALLER_SETUP, InstallerOptionsFlowMixin
 from .slicer_installation_flow import SlicerInstallationFlowMixin
 
@@ -64,7 +65,7 @@ CONF_SLICER_TEST_CONNECTION = "slicer_connection_test"
 CONF_CLOUD_REAUTHENTICATE = "cloud_reauthenticate"
 
 
-class Ultimate3DStudioConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class Ultimate3DStudioConfigFlow(GuidedSetupMixin, config_entries.ConfigFlow, domain=DOMAIN):
     """Create the single isolated Studio runtime entry."""
 
     VERSION = 1
@@ -80,6 +81,11 @@ class Ultimate3DStudioConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             instance_name = str(
                 user_input.get(CONF_INSTANCE_NAME, DEFAULT_INSTANCE_NAME)
             ).strip() or DEFAULT_INSTANCE_NAME
+            if user_input.get("guided_setup", False):
+                self._guided_continuous = True
+                await self._guided_current()
+                self._guided_options[CONF_INSTANCE_NAME] = instance_name
+                return await self.async_step_setup_printer()
             return self.async_create_entry(
                 title=instance_name,
                 data={CONF_INSTANCE_NAME: instance_name},
@@ -92,6 +98,7 @@ class Ultimate3DStudioConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_INSTANCE_NAME,
                     default=DEFAULT_INSTANCE_NAME,
                 ): str,
+                vol.Optional("guided_setup", default=True): bool,
             }),
         )
 
@@ -101,7 +108,7 @@ class Ultimate3DStudioConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return Ultimate3DStudioOptionsFlow()
 
 
-class Ultimate3DStudioOptionsFlow(SlicerInstallationFlowMixin, InstallerOptionsFlowMixin, config_entries.OptionsFlow):
+class Ultimate3DStudioOptionsFlow(GuidedSetupMixin, SlicerInstallationFlowMixin, InstallerOptionsFlowMixin, config_entries.OptionsFlow):
     """Configure direct printer and Bambu account access."""
 
     def __init__(self) -> None:
@@ -202,7 +209,13 @@ class Ultimate3DStudioOptionsFlow(SlicerInstallationFlowMixin, InstallerOptionsF
             ),
         }
 
-    async def async_step_init(
+    async def async_step_init(self, user_input=None):
+        if user_input is not None:
+            return await self.async_step_advanced(user_input)
+        return self.async_show_menu(step_id="init", menu_options=[
+            "setup_printer", "setup_slicer", "setup_account", "setup_dashboard", "advanced"])
+
+    async def async_step_advanced(
         self,
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:
@@ -303,7 +316,7 @@ class Ultimate3DStudioOptionsFlow(SlicerInstallationFlowMixin, InstallerOptionsF
             str(current.get(CONF_CLOUD_ACCESS_TOKEN, "")).strip()
         )
         return self.async_show_form(
-            step_id="init",
+            step_id="advanced",
             data_schema=vol.Schema({
                 vol.Required(
                     CONF_LAN_ENABLED,
@@ -540,3 +553,4 @@ class Ultimate3DStudioOptionsFlow(SlicerInstallationFlowMixin, InstallerOptionsF
             }),
             errors=errors,
         )
+

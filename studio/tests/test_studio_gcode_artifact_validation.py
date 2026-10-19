@@ -73,6 +73,36 @@ H2S_LIMITS = {"max_nozzle_temperature_c": 350., "max_bed_temperature_c": 120.,
               "max_chamber_temperature_c": 65., "width_mm": 340.,
               "depth_mm": 320., "height_mm": 340.}
 
+X1C_LIMITS = {"max_nozzle_temperature_c": 300., "max_bed_temperature_c": 110.,
+              "width_mm": 256., "depth_mm": 256., "height_mm": 256.}
+
+def x1c_gcode(extra=""):
+    source = complete_gcode("; printer_model = Bambu Lab X1 Carbon").getvalue().decode()
+    source = source.replace("G392 S0", "M290 X40 Y40 Z2.6666666\nM17 X1.2 Y1.2 Z0.75")
+    source = source.replace("G29 A1", "G29 A X20 Y20 I100 J100")
+    source = source.replace("M983 A0", "M980.3 A70 B100 C5 D200 E5 F175 H1 I0 J0.020 K0.040")
+    source = source.replace("M900 C", "M900 L1000.0 M1.0")
+    return BytesIO((source + extra).encode())
+
+def test_x1c_uses_own_initialization_bed_scan_and_lidar_calibration():
+    report = validation.validate_rendered_bambu_gcode(x1c_gcode(), hardware_limits=X1C_LIMITS, expected_printer_model="X1C")
+    assert all(report.markers.values())
+
+@pytest.mark.parametrize("removed", ["M290 X40 Y40 Z2.6666666", "M17 X1.2 Y1.2 Z0.75", "G29 A X20 Y20 I100 J100", "M980.3 A70 B100 C5 D200 E5 F175 H1 I0 J0.020 K0.040", "M900 L1000.0 M1.0"])
+def test_x1c_declaration_does_not_replace_required_commands(removed):
+    source = x1c_gcode().getvalue().replace(removed.encode(), ("; " + removed).encode())
+    with pytest.raises(validation.GCodeValidationError, match="Maschinenablauf ist unvollständig"):
+        validation.validate_rendered_bambu_gcode(BytesIO(source), hardware_limits=X1C_LIMITS, expected_printer_model="X1C")
+
+@pytest.mark.parametrize("command", ["M104 S301", "M140 S111", "M620.1 E F100 T301", "M141 S50", "M191 R50"])
+def test_x1c_heater_commands_respect_physical_limits(command):
+    with pytest.raises(validation.GCodeValidationError):
+        validation.validate_rendered_bambu_gcode(x1c_gcode(command + "\n"), hardware_limits=X1C_LIMITS, expected_printer_model="X1C")
+
+def test_x1c_declaration_does_not_grant_hardware_limits():
+    with pytest.raises(validation.GCodeValidationError, match="explizite Hardware"):
+        validation.validate_rendered_bambu_gcode(x1c_gcode(), expected_printer_model="X1C")
+
 
 def h2s_gcode(extra: str = "") -> BytesIO:
     source = complete_gcode("; printer_model = Bambu Lab H2S").getvalue().decode()

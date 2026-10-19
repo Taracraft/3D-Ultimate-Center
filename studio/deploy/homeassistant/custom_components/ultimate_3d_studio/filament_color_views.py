@@ -10,7 +10,7 @@ from aiohttp import web
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.core import HomeAssistant
 
-from .a1_filament_catalog import filament_profile, generic_filament_profile
+from .manual_filament_catalog import filament_for_printer, printer_model
 from .audit_log import get_audit_log
 from .direct_print_slot_views import (
     API_PREFIX,
@@ -72,22 +72,23 @@ def _temperature(value: Any) -> int | None:
 
 
 def _snapshot(hass: HomeAssistant, printer: Any, kind: str, target_id: str) -> dict[str, Any]:
+    model = printer_model(printer)
+    if model is None:
+        raise ValueError("Das Druckermodell ist nicht eindeutig bestätigt.")
     if kind == "external_spool":
         if target_id != "external":
             raise ValueError("Das externe Filamentziel muss eindeutig angegeben werden.")
         item = _external_spool(hass, printer)
-        if not item.get("available"):
-            raise ValueError("Die externe Spule wird vom Drucker aktuell nicht gemeldet.")
         ams_id = 255
         tray_id = 0
         label = "Externe Spule"
     elif kind == "ams_slot":
         item = next((slot for slot in _slots(printer) if slot.get("global_id") == target_id), None)
-        if item is None or not item.get("present"):
+        if item is None or not item.get("present") or int(item.get("slot_index", -1)) < 0:
             raise ValueError("Das gewählte Materialfach ist nicht mehr belegt.")
         try:
             ams_id = int(str(item.get("unit_id", "")).strip())
-            tray_id = int(item.get("slot_index"))
+            tray_id = int(item.get("tray_id"))
         except (TypeError, ValueError) as exc:
             raise ValueError("AMS- und Slotnummer konnten nicht sicher bestimmt werden.") from exc
         if not 0 <= ams_id <= 254 or not 0 <= tray_id <= 3:
@@ -101,11 +102,12 @@ def _snapshot(hass: HomeAssistant, printer: Any, kind: str, target_id: str) -> d
     material = str(item.get("material") or "").strip()
     minimum = _temperature(item.get("nozzle_temp_min"))
     maximum = _temperature(item.get("nozzle_temp_max"))
-    if not material:
+    if kind != "external_spool" and not material:
         raise ValueError("Das Material wird nicht eindeutig gemeldet; die Farbe wird nicht geschrieben.")
-    if minimum is None or maximum is None or minimum > maximum:
+    if kind != "external_spool" and (minimum is None or maximum is None or minimum > maximum):
         raise ValueError("Die Düsentemperaturen werden nicht vollständig gemeldet; die Farbe wird nicht geschrieben.")
     return {
+        "printer_model": model,
         "kind": kind,
         "target_id": "external" if kind == "external_spool" else target_id,
         "label": label,
@@ -151,14 +153,15 @@ class FilamentColorView(HomeAssistantView):
         target_id = str(payload.get("target_id") or "").strip()
         color = _hex_color(payload.get("color"))
         requested_id = str(payload.get("filament_id") or "").strip()
-        profile = filament_profile(requested_id)
-        if profile is None and not requested_id:
-            profile = generic_filament_profile(payload.get("material_type"))
+        runtime, printer = await _find_runtime_and_printer(hass, printer_id)
+        if runtime is None or printer is None:
+            return _error(404, "printer_not_found", "Der Drucker wurde nicht gefunden.")
+        profile = filament_for_printer(printer, requested_id, payload.get("material_type"))
         if not printer_id or not kind or color is None or profile is None:
             return _error(
                 400,
                 "invalid_request",
-                "Drucker, Farbziel, Farbe #RRGGBB und ein freigegebenes A1-Filamentprofil sind erforderlich.",
+                "Drucker, Farbziel, Farbe #RRGGBB und ein für diesen Drucker freigegebenes Filamentprofil sind erforderlich.",
             )
         if kind not in profile["targets"]:
             return _error(
@@ -169,9 +172,6 @@ class FilamentColorView(HomeAssistantView):
                 allowed_targets=profile["targets"],
             )
         material_type = str(profile["material_type"])
-        runtime, printer = await _find_runtime_and_printer(hass, printer_id)
-        if runtime is None or printer is None:
-            return _error(404, "printer_not_found", "Der Drucker wurde nicht gefunden.")
         ready, reason = _printer_ready(printer)
         if not ready:
             return _error(409, "printer_not_ready", reason.replace("keinen neuen Druckauftrag", "keine Materialänderung"))
@@ -222,7 +222,7 @@ class FilamentColorView(HomeAssistantView):
             "confirmation_message": (
                 f"{target['label']}: {target['tray_type']} / {target['current_color'] or 'unbekannt'} "
                 f"auf {profile['vendor']} · {profile['name']} ({material_type}) / {color} am Drucker setzen? "
-                "Es werden ausschließlich Werte aus dem offiziellen A1-Systemkatalog verwendet."
+                "Es werden ausschließlich Werte aus dem offiziellen Systemkatalog dieses Druckers verwendet."
             ),
         }})
 
@@ -246,7 +246,7 @@ class FilamentColorView(HomeAssistantView):
             current = _snapshot(hass, printer, expected["kind"], expected["target_id"])
         except ValueError as exc:
             return _error(409, "unsafe_color_target", str(exc))
-        protected = ("ams_id", "tray_id", "tray_info_idx", "tray_type", "nozzle_temp_min", "nozzle_temp_max", "current_color", "loaded")
+        protected = ("printer_model", "ams_id", "tray_id", "tray_info_idx", "tray_type", "nozzle_temp_min", "nozzle_temp_max", "current_color", "loaded")
         if any(current.get(field) != expected.get(field) for field in protected):
             return _error(409, "telemetry_changed", "Die Filamentdaten haben sich seit der Vorschau geändert. Bitte erneut prüfen.")
         await get_audit_log(hass).async_append(
@@ -338,3 +338,4 @@ class FilamentColorView(HomeAssistantView):
 
 def async_register_filament_color_views(hass: HomeAssistant) -> None:
     hass.http.register_view(FilamentColorView())
+

@@ -1,4 +1,8 @@
-﻿# Ultimate 3D Studio
+# Ultimate 3D Studio
+
+![TaraCraft Studio Logo](custom_components/ultimate_3d_studio/brand/icon@2x.png)
+
+[X1 Carbon: Einrichtung, AMS, externe Spule und Kamera](studio/docs/X1C_SETUP.md).
 
 ![Promo-Illustration - Ultimate 3D Studio](studio/handbook/assets/studio-hero.png)
 
@@ -45,15 +49,15 @@ Die [Funktionsübersicht](studio/handbook/FEATURES.md) nennt Umfang und Grenzen.
 Du administrierst Linux, Docker, Netzwerk und weitere Dienste weiterhin selbst.
 Der Assistent installiert und verbindet HACS, Studio und den Slicer.
 
-Wenn dir die aktuelle einzelne Datei `TaraCraft-Install.sh` bereitgestellt wurde,
+Wenn dir die aktuelle einzelne Datei `3D-Ultimate-Studio.sh` bereitgestellt wurde,
 kopiere sie auf den Linux/amd64-Server und starte sie dort im Terminal:
 
 ```sh
-sudo bash TaraCraft-Install.sh
+sudo bash 3D-Ultimate-Studio.sh
 ```
 
-Mit `bash TaraCraft-Install.sh --demo` lässt sich die Oberfläche vorher ansehen;
-`bash TaraCraft-Install.sh --self-test` führt isolierte Prüfungen aus. Der Assistent
+Mit `bash 3D-Ultimate-Studio.sh --demo` lässt sich die Oberfläche vorher ansehen;
+`bash 3D-Ultimate-Studio.sh --self-test` führt isolierte Prüfungen aus. Der Assistent
 zeigt den aktuellen Schritt oben und das echte, scrollbar bleibende Shell-Protokoll
 darunter. Bei einer vorhandenen zugehörigen Sitzung **Fortsetzen** wählen.
 

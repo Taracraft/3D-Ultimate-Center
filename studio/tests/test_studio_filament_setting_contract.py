@@ -32,7 +32,7 @@ class FilamentSettingContractTests(unittest.TestCase):
             self.assertIn(f'"vendor":"{vendor}"', catalog)
         for filament_id in ("GFL99", "GFG99", "GFU99", "GFS99", "GFU02", "GFSNL08"):
             self.assertIn(f'"id":"{filament_id}"', catalog)
-        self.assertIn('filament_profile(requested_id)', view)
+        self.assertIn('filament_for_printer(printer, requested_id', view)
         self.assertIn('kind not in profile["targets"]', view)
         self.assertIn("data-setting-vendor", ui)
         self.assertIn("data-setting-filament", ui)
@@ -64,3 +64,4 @@ class FilamentSettingContractTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -106,9 +106,13 @@ def derive_authoritative_ams_start(
             target_printer_id=target,
         )
 
-    if len(filaments) > 4:
+    from .printer_identity import resolve_connected_printer_model
+    reported = target_printer.get("model") if isinstance(target_printer, Mapping) else None
+    model = resolve_connected_printer_model(reported, printer_id)
+    from .printer_model_contract import max_material_channels
+    if len(filaments) > max_material_channels(model):
         raise DirectPrintMaterialPlanError(
-            "Der AMS-Materialplan enthält mehr als vier Materialkanäle."
+            "Der AMS-Materialplan überschreitet die Materialkanäle des Zieldruckers."
         )
 
     present_slots = {
@@ -149,3 +153,4 @@ def derive_authoritative_ams_start(
         source=source,
         target_printer_id=target,
     )
+

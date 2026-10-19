@@ -150,12 +150,19 @@ def _canonical_model(value: object) -> str:
 
 
 def _find_named(directory: Path, name: str) -> Path:
-    direct = directory / f"{name}.json"
-    if direct.is_file():
-        return direct
-    matches = [path for path in directory.rglob(f"{name}.json") if path.is_file()]
+    if not name or name.startswith('/') or '\\' in name or any(part in {'.', '..'} for part in name.split('/')):
+        raise ValueError("Invalid logical profile name")
+    if '/' not in name:
+        direct = directory / (name + '.json')
+        if direct.is_file():
+            return direct
+        matches = [path for path in directory.rglob(name + '.json') if path.is_file()]
+        if len(matches) == 1:
+            return matches[0]
+    # Manufacturer logical names can contain '/', while their filenames cannot.
+    matches = [path for path in directory.rglob('*.json') if _json(path).get('name') == name]
     if len(matches) != 1:
-        raise FileNotFoundError(f"Profil nicht eindeutig gefunden: {name}")
+        raise FileNotFoundError("Profil nicht eindeutig gefunden: " + name)
     return matches[0]
 
 
@@ -646,12 +653,12 @@ def _materialize_process(
     dict[str, Any],
 ]:
     process = _resolve_profile(process_directory, process_source)
-    if model == "h2s":
+    if model in {"h2s", "x1c"}:
         try:
-            from .printer_model_contract import h2s_defaults
+            from .printer_model_contract import native_defaults
         except ImportError:
-            from printer_model_contract import h2s_defaults
-        expected = h2s_defaults()["processes"][str(overrides.get("h2s_nozzle_diameter_mm"))]
+            from printer_model_contract import native_defaults
+        expected = native_defaults(model)["processes"][str(overrides.get("h2s_nozzle_diameter_mm") if model == "h2s" else overrides.get("x1c_nozzle_diameter_mm"))]
         if digest(process) != expected["resolved_sha256"]:
             raise ValueError("Die native H2S-Prozessquelle wurde verändert.")
     process, process_profile_proof = _apply_selected_process_profile(
@@ -669,14 +676,16 @@ def _materialize_process(
         authority = native_filament_authorities().get(str(base.get("name") or path.stem))
         if overrides.get("require_execution_contract") is True and authority is not None and digest(base) != authority["resolved_sha256"]:
             raise ValueError("Die native Filamentbasis weicht von der geprüften Parameterautorität ab.")
-        if model == "h2s":
-            if authority is None or "H2S" not in str(base.get("name")):
+        if model in {"h2s", "x1c"}:
+            if authority is None or (model == "h2s" and "H2S" not in str(base.get("name"))):
                 raise ValueError("Für die H2S-Filamentbasis fehlt eine geprüfte native Autorität.")
-            if "Bambu Lab H2S " + str(overrides.get("h2s_nozzle_diameter_mm")) + " nozzle" not in authority["compatible_printers"]:
+            model_name = "H2S" if model == "h2s" else "X1 Carbon"
+            diameter = overrides.get(model + "_nozzle_diameter_mm")
+            if "Bambu Lab " + model_name + " " + str(diameter) + " nozzle" not in authority["compatible_printers"]:
                 raise ValueError("Die H2S-Filamentbasis passt nicht zum Düsendurchmesser.")
-        if model == "h2s":
+        if model in {"h2s", "x1c"}:
             base = {k: [v[0]] if isinstance(v, list) and v and k not in _METADATA_KEYS else v for k,v in base.items()}
-        if model == "h2s" and filament.get("source") == "ams_slot" and authority.get("ams_supported") is not True:
+        if model in {"h2s", "x1c"} and filament.get("source") == "ams_slot" and authority.get("ams_supported") is not True:
             raise ValueError("Für diese native H2S-Filamentbasis fehlt die AMS-Freigabe.")
         resolved_profiles.append(_apply_selected_profile_payload(base, filament))
 
@@ -997,8 +1006,8 @@ def main() -> None:
         else {}
     )
     effective_overrides = dict(overrides)
-    if model == "h2s":
-        effective_overrides["h2s_nozzle_diameter_mm"] = str(float(target["nozzle_diameter_mm"]))
+    if model in {"h2s", "x1c"}:
+        effective_overrides[model + "_nozzle_diameter_mm"] = str(float(target["nozzle_diameter_mm"]))
     for key in ("min_layer_height_mm", "max_layer_height_mm", "nozzle_diameter_mm"):
         if key not in effective_overrides and target.get(key) is not None:
             effective_overrides[key] = target.get(key)
@@ -1204,3 +1213,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

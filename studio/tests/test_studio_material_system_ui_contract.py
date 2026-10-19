@@ -30,12 +30,12 @@ class MaterialSystemUiContractTests(unittest.TestCase):
         ):
             self.assertIn(label, source)
 
-    def test_official_a1_manufacturer_catalog_is_used(self) -> None:
+    def test_official_printer_manufacturer_catalog_is_used(self) -> None:
         source = self.source("ams-workspace.ts")
-        self.assertIn("status.filament_catalog?.items", source)
+        self.assertIn("this.#printer()?.filament_catalog?.items", source)
         self.assertIn("data-setting-vendor", source)
         self.assertIn("data-setting-filament", source)
-        self.assertIn("offiziellen, für Bambu Lab A1 instanziierten Systemkatalog", source)
+        self.assertIn("offiziellen, für diesen Drucker instanziierten Systemkatalog", source)
 
     def test_visual_feed_uses_only_real_active_slot(self) -> None:
         source = self.source("ams-workspace.ts")

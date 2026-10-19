@@ -40,7 +40,7 @@ def test_inspect_only_verifies_all_sources_without_writing_install_paths(bundle)
     assert metadata["package"] == "ultimate-slicer-server"
     assert metadata["native_deploy_ready"] is False
     assert metadata["first_install_tool_included"] is True
-    assert len(files) == 26
+    assert len(files) == 29
     assert "installer/install_native.py" in files
     assert {key for key in files if key.startswith("systemd/")} == {
         "systemd/" + name for name in installer.UNITS
@@ -431,3 +431,4 @@ def test_runtime_dependency_contract_covers_worker_shell_commands():
     assert 'NOW=$(date -Iseconds)' in refresh
     assert ' | wc -l' in refresh
     assert 'mv "$API/$NAME.json.tmp"' in refresh
+

@@ -4,6 +4,7 @@ from copy import deepcopy
 from datetime import UTC, datetime
 from typing import Any
 
+from .ams_topology import active_slot, ams_identity, global_slot_index
 from .printer_issues import normalize_hms_item, normalize_print_error
 
 _NORMAL_PRINT_STATES = frozenset({
@@ -123,8 +124,30 @@ def color(value: Any) -> str | None:
     return f"#{raw.upper()}"
 
 
+def normalize_external_spool(root: dict[str, Any], active_tray: str | None) -> dict[str, Any] | None:
+    tray = find(root, ("vt_tray",))
+    if not isinstance(tray, dict):
+        return None
+    material = text(pick(tray, "tray_type", "filament_type"), "")
+    tag = text(pick(tray, "tag_uid", "tray_uuid"), "")
+    rfid = tag.casefold() not in {"", "0000000000000000", "unknown", "none"}
+    return {
+        "available": bool(material or color(tray.get("tray_color"))),
+        "loaded": active_tray == "254", "entity_id": None,
+        "tray_id": "254", "filament_id": text(tray.get("tray_info_idx"), ""),
+        "material": material, "sub_brand": text(tray.get("tray_sub_brands"), ""),
+        "color": color(tray.get("tray_color")), "remaining_percent": number(tray.get("remain")),
+        "remaining_reliable": False, "weight": number(tray.get("tray_weight")),
+        "diameter": number(tray.get("tray_diameter")),
+        "nozzle_temp_min": number(tray.get("nozzle_temp_min")),
+        "nozzle_temp_max": number(tray.get("nozzle_temp_max")),
+        "bed_temp": number(tray.get("bed_temp")), "tag_uid": tag,
+        "rfid_detected": rfid, "rfid_status": "detected" if rfid else "not_detected",
+    }
+
+
 def normalize_ams(payload: dict[str, Any]) -> dict[str, Any]:
-    """Normalize AMS, AMS Lite and compatible third-party slot structures."""
+    """Normalize explicitly reported AMS identity and global firmware tray addresses."""
     root = payload.get("print") if isinstance(payload.get("print"), dict) else payload
     ams = root.get("ams") if isinstance(root, dict) else None
     if not isinstance(ams, (dict, list)):
@@ -146,21 +169,23 @@ def normalize_ams(payload: dict[str, Any]) -> dict[str, Any]:
     if not units:
         standalone = find(root, ("tray", "trays", "slots", "tray_info"))
         if records(standalone):
-            units = [{"id": "0", "model": "AMS Lite", "tray": standalone}]
+            units = [{"id": "0", "tray": standalone}]
 
     normalized_units: list[dict[str, Any]] = []
     all_slots: list[dict[str, Any]] = []
 
     for unit_index, unit in enumerate(units):
         unit_id = text(pick(unit, "id", "ams_id", "unit_id"), str(unit_index))
-        unit_model = text(pick(unit, "model", "type", "name"), "AMS")
+        identity = ams_identity(unit)
+        unit_model = identity["model"]
         unit_serial = text(pick(unit, "serial", "sn"), "")
         trays = records(unit.get("tray") or unit.get("trays") or unit.get("slots") or unit.get("tray_info") or [])
         normalized_slots: list[dict[str, Any]] = []
 
         for tray_index, tray in enumerate(trays):
-            tray_id = text(pick(tray, "id", "tray_id", "slot_id", "tray_info_idx"), str(tray_index))
+            tray_id = text(pick(tray, "id", "tray_id", "slot_id"), str(tray_index))
             global_id = f"{unit_id}:{tray_id}"
+            firmware_index = global_slot_index(pick(unit, "id", "ams_id", "unit_id"), pick(tray, "id", "tray_id", "slot_id"), identity["type_code"])
             material = text(pick(tray, "tray_type", "type", "filament_type"), "")
             slot_color = color(pick(tray, "tray_color", "color", "filament_color"))
             tag_uid = text(pick(tray, "tag_uid", "tag_id", "rfid"), "")
@@ -171,11 +196,13 @@ def normalize_ams(payload: dict[str, Any]) -> dict[str, Any]:
             )
             slot = {
                 "unit_id": unit_id,
-                "slot_index": tray_index,
+                "slot_index": firmware_index if firmware_index is not None else -1,
+                "local_slot_index": int(tray_id) if tray_id.isdigit() else -1,
+                "address_verified": firmware_index is not None,
                 "tray_id": tray_id,
                 "filament_id": text(pick(tray, "tray_info_idx", "filament_id"), ""),
                 "global_id": global_id,
-                "active": active_tray is not None and active_tray in {tray_id, global_id, str(tray_index)},
+                "active": active_slot(active_tray, unit_id, tray_id, firmware_index),
                 "material": material,
                 "sub_brand": text(pick(tray, "tray_sub_brands", "sub_brand", "filament_sub_brand"), ""),
                 "color": slot_color,
@@ -195,9 +222,13 @@ def normalize_ams(payload: dict[str, Any]) -> dict[str, Any]:
 
         normalized_units.append({
             "unit_id": unit_id,
+            **identity,
             "model": unit_model,
             "serial": unit_serial,
             "humidity": number(pick(unit, "humidity", "ams_humidity")),
+            "humidity_level": number(pick(unit, "humidity", "ams_humidity")),
+            "humidity_percent": number(unit.get("humidity_raw")) if number(unit.get("humidity_raw")) is not None and 0 <= number(unit.get("humidity_raw")) <= 100 else None,
+            "drying_remaining_minutes": number(unit.get("dry_time")) if number(unit.get("dry_time")) is not None and number(unit.get("dry_time")) >= 0 else None,
             "temperature": number(pick(unit, "temp", "temperature", "ams_temp")),
             "slots": normalized_slots,
             "slot_count": len(normalized_slots),
@@ -205,14 +236,8 @@ def normalize_ams(payload: dict[str, Any]) -> dict[str, Any]:
         })
 
     occupied = sum(1 for slot in all_slots if slot["present"])
-    is_lite_named = any("lite" in unit["model"].lower() for unit in normalized_units)
-    is_unidentified_four_slot = (
-        len(normalized_units) == 1
-        and len(all_slots) == 4
-        and not normalized_units[0]["serial"]
-        and active_text in {"255", "-1", "", "none", "None"}
-    )
-    kind = "ams_lite" if is_lite_named else "ams_lite_compatible" if is_unidentified_four_slot else "ams"
+    kinds = {unit["kind"] for unit in normalized_units}
+    kind = next(iter(kinds)) if len(kinds) == 1 else "ams_mixed" if kinds else "ams_unknown"
 
     return {
         "available": bool(normalized_units or all_slots),
@@ -222,6 +247,7 @@ def normalize_ams(payload: dict[str, Any]) -> dict[str, Any]:
         "occupied_slot_count": occupied,
         "active_tray": active_tray,
         "active_tray_raw": active_text or None,
+        "external_spool": normalize_external_spool(root, active_tray),
         "units": normalized_units,
         "slots": all_slots,
     }
@@ -502,3 +528,4 @@ class BambuTelemetryState:
     @property
     def updated_at_iso(self) -> str | None:
         return self.updated_at.isoformat() if self.updated_at else None
+

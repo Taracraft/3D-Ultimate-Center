@@ -23,6 +23,8 @@ from .gallery_duplicate_views import async_register_gallery_duplicate_views
 from .gallery_management_views_v2 import async_register_gallery_management_views
 from .job_history_maintenance_views import async_register_job_history_maintenance_views
 from .lovelace_resources import async_ensure_studio_lovelace_resource
+from .setup_dashboard import async_setup_dashboard
+from .setup_hacs import async_setup_hacs
 from .makerworld_views import async_register_makerworld_views
 from .printer_storage_lookup_views import async_register_printer_storage_lookup_views
 from .printer_storage_views import async_register_printer_storage_views
@@ -108,6 +110,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         domain_data["lovelace_resource_status"] = await async_ensure_studio_lovelace_resource(
             hass.data.get("lovelace")
         )
+    config = {**entry.data, **entry.options}
+    domain_data["dashboard_setup_status"] = await async_setup_dashboard(
+        hass, bool(config.get("dashboard_auto", False)))
+    await async_setup_hacs(hass, entry, bool(config.get("hacs_repository_auto", config.get("dashboard_auto", False))))
     install_profile_runtime_v2(hass)
     runtimes: dict[str, Ultimate3DStudioRuntime] = domain_data.setdefault(DATA_RUNTIMES, {})
     runtime = Ultimate3DStudioRuntime(hass, entry)
@@ -160,6 +166,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     runtime = hass.data[DOMAIN][DATA_RUNTIMES].pop(entry.entry_id, None)
     if runtime is not None:
         await runtime.async_stop()
+    if not hass.data[DOMAIN][DATA_RUNTIMES]:
+        await async_setup_dashboard(hass, False)
     await get_audit_log(hass).async_append(
         category="System",
         component="config_entry",
@@ -181,3 +189,4 @@ async def _async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         details={"entry_id": entry.entry_id, "title": entry.title},
     )
     await hass.config_entries.async_reload(entry.entry_id)
+

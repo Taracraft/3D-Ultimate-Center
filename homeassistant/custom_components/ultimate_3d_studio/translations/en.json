@@ -4,39 +4,121 @@
     "step": {
       "user": {
         "title": "Set up Ultimate 3D Studio",
-        "description": "Creates a fully isolated Studio test runtime.",
+        "description": "Set up printer, slicing server and dashboard in a few steps.",
         "data": {
-          "instance_name": "Test instance name"
+          "instance_name": "Test instance name",
+          "guided_setup": "Guided setup (recommended)"
+        }
+      },
+      "setup_printer": {
+        "title": "Printer",
+        "description": "Connects directly to the printer using MQTT/TLS port 8883; no additional broker is needed. Discovered: {discovery_count}. Access code: {code_status}. Enter IP, serial and LAN access code once. Submitting verifies login and the status subscription, then saves. No printer commands are sent. This does not yet confirm live telemetry or printer identity. For an unreachable test printer disable MQTT verification and save offline; the connection retries automatically after setup.",
+        "data": {
+          "lan_enabled": "Enable printer",
+          "printer_name": "Printer name",
+          "host": "IP address or hostname",
+          "serial": "Serial number",
+          "access_code": "LAN access code",
+          "tls_insecure": "Accept the printer self-signed certificate",
+          "discovered_printer": "Detected printer",
+          "verify_mqtt": "Verify MQTT login before saving"
+        }
+      },
+      "setup_slicer": {
+        "title": "Slicing server",
+        "description": "The local installer can supply the server connection automatically. Stored secret: {secret_status}. Submit checks and saves together. If the server is temporarily offline, disable the connection check to save for later. The secret is never displayed.",
+        "data": {
+          "slicer_enabled": "Use slicing server",
+          "slicer_base_url": "HTTPS server address",
+          "slicer_api_secret": "API secret (leave empty to retain)",
+          "verify_connection": "Check connection and save"
+        }
+      },
+      "setup_account": {
+        "title": "Optional Bambu account",
+        "description": "The account enables MakerWorld and your cloud profiles. It is separate from the LAN printer and is optional. The password is used only to sign in. Profile synchronization is started manually under Profiles.",
+        "data": {
+          "cloud_enabled": "Use Bambu account",
+          "cloud_email": "Email",
+          "password": "Password for this sign-in",
+          "cloud_region": "Account region",
+          "cloud_profile_sync": "Allow manual profile synchronization"
+        }
+      },
+      "setup_code": {
+        "title": "Verification code",
+        "description": "Enter the code from Bambu.",
+        "data": {
+          "verification_code": "Verification code"
+        }
+      },
+      "setup_dashboard": {
+        "title": "Finish setup",
+        "description": "The Studio dashboard is created automatically in the sidebar, with the full-width card already configured. Existing dashboards are preserved. No YAML or manual resource entry is needed. Account sign-in for HACS updates remains your personal step. After your personal HACS login, the verified HACS adapter registers this already installed integration automatically. It does not redownload the files. Home Assistant Container has no Supervisor Apps menu.",
+        "data": {
+          "dashboard_auto": "Create Studio dashboard automatically",
+          "hacs_repository_auto": "Add Studio repository automatically after HACS login"
         }
       }
     },
     "abort": {
       "already_configured": "The Studio test integration is already configured."
+    },
+    "error": {
+      "required": "This field is required for the enabled feature.",
+      "invalid_auth": "Bambu sign-in or verification code was rejected.",
+      "cannot_connect": "Bambu Cloud is currently unavailable.",
+      "invalid_slicer_url": "Invalid slicer server address. Do not enter credentials in the URL.",
+      "slicer_https_required": "Remote slicer servers require HTTPS; HTTP is allowed only on loopback.",
+      "invalid_slicer_secret": "The slicer key must contain at least 32 valid characters.",
+      "slicer_not_configured": "Enable the slicer and enter its connection details first.",
+      "slicer_auth_required": "The slicer rejected the API key.",
+      "slicer_incompatible": "The slicer info API is incompatible or incomplete.",
+      "slicer_redirect_refused": "The slicer returned an unsafe redirect.",
+      "slicer_unavailable": "The slicer is unavailable or returned an invalid response.",
+      "slicer_certificate_error": "The slicer TLS certificate could not be verified.",
+      "installer_invalid_action": "Invalid installer action.",
+      "installer_busy": "An installer mutation is still running. Status and Cancel remain available.",
+      "installer_operation_failed": "The operation was not confirmed. Check the displayed reason; no automatic retry was started.",
+      "installer_host_blocked": "Host prerequisites or engine releases are not ready.",
+      "supervisor_forbidden": "Only an active Home Assistant administrator may perform this operation.",
+      "supervisor_supervisor_unavailable": "Supervisor is unavailable. Use the external connection route for an independent Compose slicer.",
+      "supervisor_app_release_unavailable": "No reviewed Supervisor app package is configured yet. Nothing was installed. Engine and isolation evidence is still required.",
+      "supervisor_app_release_changed": "The reviewed app reference changed during the operation.",
+      "supervisor_app_reference_invalid": "The server-owned app reference is invalid.",
+      "supervisor_app_not_available": "The reviewed app package is unavailable on this platform.",
+      "supervisor_app_identity_changed": "The app or repository does not match the reviewed identity.",
+      "supervisor_app_policy_mismatch": "The app configuration does not meet the required safeguards. No fallback was used.",
+      "supervisor_app_version_mismatch": "The app or store version differs from the reviewed release.",
+      "supervisor_app_response_invalid": "The app state could not be verified unambiguously.",
+      "supervisor_app_confirmation_required": "Installation requires explicit confirmation.",
+      "supervisor_app_busy": "An app operation is already running. Do not repeat installation.",
+      "supervisor_app_closed": "This setup session belongs to an unloaded integration.",
+      "supervisor_app_operation_failed": "The Supervisor operation could not be confirmed.",
+      "supervisor_app_reconciliation_required": "Installation state is uncertain or inconsistent. Inspect the Supervisor operation and existing app first. No automatic retry or removal.",
+      "supervisor_app_storage_failed": "The private operation state could not be reliably saved or read.",
+      "supervisor_app_jobs_active": "Supervisor jobs remain active or their completion is unknown. No state was adopted.",
+      "supervisor_app_jobs_invalid": "The Supervisor job listing is incomplete, invalid or too large for safe reconciliation.",
+      "supervisor_app_recovery_changed": "App, jobs or setup receipt changed during verification. No automatic retry.",
+      "mqtt_unreachable": "Printer MQTT/TLS port 8883 is unreachable. Check printer power, IP and network access from Home Assistant. Disable MQTT verification to save offline.",
+      "mqtt_tls_failed": "Printer certificate rejected. Check certificate trust or explicitly accept the self-signed printer certificate. Slicer TLS is separate.",
+      "mqtt_auth_failed": "MQTT login rejected. Check the LAN access code and printer LAN access.",
+      "mqtt_rejected": "Printer rejected the MQTT connection.",
+      "mqtt_subscribe_failed": "MQTT login succeeded but the status subscription was rejected. Check serial number and permissions.",
+      "mqtt_disconnected": "Printer disconnected during MQTT verification.",
+      "mqtt_timeout": "MQTT confirmation timed out. Check networking or explicitly save offline."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Configure printer and Bambu account",
-        "description": "The LAN provider connects directly to the printer. Optional account sign-in makes your filament, print and machine profiles and MakerWorld available in Studio. Start cloud profile synchronization manually under Profiles. The password is used only for this sign-in and is not stored. If a token already exists, password and email remain optional. Current token status: {cloud_token_status}. LAN access code: {lan_code_status}. Slicer key status: {slicer_secret_status}. Connection check: {slicer_connection_status}.",
-        "data": {
-          "lan_enabled": "Enable Bambu LAN provider",
-          "printer_name": "Printer display name",
-          "host": "IP address or hostname",
-          "serial": "Serial number",
-          "access_code": "LAN access code",
-          "tls_insecure": "Accept self-signed printer certificate",
-          "cloud_enabled": "Enable Bambu account access",
-          "cloud_profile_sync": "Allow cloud profile synchronization under Profiles",
-          "cloud_region": "Bambu account region",
-          "cloud_email": "Bambu account email address",
-          "password": "Bambu account password for one-time sign-in",
-          "slicer_enabled": "Use separate Linux slicer",
-          "slicer_base_url": "Slicer server address (HTTPS)",
-          "slicer_api_secret": "Slicer API secret (will not be shown again)",
-          "slicer_connection_test": "Check slicer connection (without saving)",
-          "slicer_installer_setup": "Set up slicer: Supervisor app or external server (do not save other changes)",
-          "cloud_reauthenticate": "Sign in to Bambu account again"
+        "title": "Studio setup",
+        "menu_options": {
+          "setup_printer": "Printer",
+          "setup_slicer": "Slicing server",
+          "setup_account": "Bambu account",
+          "setup_dashboard": "Automatic dashboard",
+          "advanced": "Advanced settings"
         }
       },
       "cloud_code": {
@@ -104,6 +186,79 @@
           "password": "Bambu password",
           "cloud_region": "Account region"
         }
+      },
+      "setup_printer": {
+        "title": "Printer",
+        "description": "Connects directly to the printer using MQTT/TLS port 8883; no additional broker is needed. Discovered: {discovery_count}. Access code: {code_status}. Enter IP, serial and LAN access code once. Submitting verifies login and the status subscription, then saves. No printer commands are sent. This does not yet confirm live telemetry or printer identity. For an unreachable test printer disable MQTT verification and save offline; the connection retries automatically after setup.",
+        "data": {
+          "lan_enabled": "Enable printer",
+          "printer_name": "Printer name",
+          "host": "IP address or hostname",
+          "serial": "Serial number",
+          "access_code": "LAN access code",
+          "tls_insecure": "Accept the printer self-signed certificate",
+          "discovered_printer": "Detected printer",
+          "verify_mqtt": "Verify MQTT login before saving"
+        }
+      },
+      "setup_slicer": {
+        "title": "Slicing server",
+        "description": "The local installer can supply the server connection automatically. Stored secret: {secret_status}. Submit checks and saves together. If the server is temporarily offline, disable the connection check to save for later. The secret is never displayed.",
+        "data": {
+          "slicer_enabled": "Use slicing server",
+          "slicer_base_url": "HTTPS server address",
+          "slicer_api_secret": "API secret (leave empty to retain)",
+          "verify_connection": "Check connection and save"
+        }
+      },
+      "setup_account": {
+        "title": "Optional Bambu account",
+        "description": "The account enables MakerWorld and your cloud profiles. It is separate from the LAN printer and is optional. The password is used only to sign in. Profile synchronization is started manually under Profiles.",
+        "data": {
+          "cloud_enabled": "Use Bambu account",
+          "cloud_email": "Email",
+          "password": "Password for this sign-in",
+          "cloud_region": "Account region",
+          "cloud_profile_sync": "Allow manual profile synchronization"
+        }
+      },
+      "setup_code": {
+        "title": "Verification code",
+        "description": "Enter the code from Bambu.",
+        "data": {
+          "verification_code": "Verification code"
+        }
+      },
+      "setup_dashboard": {
+        "title": "Finish setup",
+        "description": "The Studio dashboard is created automatically in the sidebar, with the full-width card already configured. Existing dashboards are preserved. No YAML or manual resource entry is needed. Account sign-in for HACS updates remains your personal step. After your personal HACS login, the verified HACS adapter registers this already installed integration automatically. It does not redownload the files. Home Assistant Container has no Supervisor Apps menu.",
+        "data": {
+          "dashboard_auto": "Create Studio dashboard automatically",
+          "hacs_repository_auto": "Add Studio repository automatically after HACS login"
+        }
+      },
+      "advanced": {
+        "title": "Configure printer and Bambu account",
+        "description": "The LAN provider connects directly to the printer. Optional account sign-in makes your filament, print and machine profiles and MakerWorld available in Studio. Start cloud profile synchronization manually under Profiles. The password is used only for this sign-in and is not stored. If a token already exists, password and email remain optional. Current token status: {cloud_token_status}. LAN access code: {lan_code_status}. Slicer key status: {slicer_secret_status}. Connection check: {slicer_connection_status}.",
+        "data": {
+          "lan_enabled": "Enable Bambu LAN provider",
+          "printer_name": "Printer display name",
+          "host": "IP address or hostname",
+          "serial": "Serial number",
+          "access_code": "LAN access code",
+          "tls_insecure": "Accept self-signed printer certificate",
+          "cloud_enabled": "Enable Bambu account access",
+          "cloud_profile_sync": "Allow cloud profile synchronization under Profiles",
+          "cloud_region": "Bambu account region",
+          "cloud_email": "Bambu account email address",
+          "password": "Bambu account password for one-time sign-in",
+          "slicer_enabled": "Use separate Linux slicer",
+          "slicer_base_url": "Slicer server address (HTTPS)",
+          "slicer_api_secret": "Slicer API secret (will not be shown again)",
+          "slicer_connection_test": "Check slicer connection (without saving)",
+          "slicer_installer_setup": "Set up slicer: Supervisor app or external server (do not save other changes)",
+          "cloud_reauthenticate": "Sign in to Bambu account again"
+        }
       }
     },
     "error": {
@@ -141,7 +296,14 @@
       "supervisor_app_storage_failed": "The private operation state could not be reliably saved or read.",
       "supervisor_app_jobs_active": "Supervisor jobs remain active or their completion is unknown. No state was adopted.",
       "supervisor_app_jobs_invalid": "The Supervisor job listing is incomplete, invalid or too large for safe reconciliation.",
-      "supervisor_app_recovery_changed": "App, jobs or setup receipt changed during verification. No automatic retry."
+      "supervisor_app_recovery_changed": "App, jobs or setup receipt changed during verification. No automatic retry.",
+      "mqtt_unreachable": "Printer MQTT/TLS port 8883 is unreachable. Check printer power, IP and network access from Home Assistant. Disable MQTT verification to save offline.",
+      "mqtt_tls_failed": "Printer certificate rejected. Check certificate trust or explicitly accept the self-signed printer certificate. Slicer TLS is separate.",
+      "mqtt_auth_failed": "MQTT login rejected. Check the LAN access code and printer LAN access.",
+      "mqtt_rejected": "Printer rejected the MQTT connection.",
+      "mqtt_subscribe_failed": "MQTT login succeeded but the status subscription was rejected. Check serial number and permissions.",
+      "mqtt_disconnected": "Printer disconnected during MQTT verification.",
+      "mqtt_timeout": "MQTT confirmation timed out. Check networking or explicitly save offline."
     },
     "abort": {
       "cloud_login_expired": "Bambu sign-in has expired. Open the options again.",

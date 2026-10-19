@@ -2,6 +2,7 @@
 
 Manufacturer identity definitions, pinned for review:
 https://github.com/bambulab/BambuStudio/tree/da8b44ee34dd349f2ae0df3f1cbae366df482354/resources/printers
+BL-P001.json: Bambu Lab X1 Carbon, sn_prefix 00M.
 N2S.json: Bambu Lab A1, sn_prefix 039.
 O1S.json: Bambu Lab H2S, sn_prefix 093.
 Unknown serial families and conflicting telemetry stay fail-closed.
@@ -12,8 +13,8 @@ import re
 
 from .printer_model_contract import canonical_model
 
-_SERIAL_MODELS = {"039": "A1", "093": "H2S"}
-_REPORTED_MODEL_IDS = {"N2S": "A1", "O1S": "H2S"}
+_SERIAL_MODELS = {"039": "A1", "093": "H2S", "00M": "X1C"}
+_REPORTED_MODEL_IDS = {"N2S": "A1", "O1S": "H2S", "BL-P001": "X1C"}
 
 
 def resolve_connected_printer_model(reported_model: object, serial: object) -> str | None:
@@ -30,3 +31,4 @@ def resolve_connected_printer_model(reported_model: object, serial: object) -> s
     normalized = canonical_model(reported) or _REPORTED_MODEL_IDS.get(reported.upper())
     # A nonempty unknown model is not treated as missing telemetry.
     return serial_model if normalized == serial_model else None
+

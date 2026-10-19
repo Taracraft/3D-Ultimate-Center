@@ -10,7 +10,7 @@ from dataclasses import dataclass
 import math
 from typing import Any
 try:
-    from .printer_model_contract import canonical_model, h2s_defaults
+    from .printer_model_contract import canonical_model, h2s_defaults, x1c_defaults
 except ImportError:
     import importlib.util as _model_import
     from pathlib import Path as _ModelPath
@@ -19,6 +19,7 @@ except ImportError:
     _spec.loader.exec_module(_authority)
     canonical_model = _authority.canonical_model
     h2s_defaults = _authority.h2s_defaults
+    x1c_defaults = _authority.x1c_defaults
 
 
 class NozzleProfileError(ValueError):
@@ -325,6 +326,25 @@ def resolve_nozzle_contract(catalog: dict, target_printer: dict | None) -> A1Noz
     model = canonical_model(target.get("model") or target.get("name"))
     if model == "A1":
         return resolve_a1_nozzle_contract(catalog, target_printer)
+    if model == "X1C":
+        nozzle = _selected_profile(catalog, "nozzle_profile_id", "nozzle")
+        payload = nozzle.get("payload") or {}
+        if canonical_model(payload.get("printer") or payload.get("printer_model")) != "X1C":
+            raise NozzleProfileError("Das gewählte Düsenprofil passt nicht zum X1 Carbon.")
+        diameter = _number(payload.get("diameter_mm"), "Düsendurchmesser")
+        authority = x1c_defaults()
+        key = str(float(diameter))
+        machine = authority["machines"].get(key)
+        process = authority["processes"].get(key)
+        material = "stainless_steel" if diameter == .2 else "hardened_steel"
+        if not machine or not process or payload.get("material") != material:
+            raise NozzleProfileError("Für diese X1-Carbon-Düse fehlt ein geprüfter Hardwarevertrag.")
+        printer = _selected_profile(catalog, "printer_profile_id", "printer")
+        if canonical_model((printer.get("payload") or {}).get("model")) != "X1C":
+            raise NozzleProfileError("Druckerprofil und X1-Carbon-Düse passen nicht zusammen.")
+        return A1NozzleContract(diameter, machine["native_path"], process["native_path"],
+            machine["min_layer"], machine["max_layer"], process["layer_height"],
+            process["outer_wall_speed"], process["inner_wall_speed"], 500., "X1C", 256.)
     if model != "H2S":
         raise NozzleProfileError("Für diesen Drucker fehlt ein geprüfter Düsenvertrag.")
     nozzle = _selected_profile(catalog, "nozzle_profile_id", "nozzle")
@@ -339,3 +359,4 @@ def resolve_nozzle_contract(catalog: dict, target_printer: dict | None) -> A1Noz
     if canonical_model((printer.get("payload") or {}).get("model")) != "H2S":
         raise NozzleProfileError("Druckerprofil und H2S-Düse passen nicht zusammen.")
     return contract
+

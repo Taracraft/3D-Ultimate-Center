@@ -16,7 +16,7 @@
       "license_approved": false,
       "path": "payload/server.py",
       "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
-      "sha256": "8851fa8dafc40e6994ddfff7b75dc2a43fc018456f78b9fb980e5472fd4bdb12",
+      "sha256": "ee114a76ae263a9c78abc83378186fb446f367b182b9b3da6e5f109fadcd5013",
       "source": "deploy/homeassistant/host/3d-printer-slicing-server/server.py"
     },
     {
@@ -36,7 +36,7 @@
       "license_approved": false,
       "path": "payload/dispatch-job.sh",
       "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
-      "sha256": "33c164b2badde2055cb29cbb7feadd04ce07b9fb27f325e522bf263032b207ef",
+      "sha256": "ce033fc47ee0b072c7c4cd47463f12da3b2d4a4444db6e2f3a4c93fffd44cd24",
       "source": "deploy/homeassistant/host/3d-printer-slicing-server/dispatch-job.sh"
     },
     {
@@ -110,13 +110,13 @@
       "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/bed-temperature-contract.sh"
     },
     {
-      "historical_bytes_exact": true,
+      "historical_bytes_exact": false,
       "historical_git_blob": "bb7e78bc7b0eb8d61c41a53276758be2d1fe055f",
       "kind": "project_runtime_code",
       "license_approved": false,
       "path": "payload/materialize-bambu-machine.py",
       "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
-      "sha256": "74540729dc4dded0f8ad750b7690199a0da53fdba3f091b5c4361eb2cc2429d1",
+      "sha256": "cdbf69b11b26045d75c73a72d92d8e36a90cef28080ea3d4b96ff665de6aa525",
       "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/materialize-bambu-machine.py"
     },
     {
@@ -126,7 +126,7 @@
       "license_approved": false,
       "path": "payload/materialize-bambu-multimaterial.py",
       "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
-      "sha256": "821ac3f47d2c589d11f3678f40435c3398059de213da0507402a7bbb2f9fd4b4",
+      "sha256": "571de279233687fdb5c996b8fbdab05318b81be5f2a18bb48a427ceee278e721",
       "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/materialize-bambu-multimaterial.py"
     },
     {
@@ -140,13 +140,13 @@
       "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/three_mf_mesh_graph.py"
     },
     {
-      "historical_bytes_exact": true,
+      "historical_bytes_exact": false,
       "historical_git_blob": "f1325a42c850e945abd4066b2835c11a14580671",
       "kind": "project_runtime_code",
       "license_approved": false,
       "path": "payload/filament_parameter_contract.py",
       "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
-      "sha256": "3ff4b0cc265105e8c3e3ec46c74e2db9ca3665d75c64c55682fe9f14ad0d63f9",
+      "sha256": "aa6b08a24b76ed0bffbf271772646bafe94a73cb9eda03699c1f37ad3c3833ac",
       "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/filament_parameter_contract.py"
     },
     {
@@ -166,27 +166,27 @@
       "license_approved": false,
       "path": "payload/slicer_execution_contract.py",
       "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
-      "sha256": "377ed6077f594758a803459e0729588f32ba0c7f6de4c60ce93015998278a12c",
+      "sha256": "e049c3856ca532b95606a25b4b70737691c1dfb027ed8edc1f5ddceeb79b8dae",
       "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_execution_contract.py"
     },
     {
-      "historical_bytes_exact": true,
+      "historical_bytes_exact": false,
       "historical_git_blob": "e999ff2ef6f97affc5d2cb0c0941dc310a161be4",
       "kind": "project_runtime_code",
       "license_approved": false,
       "path": "payload/gcode_artifact_validation.py",
       "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
-      "sha256": "07042f237cb303f52f106274ccc66927ba96464c985516bec90becd635de74d7",
+      "sha256": "aee716cc01b0e25c70b801e1a2e6584484a421b4a8cde46072abd8f97957d5f1",
       "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/gcode_artifact_validation.py"
     },
     {
-      "historical_bytes_exact": true,
+      "historical_bytes_exact": false,
       "historical_git_blob": "0569104ced871dc4a70ccd37afdb19422f5e0020",
       "kind": "project_runtime_code",
       "license_approved": false,
       "path": "payload/printer_model_contract.py",
       "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
-      "sha256": "bf63acf05d232316e9ddcb436b3121ec4d18d4ea031e06fa420f1abe61404a27",
+      "sha256": "6a39dd8053329db742140c166c3540305737744d6896d748a43d0c73854c96fc",
       "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/printer_model_contract.py"
     },
     {
@@ -198,6 +198,36 @@
       "required_notice": "Preserve upstream license/source and transformation evidence; do not assert MIT-only or own restricted license for these derived defaults.",
       "sha256": "959caa3c4a15c9f28aa0cd0a7397686153fccd641037644d6ef27aea60236ee4",
       "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/h2s_native_defaults.json"
+    },
+    {
+      "historical_bytes_exact": false,
+      "historical_git_blob": null,
+      "kind": "project_engine_reference_descriptor",
+      "license_approved": false,
+      "path": "payload/bambu_lab_x1c_04.json",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "d15235abdebf86742fb57a7d587512517b6a735f89db299880a2159104d341ef",
+      "source": "deploy/homeassistant/host/3d-printer-slicing-server/bambu_lab_x1c_04.json"
+    },
+    {
+      "historical_bytes_exact": false,
+      "historical_git_blob": null,
+      "kind": "project_engine_reference_descriptor",
+      "license_approved": false,
+      "path": "payload/profiles/printers/bambu_lab_x1c_04.json",
+      "required_notice": "Preserve existing MIT copyright and permission notice; changed portions and complete public review remain separate.",
+      "sha256": "d15235abdebf86742fb57a7d587512517b6a735f89db299880a2159104d341ef",
+      "source": "deploy/homeassistant/host/3d-printer-slicing-server/profiles/printers/bambu_lab_x1c_04.json"
+    },
+    {
+      "historical_bytes_exact": false,
+      "historical_git_blob": null,
+      "kind": "upstream_profile_derived_defaults",
+      "license_approved": false,
+      "path": "payload/x1c_native_defaults.json",
+      "required_notice": "Preserve upstream license/source and transformation evidence; do not assert MIT-only or own restricted license for these derived defaults.",
+      "sha256": "c5a7c124103edeecb7709fcd24b7a07b92ccb7e2b70a98d662511f0372801496",
+      "source": "deploy/homeassistant/custom_components/ultimate_3d_studio/x1c_native_defaults.json"
     }
   ],
   "profiles": [

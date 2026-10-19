@@ -316,15 +316,15 @@ class FlowTests(_BindingFixture):
         self.assertEqual(result['errors']['base'],'installer_invalid_action')
         self.assertEqual(self.controller.calls,[])
 
-    async def test_options_init_routes_before_any_printer_or_account_work(self):
+    async def test_advanced_options_routes_before_any_printer_or_account_work(self):
         source=(COMPONENT/'config_flow.py').read_text(encoding='utf-8-sig')
         tree=ast.parse(source)
         klass=next(x for x in tree.body if isinstance(x,ast.ClassDef) and x.name=='Ultimate3DStudioOptionsFlow')
-        method=next(x for x in klass.body if isinstance(x,ast.AsyncFunctionDef) and x.name=='async_step_init')
+        method=next(x for x in klass.body if isinstance(x,ast.AsyncFunctionDef) and x.name=='async_step_advanced')
         module=ast.Module(body=[ast.ImportFrom(module='__future__',names=[ast.alias(name='annotations')],level=0),method],type_ignores=[])
         env={'CONF_INSTALLER_SETUP':'slicer_installer_setup','CONF_CLOUD_REAUTHENTICATE':'cloud_reauthenticate'}
         exec(compile(ast.fix_missing_locations(module),'<actual options init>','exec'),env)
-        result=await env['async_step_init'](self.flow,{'slicer_installer_setup':True})
+        result=await env['async_step_advanced'](self.flow,{'slicer_installer_setup':True})
         self.assertEqual(result,{'type':'menu','step_id':'slicer_installation'})
         self.assertEqual(self.controller.calls,[])
 
@@ -332,7 +332,7 @@ class FlowTests(_BindingFixture):
         schemas=[]
         for filename in ('strings.json','translations/de.json','translations/en.json'):
             value=json.loads((COMPONENT/filename).read_text(encoding='utf-8-sig'))
-            self.assertIn('slicer_installer_setup',value['options']['step']['init']['data'])
+            self.assertIn('slicer_installer_setup',value['options']['step']['advanced']['data'])
             self.assertIn('installer_working',value['options']['progress'])
             schemas.append(set(value['selector']['installer_operation']['options']))
         self.assertEqual(schemas[0],schemas[1])
@@ -343,7 +343,7 @@ class LifecycleTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
         self.hass=FakeHass(Path(self.temp.name))
-        self.entry=SimpleNamespace(entry_id='synthetic-entry',title='Studio',
+        self.entry=SimpleNamespace(entry_id='synthetic-entry',title='Studio',data={},options={},
             async_on_unload=lambda cb:None,add_update_listener=lambda cb:lambda:None)
         self.audit_fail=False
         outer=self
@@ -361,7 +361,7 @@ class LifecycleTests(unittest.IsolatedAsyncioTestCase):
         nodes=[n for n in tree.body if isinstance(n,ast.AsyncFunctionDef) and n.name in ('async_setup_entry','async_unload_entry')]
         env={'DOMAIN':runtime.DOMAIN,'DATA_RUNTIMES':'runtimes','PLATFORMS':[],
              'Ultimate3DStudioRuntime':Runtime,'install_profile_runtime_v2':lambda hass:None,
-             '_async_reload_entry':noop,'async_start_cloud_profile_sync':noop,
+             '_async_reload_entry':noop,'async_start_cloud_profile_sync':noop,'async_setup_dashboard':noop,'async_setup_hacs':noop,
              'async_stop_cloud_profile_sync':noop,'get_audit_log':lambda hass:Log(),
              'register_installer_session':runtime.register_installer_session,
              'async_remove_installer_session':runtime.async_remove_installer_session}

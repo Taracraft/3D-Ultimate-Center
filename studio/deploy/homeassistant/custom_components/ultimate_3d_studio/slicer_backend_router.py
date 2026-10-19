@@ -42,6 +42,7 @@ SERVER_PREFIX = "server__"
 SERVER_PRINTER_PROFILES = {
     "a1": "bambu_lab_a1_04",
     "h2s": "bambu_lab_h2s_04",
+    "x1c": "bambu_lab_x1c_04",
 }
 _COMPLETED_ARTIFACT_CACHE: OrderedDict[
     tuple[bytes, str],
@@ -954,6 +955,8 @@ class StudioSlicerBackendRouter:
             _catalog,
             material_plan,
         )
+        if nozzle_contract.printer_model in {"X1C", "H2S"}:
+            validated_overrides[nozzle_contract.printer_model.casefold() + "_nozzle_diameter_mm"] = nozzle_contract.diameter_mm
         validated_overrides["require_execution_contract"] = True
         validated_overrides["execution_contract"] = bind_execution_contract(
             target_context, validated_overrides, effective_material_plan,
@@ -1255,3 +1258,4 @@ class StudioSlicerBackendRouter:
             await self._server_completed_artifact(raw_id, payload, scope)
         )
         return content, filename, digest, "model/3mf"
+

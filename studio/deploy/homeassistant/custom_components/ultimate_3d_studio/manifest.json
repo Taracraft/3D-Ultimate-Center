@@ -1,11 +1,14 @@
 {
   "after_dependencies": [
-    "hassio"
+    "hassio",
+    "lovelace",
+    "hacs"
   ],
   "codeowners": [],
   "config_flow": true,
   "dependencies": [
-    "http"
+    "http",
+    "stream"
   ],
   "documentation": "https://github.com/Taracraft/3D-Ultimate-Center",
   "domain": "ultimate_3d_studio",
@@ -15,5 +18,5 @@
   "requirements": [
     "paho-mqtt==2.1.0"
   ],
-  "version": "6.0.5"
+  "version": "6.0.6"
 }

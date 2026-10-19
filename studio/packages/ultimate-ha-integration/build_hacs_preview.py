@@ -119,7 +119,16 @@ def build(root: Path, target: Path) -> dict:
             continue
         if item.name.startswith(".") or item.suffix in IGNORED_EXTENSIONS:
             continue
-        if item.suffix not in ACCEPTED_EXTENSIONS:
+        if item.suffix == ".png":
+            expected_size = {"icon.png": 256, "icon@2x.png": 512, "dark_icon.png": 256, "dark_icon@2x.png": 512}.get(item.name)
+            raw = item.read_bytes()
+            if (relative.parent.as_posix() != "brand" or expected_size is None
+                    or not 33 <= len(raw) <= 256 * 1024
+                    or raw[:16] != b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
+                    or int.from_bytes(raw[16:20], "big") != expected_size
+                    or int.from_bytes(raw[20:24], "big") != expected_size):
+                raise HacsPreviewError("invalid integration brand asset")
+        elif item.suffix not in ACCEPTED_EXTENSIONS:
             raise HacsPreviewError("unknown integration source file type")
         reviewed.setdefault(item, file_hash(item))
         if _is_noop_module(item):
@@ -225,3 +234,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

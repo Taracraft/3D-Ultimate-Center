@@ -22,11 +22,11 @@ def test_reproducible_complete_hash_verified_payload(tmp_path):
     a = module.build(ROOT, first)
     b = module.build(ROOT, second)
     assert a["archive_sha256"] == b["archive_sha256"]
-    assert a["payload_file_count"] == b["payload_file_count"] == 26
+    assert a["payload_file_count"] == b["payload_file_count"] == 29
     assert not a["native_deploy_ready"]
     with tarfile.open(first, "r:gz") as tar:
         names = tar.getnames()
-        assert len(names) == len(set(names)) == 27
+        assert len(names) == len(set(names)) == 30
         assert all(path.startswith("ultimate-slicer-server/") for path in names)
         assert all(x.uid == 0 and x.gid == 0 and x.mtime == 0 for x in tar)
         assert not any(path.endswith(("config.json", "secrets.yaml")) for path in names)
@@ -35,7 +35,7 @@ def test_reproducible_complete_hash_verified_payload(tmp_path):
         assert tar.getmember("ultimate-slicer-server/payload/progress-pipe-reader.py").mode & 0o111
         assert tar.getmember("ultimate-slicer-server/payload/dispatch-job.sh").mode & 0o111
         metadata = json.load(tar.extractfile("ultimate-slicer-server/source-manifest.json"))
-        assert metadata["complete_source_file_count"] == 26
+        assert metadata["complete_source_file_count"] == 29
         identity = json.load(tar.extractfile("ultimate-slicer-server/payload/release.json"))
         assert metadata["native_version"] == identity["version"]
         assert metadata["api_protocol"] == identity["api_protocol"]
@@ -79,3 +79,4 @@ def test_hash_changed_file_does_not_enter_bundle(tmp_path):
     payload.write_text("safe content")
     with pytest.raises(ValueError, match="SHA-256"):
         module._read_pinned(tmp_path, "file.py", "0" * 64)
+

@@ -47,11 +47,23 @@ def test_real_selected_sources_replay_without_source_writes():
     ]}
     result = verifier.verify(ROOT, source_tree=True)
     assert (result["source_files"], result["verified_profiles"],
-            result["process_projections"], result["gcode_sound_roundtrips"]) == (118, 54, 12, 8)
+            result["process_projections"], result["gcode_sound_roundtrips"]) == (384, 245, 24, 8)
     assert result["engine_executed"] is False
     assert result["worker_started"] is False
     assert result["publication_approved"] is False
     assert {p: p.read_bytes() for p in before} == before
+
+def test_manufacturer_cache_is_complete_and_rejects_modified_profiles(tmp_path, monkeypatch):
+    monkeypatch.syspath_prepend(str(SLICER))
+    exporter = module("manufacturer_profile_exporter_test", "materialize_profile_sources.py")
+    cache = exporter.materialize(tmp_path / "cache", source_root=ROOT)
+    assert len(list(cache.rglob("*.json"))) == 384
+    assert exporter.materialize(tmp_path / "cache", source_root=ROOT) == cache
+    machine = cache / "BBL/machine/Bambu Lab X1 Carbon 0.2 nozzle.json"
+    machine.chmod(0o644)
+    machine.write_bytes(machine.read_bytes() + b"\n")
+    with pytest.raises(ValueError, match="profile_cache_changed"):
+        exporter.materialize(tmp_path / "cache", source_root=ROOT)
 
 def test_prepared_context_has_independent_offline_cli_and_source_scope(tmp_path):
     context = tmp_path / "context"
@@ -64,7 +76,7 @@ def test_prepared_context_has_independent_offline_cli_and_source_scope(tmp_path)
          "--context-root", str(context)], capture_output=True, text=True, timeout=20
     )
     assert result.returncode == 0, result.stderr
-    assert json.loads(result.stdout)["verified_profiles"] == 54
+    assert json.loads(result.stdout)["verified_profiles"] == 245
 
 @pytest.mark.parametrize("mutation", ["append", "json_change"])
 def test_even_self_consistent_bundle_changes_need_reviewed_digest(mutation):
@@ -129,14 +141,14 @@ def test_replay_rejects_changed_local_selections_or_sound_transforms(mutation, e
     else:
         h2s["parts"]["gcode_1"] = h2s["parts"]["gcode_1"].replace(";@U3D_START_SOUND@", ";synthetic-marker")
     with pytest.raises(verifier.ProfileSourceError, match=error):
-        verifier.verify_bundle(BUNDLE_BYTES, a1, h2s)
+        verifier.verify_bundle(BUNDLE_BYTES, a1, h2s, json.loads((COMPONENT / "x1c_native_defaults.json").read_text()))
 
 @pytest.mark.parametrize("after,expected", [(False, "own"), (True, "included")])
 def test_profile_include_order_and_metadata_exclusion(after, expected):
     directory = "resources/profiles/BBL/machine"
     objects = {
-        directory + "/base.json": {"setting": "parent"},
-        directory + "/included.json": {"setting": "included", "name": "not-inherited"},
+        directory + "/base.json": {"name": "base", "setting": "parent"},
+        directory + "/included.json": {"setting": "included", "name": "included"},
         directory + "/child.json": {"inherits": "base", "include": ["included"], "setting": "own", "name": "child"},
     }
     result = verifier.resolve(objects, directory + "/child.json", {"name"}, after)
@@ -152,12 +164,12 @@ def test_profile_include_order_and_metadata_exclusion(after, expected):
 def test_inheritance_fails_closed(mutation, error):
     directory = "resources/profiles/BBL/filament"
     path = directory + "/child.json"
-    objects = {path: {"inherits": "base"}}
+    objects = {path: {"name": "child", "inherits": "base"}}
     if mutation == "cycle":
         objects[path]["inherits"] = "child"
     elif mutation == "ambiguous":
-        objects[directory + "/one/base.json"] = {}
-        objects[directory + "/two/base.json"] = {}
+        objects[directory + "/one/base.json"] = {"name": "base"}
+        objects[directory + "/two/base.json"] = {"name": "base"}
     elif mutation == "traversal":
         objects[path]["inherits"] = "../base"
     with pytest.raises(verifier.ProfileSourceError, match=error):
@@ -215,4 +227,32 @@ def test_verified_archive_offline_cli_checks_sources_beyond_transport_hashes(tmp
         assert "profile_source_bundle_digest_mismatch" in result.stderr
     else:
         assert result.returncode == 0, result.stderr
-        assert json.loads(result.stdout)["verified_profiles"] == 54
+        assert json.loads(result.stdout)["verified_profiles"] == 245
+
+
+def test_worker_resolves_all_x1c_vendor_inheritance_and_single_extruder(tmp_path, monkeypatch):
+    """Use exact shipped manufacturer files, including logical names containing '/'."""
+    monkeypatch.syspath_prepend(str(SLICER))
+    monkeypatch.syspath_prepend(str(COMPONENT))
+    exporter = module("manufacturer_vendor_cache_test", "materialize_profile_sources.py")
+    cache = exporter.materialize(tmp_path / "cache", source_root=ROOT)
+    spec = importlib.util.spec_from_file_location("vendor_materializer_test", COMPONENT / "materialize-bambu-multimaterial.py")
+    worker = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(worker)
+    authority = json.loads((COMPONENT / "x1c_native_defaults.json").read_text(encoding="utf-8"))
+    for name, row in authority["filaments"].items():
+        base = worker._resolve_profile(cache / "BBL/filament", cache / row["native_path"])
+        assert worker.digest(base) == row["resolved_sha256"], name
+    selected = next(row for name, row in authority["filaments"].items()
+                    if "Support For PLA/PETG" in name and "Bambu Lab X1 Carbon 0.4 nozzle" in row["compatible_printers"])
+    base = selected["settings"]
+    process, paths, profiles, *_ = worker._materialize_process(
+        cache / authority["processes"]["0.4"]["native_path"],
+        cache / "BBL/process", cache / "BBL/filament",
+        [{"profile_path": selected["native_path"], "source": "external_spool",
+          "material": base["filament_type"][0], "filament_id": base["filament_id"]}],
+        "x1c", {"x1c_nozzle_diameter_mm": 0.4}, {}, 0)
+    assert process["physical_extruder_map"] == ["0"]
+    assert len(process["nozzle_temperature"]) == 1
+    assert len(profiles[0]["nozzle_temperature"]) == 1
+    assert len(paths) == 1

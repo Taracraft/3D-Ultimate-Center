@@ -109,6 +109,7 @@ if [ -n "${STUDIO_JOB_PATH:-}" ]; then
     NATIVE_MULTIMATERIAL=$(jq -r '.native_multimaterial // false' "$QUEUED")
     PROFILE_FILE="$PROFILES/$PRINTER.json"
     if [ "$PRINTER" = "bambu_lab_h2s_04" ]; then PROFILE_FILE="${STUDIO_WORKER_H2S_PROFILE:-$CODE_ROOT/bambu_lab_h2s_04.json}"; fi
+    if [ "$PRINTER" = "bambu_lab_x1c_04" ]; then PROFILE_FILE="${STUDIO_WORKER_X1C_PROFILE:-$CODE_ROOT/bambu_lab_x1c_04.json}"; fi
     ERROR=""
 
     case "$INPUT_FILE" in
@@ -160,12 +161,16 @@ if [ -n "${STUDIO_JOB_PATH:-}" ]; then
           BINARY="$ROOT/bin/bambu-studio"
           MACHINE=$(jq -r '.native_machine_profile // empty' "$SLICING")
           PROCESS=$(jq -r '.native_process_profile // empty' "$SLICING")
-          if [ "$PRINTER" != "bambu_lab_a1_04" ] && [ "$PRINTER" != "bambu_lab_h2s_04" ]; then
+          if [ "$PRINTER" != "bambu_lab_a1_04" ] && [ "$PRINTER" != "bambu_lab_h2s_04" ] && [ "$PRINTER" != "bambu_lab_x1c_04" ]; then
             [ -n "$MACHINE" ] || MACHINE=$(jq -r '.engine_profiles.bambu_studio.machine // empty' "$PROFILE_FILE")
             [ -n "$PROCESS" ] || PROCESS=$(jq -r '.engine_profiles.bambu_studio.process // empty' "$PROFILE_FILE")
           fi
           FILAMENT=$(jq -r '.engine_profiles.bambu_studio.filament // empty' "$PROFILE_FILE")
+          PROFILE_SOURCES_VALID=true
           PROFILE_ROOT="$ROOT/resources/profiles"
+          if [ "$PRINTER" = "bambu_lab_x1c_04" ] && [ "${STUDIO_WORKER_ISOLATION:-}" = "container" ]; then
+            PROFILE_ROOT=$(python3 "$CODE_ROOT/../materialize_profile_sources.py" "$RUN/profile-sources" 2>> "$LOG") || PROFILE_SOURCES_VALID=false
+          fi
           PROCESS_SOURCE="$PROFILE_ROOT/$PROCESS"
           PROCESS_RUNTIME="$RUN/$JOB_ID-process.json"
           MACHINE_RUNTIME="$RUN/$JOB_ID-machine.json"
@@ -173,7 +178,7 @@ if [ -n "${STUDIO_JOB_PATH:-}" ]; then
           rm -rf "$XDG_RUNTIME"
           mkdir -p "$XDG_RUNTIME"
           chmod 700 "$XDG_RUNTIME"
-          if [ "$PRINTER" = "bambu_lab_a1_04" ] || [ "$PRINTER" = "bambu_lab_h2s_04" ]; then
+          if [ "$PRINTER" = "bambu_lab_a1_04" ] || [ "$PRINTER" = "bambu_lab_h2s_04" ] || [ "$PRINTER" = "bambu_lab_x1c_04" ]; then
             case "$MACHINE" in
               'BBL/machine/Bambu Lab A1 0.2 nozzle.json') EXPECTED_PROCESS='BBL/process/0.10mm Standard @BBL A1 0.2 nozzle.json'; EXPECTED_NOZZLE='0.2' ;;
               'BBL/machine/Bambu Lab A1 0.4 nozzle.json') EXPECTED_PROCESS='BBL/process/0.20mm Standard @BBL A1.json'; EXPECTED_NOZZLE='0.4' ;;
@@ -183,10 +188,14 @@ if [ -n "${STUDIO_JOB_PATH:-}" ]; then
               'BBL/machine/Bambu Lab H2S 0.4 nozzle.json') EXPECTED_PROCESS='BBL/process/0.20mm Standard @BBL H2S.json'; EXPECTED_NOZZLE='0.4' ;;
               'BBL/machine/Bambu Lab H2S 0.6 nozzle.json') EXPECTED_PROCESS='BBL/process/0.30mm Standard @BBL H2S 0.6 nozzle.json'; EXPECTED_NOZZLE='0.6' ;;
               'BBL/machine/Bambu Lab H2S 0.8 nozzle.json') EXPECTED_PROCESS='BBL/process/0.40mm Standard @BBL H2S 0.8 nozzle.json'; EXPECTED_NOZZLE='0.8' ;;
+              'BBL/machine/Bambu Lab X1 Carbon 0.2 nozzle.json') EXPECTED_PROCESS='BBL/process/0.10mm Standard @BBL X1C 0.2 nozzle.json'; EXPECTED_NOZZLE='0.2' ;;
+              'BBL/machine/Bambu Lab X1 Carbon 0.4 nozzle.json') EXPECTED_PROCESS='BBL/process/0.20mm Standard @BBL X1C.json'; EXPECTED_NOZZLE='0.4' ;;
+              'BBL/machine/Bambu Lab X1 Carbon 0.6 nozzle.json') EXPECTED_PROCESS='BBL/process/0.30mm Standard @BBL X1C 0.6 nozzle.json'; EXPECTED_NOZZLE='0.6' ;;
+              'BBL/machine/Bambu Lab X1 Carbon 0.8 nozzle.json') EXPECTED_PROCESS='BBL/process/0.40mm Standard @BBL X1C 0.8 nozzle.json'; EXPECTED_NOZZLE='0.8' ;;
               *) EXPECTED_PROCESS=''; EXPECTED_NOZZLE='' ;;
             esac
             REQUESTED_NOZZLE=$(jq -r '.nozzle_diameter_mm // empty' "$SLICING")
-            if [ -z "$EXPECTED_PROCESS" ] || [ "$PROCESS" != "$EXPECTED_PROCESS" ] || [ "$REQUESTED_NOZZLE" != "$EXPECTED_NOZZLE" ]; then
+            if [ "$PROFILE_SOURCES_VALID" != "true" ] || [ -z "$EXPECTED_PROCESS" ] || [ "$PROCESS" != "$EXPECTED_PROCESS" ] || [ "$REQUESTED_NOZZLE" != "$EXPECTED_NOZZLE" ]; then
               printf '%s\n' 'Native A1 nozzle profile contract is invalid.' > "$LOG"
               CODE=1
             else
@@ -203,7 +212,7 @@ if [ -n "${STUDIO_JOB_PATH:-}" ]; then
             CODE=1
           fi
 
-          if [ "$CODE" -eq 0 ] && { [ "$PRINTER" = "bambu_lab_a1_04" ] || [ "$PRINTER" = "bambu_lab_h2s_04" ]; }; then
+          if [ "$CODE" -eq 0 ] && { [ "$PRINTER" = "bambu_lab_a1_04" ] || [ "$PRINTER" = "bambu_lab_h2s_04" ] || [ "$PRINTER" = "bambu_lab_x1c_04" ]; }; then
             RUNTIME_NOZZLE=$(jq -r '(.nozzle_diameter | if type == "array" then .[0] else . end) // empty' "$MACHINE_RUNTIME")
             MIN_LAYER=$(jq -r '(.min_layer_height | if type == "array" then .[0] else . end) // empty' "$MACHINE_RUNTIME")
             MAX_LAYER=$(jq -r '(.max_layer_height | if type == "array" then .[0] else . end) // empty' "$MACHINE_RUNTIME")
@@ -493,3 +502,4 @@ else
 fi
 
 echo "Terminal bleibt offen."
+

@@ -21,9 +21,9 @@
       "sha256": "2cd47d14537993c48a899d2a3e6b30cf764ea31e18a468b662263e1f14027708"
     },
     {
-      "bytes": 6366,
+      "bytes": 6533,
       "path": "README.md",
-      "sha256": "0b0a1b1d7c7f3a51b3823637249355c20bfff4f5063ba31dc09a946ae5fd1ef6"
+      "sha256": "394fc0bbb6d1a6abd258e5e903af49ab1198fb2d177b155c6e1f7df2994bd0a8"
     },
     {
       "bytes": 6976,
@@ -31,9 +31,9 @@
       "sha256": "ea9cac0dada9bf5b91ee5d10ea31b7c899b942ae4fa0d3c56186117ded3a5c74"
     },
     {
-      "bytes": 8133,
+      "bytes": 8614,
       "path": "custom_components/ultimate_3d_studio/__init__.py",
-      "sha256": "78bee60019305385dd816dd5d061d99f3aea8fe40ee7ccb5d4569d153e9ffbe7"
+      "sha256": "83e089b0e33158a173456e6de492ba679505db4773bd9f03a04462b4c2c10429"
     },
     {
       "bytes": 17491,
@@ -44,6 +44,11 @@
       "bytes": 32754,
       "path": "custom_components/ultimate_3d_studio/a1_gcode_defaults.json",
       "sha256": "eecd95a1500a1eac20c722b05ca648eb4c7fe8bbd6c3c9fc60b38e3c151a32dd"
+    },
+    {
+      "bytes": 2528,
+      "path": "custom_components/ultimate_3d_studio/ams_topology.py",
+      "sha256": "7cea14b0893168cd431cb05d99977725e3fc39e6ffcb4417faba31cbbcd57136"
     },
     {
       "bytes": 18072,
@@ -58,7 +63,7 @@
     {
       "bytes": 6963,
       "path": "custom_components/ultimate_3d_studio/assets/ultimate-3d-studio-build.json",
-      "sha256": "7bf0d083626641fc4a27de0bb3a586eafd65fad7d137a7622440f502fa4601f8"
+      "sha256": "0dbe5d960067c950ae065da32557bb2a27b0357f6d9049491edd3e0c5151ebc0"
     },
     {
       "bytes": 801,
@@ -66,9 +71,9 @@
       "sha256": "0ec340b2b24dca9bdcd9bb5528e9aa7f72e64acf6b83d82f2c81871c0a03901c"
     },
     {
-      "bytes": 701158,
+      "bytes": 702096,
       "path": "custom_components/ultimate_3d_studio/assets/ultimate-3d-studio.js",
-      "sha256": "bdd3a8524d355e7e9351de19249c15f9eb7a144ab0015ce44fe2f51e5800386b"
+      "sha256": "3972b690d1e88b3630af04f3c4caee8a36f12f787cae9068856821ad47d8214d"
     },
     {
       "bytes": 6000,
@@ -101,9 +106,9 @@
       "sha256": "12be17e03dc3e7aa6447087d465d3a1f5e0c61fd17805fd80c25a72f5a39329a"
     },
     {
-      "bytes": 18396,
+      "bytes": 18688,
       "path": "custom_components/ultimate_3d_studio/bambu_direct_print.py",
-      "sha256": "b9096a70bcf1c2bc487759be7885272ae6a52635c6b9b73af30b2b7536b2da1f"
+      "sha256": "d33f911f16240de17412156f32991af06423337b308a01ec474c9572d066c356"
     },
     {
       "bytes": 19317,
@@ -116,6 +121,16 @@
       "sha256": "e58fec79a2f5235cf6562b3344dd181a65211a5f2bb1a6013ac0b120c55c17f7"
     },
     {
+      "bytes": 15806,
+      "path": "custom_components/ultimate_3d_studio/brand/icon.png",
+      "sha256": "e266c593b4feeb96f6b92b60694404f1e4bbe74a3aca960a127c4ac6167ceba4"
+    },
+    {
+      "bytes": 34596,
+      "path": "custom_components/ultimate_3d_studio/brand/icon@2x.png",
+      "sha256": "66ed9cfbb539c5d835d926fbbfdb18cc4752c90215f9de511c1768b7c1c1f68f"
+    },
+    {
       "bytes": 2391,
       "path": "custom_components/ultimate_3d_studio/build_plate_contract.py",
       "sha256": "9d3cb23a9f57970094342a2be156eade11d02aabcb69acf8c2773e46f806cf9c"
@@ -126,14 +141,19 @@
       "sha256": "9d03858e2c34cb1a8dcc8299f716509501a41d1f1aba68b76431fc0031f3b304"
     },
     {
-      "bytes": 3911,
+      "bytes": 4517,
       "path": "custom_components/ultimate_3d_studio/camera.py",
-      "sha256": "d5ce88da306f41e6ba651f37606a6172027a9ed94e94852cb0e937754d0062ac"
+      "sha256": "35cf1564df3d468fd0a013628d1668823a361027bb688feb0d96aeac6c8a5403"
     },
     {
-      "bytes": 6954,
+      "bytes": 7043,
       "path": "custom_components/ultimate_3d_studio/camera_native.py",
-      "sha256": "ffca97a3d5cab23fcd5fa2431ec6130500358c764606b6fe9b82deacb17caa0f"
+      "sha256": "b750e61f977444c53b18dfa77db30a14f244583868d130b40000b154017f9ab6"
+    },
+    {
+      "bytes": 3190,
+      "path": "custom_components/ultimate_3d_studio/camera_rtsp.py",
+      "sha256": "f362ba232d2a8dc06c20421ac3188b602d4fb278463466d5d0c2aedaace8a5d2"
     },
     {
       "bytes": 151,
@@ -146,9 +166,9 @@
       "sha256": "c122a5ac5ef817857ae30dc80234bd5610d5199f9ae2fa941c1c74d016b85b44"
     },
     {
-      "bytes": 22096,
+      "bytes": 22841,
       "path": "custom_components/ultimate_3d_studio/config_flow.py",
-      "sha256": "644a4e8a65d86f18321a2a53a7b8b5f03b6a8f547d041b852881bd600dbe0f4a"
+      "sha256": "8acfcc513327162ab1a0d71057d4c5e23690019fa52d8b50f0ae3da511acf7a5"
     },
     {
       "bytes": 1558,
@@ -161,9 +181,9 @@
       "sha256": "42d25cfad1edd566652ec672d9f4ebaddb159b01842a5814063ad2eedf92a67a"
     },
     {
-      "bytes": 5569,
+      "bytes": 5896,
       "path": "custom_components/ultimate_3d_studio/direct_print_material_plan.py",
-      "sha256": "fcfa79b896f8c478ffe5f576e7d6a5bdba8a17e6d1c0958c938ab36ba79af01b"
+      "sha256": "07d9efc24b8e55a789a591165e2b9ecccfed71fef2125894f27e1ebdc66f95c5"
     },
     {
       "bytes": 10009,
@@ -171,9 +191,9 @@
       "sha256": "e23443727c5c79e2a578efdfb591b85740426a12b2f4593561940fcfa7136e14"
     },
     {
-      "bytes": 8722,
+      "bytes": 9339,
       "path": "custom_components/ultimate_3d_studio/direct_print_slot_views.py",
-      "sha256": "4196eb26f6f1a5e2fd72ce54d2657c8aa63aefd04c76fcd4d65011e25c43b62e"
+      "sha256": "9a075be733b67de5011edf57c2511bba809e8e4a07e23bae3d37815d477f2002"
     },
     {
       "bytes": 25211,
@@ -186,14 +206,14 @@
       "sha256": "20c7623c303ba9dfd67fae7d63f58ce06bdc7d279c1cd444a6a963dcdb7ccfee"
     },
     {
-      "bytes": 15161,
+      "bytes": 15257,
       "path": "custom_components/ultimate_3d_studio/filament_color_views.py",
-      "sha256": "bb81aa7eb1646e14da716256b0c63e709b89725feda66fcc6a4049b88df99ecf"
+      "sha256": "75af7b5918ff90d706e949cf53af27f7d180403476f75016ad82b54bd730d36b"
     },
     {
-      "bytes": 13280,
+      "bytes": 13450,
       "path": "custom_components/ultimate_3d_studio/filament_parameter_contract.py",
-      "sha256": "3ff4b0cc265105e8c3e3ec46c74e2db9ca3665d75c64c55682fe9f14ad0d63f9"
+      "sha256": "aa6b08a24b76ed0bffbf271772646bafe94a73cb9eda03699c1f37ad3c3833ac"
     },
     {
       "bytes": 8953,
@@ -246,14 +266,14 @@
       "sha256": "5101e70cb4f8bc55fe5c7332e643f39b4b1caf4e1734bb463b763a7e7b43edaf"
     },
     {
-      "bytes": 28695,
+      "bytes": 31372,
       "path": "custom_components/ultimate_3d_studio/gcode_artifact_validation.py",
-      "sha256": "07042f237cb303f52f106274ccc66927ba96464c985516bec90becd635de74d7"
+      "sha256": "aee716cc01b0e25c70b801e1a2e6584484a421b4a8cde46072abd8f97957d5f1"
     },
     {
-      "bytes": 5374,
+      "bytes": 7458,
       "path": "custom_components/ultimate_3d_studio/gcode_preset_contract.py",
-      "sha256": "806f2382cabfac36f0c04a4c51675a516ee24da0f2f8bbbd36eaf9bbb849f261"
+      "sha256": "627903ce76d8592be28bf60bddd0cf5e9db76ac44e64f4ca01523f37d73ba3b2"
     },
     {
       "bytes": 11193,
@@ -341,9 +361,14 @@
       "sha256": "35a17e2eb0f2962fb4c9c3d93151e3fd6e49d618f5aa0a0d42c29ed4beb0db46"
     },
     {
-      "bytes": 438,
+      "bytes": 480,
       "path": "custom_components/ultimate_3d_studio/manifest.json",
-      "sha256": "0f5a86bd689db8d8d20cbd8bc105d238c675e196a6672da4dd760b17ff99e507"
+      "sha256": "03c04bf853b41c308687d824618f09a0c99abe24fed96f8e7f6e9e1e8172b27b"
+    },
+    {
+      "bytes": 2428,
+      "path": "custom_components/ultimate_3d_studio/manual_filament_catalog.py",
+      "sha256": "90dfe4079af2826a8f2cb6a828dc317258819371627a8aeda63e600a92a73721"
     },
     {
       "bytes": 11279,
@@ -351,14 +376,14 @@
       "sha256": "d344f9c4d12f65138d762234ee7ba8876a6d73b7a2bd6a0ba44a161ee1d12ccc"
     },
     {
-      "bytes": 4369,
+      "bytes": 4722,
       "path": "custom_components/ultimate_3d_studio/materialize-bambu-machine.py",
-      "sha256": "74540729dc4dded0f8ad750b7690199a0da53fdba3f091b5c4361eb2cc2429d1"
+      "sha256": "cdbf69b11b26045d75c73a72d92d8e36a90cef28080ea3d4b96ff665de6aa525"
     },
     {
-      "bytes": 46692,
+      "bytes": 47405,
       "path": "custom_components/ultimate_3d_studio/materialize-bambu-multimaterial.py",
-      "sha256": "821ac3f47d2c589d11f3678f40435c3398059de213da0507402a7bbb2f9fd4b4"
+      "sha256": "571de279233687fdb5c996b8fbdab05318b81be5f2a18bb48a427ceee278e721"
     },
     {
       "bytes": 1756,
@@ -386,9 +411,9 @@
       "sha256": "305df3ac3f55332b6abd681a0fe8ceb14eba13502a3f6cd39b8438ada7fbbcc7"
     },
     {
-      "bytes": 3314,
+      "bytes": 3372,
       "path": "custom_components/ultimate_3d_studio/network_plugin/commands.py",
-      "sha256": "af8db8faaf3ef1bfad13db9f4f2ead9331194c0b48e45776b15045d4f7cc6f31"
+      "sha256": "cb8b1a6543815472cd96e1245ef14be655b770677765fe848e3a58bf73fd2628"
     },
     {
       "bytes": 1421,
@@ -406,9 +431,9 @@
       "sha256": "0ecbbf6f110ce9149fc4689e17a79af29facb96107c9398b96046c0caed030fa"
     },
     {
-      "bytes": 1311,
+      "bytes": 1394,
       "path": "custom_components/ultimate_3d_studio/printer_identity.py",
-      "sha256": "da4087fbd59d0da9b7220fa56a87bfae22b09b8ce4c7bdcf3efda6ba2910d9a0"
+      "sha256": "5203df89b8ef08f0943652c361f384c85b1ce4baf43342ee1d4dfdc9dde40d75"
     },
     {
       "bytes": 13565,
@@ -416,9 +441,9 @@
       "sha256": "0a4966fb1b63cb526607de2a786bfb7798b6eeac692e3eabbce309366edc5109"
     },
     {
-      "bytes": 1270,
+      "bytes": 2402,
       "path": "custom_components/ultimate_3d_studio/printer_model_contract.py",
-      "sha256": "bf63acf05d232316e9ddcb436b3121ec4d18d4ea031e06fa420f1abe61404a27"
+      "sha256": "6a39dd8053329db742140c166c3540305737744d6896d748a43d0c73854c96fc"
     },
     {
       "bytes": 17139,
@@ -456,9 +481,9 @@
       "sha256": "bb1602905102f787450b44188b8803e4690f005b9ce34af9b8959be346f560d6"
     },
     {
-      "bytes": 10524,
+      "bytes": 10569,
       "path": "custom_components/ultimate_3d_studio/profile_catalog_enrichment.py",
-      "sha256": "a1103ab81862f0f1ad32cb8913b0d178d5ff7312a90433bd993d6ad4de548393"
+      "sha256": "d91c4dfd2ca15f1be666239b16ef8929333152321a193aac71e79df805b983ca"
     },
     {
       "bytes": 6155,
@@ -471,9 +496,9 @@
       "sha256": "45eb753a3b64e597d862cebe40753f71879d3901f57a45483ebfd7fb99c8a18c"
     },
     {
-      "bytes": 5919,
+      "bytes": 5978,
       "path": "custom_components/ultimate_3d_studio/profile_runtime_v2.py",
-      "sha256": "6ee508551d227ad62d733d99908d06092d8140b4bc5b6710ec3a3fd646e1e2eb"
+      "sha256": "2975854aa56ba93ed96995870775355f3ca8e8527580d8e377dbec60e5268857"
     },
     {
       "bytes": 6443,
@@ -511,14 +536,39 @@
       "sha256": "9350dcd8f20c278dbfe69a4956f4ab4a1ef0ed8c2ce3624e31cd0191c62f9358"
     },
     {
-      "bytes": 53220,
-      "path": "custom_components/ultimate_3d_studio/slicer_backend_router.py",
-      "sha256": "96922db93b588e5987bd724952f8a652251dc5416218be9453fdedc4647293c9"
+      "bytes": 2033,
+      "path": "custom_components/ultimate_3d_studio/setup_dashboard.py",
+      "sha256": "325c42204791978dd1905398772c3d738acb4ee594a5b8759957a633cadad16c"
     },
     {
-      "bytes": 26502,
+      "bytes": 12813,
+      "path": "custom_components/ultimate_3d_studio/setup_flow.py",
+      "sha256": "ee687d3d692710ab659fcd496acdb00d9cad1e4db826f4b8d83b3ce49bb408ff"
+    },
+    {
+      "bytes": 2990,
+      "path": "custom_components/ultimate_3d_studio/setup_hacs.py",
+      "sha256": "766f43679a519463e44515e6570b17b6615456f9d4bbb8a0228a8210b9b511e8"
+    },
+    {
+      "bytes": 2352,
+      "path": "custom_components/ultimate_3d_studio/setup_mqtt.py",
+      "sha256": "113e1be10ef66a175450ca40e8e8475feab3a465442ba25ecfd496bb24e45fcd"
+    },
+    {
+      "bytes": 1433,
+      "path": "custom_components/ultimate_3d_studio/setup_seed.py",
+      "sha256": "8c0d53f7c034b104287e4b899977c18d6642073f5b5eb762f294b229c61d4211"
+    },
+    {
+      "bytes": 53440,
+      "path": "custom_components/ultimate_3d_studio/slicer_backend_router.py",
+      "sha256": "4330de94a89a680e30f0b8d60eb056bb0359cebb74a6285e7bf3244a9c637079"
+    },
+    {
+      "bytes": 26941,
       "path": "custom_components/ultimate_3d_studio/slicer_compatibility_contract.py",
-      "sha256": "040874168c6d9a694329dc6bc58f4152a9a152d0ac572830cb4a22ca04f23e24"
+      "sha256": "e68d6a6cf2a0a6e192f5fdb279cb6e7ac29a06bde9ab9d427eaba0cd6b07f25c"
     },
     {
       "bytes": 11839,
@@ -536,9 +586,9 @@
       "sha256": "a6b1326126b094ec7207089b3a71a1f3f00630c23cc5091c8de9e901e9955fdb"
     },
     {
-      "bytes": 7572,
+      "bytes": 7893,
       "path": "custom_components/ultimate_3d_studio/slicer_execution_contract.py",
-      "sha256": "377ed6077f594758a803459e0729588f32ba0c7f6de4c60ce93015998278a12c"
+      "sha256": "e049c3856ca532b95606a25b4b70737691c1dfb027ed8edc1f5ddceeb79b8dae"
     },
     {
       "bytes": 7995,
@@ -601,9 +651,9 @@
       "sha256": "dc2de6d22d2a703bbd39171cbf55b54d477f83c991670e57d0a15c5f190780cd"
     },
     {
-      "bytes": 14016,
+      "bytes": 15427,
       "path": "custom_components/ultimate_3d_studio/slicer_nozzle_profiles.py",
-      "sha256": "024a76f95b02c78cd5ffd5b2a8e7dabf11c31e73aa5998facbbc9000715e2c0d"
+      "sha256": "6169a80ff06a34fe30af07e45e500fdcfe60b36970a1b1ca3b29d08a18451ca6"
     },
     {
       "bytes": 7297,
@@ -646,9 +696,14 @@
       "sha256": "fd88a52e84304dde91345c6520a5cd082a95fef1182ada391c4244c8ebf758a8"
     },
     {
-      "bytes": 12055,
+      "bytes": 25216,
       "path": "custom_components/ultimate_3d_studio/strings.json",
-      "sha256": "ff73f0d3b2f5860418d33d0596e16d3f35305f79da74164f35ed258a060c0260"
+      "sha256": "4f5766385bed9bfe02e06f89b8cb6ac207e8d81d2d2676a707ac737c610d1540"
+    },
+    {
+      "bytes": 203,
+      "path": "custom_components/ultimate_3d_studio/studio_dashboard.json",
+      "sha256": "2f913224ffc7eae2e8a3fd5e8608cb2e207f1b82c6737616c884611f5c7bef5a"
     },
     {
       "bytes": 11239,
@@ -661,9 +716,9 @@
       "sha256": "09ed4654563990a1ef3622b932b39410e87a378e1f5ed169f8878d85b25b07e6"
     },
     {
-      "bytes": 19610,
+      "bytes": 21438,
       "path": "custom_components/ultimate_3d_studio/telemetry.py",
-      "sha256": "2c140740d16ea932fb72e18364445064a04c57f112a88af5cf26569b613d03d2"
+      "sha256": "570aea547c728e301a0de772052d500bc158310016b03314ad01e5f6431a9e27"
     },
     {
       "bytes": 17830,
@@ -691,19 +746,29 @@
       "sha256": "60843518b3481b7aef805c6525f52f2b97632c9ebc558a54b2a679c87e2ab5b5"
     },
     {
-      "bytes": 12055,
+      "bytes": 25216,
       "path": "custom_components/ultimate_3d_studio/translations/de.json",
-      "sha256": "ff73f0d3b2f5860418d33d0596e16d3f35305f79da74164f35ed258a060c0260"
+      "sha256": "4f5766385bed9bfe02e06f89b8cb6ac207e8d81d2d2676a707ac737c610d1540"
     },
     {
-      "bytes": 11036,
+      "bytes": 22863,
       "path": "custom_components/ultimate_3d_studio/translations/en.json",
-      "sha256": "f6399417a538c7d7fa91fc1f17341e10a95af3121adf7fe5b82fedee1e820f08"
+      "sha256": "3ffd0aaa5122f7734a2fbf9e80ad17fcc555840a27f6c240f79954603a6a15f3"
     },
     {
       "bytes": 1321,
       "path": "custom_components/ultimate_3d_studio/validate-bambu-bed-temperature.py",
       "sha256": "9ed33eb09c24c2b4f3f847c95c9f107fe2cea66b2c41d46719fb6e25d18e722a"
+    },
+    {
+      "bytes": 2199798,
+      "path": "custom_components/ultimate_3d_studio/x1c_native_defaults.json",
+      "sha256": "c5a7c124103edeecb7709fcd24b7a07b92ccb7e2b70a98d662511f0372801496"
+    },
+    {
+      "bytes": 3471,
+      "path": "custom_components/ultimate_3d_studio/x1c_profiles.py",
+      "sha256": "67f773509b1c0e01f7be1bf9f26222d7e731740256557ab29b32534d01879ffd"
     },
     {
       "bytes": 143,
@@ -901,9 +966,9 @@
       "sha256": "6d5195dd061905cecadcb56bd5e7bcd9777133d68ea5c5180a16cb005516811b"
     },
     {
-      "bytes": 8133,
+      "bytes": 8614,
       "path": "homeassistant/custom_components/ultimate_3d_studio/__init__.py",
-      "sha256": "78bee60019305385dd816dd5d061d99f3aea8fe40ee7ccb5d4569d153e9ffbe7"
+      "sha256": "83e089b0e33158a173456e6de492ba679505db4773bd9f03a04462b4c2c10429"
     },
     {
       "bytes": 17491,
@@ -914,6 +979,11 @@
       "bytes": 32754,
       "path": "homeassistant/custom_components/ultimate_3d_studio/a1_gcode_defaults.json",
       "sha256": "eecd95a1500a1eac20c722b05ca648eb4c7fe8bbd6c3c9fc60b38e3c151a32dd"
+    },
+    {
+      "bytes": 2528,
+      "path": "homeassistant/custom_components/ultimate_3d_studio/ams_topology.py",
+      "sha256": "7cea14b0893168cd431cb05d99977725e3fc39e6ffcb4417faba31cbbcd57136"
     },
     {
       "bytes": 18072,
@@ -956,9 +1026,9 @@
       "sha256": "12be17e03dc3e7aa6447087d465d3a1f5e0c61fd17805fd80c25a72f5a39329a"
     },
     {
-      "bytes": 18396,
+      "bytes": 18688,
       "path": "homeassistant/custom_components/ultimate_3d_studio/bambu_direct_print.py",
-      "sha256": "b9096a70bcf1c2bc487759be7885272ae6a52635c6b9b73af30b2b7536b2da1f"
+      "sha256": "d33f911f16240de17412156f32991af06423337b308a01ec474c9572d066c356"
     },
     {
       "bytes": 19317,
@@ -976,6 +1046,16 @@
       "sha256": "e58fec79a2f5235cf6562b3344dd181a65211a5f2bb1a6013ac0b120c55c17f7"
     },
     {
+      "bytes": 15806,
+      "path": "homeassistant/custom_components/ultimate_3d_studio/brand/icon.png",
+      "sha256": "e266c593b4feeb96f6b92b60694404f1e4bbe74a3aca960a127c4ac6167ceba4"
+    },
+    {
+      "bytes": 34596,
+      "path": "homeassistant/custom_components/ultimate_3d_studio/brand/icon@2x.png",
+      "sha256": "66ed9cfbb539c5d835d926fbbfdb18cc4752c90215f9de511c1768b7c1c1f68f"
+    },
+    {
       "bytes": 2391,
       "path": "homeassistant/custom_components/ultimate_3d_studio/build_plate_contract.py",
       "sha256": "9d3cb23a9f57970094342a2be156eade11d02aabcb69acf8c2773e46f806cf9c"
@@ -986,14 +1066,19 @@
       "sha256": "9d03858e2c34cb1a8dcc8299f716509501a41d1f1aba68b76431fc0031f3b304"
     },
     {
-      "bytes": 3911,
+      "bytes": 4517,
       "path": "homeassistant/custom_components/ultimate_3d_studio/camera.py",
-      "sha256": "d5ce88da306f41e6ba651f37606a6172027a9ed94e94852cb0e937754d0062ac"
+      "sha256": "35cf1564df3d468fd0a013628d1668823a361027bb688feb0d96aeac6c8a5403"
     },
     {
-      "bytes": 6954,
+      "bytes": 7043,
       "path": "homeassistant/custom_components/ultimate_3d_studio/camera_native.py",
-      "sha256": "ffca97a3d5cab23fcd5fa2431ec6130500358c764606b6fe9b82deacb17caa0f"
+      "sha256": "b750e61f977444c53b18dfa77db30a14f244583868d130b40000b154017f9ab6"
+    },
+    {
+      "bytes": 3190,
+      "path": "homeassistant/custom_components/ultimate_3d_studio/camera_rtsp.py",
+      "sha256": "f362ba232d2a8dc06c20421ac3188b602d4fb278463466d5d0c2aedaace8a5d2"
     },
     {
       "bytes": 151,
@@ -1006,9 +1091,9 @@
       "sha256": "c122a5ac5ef817857ae30dc80234bd5610d5199f9ae2fa941c1c74d016b85b44"
     },
     {
-      "bytes": 22096,
+      "bytes": 22841,
       "path": "homeassistant/custom_components/ultimate_3d_studio/config_flow.py",
-      "sha256": "644a4e8a65d86f18321a2a53a7b8b5f03b6a8f547d041b852881bd600dbe0f4a"
+      "sha256": "8acfcc513327162ab1a0d71057d4c5e23690019fa52d8b50f0ae3da511acf7a5"
     },
     {
       "bytes": 1558,
@@ -1031,9 +1116,9 @@
       "sha256": "ffb1862a7dc24ddaa66d63556f9cacfa546bed1b08a3429eabdffcab306481ae"
     },
     {
-      "bytes": 5569,
+      "bytes": 5896,
       "path": "homeassistant/custom_components/ultimate_3d_studio/direct_print_material_plan.py",
-      "sha256": "fcfa79b896f8c478ffe5f576e7d6a5bdba8a17e6d1c0958c938ab36ba79af01b"
+      "sha256": "07d9efc24b8e55a789a591165e2b9ecccfed71fef2125894f27e1ebdc66f95c5"
     },
     {
       "bytes": 10009,
@@ -1041,9 +1126,9 @@
       "sha256": "e23443727c5c79e2a578efdfb591b85740426a12b2f4593561940fcfa7136e14"
     },
     {
-      "bytes": 8722,
+      "bytes": 9339,
       "path": "homeassistant/custom_components/ultimate_3d_studio/direct_print_slot_views.py",
-      "sha256": "4196eb26f6f1a5e2fd72ce54d2657c8aa63aefd04c76fcd4d65011e25c43b62e"
+      "sha256": "9a075be733b67de5011edf57c2511bba809e8e4a07e23bae3d37815d477f2002"
     },
     {
       "bytes": 25211,
@@ -1061,14 +1146,14 @@
       "sha256": "df57e9c2095fe7ef270eabd5b2502d5438bfe0c067bacc1d5eec8a4b276d207d"
     },
     {
-      "bytes": 15161,
+      "bytes": 15257,
       "path": "homeassistant/custom_components/ultimate_3d_studio/filament_color_views.py",
-      "sha256": "bb81aa7eb1646e14da716256b0c63e709b89725feda66fcc6a4049b88df99ecf"
+      "sha256": "75af7b5918ff90d706e949cf53af27f7d180403476f75016ad82b54bd730d36b"
     },
     {
-      "bytes": 13280,
+      "bytes": 13450,
       "path": "homeassistant/custom_components/ultimate_3d_studio/filament_parameter_contract.py",
-      "sha256": "3ff4b0cc265105e8c3e3ec46c74e2db9ca3665d75c64c55682fe9f14ad0d63f9"
+      "sha256": "aa6b08a24b76ed0bffbf271772646bafe94a73cb9eda03699c1f37ad3c3833ac"
     },
     {
       "bytes": 8953,
@@ -1121,14 +1206,14 @@
       "sha256": "5101e70cb4f8bc55fe5c7332e643f39b4b1caf4e1734bb463b763a7e7b43edaf"
     },
     {
-      "bytes": 28695,
+      "bytes": 31372,
       "path": "homeassistant/custom_components/ultimate_3d_studio/gcode_artifact_validation.py",
-      "sha256": "07042f237cb303f52f106274ccc66927ba96464c985516bec90becd635de74d7"
+      "sha256": "aee716cc01b0e25c70b801e1a2e6584484a421b4a8cde46072abd8f97957d5f1"
     },
     {
-      "bytes": 5374,
+      "bytes": 7458,
       "path": "homeassistant/custom_components/ultimate_3d_studio/gcode_preset_contract.py",
-      "sha256": "806f2382cabfac36f0c04a4c51675a516ee24da0f2f8bbbd36eaf9bbb849f261"
+      "sha256": "627903ce76d8592be28bf60bddd0cf5e9db76ac44e64f4ca01523f37d73ba3b2"
     },
     {
       "bytes": 11193,
@@ -1216,9 +1301,14 @@
       "sha256": "35a17e2eb0f2962fb4c9c3d93151e3fd6e49d618f5aa0a0d42c29ed4beb0db46"
     },
     {
-      "bytes": 438,
+      "bytes": 480,
       "path": "homeassistant/custom_components/ultimate_3d_studio/manifest.json",
-      "sha256": "0f5a86bd689db8d8d20cbd8bc105d238c675e196a6672da4dd760b17ff99e507"
+      "sha256": "03c04bf853b41c308687d824618f09a0c99abe24fed96f8e7f6e9e1e8172b27b"
+    },
+    {
+      "bytes": 2428,
+      "path": "homeassistant/custom_components/ultimate_3d_studio/manual_filament_catalog.py",
+      "sha256": "90dfe4079af2826a8f2cb6a828dc317258819371627a8aeda63e600a92a73721"
     },
     {
       "bytes": 11279,
@@ -1226,14 +1316,14 @@
       "sha256": "d344f9c4d12f65138d762234ee7ba8876a6d73b7a2bd6a0ba44a161ee1d12ccc"
     },
     {
-      "bytes": 4369,
+      "bytes": 4722,
       "path": "homeassistant/custom_components/ultimate_3d_studio/materialize-bambu-machine.py",
-      "sha256": "74540729dc4dded0f8ad750b7690199a0da53fdba3f091b5c4361eb2cc2429d1"
+      "sha256": "cdbf69b11b26045d75c73a72d92d8e36a90cef28080ea3d4b96ff665de6aa525"
     },
     {
-      "bytes": 46692,
+      "bytes": 47405,
       "path": "homeassistant/custom_components/ultimate_3d_studio/materialize-bambu-multimaterial.py",
-      "sha256": "821ac3f47d2c589d11f3678f40435c3398059de213da0507402a7bbb2f9fd4b4"
+      "sha256": "571de279233687fdb5c996b8fbdab05318b81be5f2a18bb48a427ceee278e721"
     },
     {
       "bytes": 1756,
@@ -1261,9 +1351,9 @@
       "sha256": "305df3ac3f55332b6abd681a0fe8ceb14eba13502a3f6cd39b8438ada7fbbcc7"
     },
     {
-      "bytes": 3314,
+      "bytes": 3372,
       "path": "homeassistant/custom_components/ultimate_3d_studio/network_plugin/commands.py",
-      "sha256": "af8db8faaf3ef1bfad13db9f4f2ead9331194c0b48e45776b15045d4f7cc6f31"
+      "sha256": "cb8b1a6543815472cd96e1245ef14be655b770677765fe848e3a58bf73fd2628"
     },
     {
       "bytes": 1421,
@@ -1281,9 +1371,9 @@
       "sha256": "0ecbbf6f110ce9149fc4689e17a79af29facb96107c9398b96046c0caed030fa"
     },
     {
-      "bytes": 1311,
+      "bytes": 1394,
       "path": "homeassistant/custom_components/ultimate_3d_studio/printer_identity.py",
-      "sha256": "da4087fbd59d0da9b7220fa56a87bfae22b09b8ce4c7bdcf3efda6ba2910d9a0"
+      "sha256": "5203df89b8ef08f0943652c361f384c85b1ce4baf43342ee1d4dfdc9dde40d75"
     },
     {
       "bytes": 13565,
@@ -1291,9 +1381,9 @@
       "sha256": "0a4966fb1b63cb526607de2a786bfb7798b6eeac692e3eabbce309366edc5109"
     },
     {
-      "bytes": 1270,
+      "bytes": 2402,
       "path": "homeassistant/custom_components/ultimate_3d_studio/printer_model_contract.py",
-      "sha256": "bf63acf05d232316e9ddcb436b3121ec4d18d4ea031e06fa420f1abe61404a27"
+      "sha256": "6a39dd8053329db742140c166c3540305737744d6896d748a43d0c73854c96fc"
     },
     {
       "bytes": 17139,
@@ -1331,9 +1421,9 @@
       "sha256": "bb1602905102f787450b44188b8803e4690f005b9ce34af9b8959be346f560d6"
     },
     {
-      "bytes": 10524,
+      "bytes": 10569,
       "path": "homeassistant/custom_components/ultimate_3d_studio/profile_catalog_enrichment.py",
-      "sha256": "a1103ab81862f0f1ad32cb8913b0d178d5ff7312a90433bd993d6ad4de548393"
+      "sha256": "d91c4dfd2ca15f1be666239b16ef8929333152321a193aac71e79df805b983ca"
     },
     {
       "bytes": 6155,
@@ -1346,9 +1436,9 @@
       "sha256": "45eb753a3b64e597d862cebe40753f71879d3901f57a45483ebfd7fb99c8a18c"
     },
     {
-      "bytes": 5919,
+      "bytes": 5978,
       "path": "homeassistant/custom_components/ultimate_3d_studio/profile_runtime_v2.py",
-      "sha256": "6ee508551d227ad62d733d99908d06092d8140b4bc5b6710ec3a3fd646e1e2eb"
+      "sha256": "2975854aa56ba93ed96995870775355f3ca8e8527580d8e377dbec60e5268857"
     },
     {
       "bytes": 6443,
@@ -1386,14 +1476,39 @@
       "sha256": "9350dcd8f20c278dbfe69a4956f4ab4a1ef0ed8c2ce3624e31cd0191c62f9358"
     },
     {
-      "bytes": 53220,
-      "path": "homeassistant/custom_components/ultimate_3d_studio/slicer_backend_router.py",
-      "sha256": "96922db93b588e5987bd724952f8a652251dc5416218be9453fdedc4647293c9"
+      "bytes": 2033,
+      "path": "homeassistant/custom_components/ultimate_3d_studio/setup_dashboard.py",
+      "sha256": "325c42204791978dd1905398772c3d738acb4ee594a5b8759957a633cadad16c"
     },
     {
-      "bytes": 26502,
+      "bytes": 12813,
+      "path": "homeassistant/custom_components/ultimate_3d_studio/setup_flow.py",
+      "sha256": "ee687d3d692710ab659fcd496acdb00d9cad1e4db826f4b8d83b3ce49bb408ff"
+    },
+    {
+      "bytes": 2990,
+      "path": "homeassistant/custom_components/ultimate_3d_studio/setup_hacs.py",
+      "sha256": "766f43679a519463e44515e6570b17b6615456f9d4bbb8a0228a8210b9b511e8"
+    },
+    {
+      "bytes": 2352,
+      "path": "homeassistant/custom_components/ultimate_3d_studio/setup_mqtt.py",
+      "sha256": "113e1be10ef66a175450ca40e8e8475feab3a465442ba25ecfd496bb24e45fcd"
+    },
+    {
+      "bytes": 1433,
+      "path": "homeassistant/custom_components/ultimate_3d_studio/setup_seed.py",
+      "sha256": "8c0d53f7c034b104287e4b899977c18d6642073f5b5eb762f294b229c61d4211"
+    },
+    {
+      "bytes": 53440,
+      "path": "homeassistant/custom_components/ultimate_3d_studio/slicer_backend_router.py",
+      "sha256": "4330de94a89a680e30f0b8d60eb056bb0359cebb74a6285e7bf3244a9c637079"
+    },
+    {
+      "bytes": 26941,
       "path": "homeassistant/custom_components/ultimate_3d_studio/slicer_compatibility_contract.py",
-      "sha256": "040874168c6d9a694329dc6bc58f4152a9a152d0ac572830cb4a22ca04f23e24"
+      "sha256": "e68d6a6cf2a0a6e192f5fdb279cb6e7ac29a06bde9ab9d427eaba0cd6b07f25c"
     },
     {
       "bytes": 11839,
@@ -1411,9 +1526,9 @@
       "sha256": "a6b1326126b094ec7207089b3a71a1f3f00630c23cc5091c8de9e901e9955fdb"
     },
     {
-      "bytes": 7572,
+      "bytes": 7893,
       "path": "homeassistant/custom_components/ultimate_3d_studio/slicer_execution_contract.py",
-      "sha256": "377ed6077f594758a803459e0729588f32ba0c7f6de4c60ce93015998278a12c"
+      "sha256": "e049c3856ca532b95606a25b4b70737691c1dfb027ed8edc1f5ddceeb79b8dae"
     },
     {
       "bytes": 7995,
@@ -1476,9 +1591,9 @@
       "sha256": "dc2de6d22d2a703bbd39171cbf55b54d477f83c991670e57d0a15c5f190780cd"
     },
     {
-      "bytes": 14016,
+      "bytes": 15427,
       "path": "homeassistant/custom_components/ultimate_3d_studio/slicer_nozzle_profiles.py",
-      "sha256": "024a76f95b02c78cd5ffd5b2a8e7dabf11c31e73aa5998facbbc9000715e2c0d"
+      "sha256": "6169a80ff06a34fe30af07e45e500fdcfe60b36970a1b1ca3b29d08a18451ca6"
     },
     {
       "bytes": 91,
@@ -1541,9 +1656,14 @@
       "sha256": "46fa1df012078e9ec1979d1b8d7f44e85f533ac5eb015e5ea4cbbab892b017a3"
     },
     {
-      "bytes": 12055,
+      "bytes": 25216,
       "path": "homeassistant/custom_components/ultimate_3d_studio/strings.json",
-      "sha256": "ff73f0d3b2f5860418d33d0596e16d3f35305f79da74164f35ed258a060c0260"
+      "sha256": "4f5766385bed9bfe02e06f89b8cb6ac207e8d81d2d2676a707ac737c610d1540"
+    },
+    {
+      "bytes": 203,
+      "path": "homeassistant/custom_components/ultimate_3d_studio/studio_dashboard.json",
+      "sha256": "2f913224ffc7eae2e8a3fd5e8608cb2e207f1b82c6737616c884611f5c7bef5a"
     },
     {
       "bytes": 11239,
@@ -1556,9 +1676,9 @@
       "sha256": "09ed4654563990a1ef3622b932b39410e87a378e1f5ed169f8878d85b25b07e6"
     },
     {
-      "bytes": 19610,
+      "bytes": 21438,
       "path": "homeassistant/custom_components/ultimate_3d_studio/telemetry.py",
-      "sha256": "2c140740d16ea932fb72e18364445064a04c57f112a88af5cf26569b613d03d2"
+      "sha256": "570aea547c728e301a0de772052d500bc158310016b03314ad01e5f6431a9e27"
     },
     {
       "bytes": 17830,
@@ -1586,14 +1706,14 @@
       "sha256": "60843518b3481b7aef805c6525f52f2b97632c9ebc558a54b2a679c87e2ab5b5"
     },
     {
-      "bytes": 12055,
+      "bytes": 25216,
       "path": "homeassistant/custom_components/ultimate_3d_studio/translations/de.json",
-      "sha256": "ff73f0d3b2f5860418d33d0596e16d3f35305f79da74164f35ed258a060c0260"
+      "sha256": "4f5766385bed9bfe02e06f89b8cb6ac207e8d81d2d2676a707ac737c610d1540"
     },
     {
-      "bytes": 11036,
+      "bytes": 22863,
       "path": "homeassistant/custom_components/ultimate_3d_studio/translations/en.json",
-      "sha256": "f6399417a538c7d7fa91fc1f17341e10a95af3121adf7fe5b82fedee1e820f08"
+      "sha256": "3ffd0aaa5122f7734a2fbf9e80ad17fcc555840a27f6c240f79954603a6a15f3"
     },
     {
       "bytes": 1321,
@@ -1601,9 +1721,19 @@
       "sha256": "9ed33eb09c24c2b4f3f847c95c9f107fe2cea66b2c41d46719fb6e25d18e722a"
     },
     {
+      "bytes": 2199798,
+      "path": "homeassistant/custom_components/ultimate_3d_studio/x1c_native_defaults.json",
+      "sha256": "c5a7c124103edeecb7709fcd24b7a07b92ccb7e2b70a98d662511f0372801496"
+    },
+    {
+      "bytes": 3471,
+      "path": "homeassistant/custom_components/ultimate_3d_studio/x1c_profiles.py",
+      "sha256": "67f773509b1c0e01f7be1bf9f26222d7e731740256557ab29b32534d01879ffd"
+    },
+    {
       "bytes": 6963,
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "7bf0d083626641fc4a27de0bb3a586eafd65fad7d137a7622440f502fa4601f8"
+      "sha256": "0dbe5d960067c950ae065da32557bb2a27b0357f6d9049491edd3e0c5151ebc0"
     },
     {
       "bytes": 801,
@@ -1611,9 +1741,9 @@
       "sha256": "0ec340b2b24dca9bdcd9bb5528e9aa7f72e64acf6b83d82f2c81871c0a03901c"
     },
     {
-      "bytes": 701158,
+      "bytes": 702096,
       "path": "homeassistant/www/3d-studio/ultimate-3d-studio.js",
-      "sha256": "bdd3a8524d355e7e9351de19249c15f9eb7a144ab0015ce44fe2f51e5800386b"
+      "sha256": "3972b690d1e88b3630af04f3c4caee8a36f12f787cae9068856821ad47d8214d"
     },
     {
       "bytes": 1234,
@@ -1621,9 +1751,9 @@
       "sha256": "c34a65548032d1228b03b500fc410af53ed85cdd00ff944d7bfb7e7b84aa7bb1"
     },
     {
-      "bytes": 607168,
+      "bytes": 633323,
       "path": "source-license-map.json",
-      "sha256": "e54ee0e9ddec4c010d204381383b2ce3712236ee79b3eda945e7d39b9aeef127"
+      "sha256": "797ef8ff8da686ace264bb4a6b1924b5cd29ff0b49238ea1480d32ed6c6f12a5"
     },
     {
       "bytes": 2883,
@@ -1646,9 +1776,9 @@
       "sha256": "6bc1bf52572a3f31e26788f35cc31843a034f5b9fc2f8caa12c8c6830eb5b95c"
     },
     {
-      "bytes": 44126,
+      "bytes": 44204,
       "path": "studio/README.md",
-      "sha256": "68457be27473ed08ee34441c1a1b3dbcb7486e88b1f285bc9d503024db285500"
+      "sha256": "4e2bb882580bbe38abc59d55bb3a418ee1b39ad2c9b89d8c09ab04ca0bfbd5c0"
     },
     {
       "bytes": 410,
@@ -1746,9 +1876,9 @@
       "sha256": "04a332cb724bdc8ee54fb49bf76662dbca89f1ff0555c4a57e9d934299681428"
     },
     {
-      "bytes": 24560,
+      "bytes": 25042,
       "path": "studio/Slicer-Server/INSTALLATION.md",
-      "sha256": "919df2f0569f3e610f599d13302ac0577b5542f68d1a6e2e20a6ae9bca4754f5"
+      "sha256": "6c9cd50aa41c17968373c0c864c8de432c1951c6e19c1c5cc10ee0f46adf63ce"
     },
     {
       "bytes": 5768,
@@ -1796,9 +1926,9 @@
       "sha256": "448ca350d80d124ff40894501495e3848ed9f900d1ae703d5d771d96b2e4f589"
     },
     {
-      "bytes": 54602,
+      "bytes": 57459,
       "path": "studio/Slicer-Server/PAYLOAD_PROVENANCE.json",
-      "sha256": "cc245a19cf17b84cfa93e2eb79833c034f37e9396f53456f78931b8b7b03c7bb"
+      "sha256": "1e3c9da18f470bb2679541f2df2f980976a46e61a66bb08c608bad3d527a716e"
     },
     {
       "bytes": 3699,
@@ -1806,14 +1936,14 @@
       "sha256": "43ced6647e5fa49bda8882d1261ce84677986087a927011bcff1ac14b5e0f1bd"
     },
     {
-      "bytes": 271594,
+      "bytes": 886374,
       "path": "studio/Slicer-Server/PROFILE_SOURCE_BUNDLE.json",
-      "sha256": "b7ecec0be50f76e4bb4ed85df68f88f28bc34ff34f42a754a3cbdddf9796fa1f"
+      "sha256": "a8a33210d3825e94c5b5b97d958a62a01e2140c7263ec8ba03072a74acff35b9"
     },
     {
-      "bytes": 3926,
+      "bytes": 4005,
       "path": "studio/Slicer-Server/README.md",
-      "sha256": "5ac43795a01d33480526184a554d9b15dee0dc49397f7bb320dbf11da00c91ca"
+      "sha256": "fae1c6b10f69dc8f11bf3620395f630f32eda542bf3f320e08f4cee7a691cf1f"
     },
     {
       "bytes": 3583,
@@ -1831,9 +1961,9 @@
       "sha256": "0cddae0364732a6b1a0535a3674a25c9b9c529cb440f8c560386518a2e3610f9"
     },
     {
-      "bytes": 10535,
+      "bytes": 11070,
       "path": "studio/Slicer-Server/REPOSITORY_README.md",
-      "sha256": "434e5fb2e493ee9506fe709a72c8553f1457044792dad3ccf5db188415035f5f"
+      "sha256": "acbeb60f4117522e98ad6c2b33a32f4706820d2240a87fe1fb20f4c9a73b79d8"
     },
     {
       "bytes": 6337,
@@ -1916,9 +2046,9 @@
       "sha256": "dae92dde8b457336dcd36bfaa910a17a53c86216f8b7a2ae10f4427d41903fca"
     },
     {
-      "bytes": 16689,
+      "bytes": 17102,
       "path": "studio/Slicer-Server/build_repository.py",
-      "sha256": "d0a1cee365ab7a92ce41e30c8af093c1772b6e87f8fbf50ba71855068a245dfc"
+      "sha256": "756b3ecde6bc6e244c74610fc819d35fa8e4a5c175ebbc90df624fab459d9ee6"
     },
     {
       "bytes": 7489,
@@ -1956,9 +2086,9 @@
       "sha256": "b78eb7f33039c6237729d824df96972aa087eeaefd3543a6f567ba03a07b150a"
     },
     {
-      "bytes": 25546,
+      "bytes": 29935,
       "path": "studio/Slicer-Server/container_service.py",
-      "sha256": "e86332fc11be99ef54b7582cc5bb8e460f90abcd247c32b5e13059b1092b76bd"
+      "sha256": "f76d4efd492fde4462d324dfd8cd3d8779925fb6ad98c82ed9a562994bdaba7a"
     },
     {
       "bytes": 8656,
@@ -2026,6 +2156,11 @@
       "sha256": "38b9d9ef0ae19d8ef18a561a12add92367ab1521022cff724b1cbf16d4791852"
     },
     {
+      "bytes": 2867,
+      "path": "studio/Slicer-Server/materialize_profile_sources.py",
+      "sha256": "6ac4eb245b5ba969e2dae46f2efccdf2ee7c15797267f32bc76be51b8f00dbd8"
+    },
+    {
       "bytes": 29174,
       "path": "studio/Slicer-Server/package_activation.py",
       "sha256": "9d07544c5bed77d452cadeb47f8255bcb43f7ba0aacd400090cd86230d734d34"
@@ -2046,9 +2181,9 @@
       "sha256": "6dcdfc36dd964518720858dcffa33901078da5404181c3f142dbce956949d329"
     },
     {
-      "bytes": 10564,
+      "bytes": 10695,
       "path": "studio/Slicer-Server/prepare_context.py",
-      "sha256": "03e20b7f3893735120fdb6b86c71c0afa46d252d39b5f1d2e0a75f1b154a6ffa"
+      "sha256": "03bb56dc23998d02dec7c048dd795ba1927289f89f03459526e88d5db3aa82b2"
     },
     {
       "bytes": 19502,
@@ -2071,9 +2206,9 @@
       "sha256": "ddf35d471602c02b8bef23c4e28bca2fbc6c751135ecb11f6154aa00557150b5"
     },
     {
-      "bytes": 9244,
+      "bytes": 9245,
       "path": "studio/Slicer-Server/publish_release.py",
-      "sha256": "cdc0f599e5b1d038adaeb6575b04da412d29e3b042d88914c7df8179b0a6af2b"
+      "sha256": "76598fca02c127ca1955c09b43171b96281f670f8c47f1af3a91b6959bf4a9a9"
     },
     {
       "bytes": 545,
@@ -2121,9 +2256,9 @@
       "sha256": "2ac6976f116849a5ba288f87d0f3177595c2cbd925265446854442d6fed1bfc4"
     },
     {
-      "bytes": 10658,
+      "bytes": 11830,
       "path": "studio/Slicer-Server/verify_profile_sources.py",
-      "sha256": "10dfda0af122ba189d07fd592fb525ac5e02dbdd6b091e85143422c4693cb638"
+      "sha256": "1ecb0f9a16061fd8c146827a27389e3c9062d1cfc8edcac29619d1a3f3fe7961"
     },
     {
       "bytes": 18633,
@@ -2706,9 +2841,9 @@
       "sha256": "399de25f73c31e4fa90f22fa5f0a416c0ebacf43a9ba998fb09ad23438582ab2"
     },
     {
-      "bytes": 8133,
+      "bytes": 8614,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/__init__.py",
-      "sha256": "78bee60019305385dd816dd5d061d99f3aea8fe40ee7ccb5d4569d153e9ffbe7"
+      "sha256": "83e089b0e33158a173456e6de492ba679505db4773bd9f03a04462b4c2c10429"
     },
     {
       "bytes": 17491,
@@ -2719,6 +2854,11 @@
       "bytes": 32754,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/a1_gcode_defaults.json",
       "sha256": "eecd95a1500a1eac20c722b05ca648eb4c7fe8bbd6c3c9fc60b38e3c151a32dd"
+    },
+    {
+      "bytes": 2528,
+      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/ams_topology.py",
+      "sha256": "7cea14b0893168cd431cb05d99977725e3fc39e6ffcb4417faba31cbbcd57136"
     },
     {
       "bytes": 18072,
@@ -2761,9 +2901,9 @@
       "sha256": "12be17e03dc3e7aa6447087d465d3a1f5e0c61fd17805fd80c25a72f5a39329a"
     },
     {
-      "bytes": 18396,
+      "bytes": 18688,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/bambu_direct_print.py",
-      "sha256": "b9096a70bcf1c2bc487759be7885272ae6a52635c6b9b73af30b2b7536b2da1f"
+      "sha256": "d33f911f16240de17412156f32991af06423337b308a01ec474c9572d066c356"
     },
     {
       "bytes": 19317,
@@ -2781,6 +2921,16 @@
       "sha256": "e58fec79a2f5235cf6562b3344dd181a65211a5f2bb1a6013ac0b120c55c17f7"
     },
     {
+      "bytes": 15806,
+      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/brand/icon.png",
+      "sha256": "e266c593b4feeb96f6b92b60694404f1e4bbe74a3aca960a127c4ac6167ceba4"
+    },
+    {
+      "bytes": 34596,
+      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/brand/icon@2x.png",
+      "sha256": "66ed9cfbb539c5d835d926fbbfdb18cc4752c90215f9de511c1768b7c1c1f68f"
+    },
+    {
       "bytes": 2391,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/build_plate_contract.py",
       "sha256": "9d3cb23a9f57970094342a2be156eade11d02aabcb69acf8c2773e46f806cf9c"
@@ -2791,14 +2941,19 @@
       "sha256": "9d03858e2c34cb1a8dcc8299f716509501a41d1f1aba68b76431fc0031f3b304"
     },
     {
-      "bytes": 3911,
+      "bytes": 4517,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/camera.py",
-      "sha256": "d5ce88da306f41e6ba651f37606a6172027a9ed94e94852cb0e937754d0062ac"
+      "sha256": "35cf1564df3d468fd0a013628d1668823a361027bb688feb0d96aeac6c8a5403"
     },
     {
-      "bytes": 6954,
+      "bytes": 7043,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/camera_native.py",
-      "sha256": "ffca97a3d5cab23fcd5fa2431ec6130500358c764606b6fe9b82deacb17caa0f"
+      "sha256": "b750e61f977444c53b18dfa77db30a14f244583868d130b40000b154017f9ab6"
+    },
+    {
+      "bytes": 3190,
+      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/camera_rtsp.py",
+      "sha256": "f362ba232d2a8dc06c20421ac3188b602d4fb278463466d5d0c2aedaace8a5d2"
     },
     {
       "bytes": 151,
@@ -2811,9 +2966,9 @@
       "sha256": "c122a5ac5ef817857ae30dc80234bd5610d5199f9ae2fa941c1c74d016b85b44"
     },
     {
-      "bytes": 22096,
+      "bytes": 22841,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/config_flow.py",
-      "sha256": "644a4e8a65d86f18321a2a53a7b8b5f03b6a8f547d041b852881bd600dbe0f4a"
+      "sha256": "8acfcc513327162ab1a0d71057d4c5e23690019fa52d8b50f0ae3da511acf7a5"
     },
     {
       "bytes": 1558,
@@ -2836,9 +2991,9 @@
       "sha256": "ffb1862a7dc24ddaa66d63556f9cacfa546bed1b08a3429eabdffcab306481ae"
     },
     {
-      "bytes": 5569,
+      "bytes": 5896,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/direct_print_material_plan.py",
-      "sha256": "fcfa79b896f8c478ffe5f576e7d6a5bdba8a17e6d1c0958c938ab36ba79af01b"
+      "sha256": "07d9efc24b8e55a789a591165e2b9ecccfed71fef2125894f27e1ebdc66f95c5"
     },
     {
       "bytes": 10009,
@@ -2846,9 +3001,9 @@
       "sha256": "e23443727c5c79e2a578efdfb591b85740426a12b2f4593561940fcfa7136e14"
     },
     {
-      "bytes": 8722,
+      "bytes": 9339,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/direct_print_slot_views.py",
-      "sha256": "4196eb26f6f1a5e2fd72ce54d2657c8aa63aefd04c76fcd4d65011e25c43b62e"
+      "sha256": "9a075be733b67de5011edf57c2511bba809e8e4a07e23bae3d37815d477f2002"
     },
     {
       "bytes": 25211,
@@ -2866,14 +3021,14 @@
       "sha256": "df57e9c2095fe7ef270eabd5b2502d5438bfe0c067bacc1d5eec8a4b276d207d"
     },
     {
-      "bytes": 15161,
+      "bytes": 15257,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/filament_color_views.py",
-      "sha256": "bb81aa7eb1646e14da716256b0c63e709b89725feda66fcc6a4049b88df99ecf"
+      "sha256": "75af7b5918ff90d706e949cf53af27f7d180403476f75016ad82b54bd730d36b"
     },
     {
-      "bytes": 13280,
+      "bytes": 13450,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/filament_parameter_contract.py",
-      "sha256": "3ff4b0cc265105e8c3e3ec46c74e2db9ca3665d75c64c55682fe9f14ad0d63f9"
+      "sha256": "aa6b08a24b76ed0bffbf271772646bafe94a73cb9eda03699c1f37ad3c3833ac"
     },
     {
       "bytes": 8953,
@@ -2926,14 +3081,14 @@
       "sha256": "5101e70cb4f8bc55fe5c7332e643f39b4b1caf4e1734bb463b763a7e7b43edaf"
     },
     {
-      "bytes": 28695,
+      "bytes": 31372,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/gcode_artifact_validation.py",
-      "sha256": "07042f237cb303f52f106274ccc66927ba96464c985516bec90becd635de74d7"
+      "sha256": "aee716cc01b0e25c70b801e1a2e6584484a421b4a8cde46072abd8f97957d5f1"
     },
     {
-      "bytes": 5374,
+      "bytes": 7458,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/gcode_preset_contract.py",
-      "sha256": "806f2382cabfac36f0c04a4c51675a516ee24da0f2f8bbbd36eaf9bbb849f261"
+      "sha256": "627903ce76d8592be28bf60bddd0cf5e9db76ac44e64f4ca01523f37d73ba3b2"
     },
     {
       "bytes": 11193,
@@ -3021,9 +3176,14 @@
       "sha256": "35a17e2eb0f2962fb4c9c3d93151e3fd6e49d618f5aa0a0d42c29ed4beb0db46"
     },
     {
-      "bytes": 438,
+      "bytes": 480,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/manifest.json",
-      "sha256": "0f5a86bd689db8d8d20cbd8bc105d238c675e196a6672da4dd760b17ff99e507"
+      "sha256": "03c04bf853b41c308687d824618f09a0c99abe24fed96f8e7f6e9e1e8172b27b"
+    },
+    {
+      "bytes": 2428,
+      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/manual_filament_catalog.py",
+      "sha256": "90dfe4079af2826a8f2cb6a828dc317258819371627a8aeda63e600a92a73721"
     },
     {
       "bytes": 11279,
@@ -3031,14 +3191,14 @@
       "sha256": "d344f9c4d12f65138d762234ee7ba8876a6d73b7a2bd6a0ba44a161ee1d12ccc"
     },
     {
-      "bytes": 4369,
+      "bytes": 4722,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/materialize-bambu-machine.py",
-      "sha256": "74540729dc4dded0f8ad750b7690199a0da53fdba3f091b5c4361eb2cc2429d1"
+      "sha256": "cdbf69b11b26045d75c73a72d92d8e36a90cef28080ea3d4b96ff665de6aa525"
     },
     {
-      "bytes": 46692,
+      "bytes": 47405,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/materialize-bambu-multimaterial.py",
-      "sha256": "821ac3f47d2c589d11f3678f40435c3398059de213da0507402a7bbb2f9fd4b4"
+      "sha256": "571de279233687fdb5c996b8fbdab05318b81be5f2a18bb48a427ceee278e721"
     },
     {
       "bytes": 1756,
@@ -3066,9 +3226,9 @@
       "sha256": "305df3ac3f55332b6abd681a0fe8ceb14eba13502a3f6cd39b8438ada7fbbcc7"
     },
     {
-      "bytes": 3314,
+      "bytes": 3372,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/network_plugin/commands.py",
-      "sha256": "af8db8faaf3ef1bfad13db9f4f2ead9331194c0b48e45776b15045d4f7cc6f31"
+      "sha256": "cb8b1a6543815472cd96e1245ef14be655b770677765fe848e3a58bf73fd2628"
     },
     {
       "bytes": 1421,
@@ -3086,9 +3246,9 @@
       "sha256": "0ecbbf6f110ce9149fc4689e17a79af29facb96107c9398b96046c0caed030fa"
     },
     {
-      "bytes": 1311,
+      "bytes": 1394,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/printer_identity.py",
-      "sha256": "da4087fbd59d0da9b7220fa56a87bfae22b09b8ce4c7bdcf3efda6ba2910d9a0"
+      "sha256": "5203df89b8ef08f0943652c361f384c85b1ce4baf43342ee1d4dfdc9dde40d75"
     },
     {
       "bytes": 13565,
@@ -3096,9 +3256,9 @@
       "sha256": "0a4966fb1b63cb526607de2a786bfb7798b6eeac692e3eabbce309366edc5109"
     },
     {
-      "bytes": 1270,
+      "bytes": 2402,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/printer_model_contract.py",
-      "sha256": "bf63acf05d232316e9ddcb436b3121ec4d18d4ea031e06fa420f1abe61404a27"
+      "sha256": "6a39dd8053329db742140c166c3540305737744d6896d748a43d0c73854c96fc"
     },
     {
       "bytes": 17139,
@@ -3136,9 +3296,9 @@
       "sha256": "bb1602905102f787450b44188b8803e4690f005b9ce34af9b8959be346f560d6"
     },
     {
-      "bytes": 10524,
+      "bytes": 10569,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/profile_catalog_enrichment.py",
-      "sha256": "a1103ab81862f0f1ad32cb8913b0d178d5ff7312a90433bd993d6ad4de548393"
+      "sha256": "d91c4dfd2ca15f1be666239b16ef8929333152321a193aac71e79df805b983ca"
     },
     {
       "bytes": 6155,
@@ -3151,9 +3311,9 @@
       "sha256": "45eb753a3b64e597d862cebe40753f71879d3901f57a45483ebfd7fb99c8a18c"
     },
     {
-      "bytes": 5919,
+      "bytes": 5978,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/profile_runtime_v2.py",
-      "sha256": "6ee508551d227ad62d733d99908d06092d8140b4bc5b6710ec3a3fd646e1e2eb"
+      "sha256": "2975854aa56ba93ed96995870775355f3ca8e8527580d8e377dbec60e5268857"
     },
     {
       "bytes": 6443,
@@ -3191,14 +3351,39 @@
       "sha256": "9350dcd8f20c278dbfe69a4956f4ab4a1ef0ed8c2ce3624e31cd0191c62f9358"
     },
     {
-      "bytes": 53220,
-      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_backend_router.py",
-      "sha256": "96922db93b588e5987bd724952f8a652251dc5416218be9453fdedc4647293c9"
+      "bytes": 2033,
+      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/setup_dashboard.py",
+      "sha256": "325c42204791978dd1905398772c3d738acb4ee594a5b8759957a633cadad16c"
     },
     {
-      "bytes": 26502,
+      "bytes": 12813,
+      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/setup_flow.py",
+      "sha256": "ee687d3d692710ab659fcd496acdb00d9cad1e4db826f4b8d83b3ce49bb408ff"
+    },
+    {
+      "bytes": 2990,
+      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/setup_hacs.py",
+      "sha256": "766f43679a519463e44515e6570b17b6615456f9d4bbb8a0228a8210b9b511e8"
+    },
+    {
+      "bytes": 2352,
+      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/setup_mqtt.py",
+      "sha256": "113e1be10ef66a175450ca40e8e8475feab3a465442ba25ecfd496bb24e45fcd"
+    },
+    {
+      "bytes": 1433,
+      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/setup_seed.py",
+      "sha256": "8c0d53f7c034b104287e4b899977c18d6642073f5b5eb762f294b229c61d4211"
+    },
+    {
+      "bytes": 53440,
+      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_backend_router.py",
+      "sha256": "4330de94a89a680e30f0b8d60eb056bb0359cebb74a6285e7bf3244a9c637079"
+    },
+    {
+      "bytes": 26941,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_compatibility_contract.py",
-      "sha256": "040874168c6d9a694329dc6bc58f4152a9a152d0ac572830cb4a22ca04f23e24"
+      "sha256": "e68d6a6cf2a0a6e192f5fdb279cb6e7ac29a06bde9ab9d427eaba0cd6b07f25c"
     },
     {
       "bytes": 11839,
@@ -3216,9 +3401,9 @@
       "sha256": "a6b1326126b094ec7207089b3a71a1f3f00630c23cc5091c8de9e901e9955fdb"
     },
     {
-      "bytes": 7572,
+      "bytes": 7893,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_execution_contract.py",
-      "sha256": "377ed6077f594758a803459e0729588f32ba0c7f6de4c60ce93015998278a12c"
+      "sha256": "e049c3856ca532b95606a25b4b70737691c1dfb027ed8edc1f5ddceeb79b8dae"
     },
     {
       "bytes": 7995,
@@ -3281,9 +3466,9 @@
       "sha256": "dc2de6d22d2a703bbd39171cbf55b54d477f83c991670e57d0a15c5f190780cd"
     },
     {
-      "bytes": 14016,
+      "bytes": 15427,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/slicer_nozzle_profiles.py",
-      "sha256": "024a76f95b02c78cd5ffd5b2a8e7dabf11c31e73aa5998facbbc9000715e2c0d"
+      "sha256": "6169a80ff06a34fe30af07e45e500fdcfe60b36970a1b1ca3b29d08a18451ca6"
     },
     {
       "bytes": 91,
@@ -3346,9 +3531,14 @@
       "sha256": "46fa1df012078e9ec1979d1b8d7f44e85f533ac5eb015e5ea4cbbab892b017a3"
     },
     {
-      "bytes": 12055,
+      "bytes": 25216,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/strings.json",
-      "sha256": "ff73f0d3b2f5860418d33d0596e16d3f35305f79da74164f35ed258a060c0260"
+      "sha256": "4f5766385bed9bfe02e06f89b8cb6ac207e8d81d2d2676a707ac737c610d1540"
+    },
+    {
+      "bytes": 203,
+      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/studio_dashboard.json",
+      "sha256": "2f913224ffc7eae2e8a3fd5e8608cb2e207f1b82c6737616c884611f5c7bef5a"
     },
     {
       "bytes": 11239,
@@ -3361,9 +3551,9 @@
       "sha256": "09ed4654563990a1ef3622b932b39410e87a378e1f5ed169f8878d85b25b07e6"
     },
     {
-      "bytes": 19610,
+      "bytes": 21438,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/telemetry.py",
-      "sha256": "2c140740d16ea932fb72e18364445064a04c57f112a88af5cf26569b613d03d2"
+      "sha256": "570aea547c728e301a0de772052d500bc158310016b03314ad01e5f6431a9e27"
     },
     {
       "bytes": 17830,
@@ -3391,14 +3581,14 @@
       "sha256": "60843518b3481b7aef805c6525f52f2b97632c9ebc558a54b2a679c87e2ab5b5"
     },
     {
-      "bytes": 12055,
+      "bytes": 25216,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/translations/de.json",
-      "sha256": "ff73f0d3b2f5860418d33d0596e16d3f35305f79da74164f35ed258a060c0260"
+      "sha256": "4f5766385bed9bfe02e06f89b8cb6ac207e8d81d2d2676a707ac737c610d1540"
     },
     {
-      "bytes": 11036,
+      "bytes": 22863,
       "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/translations/en.json",
-      "sha256": "f6399417a538c7d7fa91fc1f17341e10a95af3121adf7fe5b82fedee1e820f08"
+      "sha256": "3ffd0aaa5122f7734a2fbf9e80ad17fcc555840a27f6c240f79954603a6a15f3"
     },
     {
       "bytes": 1321,
@@ -3406,14 +3596,24 @@
       "sha256": "9ed33eb09c24c2b4f3f847c95c9f107fe2cea66b2c41d46719fb6e25d18e722a"
     },
     {
-      "bytes": 1026,
-      "path": "studio/deploy/homeassistant/host/3d-printer-slicing-server/DEPENDENCY-SHA256SUMS",
-      "sha256": "d8b04265ef96f9cebe6c72f051891d301c20c7c1caa024e73a9e6e098f440610"
+      "bytes": 2199798,
+      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/x1c_native_defaults.json",
+      "sha256": "c5a7c124103edeecb7709fcd24b7a07b92ccb7e2b70a98d662511f0372801496"
     },
     {
-      "bytes": 1264,
+      "bytes": 3471,
+      "path": "studio/deploy/homeassistant/custom_components/ultimate_3d_studio/x1c_profiles.py",
+      "sha256": "67f773509b1c0e01f7be1bf9f26222d7e731740256557ab29b32534d01879ffd"
+    },
+    {
+      "bytes": 1129,
+      "path": "studio/deploy/homeassistant/host/3d-printer-slicing-server/DEPENDENCY-SHA256SUMS",
+      "sha256": "4aaab80d8155de943aa31eb25a3398f6fe1bb480f5e81f2efd0ea7cf2b1114dd"
+    },
+    {
+      "bytes": 1473,
       "path": "studio/deploy/homeassistant/host/3d-printer-slicing-server/SHA256SUMS",
-      "sha256": "ed61d37d73d9ff1ed5e9f5206fac9ccb47a534bb6f9102ca0f0e08598e55c2d3"
+      "sha256": "1a6bc36f9d3d3349e36d9b29c3f844da9d5980418f848315fb186f8c321807a6"
     },
     {
       "bytes": 730,
@@ -3426,14 +3626,19 @@
       "sha256": "22e0839d2cd43e262b28082cb05b1fec68f3692aafcb1193198d193e99118363"
     },
     {
+      "bytes": 526,
+      "path": "studio/deploy/homeassistant/host/3d-printer-slicing-server/bambu_lab_x1c_04.json",
+      "sha256": "d15235abdebf86742fb57a7d587512517b6a735f89db299880a2159104d341ef"
+    },
+    {
       "bytes": 20768,
       "path": "studio/deploy/homeassistant/host/3d-printer-slicing-server/deploy-native-slicer.sh",
       "sha256": "1f2919e1098dba5a3bf76318dfc51185f07a0aba572c7736495aca3313df6d42"
     },
     {
-      "bytes": 24165,
+      "bytes": 25403,
       "path": "studio/deploy/homeassistant/host/3d-printer-slicing-server/dispatch-job.sh",
-      "sha256": "33c164b2badde2055cb29cbb7feadd04ce07b9fb27f325e522bf263032b207ef"
+      "sha256": "ce033fc47ee0b072c7c4cd47463f12da3b2d4a4444db6e2f3a4c93fffd44cd24"
     },
     {
       "bytes": 22659,
@@ -3451,6 +3656,11 @@
       "sha256": "22e0839d2cd43e262b28082cb05b1fec68f3692aafcb1193198d193e99118363"
     },
     {
+      "bytes": 526,
+      "path": "studio/deploy/homeassistant/host/3d-printer-slicing-server/profiles/printers/bambu_lab_x1c_04.json",
+      "sha256": "d15235abdebf86742fb57a7d587512517b6a735f89db299880a2159104d341ef"
+    },
+    {
       "bytes": 8569,
       "path": "studio/deploy/homeassistant/host/3d-printer-slicing-server/progress-pipe-reader.py",
       "sha256": "f5e46d2ffb866d8864b153045eb251982340e502c32ef9339eee1f0a5cee3bad"
@@ -3461,9 +3671,9 @@
       "sha256": "d0d1c3301e33d1aecb02928ea491bedd03b68ca22bbf2d495659af07af17523e"
     },
     {
-      "bytes": 41924,
+      "bytes": 43076,
       "path": "studio/deploy/homeassistant/host/3d-printer-slicing-server/server.py",
-      "sha256": "8851fa8dafc40e6994ddfff7b75dc2a43fc018456f78b9fb980e5472fd4bdb12"
+      "sha256": "ee114a76ae263a9c78abc83378186fb446f367b182b9b3da6e5f109fadcd5013"
     },
     {
       "bytes": 263,
@@ -3498,7 +3708,7 @@
     {
       "bytes": 6963,
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio-build.json",
-      "sha256": "7bf0d083626641fc4a27de0bb3a586eafd65fad7d137a7622440f502fa4601f8"
+      "sha256": "0dbe5d960067c950ae065da32557bb2a27b0357f6d9049491edd3e0c5151ebc0"
     },
     {
       "bytes": 801,
@@ -3506,9 +3716,24 @@
       "sha256": "0ec340b2b24dca9bdcd9bb5528e9aa7f72e64acf6b83d82f2c81871c0a03901c"
     },
     {
-      "bytes": 701158,
+      "bytes": 702096,
       "path": "studio/deploy/homeassistant/www/3d-studio/ultimate-3d-studio.js",
-      "sha256": "bdd3a8524d355e7e9351de19249c15f9eb7a144ab0015ce44fe2f51e5800386b"
+      "sha256": "3972b690d1e88b3630af04f3c4caee8a36f12f787cae9068856821ad47d8214d"
+    },
+    {
+      "bytes": 10973,
+      "path": "studio/docs/GUIDED_SETUP.md",
+      "sha256": "8b72ef1e0abf206abe4c16a37e909a8ae81210c4d19a9cc645baa5acc6528f67"
+    },
+    {
+      "bytes": 11524,
+      "path": "studio/docs/X1C_SETUP.md",
+      "sha256": "b0dca6c79d8bfad21bbdafce64b5e0a7cb894af6ddf7a6ac2e4a640d783407c1"
+    },
+    {
+      "bytes": 995,
+      "path": "studio/docs/branding/studio-mark.svg",
+      "sha256": "eaaf77a064801cce51debb6734d513cb71238c053262a731a38bd38d16966537"
     },
     {
       "bytes": 29715,
@@ -3526,9 +3751,9 @@
       "sha256": "96e464e9c966fc2ac10ffa468753d6bb9626904e13c8ee8ea91335a0a64f5516"
     },
     {
-      "bytes": 4417,
+      "bytes": 4770,
       "path": "studio/frontend-tests/external-spool-controls.test.ts",
-      "sha256": "8d15798d7c4c65602974d53cb91508ad55411de855b407d123ee478a75e2e24e"
+      "sha256": "7398ef6bf48f0fcaa8fbf20730b73f2228a4ec1c69e0d7b0e6c7b5996bc26ef5"
     },
     {
       "bytes": 6814,
@@ -3711,9 +3936,9 @@
       "sha256": "9c03cb5255c409e2a18065e13fbc5da1ff4d64d89c99d5f4b138baee42ab1b9d"
     },
     {
-      "bytes": 31139,
+      "bytes": 32317,
       "path": "studio/frontend/ams-workspace.ts",
-      "sha256": "b6ab1224000e07a1c4265dac98936c853e85fcbb612baf04c72c79c616bb1cbd"
+      "sha256": "73f74d69b344ffa00584f461297fdec7058c4f0fd0d508226ec272151344c0dd"
     },
     {
       "bytes": 3649,
@@ -3826,9 +4051,9 @@
       "sha256": "b8446dff0cefa5162b75678726aea9c3da865fa5002b7b5c66ddd9e9a60e5635"
     },
     {
-      "bytes": 4555,
+      "bytes": 4946,
       "path": "studio/frontend/direct-print-status-api.ts",
-      "sha256": "a7c2d4cbe8e4196962c19970205ea52b2418e9b8ed2ed52993984796234479bf"
+      "sha256": "9b679c51348417c71439bbf30bb6f649910eb1bf7aa209a12bce0888364d9c54"
     },
     {
       "bytes": 785,
@@ -4191,9 +4416,9 @@
       "sha256": "4dc05666088ef29473d2542fcc9edc82724fe522e90850aef4ae73fcc6bfd926"
     },
     {
-      "bytes": 18556,
+      "bytes": 18195,
       "path": "studio/frontend/printer-camera-panel.ts",
-      "sha256": "b57d7f63018942d93576e7a27eeb7a8a71fc813f540068f89dfd5e2ebc50320f"
+      "sha256": "80ed8360d6dd2049f5baf981a5b010c9184a0f826a88b906699b767b3b0296e0"
     },
     {
       "bytes": 4727,
@@ -4991,9 +5216,9 @@
       "sha256": "114fdb95fa1c6cb847fff2d956158a695a616747027e12ef3a748f01b12440c7"
     },
     {
-      "bytes": 2731,
+      "bytes": 1734,
       "path": "studio/handbook/wiki/Installation.md",
-      "sha256": "1558fb0bb8ee7b76f91234ecae559981c82b36295a411e82e4fd2211daa085b1"
+      "sha256": "7714d9d1270b28b349dad8a606c7c6974cda4119094033ae9a798b3fcbc39027"
     },
     {
       "bytes": 2741,
@@ -5028,12 +5253,12 @@
     {
       "bytes": 15139,
       "path": "studio/package-lock.json",
-      "sha256": "45e3a737707803088366d4e140b058af16577c81726bcb048a47d53dbdaf19fb"
+      "sha256": "3178e59e2b94b684262ebceb28b4a100fec328ba500470deb447b34fc9723f25"
     },
     {
       "bytes": 470,
       "path": "studio/package.json",
-      "sha256": "b16280177a2ddd4ccb02c1368bb2864faff9092a5f0e0bd2af1a030c728dc027"
+      "sha256": "83cf41bd8fc41c4bc9a93a1b011e6693ec53992a618ce46d5cc1586efeb54387"
     },
     {
       "bytes": 8307,
@@ -5041,9 +5266,9 @@
       "sha256": "cf8e437b40c55c493c18901086f584fd36e2fc2de9a22546dd9d87451d866c8c"
     },
     {
-      "bytes": 10174,
+      "bytes": 10808,
       "path": "studio/packages/ultimate-ha-integration/build_hacs_preview.py",
-      "sha256": "a240d8fb1e04a3c501c4fa09d661490b6974cc71956b2bff480019f8200f9b1b"
+      "sha256": "9647bdf011b5b316fb5125513cce450f8645bd0a3e9df20fad444dd2c6c3f4f0"
     },
     {
       "bytes": 6592,
@@ -5071,9 +5296,9 @@
       "sha256": "dc4509e953515f5ac96fad5077eaba34c1d5c837023ae14fa369b0898d2911f9"
     },
     {
-      "bytes": 8953,
+      "bytes": 9080,
       "path": "studio/packages/ultimate-slicer-server/build_native_package.py",
-      "sha256": "39657fc1a6d4600f64263069c9ca7b76c41a5da8d8c8eb1d785faaf7c0a741b2"
+      "sha256": "2ff69c6e939ad38fa16f55dda1001e500f2f531dba9222fede948fa6da741558"
     },
     {
       "bytes": 5239,
@@ -5093,7 +5318,7 @@
     {
       "bytes": 54,
       "path": "studio/packages/ultimate-slicer-server/release.json",
-      "sha256": "dec0034f251a992d42a531f92a0748e8d31227b3bca6f4a5996b1ff7f2060fe2"
+      "sha256": "7a1dd4077dab505466884f64d09a532792cb0fe099ba3b6717d981fac1c7cde9"
     },
     {
       "bytes": 688,
@@ -5426,9 +5651,9 @@
       "sha256": "916ef92932f7ea771f9969f3b4cbd14a71971c325b264d8c52a2481c811e0bdc"
     },
     {
-      "bytes": 7700,
+      "bytes": 7751,
       "path": "studio/tests/test_slicer_upload_filename.py",
-      "sha256": "1e3e433c11182b429c5fb3c2fe12dcec96ff6dd48426837b839e1ecc2a55a386"
+      "sha256": "8493429e56a29fae0a17c69c53e2f94ce98839874614f2670fa43b7a1aa6ab31"
     },
     {
       "bytes": 4327,
@@ -5464,6 +5689,11 @@
       "bytes": 8486,
       "path": "studio/tests/test_studio_bambu_cloud_profile_sync.py",
       "sha256": "fe5df9b48d696d26a5f0554abddc15d8da1a441663dffa3afacde1a8ace1007b"
+    },
+    {
+      "bytes": 8591,
+      "path": "studio/tests/test_studio_bambu_material_topology.py",
+      "sha256": "5da353c8f87d2b837b665c3bbfd1250708f397abf77ccc003492d88a2d78ae86"
     },
     {
       "bytes": 12484,
@@ -5526,6 +5756,11 @@
       "sha256": "aebe79766e0d28cf64b9d8db6549f72c92f0a3856dec1e0a4da849f8ed746dc8"
     },
     {
+      "bytes": 5510,
+      "path": "studio/tests/test_studio_data_layout.py",
+      "sha256": "9566bbbd1149ae0fec0c72ea80fd261526a1d58cb5a05f583375dfc45206f54b"
+    },
+    {
       "bytes": 8386,
       "path": "studio/tests/test_studio_delivery_contract.py",
       "sha256": "d22e3a4d50055ab11f63301a570f9d15ae92d17939f3e13d67c5924879a0f52a"
@@ -5536,9 +5771,9 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
-      "bytes": 4828,
+      "bytes": 4794,
       "path": "studio/tests/test_studio_direct_print_material_plan.py",
-      "sha256": "1ff12f95bfc5081da4876d370bf5c0c4cf44f7c71fe641d987c47669b96c437e"
+      "sha256": "68c6f03e6e0a9e0b81ee4c4a093d3386c23a5a9148a4a0d1a19a5bf02812214c"
     },
     {
       "bytes": 5614,
@@ -5551,9 +5786,9 @@
       "sha256": "aeffe40f18e14366920688b27df6394974ed1274a40b9beac2a53539a22e39dc"
     },
     {
-      "bytes": 22972,
+      "bytes": 22479,
       "path": "studio/tests/test_studio_docker_context.py",
-      "sha256": "20042266f42632909b7d953263f6c637c37a458fdd4c8be19619965e4c84e13f"
+      "sha256": "61b9252b13d41252db096950e0e599ecf37ef8c2403e20808a191278359b413e"
     },
     {
       "bytes": 30214,
@@ -5601,14 +5836,19 @@
       "sha256": "5072de89d9a2749db1e972590f2d629b1b2acbc34d2f08f31f7bb2a99786259f"
     },
     {
+      "bytes": 3969,
+      "path": "studio/tests/test_studio_external_spool_setting.py",
+      "sha256": "d0273798398fab0b2753a6770a61d0647b1d616b35435df63d9f2b6152e3f3c1"
+    },
+    {
       "bytes": 9169,
       "path": "studio/tests/test_studio_filament_profile_mapping.py",
       "sha256": "1719ded0fbf02a1fb7b665697f43143d88dafa2a21f733ac2744244ad44f9759"
     },
     {
-      "bytes": 3195,
+      "bytes": 3208,
       "path": "studio/tests/test_studio_filament_setting_contract.py",
-      "sha256": "f72455a9adaac557c534f08a1c4ac31720d7f7dcf3f6c142115aec7d4fbc5181"
+      "sha256": "e43ab45b00607db39fdd1f8d1757eb965260f6c9226826fde2c915bece18671c"
     },
     {
       "bytes": 14012,
@@ -5656,9 +5896,9 @@
       "sha256": "f51059bf16eee9a621870ba43b12e2e2f907bc998135aed5c1a02cbb9fa93a0d"
     },
     {
-      "bytes": 8819,
+      "bytes": 10849,
       "path": "studio/tests/test_studio_gcode_artifact_validation.py",
-      "sha256": "b8ba051c7e19796488fe6a96479f3497aafcb3e53919d8f1d28b45d7358db33f"
+      "sha256": "a2aec20d1d24f09aea74c57bca2fed351cb9e8afc5131fcf6f9c95a0eec4f29f"
     },
     {
       "bytes": 6661,
@@ -5696,9 +5936,9 @@
       "sha256": "374096e950acce95b30415d6df683b9a636383fbb70e99f3066322b60308b1e5"
     },
     {
-      "bytes": 8023,
+      "bytes": 8074,
       "path": "studio/tests/test_studio_ha_telemetry.py",
-      "sha256": "c3a1d4e4f22db5af1c4d76b380afe959f66292d662d42a06304026d3c1c10b56"
+      "sha256": "84d6b81a5baa041c3309a594960b4b62a7516e3633ce801bcb43e4ed2cf73181"
     },
     {
       "bytes": 8976,
@@ -5746,9 +5986,9 @@
       "sha256": "70adc11836d6532028baf64bf00bc8afd01130c1ced60de1368ebb02c7b356e9"
     },
     {
-      "bytes": 24904,
+      "bytes": 24992,
       "path": "studio/tests/test_studio_installer_ha_binding.py",
-      "sha256": "d543405e12213fb1d308bdb5a8bad8efc138d76bcce0cec82b7254293eb1e7c9"
+      "sha256": "57b3753c113b9f36ef1d20b962a9e87a5d6ac1e76b73b10515c3000adc509a3e"
     },
     {
       "bytes": 8797,
@@ -5811,9 +6051,9 @@
       "sha256": "0fb6093734bfc748b2b8d5329833ff975b10d03591d22f0bb9b3004a84e0d50b"
     },
     {
-      "bytes": 2096,
+      "bytes": 2113,
       "path": "studio/tests/test_studio_material_system_ui_contract.py",
-      "sha256": "1891d7d61ae3fe4acb5f1d1d3a6bbc0bbbdd59ecdbe3af5614445449673bcf30"
+      "sha256": "ebab468eb0f835063afd8e3bf5b5d716549b6120e8901addc85e1a13f6b7540a"
     },
     {
       "bytes": 24568,
@@ -5821,9 +6061,9 @@
       "sha256": "e47d569967daa47fa58a2e5a709d9aa7c2c0ff108609882632e703d687a109a0"
     },
     {
-      "bytes": 17602,
+      "bytes": 17603,
       "path": "studio/tests/test_studio_native_installer.py",
-      "sha256": "464adad13f03fc56f6e0f2c25192346c1c015f61187196306b97c09a5b3e920e"
+      "sha256": "6df064c82e5b473f91fcb8e46203c3fcdca65c3bbe9f9d0b2f19466bd78f58e3"
     },
     {
       "bytes": 1833,
@@ -5836,9 +6076,9 @@
       "sha256": "ee7dc4ec732b5807efc6f63709094e8335429c28d8a7ba2e07b9b27ed4591518"
     },
     {
-      "bytes": 3536,
+      "bytes": 3537,
       "path": "studio/tests/test_studio_native_package.py",
-      "sha256": "820a866da26a449e3dd9469616b5b46fd103e17080b843b2cd1696a1fea46f68"
+      "sha256": "dea0dfbeb91b37453e84b20d6bf4fe54556159e12412307b8c86bc0c878973b6"
     },
     {
       "bytes": 3046,
@@ -5851,9 +6091,9 @@
       "sha256": "532e39343a4de491a01038b363ae65470a7bfcc782d6e1bbf589f1aa7959ca05"
     },
     {
-      "bytes": 8863,
+      "bytes": 9222,
       "path": "studio/tests/test_studio_native_slicer_canonical_sources.py",
-      "sha256": "2bdd2b1b5742b05cf7a5895a21a7157a074f775312de9679aafe7fbeae51fc11"
+      "sha256": "f62a4a27b8a85aa12ed70d2fa26b701756c8704e17a85f67cd4c6c096593b074"
     },
     {
       "bytes": 7389,
@@ -5931,9 +6171,9 @@
       "sha256": "af712ad64c67029d12c12abdad45fa957fd0d5e78b5bf67b79f147bb6c721370"
     },
     {
-      "bytes": 9950,
+      "bytes": 12571,
       "path": "studio/tests/test_studio_profile_sources.py",
-      "sha256": "96edae0ba4ad0818a56727cbea34a69092c9642211ef0012a7afa5972e2f87ad"
+      "sha256": "eca75d758c51efa3f7fcc5693fb477bdc1de713c8e612aba2c644fff3bceeafe"
     },
     {
       "bytes": 7951,
@@ -5981,6 +6221,21 @@
       "sha256": "c66500ed33a2a24706f3a0daee92d8dc69c26ad044010ecaf18f3cecbdd60d5c"
     },
     {
+      "bytes": 3548,
+      "path": "studio/tests/test_studio_setup_dashboard.py",
+      "sha256": "5c50111725eff560c7d34f52ef930047c7a4825f741bb58c6ada78ed09580ba2"
+    },
+    {
+      "bytes": 6295,
+      "path": "studio/tests/test_studio_setup_hacs.py",
+      "sha256": "809aed00ca137d95c11091976536e70144a74c5fa150139817eaba43f49aba5e"
+    },
+    {
+      "bytes": 4181,
+      "path": "studio/tests/test_studio_setup_mqtt.py",
+      "sha256": "34b8d83fa8033951d431c43d0916bbbda0079dc68fbbb6e3cc36e06b25308054"
+    },
+    {
       "bytes": 11984,
       "path": "studio/tests/test_studio_slicer_cache_scope.py",
       "sha256": "3e3d9ebe38ab6f39a44ae99317a96fd5986116988779ae6dce236afef727f757"
@@ -6026,9 +6281,9 @@
       "sha256": "0659ad24bb4c90bc55dd8a5ba19a78910c884ed27542d4daf1c68fb1df3c463b"
     },
     {
-      "bytes": 14367,
+      "bytes": 22557,
       "path": "studio/tests/test_studio_slicer_options_flow.py",
-      "sha256": "cd3f6871a67fbcd67d9f48e2b3758a32c3efd132339601eeac24f1ba61c5f647"
+      "sha256": "4ed0cc94118419f3fe3b55fc0bd5fcb6bff565510a26092754fbd62095e87fef"
     },
     {
       "bytes": 4110,
@@ -6066,9 +6321,9 @@
       "sha256": "f68d0f5501a47b3f13faa0e057d9aab8224e024d83899a6616d1cd08510a000f"
     },
     {
-      "bytes": 33756,
+      "bytes": 33776,
       "path": "studio/tests/test_studio_supervisor_app_setup.py",
-      "sha256": "1d4892cf1c0acc22dbcabe7acdbfc894a5ab4e634a4ac8400f5247028d2db9c7"
+      "sha256": "c579ce66d3c8ef3ade4a7ce5f120a3558f5f7bcf515ff8f5ef8e3ad12ee0a00e"
     },
     {
       "bytes": 5362,
@@ -6106,9 +6361,9 @@
       "sha256": "04ae348f5bb736d07ac0788ac264d78663530c53422e57524ac0f3b5932fd163"
     },
     {
-      "bytes": 24182,
+      "bytes": 24183,
       "path": "studio/tests/test_studio_testserver_package.py",
-      "sha256": "a4ddba67c8cc73e0d9f7c98cdf23efbd312d4e89a992359fed569b98e747400a"
+      "sha256": "4fd8064c4f21cb7fbfefa836fb065022e763361712efedc596c30267d63fb0e9"
     },
     {
       "bytes": 2989,
@@ -6139,6 +6394,11 @@
       "bytes": 5541,
       "path": "studio/tests/test_studio_worker_release_behavior.py",
       "sha256": "016e2aae0fb8704d50e02a326a1584ae6680274d3b4b1b12fab0a081f458d68c"
+    },
+    {
+      "bytes": 2721,
+      "path": "studio/tests/test_studio_x1c_camera.py",
+      "sha256": "8c252e752df6e23b4c5f8198004ce96f5fed956be1f3e38a9d1f3c7472889f13"
     },
     {
       "bytes": 2508,
@@ -6559,6 +6819,12 @@
     "licenses": {
       "sha256": "0851c3eae2c9395f7022d87c69ce7913912bba0e26a5aeb6f950f0fc65c0d83c",
       "verified": true
+    },
+    "x1c_delta": {
+      "hardware_acceptance": "not_run",
+      "runtime_changed": false,
+      "source_files": 97,
+      "source_manifest_sha256": "a1c9d9a71544480536202149eae85d654b6ccf29e8c3da71c0d62dbccb398520"
     }
   },
   "reviewed_for_git_delivery": true,

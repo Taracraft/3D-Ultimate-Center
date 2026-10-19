@@ -8,6 +8,7 @@ from homeassistant.components.http import HomeAssistantView
 from homeassistant.core import HomeAssistant
 
 from .a1_filament_catalog import CATALOG_SOURCE, CATALOG_VERSION, catalog_payload
+from .manual_filament_catalog import catalog_for_printer, printer_model
 from .const import DATA_RUNTIMES, DOMAIN
 from .runtime import Ultimate3DStudioRuntime
 
@@ -50,6 +51,10 @@ def _normalized_color(value: Any) -> str | None:
 
 
 def _external_spool(hass: HomeAssistant, printer: Any) -> dict[str, Any]:
+    ams = printer.ams if isinstance(getattr(printer, "ams", None), dict) else {}
+    native = ams.get("external_spool")
+    if isinstance(native, dict):
+        return {**native, "configurable": printer_model(printer) is not None}
     printer_key = "".join(character.lower() if character.isalnum() else "_" for character in str(printer.printer_id))
     entity_id = f"sensor.{printer_key}_external_spool_external_spool"
     state = hass.states.get(entity_id)
@@ -63,6 +68,7 @@ def _external_spool(hass: HomeAssistant, printer: Any) -> dict[str, Any]:
     if state is None:
         return {
             "available": False,
+            "configurable": printer_model(printer) is not None,
             "loaded": False,
             "entity_id": None,
             "tray_id": "",
@@ -91,6 +97,7 @@ def _external_spool(hass: HomeAssistant, printer: Any) -> dict[str, Any]:
     tag_key = tag_uid.casefold()
     loaded = attributes.get("normalized_loaded") is True
     return {
+        "configurable": printer_model(printer) is not None,
         "available": raw_state.casefold() not in {"unknown", "unavailable"},
         "loaded": loaded,
         "entity_id": state.entity_id,
@@ -162,6 +169,8 @@ class DirectPrintDetailedStatusView(HomeAssistantView):
                 items.append({
                     "printer_id": printer.printer_id,
                     "name": printer.name,
+                    "model": printer_model(printer),
+                    "filament_catalog": {"items": catalog_for_printer(printer)},
                     "provider": printer.provider,
                     "connection_state": printer.connection_state,
                     "printer_state": printer.printer_state,
@@ -175,6 +184,7 @@ class DirectPrintDetailedStatusView(HomeAssistantView):
                         "slot_count": int(ams.get("slot_count", 0) or 0),
                         "occupied_slot_count": int(ams.get("occupied_slot_count", 0) or 0),
                         "slots": _slots(printer),
+                        "units": ams.get("units", []),
                     },
                 })
         return web.json_response({
@@ -194,3 +204,4 @@ class DirectPrintDetailedStatusView(HomeAssistantView):
 
 def async_register_direct_print_slot_views(hass: HomeAssistant) -> None:
     hass.http.register_view(DirectPrintDetailedStatusView())
+

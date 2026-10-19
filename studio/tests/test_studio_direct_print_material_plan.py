@@ -11,7 +11,7 @@ COMPONENT = (
     Path(__file__).resolve().parents[1]
     / "deploy/homeassistant/custom_components/ultimate_3d_studio"
 )
-PACKAGE_NAME = "ultimate_3d_studio"
+PACKAGE_NAME = "studio_direct_material_plan_test"
 MODULE_NAME = f"{PACKAGE_NAME}.direct_print_material_plan"
 
 package = sys.modules.setdefault(PACKAGE_NAME, types.ModuleType(PACKAGE_NAME))
@@ -19,7 +19,6 @@ package.__path__ = [str(COMPONENT)]
 spec = importlib.util.spec_from_file_location(
     MODULE_NAME,
     COMPONENT / "direct_print_material_plan.py",
-    submodule_search_locations=[str(COMPONENT)],
 )
 assert spec and spec.loader
 module = importlib.util.module_from_spec(spec)
@@ -149,3 +148,4 @@ def test_external_spool_rejects_source_mismatch() -> None:
             printer_id="SERIAL",
             printer_slots=[],
         )
+

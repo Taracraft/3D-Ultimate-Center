@@ -1,4 +1,4 @@
-﻿"""Offline Docker packaging checks; no engine, daemon or native worker execution."""
+"""Offline Docker packaging checks; no engine, daemon or native worker execution."""
 from __future__ import annotations
 import importlib.util
 import json
@@ -47,8 +47,8 @@ def source(root):
 
 def test_real_source_closure_is_read_only_and_not_a_release():
     payload, manifest = prep.collect(ROOT)
-    assert len(payload) == 39
-    assert len([p for p in payload if p.startswith("payload/")]) == 20
+    assert len(payload) == 43
+    assert len([p for p in payload if p.startswith("payload/")]) == 23
     assert manifest["container_deploy_ready"] is False
     assert manifest["engine_included"] is False
     assert manifest["sources_are_not_relicensed"] is True
@@ -489,3 +489,4 @@ def test_container_exec_preserves_argument_boundaries(monkeypatch):
     args = ["synthetic-engine", "name with spaces", "$(no-shell)"]
     runtime.exec_isolated(args)
     assert calls == [("synthetic-engine", args)]
+

@@ -1,5 +1,7 @@
 # Ultimate Slicer Server
 
+[X1 Carbon: Einrichtung, AMS, externe Spule und Kamera](../docs/X1C_SETUP.md).
+
 ![Promo-Illustration für Ultimate Slicer Server](assets/slicer-hero.png)
 
 [Ausführliches Handbuch](HANDBUCH.md) · [PDF-Handbuch](Ultimate_Slicer_Server_Handbuch.pdf) · [API-Referenz](API.md)
@@ -39,4 +41,3 @@ Das veröffentlichte Runtime-Image enthält die drei Engines. Das separate Sourc
 ## Quellcode und Lizenz
 
 [Quellumfang](REPOSITORY_CONTENTS.md) beschreibt den Repository-Aufbau und die Paketwerkzeuge. Für eigene und übernommene Dateien gelten die jeweils zugeordneten [Lizenzbedingungen](LICENSE) und [Drittanbieterhinweise](THIRD_PARTY_NOTICES.md).
-

@@ -9,10 +9,10 @@ from pathlib import Path, PurePosixPath
 import stat
 
 BUNDLE_NAME = "PROFILE_SOURCE_BUNDLE.json"
-BUNDLE_SHA256 = "b7ecec0be50f76e4bb4ed85df68f88f28bc34ff34f42a754a3cbdddf9796fa1f"
+BUNDLE_SHA256 = "a8a33210d3825e94c5b5b97d958a62a01e2140c7263ec8ba03072a74acff35b9"
 UPSTREAM_COMMIT = "42d319c6692fa8e64790fddf0cdaafd2a4254bcc"
 LICENSE_SHA256 = "57c8ff33c9c0cfc3ef00e650a1cc910d7ee479a8bc509f6c9209a7c2a11399d6"
-MAX_BYTES = 2 * 1024 * 1024
+MAX_BYTES = 8 * 1024 * 1024
 COMPONENT = "deploy/homeassistant/custom_components/ultimate_3d_studio"
 
 class ProfileSourceError(ValueError):
@@ -33,7 +33,7 @@ def _objects(bundle):
             and bundle.get("engine_included") is False, "source_release_flag_rejected")
     require(bundle.get("license_sha256") == LICENSE_SHA256, "source_license_mismatch")
     rows = bundle.get("files")
-    require(isinstance(rows, list) and len(rows) == 118, "source_file_set_mismatch")
+    require(isinstance(rows, list) and len(rows) == 384, "source_file_set_mismatch")
     objects = {}
     for row in rows:
         require(isinstance(row, dict), "invalid_source_row")
@@ -64,22 +64,21 @@ def load_bundle(data):
     bundle = json.loads(data.decode("utf-8"))
     objects = _objects(bundle)
     specs = bundle.get("profiles")
-    require(isinstance(specs, list) and len(specs) == 54, "profile_selection_mismatch")
-    require(len({(s["section"], s["name"]) for s in specs}) == 54,
+    require(isinstance(specs, list) and len(specs) == 245, "profile_selection_mismatch")
+    require(len({(s["section"], s["name"]) for s in specs}) == 245,
             "profile_selection_mismatch")
     require(all(s["path"] in objects for s in specs), "missing_selected_source")
     return bundle, objects
 
 def _find(objects, directory, name):
-    require(isinstance(name, str) and name and "/" not in name and "\\" not in name
-            and name not in {".", ".."}, "invalid_inherited_profile_name")
-    direct = directory + "/" + name + ".json"
-    if direct in objects:
-        return direct
-    matches = [p for p in objects if p.startswith(directory + "/")
-               and PurePosixPath(p).name == name + ".json"]
+    require(isinstance(name, str) and bool(name) and not name.startswith('/') and '\\' not in name
+            and all(part not in {'.', '..'} for part in name.split('/')), "invalid_inherited_profile_name")
+    section = directory.split('/')[3]
+    prefix = 'resources/profiles/BBL/' + section + '/'
+    matches = [path for path, value in objects.items() if path.startswith(prefix) and value.get('name') == name]
     require(len(matches) == 1, "inherited_source_missing_or_ambiguous")
     return matches[0]
+
 
 def resolve(objects, path, metadata, includes_after_own=False, active=()):
     require(path in objects, "inherited_source_missing_or_ambiguous")
@@ -110,15 +109,17 @@ def number(value):
     require(math.isfinite(result), "selected_value_mismatch")
     return result
 
-def verify_bundle(data, a1, h2s):
+def verify_bundle(data, a1, h2s, x1c):
     bundle, objects = load_bundle(data)
     sections = {"a1_filaments": a1["profiles"], "h2s_filaments": h2s["filaments"],
-                "h2s_machines": h2s["machines"], "h2s_processes": h2s["processes"]}
+                "h2s_machines": h2s["machines"], "h2s_processes": h2s["processes"],
+                "x1c_filaments": x1c["filaments"], "x1c_machines": x1c["machines"], "x1c_processes": x1c["processes"]}
     metadata = bundle["resolver_metadata"]
     resolved = {}
+    x1c_roundtrips = 0
     projections = 0
     for spec in bundle["profiles"]:
-        machine = spec["section"] == "h2s_machines"
+        machine = spec["section"].endswith("_machines")
         value = resolve(objects, spec["path"], set(metadata["machine" if machine else "other"]),
                         includes_after_own=machine)
         fingerprint = digest(json.dumps(value, sort_keys=True, ensure_ascii=False,
@@ -128,9 +129,17 @@ def verify_bundle(data, a1, h2s):
         if "filaments" in spec["section"]:
             require(all(value.get(k) == v for k, v in local["settings"].items()),
                     "selected_value_mismatch")
-            require(local.get("compatible_printers", value.get("compatible_printers"))
-                    == value.get("compatible_printers"), "selected_value_mismatch")
+            compatible = value.get("compatible_printers")
+            if spec["section"] == "x1c_filaments":
+                compatible = [name for name in compatible if name.startswith("Bambu Lab X1 Carbon ")]
+            require(local.get("compatible_printers", compatible) == compatible, "selected_value_mismatch")
         elif machine:
+            if spec["section"] == "x1c_machines":
+                require(all(local.get(key) == value[key] for key in ("machine_start_gcode", "machine_end_gcode")), "selected_value_mismatch")
+                parts = x1c["parts_by_nozzle"][spec["name"]]
+                for part, sound, marker, field in [("gcode_1", "start_sound", ";@U3D_START_SOUND@", "machine_start_gcode"), ("gcode_2", "end_sound", ";@U3D_END_SOUND@", "machine_end_gcode")]:
+                    require(parts[part].count(marker + "\n") == 1 and parts[part].replace(marker + "\n", parts[sound]) == value[field], "sound_roundtrip_mismatch")
+                    x1c_roundtrips += 1
             for local_key, native_key in [("min_layer", "min_layer_height"),
                                           ("max_layer", "max_layer_height")]:
                 native = value[native_key]
@@ -155,12 +164,13 @@ def verify_bundle(data, a1, h2s):
         require(text.count(marker + "\n") == 1, "sound_marker_mismatch")
         reconstructed = text.replace(marker + "\n", h2s["parts"][sound])
         for path, value in resolved.items():
-            if "/machine/" in path:
+            if "/machine/" in path and "H2S" in path:
                 require(reconstructed == value[field], "sound_roundtrip_mismatch")
                 roundtrips += 1
-    require(projections == 12 and roundtrips == 8, "profile_selection_mismatch")
+    require(projections == 24 and roundtrips == 8, "profile_selection_mismatch")
     return {"source_files": len(objects), "verified_profiles": len(bundle["profiles"]),
             "process_projections": projections, "gcode_sound_roundtrips": roundtrips,
+            "x1c_gcode_sound_roundtrips": x1c_roundtrips,
             "source_bundle_sha256": digest(data), "upstream_commit": UPSTREAM_COMMIT,
             "engine_executed": False, "worker_started": False, "publication_approved": False}
 
@@ -196,7 +206,8 @@ def verify(root, source_tree=False):
     require(digest(license_data) == LICENSE_SHA256, "source_license_mismatch")
     a1 = json.loads(read_regular(root, defaults_prefix + "native_filament_defaults.json").decode("utf-8-sig"))
     h2s = json.loads(read_regular(root, defaults_prefix + "h2s_native_defaults.json").decode("utf-8-sig"))
-    return verify_bundle(data, a1, h2s)
+    x1c = json.loads(read_regular(root, defaults_prefix + "x1c_native_defaults.json").decode("utf-8-sig"))
+    return verify_bundle(data, a1, h2s, x1c)
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
@@ -214,3 +225,4 @@ def main(argv=None):
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

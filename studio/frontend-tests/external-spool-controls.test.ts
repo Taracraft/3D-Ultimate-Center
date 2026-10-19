@@ -9,16 +9,15 @@ const items = [
   { id: "GFU99", name: "Generic TPU", vendor: "Generic", material_type: "TPU", targets: ["external_spool"] },
 ] as any[];
 
-async function render(options: {loaded?: boolean; available?: boolean; rfid?: boolean; ready?: boolean; catalog?: any[]; material?: string} = {}) {
+async function render(options: {loaded?: boolean; available?: boolean; rfid?: boolean; ready?: boolean; configurable?: boolean; catalog?: any[]; material?: string} = {}) {
   let commands = 0;
-  const external = {available: options.available ?? true, loaded: options.loaded ?? false,
+  const external = {configurable: options.configurable ?? false, available: options.available ?? true, loaded: options.loaded ?? false,
     material: options.material ?? "PLA", color: "#123456", filament_id: "GFL99", rfid_detected: options.rfid ?? false};
   const host = loadElementContract("ams-workspace.ts", {}, {
     "./direct-print-status-api.js": {fetchDetailedDirectPrintStatus: async () => ({
-      items: [{printer_id: "test-a1", name: "Test A1", ready: options.ready ?? true, external_spool: external,
+      items: [{printer_id: "test-a1", name: "Test A1", ready: options.ready ?? true, external_spool: external, filament_catalog: {items: options.catalog ?? items},
         ams: {available: true, kind: "ams_lite", slots: [{global_id: "0:0", display_slot: 1, present: true,
           active: false, material: "PLA", filament_id: "GFL99", color: "#123456", rfid_detected: false}]} }],
-      filament_catalog: {items: options.catalog ?? items},
     }), previewFilamentSetting: async () => { commands += 1; throw new Error("unexpected preview"); },
     applyFilamentSetting: async () => { commands += 1; throw new Error("unexpected apply"); }},
     "./profile-api.js": {ProfileApi: class {async getCatalog() {return {};}}},
@@ -59,8 +58,15 @@ test("unavailable external telemetry does not create writable targets", async ()
   assert.equal(commands, 0);
 });
 
+test("known printer can configure its external spool before material telemetry arrives", async () => {
+  const {html, commands} = await render({available: false, configurable: true, material: ""});
+  assert.match(html, /data-setting-kind="external_spool"/);
+  assert.equal(commands, 0, "configuration is offered without sending a material command");
+});
+
 test("unknown material is not silently assigned an unrelated catalog profile", () => {
   assert.equal(resolveFilamentSelection(items, "external_spool", "", ""), null);
   assert.equal(resolveFilamentSelection(items, "external_spool", "", "unknown-material"), null);
   assert.equal(resolveFilamentSelection(items, "external_spool", "", "", "", "GFG99")?.id, "GFG99");
 });
+

@@ -98,7 +98,7 @@ def enrich_filament_profile(profile: dict[str, Any]) -> dict[str, Any]:
     if result.get("kind") != "filament" or result.get("source") != "local":
         return result
     payload = result.setdefault("payload", {})
-    if str(payload.get("printer_model") or "").casefold() == "h2s":
+    if str(payload.get("printer_model") or "").casefold() in {"h2s", "x1c", "x1 carbon"}:
         return result
     material = _material_family(payload)
     nozzle = payload.get("nozzle_temperature_c", [200, 220])
@@ -182,7 +182,7 @@ def validate_complete_profiles(profiles: Iterable[dict[str, Any]]) -> None:
         if not isinstance(payload, dict):
             failures.append(f"{profile_id}: payload missing")
             continue
-        if str(payload.get("printer_model") or "").casefold() == "h2s":
+        if str(payload.get("printer_model") or "").casefold() in {"h2s", "x1c", "x1 carbon"}:
             from .printer_model_contract import h2s_defaults, hardware_limits
             from .filament_parameter_contract import preflight_filament_settings, check_filament_temperatures
             try:
@@ -221,3 +221,4 @@ def validate_complete_profiles(profiles: Iterable[dict[str, Any]]) -> None:
             failures.append(f"{profile_id}: supported profile has no native A1 base")
     if failures:
         raise ValueError("Incomplete manufacturer profiles: " + "; ".join(failures))
+

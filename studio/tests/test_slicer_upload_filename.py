@@ -67,7 +67,7 @@ def _load_create_plate_job():
         "ClientTimeout": lambda **kwargs: kwargs,
         "normalize_backend": lambda backend: backend,
         "_server_printer_profile": lambda target: "bambu_lab_a1_04",
-        "resolve_nozzle_contract": lambda catalog, target: {},
+        "resolve_nozzle_contract": lambda catalog, target: SimpleNamespace(printer_model="A1", diameter_mm=0.4),
         "validate_process_overrides": lambda overrides, nozzle: dict(overrides or {}),
         "contract_payload": lambda nozzle: {},
         "_effective_material_plan": lambda catalog, material: copy.deepcopy(material),
@@ -184,3 +184,4 @@ class SlicerUploadFilenameTests(unittest.IsolatedAsyncioTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

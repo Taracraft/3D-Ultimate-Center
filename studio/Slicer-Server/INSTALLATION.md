@@ -1,20 +1,29 @@
 # Ultimate Slicer Server einrichten und prüfen
 
+**Neuer Quellkandidat:** Studio 6.0.6 / Slicer 0.1.0-alpha11 mit X1C,
+mehreren AMS-Einheiten, externer Spule und RTSPS-Kamera. Noch keine bestätigte
+Veröffentlichung dieses Kandidaten. Die nachfolgend genannten 6.0.5-/alpha10-
+Archive und das alpha9-Runtimeimage bleiben die unveränderliche Installerbasis;
+geprüfte Quelldateien werden zusätzlich über gebundene Overlays eingebunden.
+
+
+[X1 Carbon: Einrichtung, AMS, externe Spule und Kamera](../docs/X1C_SETUP.md).
+
 ## Installation mit dem TaraCraft-Assistenten
 
 **Home Assistant und Slicer laufen als getrennte Docker-Container auf deinem vorhandenen Linuxserver.**
 Du administrierst Linux, Docker, Netzwerk und weitere Dienste weiterhin selbst.
 Der Assistent installiert und verbindet HACS, Studio und den Slicer.
 
-Wenn dir die aktuelle einzelne Datei `TaraCraft-Install.sh` bereitgestellt wurde,
+Wenn dir die aktuelle einzelne Datei `3D-Ultimate-Studio.sh` bereitgestellt wurde,
 kopiere sie auf den Linux/amd64-Server und starte sie dort im Terminal:
 
 ```sh
-sudo bash TaraCraft-Install.sh
+sudo bash 3D-Ultimate-Studio.sh
 ```
 
-Mit `bash TaraCraft-Install.sh --demo` lässt sich die Oberfläche vorher ansehen;
-`bash TaraCraft-Install.sh --self-test` führt isolierte Prüfungen aus. Der Assistent
+Mit `bash 3D-Ultimate-Studio.sh --demo` lässt sich die Oberfläche vorher ansehen;
+`bash 3D-Ultimate-Studio.sh --self-test` führt isolierte Prüfungen aus. Der Assistent
 zeigt den aktuellen Schritt oben und das echte, scrollbar bleibende Shell-Protokoll
 darunter. Bei einer vorhandenen zugehörigen Sitzung **Fortsetzen** wählen.
 
@@ -29,18 +38,18 @@ Für eine Installation ohne diesen Assistenten bleibt der weiter unten beschrieb
 
 ## SH-Datei auf dem eigenen Server starten
 
-Die bereitgestellte einzelne Datei `TaraCraft-Install.sh` auf den eigenen
+Die bereitgestellte einzelne Datei `3D-Ultimate-Studio.sh` auf den eigenen
 Linux/amd64-Server kopieren. In einer lokalen Konsole oder SSH-Sitzung in ihren
 Ordner wechseln und starten:
 
 ```sh
-sudo bash TaraCraft-Install.sh
+sudo bash 3D-Ultimate-Studio.sh
 ```
 
 Die Datei nicht mit `sh` ausführen und nicht lediglich in Home Assistant öffnen.
-Für eine Vorschau ohne Installation `bash TaraCraft-Install.sh --demo`, für
-isolierte Tests `bash TaraCraft-Install.sh --self-test` verwenden. Die eingebetteten
-Quellen lassen sich mit `bash TaraCraft-Install.sh --extract ./TaraCraft-Setup-Quellen`
+Für eine Vorschau ohne Installation `bash 3D-Ultimate-Studio.sh --demo`, für
+isolierte Tests `bash 3D-Ultimate-Studio.sh --self-test` verwenden. Die eingebetteten
+Quellen lassen sich mit `bash 3D-Ultimate-Studio.sh --extract ./TaraCraft-Setup-Quellen`
 in einen noch nicht vorhandenen Ordner auspacken; die ausführliche README liegt darin.
 
 Der aktuelle Schritt bleibt oben sichtbar. Das tatsächliche Shell-Protokoll darunter
@@ -142,7 +151,7 @@ bleiben erhalten. Andere Recovery-Ursachen werden nicht automatisch gelöscht.
 
 ### Vorhandene Installation aktualisieren oder ganz neu beginnen
 
-Die aktuelle `TaraCraft-Install.sh` starten, die zugehörige frühere Sitzung auswählen
+Die aktuelle `3D-Ultimate-Studio.sh` starten, die zugehörige frühere Sitzung auswählen
 und **Fortsetzen** wählen. Identische Originaldateien können gezielt um die geführte
 Einrichtung und Runtime-Korrektur ergänzt werden. Eigene Änderungen werden nicht
 überschrieben. Beim eigenen neu installierten HA hält der Assistent für diese

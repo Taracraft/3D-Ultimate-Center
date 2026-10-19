@@ -28,6 +28,7 @@ export type DetailedAmsSlot = Readonly<{
 }>;
 
 export type DetailedExternalSpool = Readonly<{
+  configurable?: boolean;
   available: boolean;
   loaded: boolean;
   entity_id: string | null;
@@ -49,6 +50,8 @@ export type DetailedExternalSpool = Readonly<{
 }>;
 
 export type DetailedDirectPrintPrinter = Readonly<{
+  model?: string | null;
+  filament_catalog?: Readonly<{ items: ManualA1FilamentProfile[] }>;
   printer_id: string;
   name: string;
   provider: string;
@@ -64,6 +67,11 @@ export type DetailedDirectPrintPrinter = Readonly<{
     slot_count: number;
     occupied_slot_count: number;
     slots: DetailedAmsSlot[];
+    units?: ReadonlyArray<Readonly<{
+      unit_id: string; model: string; kind: string; generation_known: boolean;
+      temperature: number | null; humidity_level: number | null;
+      humidity_percent: number | null; drying_remaining_minutes: number | null;
+    }>>;
   }>;
 }>;
 
@@ -161,3 +169,4 @@ export async function applyFilamentSetting(token: string): Promise<FilamentSetti
   if (!data) throw new Error("Die Filamenteinstellung wurde vom Drucker nicht bestätigt.");
   return data;
 }
+

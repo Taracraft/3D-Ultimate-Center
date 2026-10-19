@@ -1,6 +1,8 @@
 # Ultimate 3D Studio · Handbuch
 
-> **Aktuelle Einrichtung:** Home Assistant und Slicer laufen in getrennten Docker-Containern; dein Linuxserver bleibt selbst administrierbar. Mit der separat bereitgestellten `TaraCraft-Install.sh` führt die [ausführliche Anleitung](Slicer-Server/INSTALLATION.md) durch die weitgehend automatisierte HACS-/MQTT-/Slicer-/Dashboard-Einrichtung. Die folgenden älteren manuellen Wege bleiben Alternativen.
+[X1 Carbon: Einrichtung, AMS, externe Spule und Kamera](docs/X1C_SETUP.md).
+
+> **Aktuelle Einrichtung:** Home Assistant und Slicer laufen in getrennten Docker-Containern; dein Linuxserver bleibt selbst administrierbar. Mit der separat bereitgestellten `3D-Ultimate-Studio.sh` führt die [ausführliche Anleitung](Slicer-Server/INSTALLATION.md) durch die weitgehend automatisierte HACS-/MQTT-/Slicer-/Dashboard-Einrichtung. Die folgenden älteren manuellen Wege bleiben Alternativen.
 
 **Dein Modell. Deine Materialien. Deine Druckplatte.**
 

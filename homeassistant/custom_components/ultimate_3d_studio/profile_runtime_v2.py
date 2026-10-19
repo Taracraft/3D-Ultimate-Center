@@ -9,6 +9,7 @@ from homeassistant.core import HomeAssistant
 from .gcode_preset_contract import GCODE_DEFAULT_PROFILES, FILAMENT_GCODE_DEFAULTS
 from .const import DOMAIN
 from .h2s_profiles import H2S_PROFILES
+from .x1c_profiles import X1C_PROFILES
 from .curated_local_profiles import CURATED_LOCAL_PROFILES
 from .manufacturer_profiles_complete import COMPLETE_MANUFACTURER_PROFILES
 from .profile_catalog_enrichment import enrich_static_profiles
@@ -17,6 +18,7 @@ from .profile_runtime import BUILTIN_PROFILES, DATA_PROFILE_RUNTIME, StudioProfi
 _RAW_STATIC_PROFILES: tuple[dict[str, Any], ...] = (
     *BUILTIN_PROFILES,
     *H2S_PROFILES,
+    *X1C_PROFILES,
     *GCODE_DEFAULT_PROFILES,
     *CURATED_LOCAL_PROFILES,
     *COMPLETE_MANUFACTURER_PROFILES,

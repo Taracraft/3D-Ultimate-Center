@@ -133,7 +133,7 @@ def test_slicer_options_preserve_saved_secret_without_refilling_the_password_fie
         "slicer_api_secret": DEMO_SECRET,
     }
     flow = _flow(flow_module, current)
-    form = asyncio.run(flow.async_step_init())
+    form = asyncio.run(flow.async_step_advanced())
     assert form["type"] == "form"
     assert form["description_placeholders"]["slicer_secret_status"] == "vorhanden"
     assert DEMO_SECRET not in str(form)
@@ -210,7 +210,7 @@ def test_slicer_server_update_preserves_existing_lan_and_cloud_credentials(flow_
         "slicer_enabled": False,
     }
     flow = _flow(flow_module, current)
-    form = asyncio.run(flow.async_step_init())
+    form = asyncio.run(flow.async_step_advanced())
     assert form["type"] == "form"
     assert form["description_placeholders"]["lan_code_status"] == "vorhanden"
     assert lan_secret not in str(form)
@@ -367,7 +367,156 @@ def test_native_external_route_retains_the_existing_connection_form(flow_module)
     flow = _flow(flow_module, current)
     flow.hass = object()
     result = asyncio.run(flow.async_step_slicer_external())
-    assert result["type"] == "form" and result["step_id"] == "init"
-    assert result["description_placeholders"]["slicer_secret_status"] == "vorhanden"
+    assert result["type"] == "menu" and result["step_id"] == "init"
+    assert flow._current()["slicer_api_secret"] == DEMO_SECRET
     assert flow.config_entry.options == current
     assert DEMO_SECRET not in str(result)
+
+
+
+def test_guided_menu_separates_printer_slicer_account_and_dashboard(flow_module):
+    result = asyncio.run(_flow(flow_module).async_step_init())
+    assert result['type'] == 'menu'
+    assert result['menu_options'] == ['setup_printer','setup_slicer','setup_account','setup_dashboard','advanced']
+
+
+def test_guided_printer_saves_lan_and_preserves_unrelated_connection(flow_module):
+    flow = _flow(flow_module, {'slicer_api_secret':DEMO_SECRET,'cloud_access_token':'saved-cloud'})
+    flow._guided_candidates = {}
+    result = asyncio.run(flow.async_step_setup_printer({
+        'lan_enabled':True,'host':'192.0.2.10','serial':'TEST_SERIAL',
+        'access_code':'test-only-code','tls_insecure':False}))
+    assert result['type'] == 'entry'
+    assert result['data']['lan_enabled'] is True
+    assert result['data']['slicer_api_secret'] == DEMO_SECRET
+    assert result['data']['cloud_access_token'] == 'saved-cloud'
+
+
+def test_guided_printer_missing_required_fields_cannot_finish(flow_module):
+    flow = _flow(flow_module)
+    flow._guided_candidates = {}
+    result=asyncio.run(flow.async_step_setup_printer({'lan_enabled':True}))
+    assert result['type']=='form'
+    assert set(result['errors'])=={'host','serial','access_code'}
+
+
+def test_guided_slicer_checks_and_saves_same_submission(flow_module,monkeypatch):
+    module = sys.modules[flow_module.__package__+'.setup_flow']
+    calls=[]
+    async def probe(session,url,secret):
+        calls.append((url,secret))
+        return {'status':'ready'}
+    monkeypatch.setattr(module,'async_probe_slicer_connection',probe)
+    flow=_flow(flow_module,{'lan_enabled':True,'host':'192.0.2.10','serial':'TEST_SERIAL','access_code':'saved-code','slicer_api_secret':DEMO_SECRET})
+    flow.hass=object()
+    result=asyncio.run(flow.async_step_setup_slicer({'slicer_enabled':True,'slicer_base_url':'https://slicer.example.org','verify_connection':True}))
+    assert result['type']=='entry'
+    assert result['data']['lan_enabled'] is True
+    assert result['data']['slicer_enabled'] is True
+    assert calls==[('https://slicer.example.org',DEMO_SECRET)]
+
+
+def test_guided_slicer_failure_keeps_form_and_hides_secret(flow_module,monkeypatch):
+    module=sys.modules[flow_module.__package__+'.setup_flow']
+    async def probe(*args):raise module.SlicerConnectionProbeError('slicer_unavailable')
+    monkeypatch.setattr(module,'async_probe_slicer_connection',probe)
+    flow=_flow(flow_module,{'slicer_api_secret':DEMO_SECRET})
+    flow.hass=object()
+    result=asyncio.run(flow.async_step_setup_slicer({'slicer_enabled':True,'slicer_base_url':'https://slicer.example.org'}))
+    assert result['type']=='form' and result['errors']['base']=='slicer_unavailable'
+    assert DEMO_SECRET not in str(result)
+
+
+def test_guided_offline_slicer_can_be_saved_explicitly_without_network(flow_module,monkeypatch):
+    module=sys.modules[flow_module.__package__+'.setup_flow']
+    async def forbidden(*args):raise AssertionError('network forbidden')
+    monkeypatch.setattr(module,'async_probe_slicer_connection',forbidden)
+    result=asyncio.run(_flow(flow_module,{'slicer_api_secret':DEMO_SECRET}).async_step_setup_slicer({
+        'slicer_enabled':True,'slicer_base_url':'https://slicer.example.org','verify_connection':False}))
+    assert result['type']=='entry'
+
+
+def test_guided_dashboard_preserves_other_saved_options(flow_module):
+    result=asyncio.run(_flow(flow_module,{'access_code':'saved-code'}).async_step_setup_dashboard({'dashboard_auto':True}))
+    assert result['data']['access_code']=='saved-code'
+    assert result['data']['dashboard_auto'] is True
+
+
+def test_guided_account_skip_stores_no_password(flow_module):
+    result=asyncio.run(_flow(flow_module).async_step_setup_account({'cloud_enabled':False,'password':'must-not-persist'}))
+    assert result['type']=='entry'
+    assert 'password' not in result['data']
+
+
+def test_guided_mqtt_failure_keeps_code_for_explicit_offline_save(flow_module, monkeypatch):
+    module = sys.modules[flow_module.__package__ + '.setup_flow']
+    def probe(*args):
+        raise module.MqttSetupError('mqtt_auth_failed')
+    monkeypatch.setattr(module, 'probe_mqtt', probe)
+    flow = flow_module.Ultimate3DStudioOptionsFlow()
+    flow.config_entry = SimpleNamespace(data={},options={})
+    async def execute(fn,*args):return fn(*args)
+    flow.hass = SimpleNamespace(async_add_executor_job=execute)
+    flow._guided_candidates = {}
+    first = asyncio.run(flow.async_step_setup_printer({'lan_enabled':True,'host':'192.0.2.1',
+        'serial':'DEMO-SERIAL','access_code':'demo-only-code','verify_mqtt':True}))
+    assert first['errors'] == {'base':'mqtt_auth_failed'}
+    assert 'access_code' not in flow._guided_options
+    assert 'demo-only-code' not in repr(first)
+    second = asyncio.run(flow.async_step_setup_printer({'lan_enabled':True,'host':'192.0.2.1',
+        'serial':'DEMO-SERIAL','verify_mqtt':False}))
+    assert second['type'] == 'entry'
+    assert second['data']['access_code'] == 'demo-only-code'
+
+
+def test_initial_guided_setup_uses_private_seed_and_finishes_all_steps(flow_module,tmp_path,monkeypatch):
+    import json,uuid
+    secret='seed-only-'+ 'x'*48
+    seed=tmp_path/'.taracraft-studio-setup.json'
+    seed.write_text(json.dumps({'schema':1,'session':str(uuid.uuid4()),'slicer_base_url':'https://slicer.example.org','slicer_api_secret':secret}))
+    seed.chmod(0o600)
+    import os
+    if os.name == 'nt':
+        module=sys.modules[flow_module.__package__+'.setup_flow']
+        monkeypatch.setattr(module,'read_setup_seed',lambda _: {'slicer_enabled':True,'slicer_base_url':'https://slicer.example.org','slicer_api_secret':secret})
+    flow=flow_module.Ultimate3DStudioConfigFlow()
+    flow.async_show_form=lambda **kw:{'type':'form',**kw}
+    flow.async_create_entry=lambda **kw:{'type':'entry',**kw}
+    async def noop(*args):return None
+    flow.async_set_unique_id=noop;flow._abort_if_unique_id_configured=lambda:None
+    async def execute(fn,*args):return fn(*args)
+    flow.hass=SimpleNamespace(async_add_executor_job=execute,config=SimpleNamespace(config_dir=str(tmp_path)))
+    flow._guided_candidates={}
+    a=asyncio.run(flow.async_step_user({'instance_name':'Demo','guided_setup':True}))
+    assert a['step_id']=='setup_printer' and secret not in repr(a)
+    b=asyncio.run(flow.async_step_setup_printer({'lan_enabled':False}))
+    assert b['step_id']=='setup_slicer' and secret not in repr(b)
+    c=asyncio.run(flow.async_step_setup_slicer({'slicer_enabled':True,'verify_connection':False}))
+    assert c['step_id']=='setup_account'
+    d=asyncio.run(flow.async_step_setup_account({'cloud_enabled':False}))
+    assert d['step_id']=='setup_dashboard'
+    result=asyncio.run(flow.async_step_setup_dashboard({'dashboard_auto':True}))
+    assert result['type']=='entry' and result['title']=='Demo'
+    assert result['data']['slicer_api_secret']==secret and result['data']['dashboard_auto'] is True
+
+
+def test_publicly_readable_seed_is_ignored(flow_module,tmp_path):
+    import json,uuid
+    seed=tmp_path/'.taracraft-studio-setup.json'
+    seed.write_text(json.dumps({'schema':1,'session':str(uuid.uuid4()),'slicer_base_url':'https://slicer.example.org','slicer_api_secret':DEMO_SECRET}))
+    seed.chmod(0o644)
+    module=sys.modules[flow_module.__package__+'.setup_seed']
+    assert module.read_setup_seed(tmp_path)=={}
+
+
+def test_guided_mqtt_save_preserves_concurrent_cloud_token_rotation(flow_module,monkeypatch):
+    module=sys.modules[flow_module.__package__+'.setup_flow']
+    flow=_flow(flow_module,{'cloud_access_token':'old-cloud-token','slicer_api_secret':DEMO_SECRET})
+    def probe(*args):flow.config_entry.options={**flow.config_entry.options,'cloud_access_token':'new-cloud-token'}
+    monkeypatch.setattr(module,'probe_mqtt',probe)
+    async def execute(fn,*args):return fn(*args)
+    flow.hass=SimpleNamespace(async_add_executor_job=execute);flow._guided_candidates={}
+    result=asyncio.run(flow.async_step_setup_printer({'lan_enabled':True,'host':'192.0.2.1',
+        'serial':'DEMO','access_code':'synthetic-code','verify_mqtt':True}))
+    assert result['data']['cloud_access_token']=='new-cloud-token'
+    assert result['data']['slicer_api_secret']==DEMO_SECRET

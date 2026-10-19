@@ -1,0 +1,23 @@
+{
+  "id": "bambu_lab_x1c_04",
+  "name": "Bambu Lab X1 Carbon",
+  "manufacturer": "Bambu Lab",
+  "model": "X1C",
+  "technology": "fff",
+  "preferred_engine": "bambu_studio",
+  "compatible_engines": [
+    "bambu_studio"
+  ],
+  "build_volume": {
+    "x": 256,
+    "y": 256,
+    "z": 256
+  },
+  "engine_profiles": {
+    "bambu_studio": {
+      "machine": "BBL/machine/Bambu Lab X1 Carbon 0.4 nozzle.json",
+      "process": "BBL/process/0.20mm Standard @BBL X1C.json",
+      "filament": "BBL/filament/Generic PLA.json"
+    }
+  }
+}

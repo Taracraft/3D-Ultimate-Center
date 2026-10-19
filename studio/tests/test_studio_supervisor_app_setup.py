@@ -501,14 +501,14 @@ class FlowTests(SessionFixture):
         progress=await self.flow.async_step_slicer_supervisor();await progress['progress_task']
         form=await self.flow.async_step_slicer_supervisor_result()
         self.assertNotIn('never-export',str(form));self.assertNotIn('private-option',str(form))
-    async def test_options_route_is_the_new_menu(self):
+    async def test_advanced_options_route_is_the_slicer_menu(self):
         tree=ast.parse((COMP/'config_flow.py').read_bytes())
         cls=next(n for n in tree.body if isinstance(n,ast.ClassDef) and n.name=='Ultimate3DStudioOptionsFlow')
-        method=next(n for n in cls.body if isinstance(n,ast.AsyncFunctionDef) and n.name=='async_step_init')
+        method=next(n for n in cls.body if isinstance(n,ast.AsyncFunctionDef) and n.name=='async_step_advanced')
         env={'CONF_INSTALLER_SETUP':'slicer_installer_setup','CONF_CLOUD_REAUTHENTICATE':'cloud_reauthenticate'}
         module=ast.Module(body=[ast.ImportFrom(module='__future__',names=[ast.alias(name='annotations')],level=0),method],type_ignores=[])
         exec(compile(ast.fix_missing_locations(module),'<options route>','exec'),env)
-        result=await env['async_step_init'](self.flow,{'slicer_installer_setup':True})
+        result=await env['async_step_advanced'](self.flow,{'slicer_installer_setup':True})
         self.assertEqual(result['type'],'menu');self.assertEqual(self.flow.legacy,0)
 
     async def test_authenticated_http_actor_works_with_empty_native_context(self):

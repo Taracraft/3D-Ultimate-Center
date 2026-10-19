@@ -1,4 +1,13 @@
-﻿# Ultimate Slicer Server
+# Ultimate Slicer Server
+
+**Neuer Quellkandidat:** Studio 6.0.6 / Slicer 0.1.0-alpha11 mit X1C,
+mehreren AMS-Einheiten, externer Spule und RTSPS-Kamera. Noch keine bestätigte
+Veröffentlichung dieses Kandidaten. Die nachfolgend genannten 6.0.5-/alpha10-
+Archive und das alpha9-Runtimeimage bleiben die unveränderliche Installerbasis;
+geprüfte Quelldateien werden zusätzlich über gebundene Overlays eingebunden.
+
+
+[X1 Carbon: Einrichtung, AMS, externe Spule und Kamera](https://github.com/Taracraft/3D-Ultimate-Slicer-Server/blob/main/docs/X1C_SETUP.md).
 
 ![Promo-Illustration - Ultimate Slicer Server](https://raw.githubusercontent.com/Taracraft/3D-Ultimate-Slicer-Server/main/assets/slicer-hero.png)
 
@@ -35,15 +44,15 @@ Der Quellkatalog `Slicer-Server/engine_catalog.json` bleibt der noch leere Auswa
 Du administrierst Linux, Docker, Netzwerk und weitere Dienste weiterhin selbst.
 Der Assistent installiert und verbindet HACS, Studio und den Slicer.
 
-Wenn dir die aktuelle einzelne Datei `TaraCraft-Install.sh` bereitgestellt wurde,
+Wenn dir die aktuelle einzelne Datei `3D-Ultimate-Studio.sh` bereitgestellt wurde,
 kopiere sie auf den Linux/amd64-Server und starte sie dort im Terminal:
 
 ```sh
-sudo bash TaraCraft-Install.sh
+sudo bash 3D-Ultimate-Studio.sh
 ```
 
-Mit `bash TaraCraft-Install.sh --demo` lässt sich die Oberfläche vorher ansehen;
-`bash TaraCraft-Install.sh --self-test` führt isolierte Prüfungen aus. Der Assistent
+Mit `bash 3D-Ultimate-Studio.sh --demo` lässt sich die Oberfläche vorher ansehen;
+`bash 3D-Ultimate-Studio.sh --self-test` führt isolierte Prüfungen aus. Der Assistent
 zeigt den aktuellen Schritt oben und das echte, scrollbar bleibende Shell-Protokoll
 darunter. Bei einer vorhandenen zugehörigen Sitzung **Fortsetzen** wählen.
 

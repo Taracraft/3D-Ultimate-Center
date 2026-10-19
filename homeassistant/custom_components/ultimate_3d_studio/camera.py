@@ -4,16 +4,19 @@ from __future__ import annotations
 from dataclasses import asdict
 from typing import Any
 
-from homeassistant.components.camera import Camera
+from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .camera_native import NativePrinterCameraClient
+from .camera_rtsp import RtspPrinterCameraClient
+from .printer_identity import resolve_connected_printer_model
 from .const import (
     CONF_ACCESS_CODE,
     CONF_HOST,
+    CONF_SERIAL,
     CONF_PRINTER_NAME,
     CONF_TLS_INSECURE,
     DEFAULT_PRINTER_NAME,
@@ -42,6 +45,7 @@ async def async_setup_entry(
                 access_code=access_code,
                 printer_name=str(config.get(CONF_PRINTER_NAME) or DEFAULT_PRINTER_NAME),
                 tls_insecure=bool(config.get(CONF_TLS_INSECURE, DEFAULT_TLS_INSECURE)),
+                model=resolve_connected_printer_model(None, config.get(CONF_SERIAL)),
             )
         ]
     )
@@ -61,12 +65,16 @@ class Ultimate3DStudioCamera(Camera):
         access_code: str,
         printer_name: str,
         tls_insecure: bool,
+        model: str | None = None,
     ) -> None:
         super().__init__()
         self._entry = entry
         self._host = host
         self._printer_name = printer_name
-        self._client = NativePrinterCameraClient(
+        self._rtsp = model in {"X1C", "H2S"}
+        if self._rtsp:
+            self._attr_supported_features = CameraEntityFeature.STREAM
+        self._client = (RtspPrinterCameraClient if self._rtsp else NativePrinterCameraClient)(
             host=host,
             access_code=access_code,
             tls_insecure=tls_insecure,
@@ -93,7 +101,7 @@ class Ultimate3DStudioCamera(Camera):
 
     @property
     def available(self) -> bool:
-        return self._client.latest_frame is not None or self._client.connected
+        return self._client.connected
 
     @property
     def is_streaming(self) -> bool:
@@ -104,8 +112,8 @@ class Ultimate3DStudioCamera(Camera):
         status = asdict(self._client.runtime_status())
         status.update(
             {
-                "provider": "bambu_native_tls_jpeg",
-                "transport": "tls_tcp_6000",
+                "provider": "bambu_native_rtsps" if self._rtsp else "bambu_native_tls_jpeg",
+                "transport": "rtsps_tcp_322" if self._rtsp else "tls_tcp_6000",
                 "read_only": True,
                 "printer_name": self._printer_name,
             }
@@ -119,6 +127,9 @@ class Ultimate3DStudioCamera(Camera):
     ) -> bytes | None:
         return self._client.latest_frame
 
+    async def stream_source(self) -> str | None:
+        return self._client.stream_source() if self._rtsp else None
+
     @property
     def device_info(self) -> DeviceInfo:
         return DeviceInfo(
@@ -128,3 +139,4 @@ class Ultimate3DStudioCamera(Camera):
             model="Standalone Bambu LAN Runtime",
             sw_version=VERSION,
         )
+

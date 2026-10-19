@@ -7,6 +7,9 @@ from pathlib import Path, PurePosixPath
 import stat
 
 SOURCE_PATHS = (
+    "docs/GUIDED_SETUP.md",
+    "docs/X1C_SETUP.md",
+    "docs/branding/studio-mark.svg",
     "Slicer-Server/prepare_supervisor_context.py",
     "Slicer-Server/supervisor_app_service.py",
     "Slicer-Server/supervisor_worker_policy.py",
@@ -112,6 +115,7 @@ SOURCE_PATHS = (
     "tests/test_publish_release.py",
     "Slicer-Server/target_image_sbom.py",
     "Slicer-Server/verify_profile_sources.py",
+    "Slicer-Server/materialize_profile_sources.py",
     "Slicer-Server/verify_test_server_package.py",
     "Slicer-Server/wiki/Architektur.md",
     "Slicer-Server/wiki/Betrieb-und-Wiederherstellung.md",
@@ -130,6 +134,7 @@ SOURCE_PATHS = (
     "deploy/homeassistant/custom_components/ultimate_3d_studio/filament_parameter_contract.py",
     "deploy/homeassistant/custom_components/ultimate_3d_studio/gcode_artifact_validation.py",
     "deploy/homeassistant/custom_components/ultimate_3d_studio/h2s_native_defaults.json",
+    "deploy/homeassistant/custom_components/ultimate_3d_studio/x1c_native_defaults.json",
     "deploy/homeassistant/custom_components/ultimate_3d_studio/materialize-bambu-machine.py",
     "deploy/homeassistant/custom_components/ultimate_3d_studio/materialize-bambu-multimaterial.py",
     "deploy/homeassistant/custom_components/ultimate_3d_studio/native_filament_defaults.json",
@@ -140,11 +145,13 @@ SOURCE_PATHS = (
     "deploy/homeassistant/host/3d-printer-slicing-server/SHA256SUMS",
     "deploy/homeassistant/host/3d-printer-slicing-server/append-slicing-journal.sh",
     "deploy/homeassistant/host/3d-printer-slicing-server/bambu_lab_h2s_04.json",
+    "deploy/homeassistant/host/3d-printer-slicing-server/bambu_lab_x1c_04.json",
     "deploy/homeassistant/host/3d-printer-slicing-server/deploy-native-slicer.sh",
     "deploy/homeassistant/host/3d-printer-slicing-server/dispatch-job.sh",
     "deploy/homeassistant/host/3d-printer-slicing-server/job_control.py",
     "deploy/homeassistant/host/3d-printer-slicing-server/profiles/printers/bambu_lab_a1_04.json",
     "deploy/homeassistant/host/3d-printer-slicing-server/profiles/printers/bambu_lab_h2s_04.json",
+    "deploy/homeassistant/host/3d-printer-slicing-server/profiles/printers/bambu_lab_x1c_04.json",
     "deploy/homeassistant/host/3d-printer-slicing-server/progress-pipe-reader.py",
     "deploy/homeassistant/host/3d-printer-slicing-server/refresh-state.sh",
     "deploy/homeassistant/host/3d-printer-slicing-server/server.py",
@@ -345,5 +352,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 

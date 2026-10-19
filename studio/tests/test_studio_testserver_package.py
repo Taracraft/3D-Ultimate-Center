@@ -303,7 +303,7 @@ def test_real_package_preserves_exact_inherited_license_notices(tmp_path, name, 
 def test_real_context_carries_profile_origins_and_transformations():
     payload, manifest = context.collect(ROOT)
     provenance = json.loads(payload["PAYLOAD_PROVENANCE.json"])
-    assert len(provenance["payload_files"]) == 19
+    assert len(provenance["payload_files"]) == 22
     assert len(provenance["profiles"]) == 54
     assert len(provenance["upstream_files"]) == 118
     assert provenance["upstream_commit"] == "42d319c6692fa8e64790fddf0cdaafd2a4254bcc"
@@ -564,3 +564,4 @@ def test_matching_manifest_and_archive_do_not_approve_nonportable_names(tmp_path
     monkeypatch.setattr(verifier.Path, "mkdir", no_output_creation)
     with pytest.raises(verifier.PackageError, match="unsafe_archive_path|invalid_manifest_path"):
         verifier.extract_verified(rewritten, tmp_path / "must-not-exist")
+

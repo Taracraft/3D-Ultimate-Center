@@ -545,15 +545,20 @@ def build_project_file_command(
     vibration_cali: bool,
     timelapse: bool,
 ) -> dict[str, Any]:
+    from .printer_model_contract import canonical_model, max_material_channels
+    model = canonical_model(uploaded.validation_report.get("declared_printer_model"))
+    channel_limit = max_material_channels(model)
     mapping = [int(value) for value in (ams_mapping or [])]
-    if len(mapping) > 5 or any(value < -1 or value > 255 for value in mapping):
+    if any(value < -1 or value > 255 for value in mapping):
         raise DirectPrintError("Ungültige AMS-Zuordnung.")
+    if use_ams and (not mapping or any(value < 0 for value in mapping)):
+        raise DirectPrintError(
+            "Ungültige AMS-Zuordnung: externe Spule ist für "
+            "diesen Auftrag nicht erlaubt."
+        )
+    if len(mapping) > channel_limit:
+        raise DirectPrintError("Ungültige AMS-Zuordnung: zu viele Materialkanäle.")
     if use_ams:
-        if not mapping or len(mapping) > 4 or any(value < 0 for value in mapping):
-            raise DirectPrintError(
-                "Ungültige AMS-Zuordnung: externe Spule ist für "
-                "diesen Auftrag nicht erlaubt."
-            )
         markers = uploaded.validation_report.get("markers", {})
         if (
             not markers.get("material_select")
@@ -591,3 +596,4 @@ def build_project_file_command(
             "ams_mapping": mapping,
         }
     }
+
