@@ -1,8 +1,9 @@
 # Ultimate Slicer Server einrichten und prüfen
 
-**Neuer Quellkandidat:** Studio 6.0.6 / Slicer 0.1.0-alpha11 mit X1C,
-mehreren AMS-Einheiten, externer Spule und RTSPS-Kamera. Noch keine bestätigte
-Veröffentlichung dieses Kandidaten. Die nachfolgend genannten 6.0.5-/alpha10-
+**Quellstand:** Studio 6.0.6 / Slicer 0.1.0-alpha11 mit X1C,
+mehreren AMS-Einheiten, externer Spule und RTSPS-Kamera. Veröffentlichte Stände
+und deren Nachweise stehen in den GitHub-Releases der beiden Projekte.
+Die nachfolgend genannten 6.0.5-/alpha10-
 Archive und das alpha9-Runtimeimage bleiben die unveränderliche Installerbasis;
 geprüfte Quelldateien werden zusätzlich über gebundene Overlays eingebunden.
 

@@ -151,3 +151,20 @@ def test_native_test_scope_does_not_expand_to_other_sources(delivery,rel):
     m["files"][0]["path"]=rel
     with pytest.raises(contract.DeliveryError):
         contract.verify(root,m,tracked,contract.PROTECTED_TREE)
+
+
+@pytest.mark.parametrize('name', contract.PUBLIC_GUIDE_PATHS)
+def test_only_individually_reviewed_setup_guides_are_deliverable(delivery,name):
+    root,m,tracked=delivery
+    p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(b'synthetic public guide')
+    m['files'].append({'path':name,'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()})
+    tracked.add(name)
+    assert contract.verify(root,m,tracked,contract.PROTECTED_TREE)['files']==2
+
+@pytest.mark.parametrize('name',[
+    'studio/docs/X1C_SETUP-private.md','studio/docs/branding/private.svg',
+    'studio/docs/ROADMAP.md','studio/DOCS/private.md','STUDIO/docs/X1C_SETUP.md',contract.HOST_PREFIX+'bambu_lab_x1c_04-copy.json',
+    contract.HOST_PREFIX+'profiles/printers/bambu_lab_x1c_04-copy.json'])
+def test_public_setup_allowlist_does_not_include_similar_private_paths(delivery,name):
+    root,m,tracked=delivery;m['files'][0]['path']=name
+    with pytest.raises(contract.DeliveryError):contract.verify(root,m,tracked,contract.PROTECTED_TREE)

@@ -490,3 +490,25 @@ def test_container_exec_preserves_argument_boundaries(monkeypatch):
     runtime.exec_isolated(args)
     assert calls == [("synthetic-engine", args)]
 
+
+
+def test_every_manifest_dependency_is_copied_into_the_actual_image():
+    import shlex
+    from pathlib import PurePosixPath
+    payload, manifest = prep.collect(ROOT)
+    copied = set()
+    for line in (ROOT / "Slicer-Server/Dockerfile").read_text(encoding="utf-8").splitlines():
+        if not line.startswith("COPY "):
+            continue
+        tokens = [token for token in shlex.split(line)[1:] if not token.startswith("--")]
+        destination = PurePosixPath(tokens[-1])
+        for source in tokens[:-1]:
+            if source.endswith("/"):
+                for name in payload:
+                    if name.startswith(source):
+                        copied.add((destination / name[len(source):]).as_posix())
+            else:
+                assert source in payload, source
+                copied.add((destination / PurePosixPath(source).name).as_posix())
+    required = {row["path"] for row in manifest["files"]} | {"context-manifest.json"}
+    assert required <= copied, "Dockerfile omits required prepared sources: " + repr(sorted(required - copied))

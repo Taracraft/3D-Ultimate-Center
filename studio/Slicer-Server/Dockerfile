@@ -66,7 +66,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/ultimate-slicer-server
 COPY --chown=65532:65532 payload/ ./payload/
-COPY --chown=65532:65532 context-manifest.json verify_profile_sources.py PROFILE_SOURCE_BUNDLE.json target_image_sbom.py TARGET_IMAGE_REFERENCE.json container_check.py container_runtime.py container_probe.py container_service.py supervisor_worker_policy.py supervisor_app_service.py container_engines.py LICENSE THIRD_PARTY_NOTICES.md PAYLOAD_PROVENANCE.json ./
+COPY --chown=65532:65532 context-manifest.json verify_profile_sources.py materialize_profile_sources.py PROFILE_SOURCE_BUNDLE.json target_image_sbom.py TARGET_IMAGE_REFERENCE.json container_check.py container_runtime.py container_probe.py container_service.py supervisor_worker_policy.py supervisor_app_service.py container_engines.py LICENSE THIRD_PARTY_NOTICES.md PAYLOAD_PROVENANCE.json ./
 COPY --chown=65532:65532 licenses/ ./licenses/
 # Fixed FHS paths for reviewed Prusa/Cura archives; no engine executed here.
 RUN python3 container_engines.py prepare-image \
@@ -75,3 +75,4 @@ RUN python3 container_engines.py prepare-image \
 USER 65532:65532
 ENTRYPOINT ["python3", "/opt/ultimate-slicer-server/container_check.py"]
 CMD ["check"]
+

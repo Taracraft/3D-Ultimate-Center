@@ -14,6 +14,7 @@
 !licenses/**
 !PAYLOAD_PROVENANCE.json
 !verify_profile_sources.py
+!materialize_profile_sources.py
 !PROFILE_SOURCE_BUNDLE.json
 !target_image_sbom.py
 !TARGET_IMAGE_REFERENCE.json

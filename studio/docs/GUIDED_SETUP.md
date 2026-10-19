@@ -1,15 +1,16 @@
 # Geführte Studio-Einrichtung
 
-**Neuer Quellkandidat:** Studio 6.0.6 / Slicer 0.1.0-alpha11 mit X1C,
-mehreren AMS-Einheiten, externer Spule und RTSPS-Kamera. Noch keine bestätigte
-Veröffentlichung dieses Kandidaten. Die nachfolgend genannten 6.0.5-/alpha10-
+**Quellstand:** Studio 6.0.6 / Slicer 0.1.0-alpha11 mit X1C,
+mehreren AMS-Einheiten, externer Spule und RTSPS-Kamera. Veröffentlichte Stände
+und deren Nachweise stehen in den GitHub-Releases der beiden Projekte.
+Die nachfolgend genannten 6.0.5-/alpha10-
 Archive und das alpha9-Runtimeimage bleiben die unveränderliche Installerbasis;
 geprüfte Quelldateien werden zusätzlich über gebundene Overlays eingebunden.
 
 
 [X1 Carbon: Einrichtung, AMS, externe Spule und Kamera](X1C_SETUP.md).
 
-Stand: 18. Oktober 2026. Diese Anleitung beschreibt den separat bereitgestellten
+Stand: 19. Oktober 2026. Diese Anleitung beschreibt den separat bereitgestellten
 TaraCraft-Assistenten mit seinen gebundenen Setup-Ergänzungen. Der unveränderte
 HACS-Tag 6.0.5 enthält diese neuen Formulare noch nicht. Die neue Automatisierung
 ist isoliert getestet; die vollständige UI- und Netzabnahme auf dem Zielserver

@@ -22,8 +22,9 @@ REVIEW_NAMES = ("infrastructure", "credentials", "licenses", "isolated_candidate
 HOST_PREFIX = "studio/deploy/homeassistant/host/3d-printer-slicing-server/"
 HOST_RUNTIME_NAMES = (
     "server.py", "job_control.py", "dispatch-job.sh", "progress-pipe-reader.py",
-    "refresh-state.sh", "append-slicing-journal.sh", "bambu_lab_h2s_04.json",
+    "refresh-state.sh", "append-slicing-journal.sh", "bambu_lab_h2s_04.json", "bambu_lab_x1c_04.json",
     "profiles/printers/bambu_lab_a1_04.json", "profiles/printers/bambu_lab_h2s_04.json",
+    "profiles/printers/bambu_lab_x1c_04.json",
     "SHA256SUMS", "DEPENDENCY-SHA256SUMS",
 )
 HOST_RUNTIME_PATHS = frozenset(HOST_PREFIX + name for name in HOST_RUNTIME_NAMES)
@@ -42,6 +43,12 @@ NATIVE_TEST_SOURCE_PATHS = frozenset((
     "studio/packages/ultimate-slicer-server/systemd/ultimate-slicer-dispatch.timer",
     "studio/packages/ultimate-slicer-server/systemd/ultimate-slicer-refresh.service",
     "studio/packages/ultimate-slicer-server/systemd/ultimate-slicer-refresh.timer",
+))
+
+PUBLIC_GUIDE_PATHS = frozenset((
+    "studio/docs/GUIDED_SETUP.md",
+    "studio/docs/X1C_SETUP.md",
+    "studio/docs/branding/studio-mark.svg",
 ))
 
 class DeliveryError(ValueError):
@@ -74,7 +81,7 @@ def forbidden(name: str) -> bool:
     return (any(p.casefold() in {s.casefold() for s in PRIVATE_PARTS} for p in parts)
             or parts[-1] in PRIVATE_NAMES
             or any(re.search(r"\.(?:bak|backup|before)(?:[._-]|$)", p, re.I) for p in parts)
-            or name.startswith("studio/docs/")
+            or (name.casefold().startswith("studio/docs/") and name not in PUBLIC_GUIDE_PATHS)
             or (name.startswith("studio/deploy/homeassistant/host/")
                 and name not in HOST_RUNTIME_PATHS and name not in NATIVE_TEST_SOURCE_PATHS)
             or any(re.fullmatch(r"studio-v\d+|ultimate_3d_studio_v\d+|3d-studio-v\d+",p,re.I) for p in parts)
@@ -151,3 +158,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

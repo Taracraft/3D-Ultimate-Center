@@ -1,5 +1,5 @@
 {
-  "dockerfile_sha256": "a268e917f65853be57e17ad3f51790603ac08530bc6fd77801a2fcfd3079bcfd",
+  "dockerfile_sha256": "babf7aad9f05a53ed7f45bb6752694f0f1d4bffb4a959f01e7235bce35a7583a",
   "host_reference_scope": "Read-only Debian 13 host observation; not a target-image lock or release approval.",
   "host_reference_sha256": "aff23c053edc6af1b325e4544d2b3100a86a11be6b676e4c25882a897f78d443",
   "kind": "ultimate-slicer-target-image-package-reference",
