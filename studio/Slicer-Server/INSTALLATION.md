@@ -10,6 +10,33 @@ geprüfte Quelldateien werden zusätzlich über gebundene Overlays eingebunden.
 
 [X1 Carbon: Einrichtung, AMS, externe Spule und Kamera](../docs/X1C_SETUP.md).
 
+### Studio lässt sich nicht hinzufügen: „Invalid handler specified“
+
+Diese Meldung fasst einen fehlgeschlagenen Import des Einrichtungsdialogs zusammen.
+Die konkrete Ursache steht in **Einstellungen → System → Protokolle**. Beim
+HA-Container alternativ `sudo docker logs --tail 150 ultimate-3d-studio-homeassistant`.
+Eine GitHub-Anmeldung von HACS behebt keinen Python-Ladefehler.
+
+**Behoben in Studio 6.0.8:** Der Fehler `Incomplete manufacturer profiles` mit
+`local.filament.x1c_...: invalid native H2S basis` kam von einer falschen
+Modellzuordnung bei der Katalogprüfung. X1C und H2S werden jetzt jeweils gegen
+ihre eigene native Profilautorität und Hardwaregrenzen geprüft. Alle 183
+X1C-Filamente bleiben enthalten. Kammerempfehlungen aus Herstellervorlagen
+bleiben als Referenz erhalten; die erzeugten X1C-Profile fordern keinen aktiven
+Kammerheizer an. Materialbereiche über 300 °C werden im abgeleiteten X1C-Profil
+auf die X1C-Grenze begrenzt. Die gepinnten Herstellerdaten bleiben unverändert.
+Ungültige spätere Temperatur-, Material-, AMS- oder Modelländerungen werden
+weiterhin abgewiesen.
+
+Mit dem aktuellen `3D-Ultimate-Studio.sh` im Hauptmenü **Frühere Sitzung fortsetzen**
+und die passende **BESTAND**-Sitzung mit denselben Einstellungen wählen. Der
+Assistent aktualisiert die bekannten eigenen Integrationsdateien und startet
+sein eigenes HA nach Bedarf wieder. Persönliche Einstellungen bleiben erhalten;
+Löschen oder Zurücksetzen ist für diesen Fehler nicht erforderlich. Bei der
+normalen HACS-Installation Studio aktualisieren und HA vollständig neu starten.
+Danach den Einrichtungsdialog erneut öffnen. Der echte Wiederholungstest bleibt
+bis zur erneuten Ausführung auf dem eigenen System offen.
+
 ## Installation mit dem TaraCraft-Assistenten
 
 **Home Assistant und Slicer laufen als getrennte Docker-Container auf deinem vorhandenen Linuxserver.**
@@ -29,7 +56,7 @@ zeigt den aktuellen Schritt oben und das echte, scrollbar bleibende Shell-Protok
 darunter. Bei einer vorhandenen zugehörigen Sitzung **Fortsetzen** wählen.
 
 Die [ausführliche Anleitung für Container, HACS, MQTT, Slicer und Dashboard](https://github.com/Taracraft/3D-Ultimate-Center/blob/main/studio/Slicer-Server/INSTALLATION.md)
-beschreibt die geführte Einrichtung, persönliche GitHub-Geräteanmeldung,
+beschreibt die direkte Studio-Einrichtung ohne GitHub-Anmeldung, optionales HACS,
 automatische Repository-Übernahme und das vollständige Zurücksetzen. Die
 Automatisierungen gelten für den aktuellen separat bereitgestellten Assistenten
 mit seinen gebundenen Setup-Ergänzungen. Sie sind keine Behauptung, dass der

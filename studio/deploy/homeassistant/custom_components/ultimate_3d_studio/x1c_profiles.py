@@ -30,6 +30,16 @@ for surface, name in [("textured_pei", "Texturierte PEI"), ("smooth_pei", "Glatt
 for name, authority in x1c_defaults()["filaments"].items():
     metadata = {"compatible_printers", "compatible_prints", "compatible_printers_condition", "compatible_prints_condition"}
     payload = {key: [value[0]] if isinstance(value, list) and value and key not in metadata else deepcopy(value) for key, value in authority["settings"].items()}
+    # Retain manufacturer references without requesting an absent chamber heater.
+    chamber = payload.get("chamber_temperatures", ["0"])
+    if any(float(value) != 0 for value in chamber):
+        payload["manufacturer_chamber_temperatures"] = deepcopy(chamber)
+        payload["chamber_temperatures"] = ["0"]
+    high = payload.get("nozzle_temperature_range_high", [])
+    limit = hardware_limits("X1C")["max_nozzle_temperature_c"]
+    if any(float(value) > limit for value in high):
+        payload["manufacturer_nozzle_temperature_range_high"] = deepcopy(high)
+        payload["nozzle_temperature_range_high"] = [f"{min(float(value), limit):g}" for value in high]
     payload.update({"printer_model": "X1C", "target_printer": "Bambu Lab X1C", "native_profile_name": name,
         "inherits": name, "profile_completeness": "validated_complete", "slicing_supported": True,
         "material": payload["filament_type"][0], "vendor": payload["filament_vendor"][0],

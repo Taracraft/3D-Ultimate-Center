@@ -1,4 +1,4 @@
-"""Normalize and validate complete local filament profiles for Bambu Lab A1."""
+"""Normalize A1 profiles and validate native filaments by their printer model."""
 from __future__ import annotations
 
 from copy import deepcopy
@@ -183,25 +183,26 @@ def validate_complete_profiles(profiles: Iterable[dict[str, Any]]) -> None:
             failures.append(f"{profile_id}: payload missing")
             continue
         if str(payload.get("printer_model") or "").casefold() in {"h2s", "x1c", "x1 carbon"}:
-            from .printer_model_contract import h2s_defaults, hardware_limits
+            from .printer_model_contract import canonical_model, hardware_limits, native_defaults
             from .filament_parameter_contract import preflight_filament_settings, check_filament_temperatures
+            model = canonical_model(payload["printer_model"])
             try:
                 required = {"vendor", "material", "native_profile_name", "inherits", "printer_model",
                             "slicing_supported", "ams_compatible", "compatible_nozzle_diameters_mm",
                             "hardened_nozzle_required"}
                 if required - set(payload):
-                    raise ValueError("missing native H2S metadata")
+                    raise ValueError(f"missing native {model} metadata")
                 name = payload["native_profile_name"]
-                authority = h2s_defaults()["filaments"].get(name)
+                authority = native_defaults(model)["filaments"].get(name)
                 if not authority or payload["inherits"] != name:
-                    raise ValueError("invalid native H2S basis")
+                    raise ValueError(f"invalid native {model} basis")
                 if payload["ams_compatible"] and not authority["ams_supported"]:
-                    raise ValueError("unverified H2S AMS family")
+                    raise ValueError(f"unverified {model} AMS family")
                 if payload["material"] != authority["settings"]["filament_type"][0]:
-                    raise ValueError("native H2S material family mismatch")
+                    raise ValueError(f"native {model} material family mismatch")
                 effective = preflight_filament_settings(payload)
                 for bed in ("Textured PEI Plate", "High Temp Plate"):
-                    check_filament_temperatures(effective, hardware_limits("H2S"), bed)
+                    check_filament_temperatures(effective, hardware_limits(model), bed)
             except (ValueError, TypeError, KeyError) as exc:
                 failures.append(f"{profile_id}: {exc}")
             continue

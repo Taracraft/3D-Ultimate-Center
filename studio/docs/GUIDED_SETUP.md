@@ -79,10 +79,44 @@ Datei. Das Secret erscheint weder auf der Startseite noch im Shell-Protokoll.
    Direkter Aufruf: `/ultimate-3d-studio/studio`. Die Karte ist bereits in voller
    Breite eingebunden; YAML und manuelles Registrieren einer Ressource entfallen.
    Ein eigenes Dashboard an derselben Adresse bleibt erhalten.
-8. Für spätere Updates **HACS** als Integration hinzufügen und dich persönlich
-   über GitHub anmelden. Nach der Anmeldung registriert der auf HACS 2.0.5 geprüfte Adapter das Studio-Repository automatisch und übernimmt die bereits geladenen lokalen Integrationsdateien für die Updateverwaltung. **Studio-Repository nach HACS-Anmeldung automatisch hinzufügen** dabei eingeschaltet lassen. Es erfolgt kein erneuter Download und keine automatische Aktualisierung der Programmdateien. Bei einer anderen HACS-Version oder fehlgeschlagener Registrierung den [vorbereiteten Repository-Link](https://my.home-assistant.io/redirect/hacs_repository/?owner=Taracraft&repository=3D-Ultimate-Center&category=integration)
-   als Rückfall öffnen und die Integration übernehmen. HACS benötigt deine persönliche GitHub-Geräteanmeldung: den angezeigten Code auf GitHub bestätigen und gegebenenfalls zurück zu HACS wechseln. Diese Anmeldung kann der Installer nicht für dich erteilen. HA-Benutzerkonto und persönliche
-   GitHub-Anmeldung bleiben echte Anmeldeschritte.
+8. **Optional: HACS für Updates aktivieren.** Die direkte Studio-Einrichtung und
+   das Dashboard benötigen keine GitHub-Anmeldung. HACS-Dateien sind installiert,
+   seine Updateverwaltung bleibt ohne Anmeldung inaktiv. Wenn du HACS verwenden
+   möchtest, HACS als Integration hinzufügen und den persönlichen Gerätecode mit
+   deinem eigenen GitHub-Konto bestätigen. Der auf HACS 2.0.5 geprüfte Adapter
+   registriert das Studio-Repository danach automatisch, wenn die automatische
+   Registrierung eingeschaltet ist. Ein anderes Konto muss niemand teilen.
+   HACS benötigt die Anmeldung wegen des GitHub-API-Limits von 60 anonymen Abfragen
+   pro Stunde; der OAuth-Zugang verwendet keine zusätzlichen Berechtigungen.
+   [Offizielle HACS-Erklärung](https://www.hacs.xyz/docs/faq/github_account/).
+   Ohne HACS Updates bewusst über den aktuellen bereitgestellten Installer einspielen.
+
+### Studio lässt sich nicht hinzufügen: „Invalid handler specified“
+
+Diese Meldung fasst einen fehlgeschlagenen Import des Einrichtungsdialogs zusammen.
+Die konkrete Ursache steht in **Einstellungen → System → Protokolle**. Beim
+HA-Container alternativ `sudo docker logs --tail 150 ultimate-3d-studio-homeassistant`.
+Eine GitHub-Anmeldung von HACS behebt keinen Python-Ladefehler.
+
+**Behoben in Studio 6.0.8:** Der Fehler `Incomplete manufacturer profiles` mit
+`local.filament.x1c_...: invalid native H2S basis` kam von einer falschen
+Modellzuordnung bei der Katalogprüfung. X1C und H2S werden jetzt jeweils gegen
+ihre eigene native Profilautorität und Hardwaregrenzen geprüft. Alle 183
+X1C-Filamente bleiben enthalten. Kammerempfehlungen aus Herstellervorlagen
+bleiben als Referenz erhalten; die erzeugten X1C-Profile fordern keinen aktiven
+Kammerheizer an. Materialbereiche über 300 °C werden im abgeleiteten X1C-Profil
+auf die X1C-Grenze begrenzt. Die gepinnten Herstellerdaten bleiben unverändert.
+Ungültige spätere Temperatur-, Material-, AMS- oder Modelländerungen werden
+weiterhin abgewiesen.
+
+Mit dem aktuellen `3D-Ultimate-Studio.sh` im Hauptmenü **Frühere Sitzung fortsetzen**
+und die passende **BESTAND**-Sitzung mit denselben Einstellungen wählen. Der
+Assistent aktualisiert die bekannten eigenen Integrationsdateien und startet
+sein eigenes HA nach Bedarf wieder. Persönliche Einstellungen bleiben erhalten;
+Löschen oder Zurücksetzen ist für diesen Fehler nicht erforderlich. Bei der
+normalen HACS-Installation Studio aktualisieren und HA vollständig neu starten.
+Danach den Einrichtungsdialog erneut öffnen. Der echte Wiederholungstest bleibt
+bis zur erneuten Ausführung auf dem eigenen System offen.
 
 ### MQTT: direkte Druckerverbindung
 
